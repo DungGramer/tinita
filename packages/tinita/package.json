@@ -1,0 +1,85 @@
+{
+  "name": "tinita",
+  "version": "0.0.1",
+  "description": "Modern TypeScript utility library with tree-shaking support - zero dependencies, type-safe, framework-agnostic",
+  "author": {
+    "name": "DungGramer",
+    "email": "dung.dev.gramer@gmail.com",
+    "url": "https://dunggramer.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dunggramer/tinita.git",
+    "directory": "packages/tinita"
+  },
+  "homepage": "https://github.com/dunggramer/tinita#readme",
+  "bugs": {
+    "url": "https://github.com/dunggramer/tinita/issues"
+  },
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "generate:exports": "node ../../scripts/generate-package-exports.mjs",
+    "clean": "rimraf dist",
+    "build": "pnpm run clean && tsup",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest",
+    "check-types": "tsc --noEmit",
+    "prepublishOnly": "pnpm run generate:exports && pnpm run build"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./file/fileSize": {
+      "types": "./dist/file/fileSize.d.ts",
+      "import": "./dist/file/fileSize.mjs",
+      "require": "./dist/file/fileSize.cjs"
+    },
+    "./file/getFileNameParts": {
+      "types": "./dist/file/getFileNameParts.d.ts",
+      "import": "./dist/file/getFileNameParts.mjs",
+      "require": "./dist/file/getFileNameParts.cjs"
+    },
+    "./file/truncateFileName": {
+      "types": "./dist/file/truncateFileName.d.ts",
+      "import": "./dist/file/truncateFileName.mjs",
+      "require": "./dist/file/truncateFileName.cjs"
+    },
+    "./uuid/generateUUID": {
+      "types": "./dist/uuid/generateUUID.d.ts",
+      "import": "./dist/uuid/generateUUID.mjs",
+      "require": "./dist/uuid/generateUUID.cjs"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "provenance": true
+  },
+  "funding": {
+    "type": "individual",
+    "url": "https://github.com/sponsors/DungGramer"
+  },
+  "keywords": [
+    "typescript",
+    "utilities",
+    "tree-shaking",
+    "type-safe",
+    "validation",
+    "file-utils",
+    "uuid",
+    "esm",
+    "cjs"
+  ]
+}

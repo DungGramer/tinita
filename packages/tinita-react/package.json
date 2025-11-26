@@ -1,0 +1,84 @@
+{
+  "name": "tinita-react",
+  "version": "0.0.1",
+  "description": "React hooks for the tinita ecosystem - tree-shakeable, type-safe utilities for React applications",
+  "author": {
+    "name": "DungGramer",
+    "email": "dung.dev.gramer@gmail.com",
+    "url": "https://dunggramer.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dunggramer/tinita.git",
+    "directory": "packages/tinita-react"
+  },
+  "homepage": "https://github.com/dunggramer/tinita/tree/main/packages/tinita-react#readme",
+  "bugs": {
+    "url": "https://github.com/dunggramer/tinita/issues"
+  },
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "generate:exports": "node ../../scripts/generate-package-exports.mjs",
+    "clean": "rimraf dist",
+    "build": "pnpm run clean && tsup",
+    "lint": "eslint src --ext .ts,.tsx",
+    "test": "vitest",
+    "check-types": "tsc --noEmit",
+    "prepublishOnly": "pnpm run generate:exports && pnpm run build"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./useToggle": {
+      "types": "./dist/useToggle.d.ts",
+      "import": "./dist/useToggle.mjs",
+      "require": "./dist/useToggle.cjs"
+    }
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/react-hooks": "^8.0.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "jsdom": "^27.2.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "provenance": true
+  },
+  "funding": {
+    "type": "individual",
+    "url": "https://github.com/sponsors/DungGramer"
+  },
+  "keywords": [
+    "react",
+    "hooks",
+    "typescript",
+    "tree-shaking",
+    "type-safe",
+    "validation",
+    "file-utils",
+    "uuid",
+    "utilities",
+    "esm",
+    "cjs"
+  ]
+}

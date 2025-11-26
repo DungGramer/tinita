@@ -1,0 +1,43 @@
+# Source files (only ship dist/)
+src/
+*.ts
+*.tsx
+!*.d.ts
+!*.d.mts
+
+# Tests
+tests/
+__tests__/
+*.test.ts
+*.test.tsx
+*.test.js
+*.spec.ts
+*.spec.tsx
+*.spec.js
+coverage/
+
+# Build configs
+tsconfig.json
+tsup.config.ts
+vitest.config.ts
+eslint.config.mjs
+
+# Development files
+.git/
+.github/
+.vscode/
+.idea/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc
+*.tgz
+.turbo/
+node_modules/

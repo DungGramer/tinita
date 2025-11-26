@@ -1,0 +1,6 @@
+# Root .npmignore (for monorepo)
+# This file is not used for publishing (packages have their own .npmignore)
+# But useful to prevent accidentally publishing from root
+
+*
+!packages/

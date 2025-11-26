@@ -1,0 +1,43 @@
+{
+  "name": "tinita",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types",
+    "generate:exports": "turbo run generate:exports",
+    "publish:tinita": "node scripts/publish.mjs tinita",
+    "publish:tinita-react": "node scripts/publish.mjs tinita-react",
+    "publish:all": "node scripts/publish.mjs --all",
+    "publish:dry-run": "node scripts/publish.mjs --all --dry-run"
+  },
+  "devDependencies": {
+    "@dunggramer/prettier": "^4.1.0",
+    "@eslint/js": "^9.39.1",
+    "@next/eslint-plugin-next": "^16.0.4",
+    "@typescript-eslint/eslint-plugin": "^8.48.0",
+    "@typescript-eslint/parser": "^8.48.0",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-only-warn": "^1.1.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-turbo": "^2.6.1",
+    "globals": "^16.5.0",
+    "prettier": "^3.6.2",
+    "rimraf": "^6.1.2",
+    "tsup": "^8.5.1",
+    "turbo": "^2.6.1",
+    "typescript": "5.9.2",
+    "typescript-eslint": "^8.48.0",
+    "vitest": "^4.0.14"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18"
+  }
+}
