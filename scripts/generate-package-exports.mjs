@@ -9,7 +9,15 @@ import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from '
 import { join, relative } from 'path';
 
 /**
+ * Check if a directory is a component folder (has index.ts/tsx)
+ */
+function isComponentFolder(dir) {
+  return existsSync(join(dir, 'index.ts')) || existsSync(join(dir, 'index.tsx'));
+}
+
+/**
  * Recursively get all source files in a directory
+ * Handles both single-file utilities and folder-based components
  */
 function getAllSourceFiles(dir, baseDir = dir, extensions = ['.ts', '.tsx']) {
   const files = [];
@@ -19,19 +27,32 @@ function getAllSourceFiles(dir, baseDir = dir, extensions = ['.ts', '.tsx']) {
   }
 
   const items = readdirSync(dir);
+  const relativeDirPath = relative(baseDir, dir).replace(/\\/g, '/');
+  const isInUIFolder = relativeDirPath.startsWith('ui') || relativeDirPath.startsWith('components');
 
   for (const item of items) {
     const fullPath = join(dir, item);
     const stat = statSync(fullPath);
 
     if (stat.isDirectory()) {
-      files.push(...getAllSourceFiles(fullPath, baseDir, extensions));
+      // Check if this is a component folder (ui/ComponentName/)
+      if (isInUIFolder && isComponentFolder(fullPath)) {
+        // Add the index file as entry point
+        const indexFile = existsSync(join(fullPath, 'index.tsx')) ? 'index.tsx' : 'index.ts';
+        const componentPath = join(relative(baseDir, fullPath), indexFile).replace(/\\/g, '/');
+        files.push(componentPath);
+      } else {
+        // Recursively scan subdirectories
+        files.push(...getAllSourceFiles(fullPath, baseDir, extensions));
+      }
     } else {
       const isSourceFile = extensions.some(ext => item.endsWith(ext));
       const isNotTest = !item.includes('.test.') && !item.includes('.spec.');
       const isNotIndex = item !== 'index.ts' && item !== 'index.tsx';
+      const isNotInComponentFolder = !isInUIFolder || !isComponentFolder(dir);
 
-      if (isSourceFile && isNotTest && isNotIndex) {
+      // Only include non-index files that are not inside component folders
+      if (isSourceFile && isNotTest && isNotIndex && isNotInComponentFolder) {
         const relativePath = relative(baseDir, fullPath);
         files.push(relativePath.replace(/\\/g, '/'));
       }
@@ -54,14 +75,29 @@ function generateExports(files) {
   };
 
   for (const file of files) {
-    const withoutExt = file.replace(/\.(ts|tsx)$/, '');
-    const exportPath = `./${withoutExt}`;
+    let withoutExt = file.replace(/\.(ts|tsx)$/, '');
+    let exportPath = `./${withoutExt}`;
 
-    exports[exportPath] = {
-      "types": `./dist/${withoutExt}.d.ts`,
-      "import": `./dist/${withoutExt}.mjs`,
-      "require": `./dist/${withoutExt}.cjs`
-    };
+    // For component folders (ui/ComponentName/index.tsx),
+    // export path should be ./ui/ComponentName (without /index)
+    if (withoutExt.endsWith('/index')) {
+      withoutExt = withoutExt.replace(/\/index$/, '');
+      exportPath = `./${withoutExt}`;
+
+      // Component folder exports need to point to the index file
+      exports[exportPath] = {
+        "types": `./dist/${withoutExt}/index.d.ts`,
+        "import": `./dist/${withoutExt}/index.mjs`,
+        "require": `./dist/${withoutExt}/index.cjs`
+      };
+    } else {
+      // Regular single-file exports
+      exports[exportPath] = {
+        "types": `./dist/${withoutExt}.d.ts`,
+        "import": `./dist/${withoutExt}.mjs`,
+        "require": `./dist/${withoutExt}.cjs`
+      };
+    }
   }
 
   return exports;
@@ -94,11 +130,17 @@ function generateBarrelExports(files) {
   for (const [dir, fileList] of Object.entries(groups).sort()) {
     if (dir !== 'root') {
       const label = dir.charAt(0).toUpperCase() + dir.slice(1);
-      content += `// ${label} utilities\n`;
+      content += `// ${label}\n`;
     }
 
     for (const file of fileList.sort()) {
-      const withoutExt = file.replace(/\.(ts|tsx)$/, '');
+      let withoutExt = file.replace(/\.(ts|tsx)$/, '');
+
+      // For component folders, remove the /index suffix
+      if (withoutExt.endsWith('/index')) {
+        withoutExt = withoutExt.replace(/\/index$/, '');
+      }
+
       content += `export * from './${withoutExt}';\n`;
     }
 
@@ -125,7 +167,18 @@ function updatePackageJson(packagePath, exports) {
 /**
  * Update tsup.config.ts with new entry points
  */
-function updateTsupConfig(configPath, entries) {
+function updateTsupConfig(configPath, entries, packageName) {
+  // Add external dependencies for React/Vue packages
+  const isReactPackage = packageName.includes('react');
+  const isVuePackage = packageName.includes('vue');
+
+  let externalDeps = '';
+  if (isReactPackage) {
+    externalDeps = `  external: ['react', 'react-dom'],\n  `;
+  } else if (isVuePackage) {
+    externalDeps = `  external: ['vue'],\n  `;
+  }
+
   const content = `import { defineConfig } from 'tsup';
 
 export default defineConfig({
@@ -133,7 +186,7 @@ export default defineConfig({
   format: ['cjs', 'esm'],
   dts: true,
   bundle: false,
-  splitting: false,
+  ${externalDeps}splitting: false,
   clean: true,
   outDir: 'dist'
 });
@@ -205,7 +258,7 @@ function main() {
     updatePackageJson(join(packageDir, 'package.json'), minimalExports);
 
     const minimalEntry = ['src/index.ts'];
-    updateTsupConfig(join(packageDir, 'tsup.config.ts'), minimalEntry);
+    updateTsupConfig(join(packageDir, 'tsup.config.ts'), minimalEntry, packageName);
 
     console.log(`   ✅ Done (minimal exports)\n`);
     return;
@@ -223,7 +276,7 @@ function main() {
   updatePackageJson(join(packageDir, 'package.json'), exports);
 
   console.log('   📝 Updating tsup.config.ts entries...');
-  updateTsupConfig(join(packageDir, 'tsup.config.ts'), tsupEntries);
+  updateTsupConfig(join(packageDir, 'tsup.config.ts'), tsupEntries, packageName);
 
   console.log('   📝 Updating src/index.ts barrel...');
   writeFileSync(join(srcDir, 'index.ts'), barrelExports);

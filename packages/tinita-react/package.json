@@ -1,6 +1,6 @@
 {
   "name": "tinita-react",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "React hooks for the tinita ecosystem - tree-shakeable, type-safe utilities for React applications",
   "author": {
     "name": "DungGramer",
@@ -29,10 +29,14 @@
   "scripts": {
     "generate:exports": "node ../../scripts/generate-package-exports.mjs",
     "clean": "rimraf dist",
-    "build": "pnpm run clean && tsup",
+    "build:js": "tsup",
+    "build:css": "node scripts/build-css.mjs",
+    "build": "pnpm run clean && pnpm run build:js && pnpm run build:css",
     "lint": "eslint src --ext .ts,.tsx",
     "test": "vitest",
     "check-types": "tsc --noEmit",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
     "prepublishOnly": "pnpm run generate:exports && pnpm run build"
   },
   "exports": {
@@ -41,23 +45,40 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
-    "./useToggle": {
-      "types": "./dist/useToggle.d.ts",
-      "import": "./dist/useToggle.mjs",
-      "require": "./dist/useToggle.cjs"
+    "./hooks/useToggle": {
+      "types": "./dist/hooks/useToggle.d.ts",
+      "import": "./dist/hooks/useToggle.mjs",
+      "require": "./dist/hooks/useToggle.cjs"
+    },
+    "./ui/FileTree": {
+      "types": "./dist/ui/FileTree/index.d.ts",
+      "import": "./dist/ui/FileTree/index.mjs",
+      "require": "./dist/ui/FileTree/index.cjs"
+    },
+    "./utils/autoInjectStyles": {
+      "types": "./dist/utils/autoInjectStyles.d.ts",
+      "import": "./dist/utils/autoInjectStyles.mjs",
+      "require": "./dist/utils/autoInjectStyles.cjs"
     }
   },
   "peerDependencies": {
     "react": ">=18.0.0"
   },
   "devDependencies": {
+    "@storybook/addon-docs": "^10.1.2",
+    "@storybook/addon-links": "^10.1.2",
+    "@storybook/react": "^10.1.2",
+    "@storybook/react-vite": "^10.1.2",
     "@testing-library/react": "^16.3.0",
     "@testing-library/react-hooks": "^8.0.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "eslint-plugin-storybook": "10.1.2",
     "jsdom": "^27.2.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "storybook": "^10.1.2",
+    "vite": "^7.2.6"
   },
   "publishConfig": {
     "access": "public",
@@ -80,5 +101,10 @@
     "utilities",
     "esm",
     "cjs"
-  ]
+  ],
+  "dependencies": {
+    "@radix-ui/react-accordion": "^1.2.12",
+    "lucide-react": "^0.555.0",
+    "motion": "^12.23.25"
+  }
 }

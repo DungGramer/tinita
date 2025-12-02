@@ -1,0 +1,525 @@
+/**
+ * FileTree Component Styles
+ *
+ * Uses CSS variables for easy customization
+ * Prefix: tinita-filetree__*
+ */
+
+:root {
+  /* Light theme (default) */
+  --tinita-filetree-bg: #ffffff;
+  --tinita-filetree-text: #1a1a1a;
+  --tinita-filetree-text-dim: #6b7280;
+  --tinita-filetree-hover: rgba(0, 0, 0, 0.06);
+  --tinita-filetree-active: rgba(0, 0, 0, 0.12);
+  --tinita-filetree-spacing: 4px;
+  --tinita-filetree-indent: 16px;
+
+  /* Icon colors - Light theme optimized */
+  --tinita-filetree-icon-folder: #4b5563;
+  --tinita-filetree-icon-file: #6b7280;
+  --tinita-filetree-icon-readme: #2563eb;
+  --tinita-filetree-icon-markdown: #2563eb;
+  --tinita-filetree-icon-javascript: #eab308;
+  --tinita-filetree-icon-css: #0ea5e9;
+  --tinita-filetree-icon-html: #dc2626;
+  --tinita-filetree-icon-json: #eab308;
+  --tinita-filetree-icon-database: #2563eb;
+  --tinita-filetree-icon-php: #6366f1;
+  --tinita-filetree-icon-vue: #10b981;
+  --tinita-filetree-icon-git: #dc2626;
+  --tinita-filetree-icon-text: #6b7280;
+  --tinita-filetree-icon-code: #eab308;
+  --tinita-filetree-icon-font: #6b7280;
+  --tinita-filetree-icon-image: #10b981;
+  --tinita-filetree-icon-video: #ef4444;
+  --tinita-filetree-icon-audio: #8b5cf6;
+  --tinita-filetree-icon-spreadsheet: #059669;
+  --tinita-filetree-icon-archive: #f59e0b;
+}
+
+/* Dark theme override */
+.tinita-filetree[data-theme='dark'],
+[data-theme='dark'] .tinita-filetree {
+  --tinita-filetree-bg: #0a0a0a;
+  --tinita-filetree-text: #e5e7eb;
+  --tinita-filetree-text-dim: #9ca3af;
+  --tinita-filetree-hover: rgba(255, 255, 255, 0.06);
+  --tinita-filetree-active: rgba(255, 255, 255, 0.12);
+
+  /* Icon colors - Dark theme optimized */
+  --tinita-filetree-icon-folder: #9ca3af;
+  --tinita-filetree-icon-file: #6b7280;
+  --tinita-filetree-icon-readme: #60a5fa;
+  --tinita-filetree-icon-markdown: #60a5fa;
+  --tinita-filetree-icon-javascript: #fbbf24;
+  --tinita-filetree-icon-css: #38bdf8;
+  --tinita-filetree-icon-html: #f87171;
+  --tinita-filetree-icon-json: #fbbf24;
+  --tinita-filetree-icon-database: #60a5fa;
+  --tinita-filetree-icon-php: #818cf8;
+  --tinita-filetree-icon-vue: #34d399;
+  --tinita-filetree-icon-git: #f87171;
+  --tinita-filetree-icon-text: #6b7280;
+  --tinita-filetree-icon-code: #fbbf24;
+  --tinita-filetree-icon-font: #6b7280;
+  --tinita-filetree-icon-image: #34d399;
+  --tinita-filetree-icon-video: #f87171;
+  --tinita-filetree-icon-audio: #a78bfa;
+  --tinita-filetree-icon-spreadsheet: #10b981;
+  --tinita-filetree-icon-archive: #fbbf24;
+}
+
+/* Light theme scrollbar (default) */
+.tinita-filetree::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.tinita-filetree::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+}
+
+.tinita-filetree::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.tinita-filetree::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.tinita-filetree {
+  scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.04);
+  scrollbar-width: thin;
+  background-color: var(--tinita-filetree-bg);
+  color: var(--tinita-filetree-text);
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 1rem;
+  overflow: auto;
+}
+
+.tinita-filetree__list {
+  list-style: none;
+  margin: 0;
+  padding-left: var(--tinita-filetree-indent);
+  position: relative;
+}
+
+.tinita-filetree__list:first-child {
+  padding-left: 0;
+}
+
+.tinita-filetree__item {
+  position: relative;
+}
+
+/* Indicator lines - vertical lines showing tree structure */
+.tinita-filetree[data-indicator='true'] .tinita-filetree__list:not([data-level='0'])::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--tinita-filetree-text-dim);
+  opacity: 0.2;
+}
+
+/* Horizontal indicator lines for nested items */
+.tinita-filetree[data-indicator='true'] .tinita-filetree__item:not(:first-child)::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--tinita-filetree-indent) * -1);
+  top: calc(50% + 1px);
+  width: var(--tinita-filetree-indent);
+  height: 1px;
+  background-color: var(--tinita-filetree-text-dim);
+  opacity: 0.2;
+  transform: translateY(-50%);
+}
+
+/* Hide horizontal indicator for first item in each list */
+.tinita-filetree[data-indicator='true'] .tinita-filetree__list:first-child .tinita-filetree__item::before,
+.tinita-filetree[data-indicator='true'] .tinita-filetree__item:first-child::before {
+  display: none;
+}
+
+/* Hide indicators when disabled */
+.tinita-filetree[data-indicator='false'] .tinita-filetree__list::before,
+.tinita-filetree[data-indicator='false'] .tinita-filetree__item::before {
+  display: none;
+}
+
+.tinita-filetree__item {
+  margin: 0;
+  padding: 2px 0;
+}
+
+/* Radix UI Accordion Item (replaces <details>) */
+.tinita-filetree__accordion-item {
+  margin: 0;
+}
+
+/* Radix UI Accordion Trigger (replaces <summary>) */
+.tinita-filetree__accordion-trigger {
+  all: unset;
+  display: block;
+  width: 100%;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+/* Radix UI Accordion Content */
+.tinita-filetree__accordion-content {
+  overflow: hidden;
+}
+
+/* Ensure nested lists inside accordion content have proper padding */
+.tinita-filetree__accordion-content > .tinita-filetree__list {
+  padding-left: var(--tinita-filetree-indent);
+  position: relative;
+}
+
+/* Ensure indicator works with accordion structure - vertical lines for nested lists */
+.tinita-filetree[data-indicator='true'] .tinita-filetree__accordion-content > .tinita-filetree__list::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--tinita-filetree-text-dim);
+  opacity: 0.2;
+}
+
+/* Hide vertical indicator for root level (data-level='0') */
+.tinita-filetree[data-indicator='true'] .tinita-filetree__list[data-level='0']::before {
+  display: none;
+}
+
+/* Hide content when animation disabled and collapsed */
+.tinita-filetree__accordion-content[hidden] {
+  display: none;
+}
+
+/* Animation when enabled */
+.tinita-filetree[data-animation='true'] .tinita-filetree__accordion-content[data-state='open'] {
+  animation: accordion-down 250ms ease-out;
+}
+
+.tinita-filetree[data-animation='true'] .tinita-filetree__accordion-content[data-state='closed'] {
+  animation: accordion-up 250ms ease-out;
+}
+
+/* Keyframes for accordion animations */
+@keyframes accordion-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+/* Size variants - Density (padding only) */
+.tinita-filetree[data-size='sm'] .tinita-filetree__accordion-trigger {
+  padding: 0.8px 8px 0.8px 4px;
+  margin: 0 calc(-1 * 8px);
+}
+
+.tinita-filetree[data-size='md'] .tinita-filetree__accordion-trigger {
+  padding: 4px 8px 4px 4px;
+  margin: 0 calc(-1 * 8px);
+}
+
+.tinita-filetree[data-size='lg'] .tinita-filetree__accordion-trigger {
+  padding: 8px 8px 8px 4px;
+  margin: 0 calc(-1 * 8px);
+}
+
+/* Border radius variants - Separate from size */
+.tinita-filetree[data-border-radius='sm'] .tinita-filetree__accordion-trigger,
+.tinita-filetree[data-border-radius='sm'] .tinita-filetree__label {
+  border-radius: 1px;
+}
+
+.tinita-filetree[data-border-radius='md'] .tinita-filetree__accordion-trigger,
+.tinita-filetree[data-border-radius='md'] .tinita-filetree__label {
+  border-radius: 4px;
+}
+
+.tinita-filetree[data-border-radius='lg'] .tinita-filetree__accordion-trigger,
+.tinita-filetree[data-border-radius='lg'] .tinita-filetree__label {
+  border-radius: 30px;
+}
+
+.tinita-filetree__accordion-trigger:hover {
+  background-color: var(--tinita-filetree-hover);
+}
+
+.tinita-filetree__accordion-trigger:active {
+  background-color: var(--tinita-filetree-active);
+}
+
+/* Disabled state when enableAnimation=false */
+.tinita-filetree__accordion-trigger[data-disabled] {
+  cursor: default;
+}
+
+.tinita-filetree__accordion-trigger[data-disabled]:hover {
+  background-color: transparent;
+}
+
+.tinita-filetree__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+/* Size variants for label - Density only */
+.tinita-filetree[data-size='sm'] .tinita-filetree__label {
+  padding: 0.8px 8px 0.8px 4px;
+}
+
+.tinita-filetree[data-size='md'] .tinita-filetree__label {
+  padding: 4px 8px 4px 4px;
+}
+
+.tinita-filetree[data-size='lg'] .tinita-filetree__label {
+  padding: 8px 8px 8px 4px;
+}
+
+/* Hover only for standalone labels (files or empty folders, not inside accordion-trigger) */
+.tinita-filetree__item > .tinita-filetree__label:hover {
+  background-color: var(--tinita-filetree-hover);
+  transition: background-color 0.15s ease;
+}
+
+/* Fix conflict: label inside accordion-trigger should not have padding/hover when trigger handles it */
+.tinita-filetree__accordion-trigger .tinita-filetree__label {
+  padding: 0;
+  margin: 0;
+}
+
+.tinita-filetree__accordion-trigger .tinita-filetree__label:hover {
+  background-color: transparent;
+}
+
+/* Arrow icon for folders */
+.tinita-filetree__arrow {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--tinita-filetree-text-dim);
+  transition: transform 0.2s ease-out;
+  margin-right: 2px;
+  line-height: 1;
+  will-change: transform;
+}
+
+/* Rotate arrow when folder is expanded */
+.tinita-filetree__accordion-item[data-expanded='true'] .tinita-filetree__arrow {
+  transform: rotate(0deg);
+}
+
+/* No rotation when collapsed */
+.tinita-filetree__accordion-item[data-expanded='false'] .tinita-filetree__arrow {
+  transform: rotate(0deg);
+}
+
+/* Hide arrow when not needed */
+.tinita-filetree[data-show-arrow='false'] .tinita-filetree__arrow {
+  display: none;
+}
+
+.tinita-filetree__label-text {
+  white-space: nowrap;
+}
+
+/* Icon base - lucide-react icons are SVG */
+.tinita-filetree__icon {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--tinita-filetree-text-dim);
+  line-height: 1;
+}
+
+/* Icon color customization (for lucide-react SVG icons) */
+/* You can customize icon colors using CSS variables or direct color property */
+.tinita-filetree__icon {
+  /* Default icon color uses text-dim variable */
+  color: var(--tinita-filetree-text-dim);
+}
+
+/* Folder icon color */
+.tinita-filetree__label--folder .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-folder, var(--tinita-filetree-text-dim));
+}
+
+/* File icon colors based on type */
+.tinita-filetree__label[data-icon='readme'] .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-readme, var(--tinita-filetree-text-dim));
+}
+
+.tinita-filetree__label[data-icon='markdown'] .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-markdown, var(--tinita-filetree-text-dim));
+}
+
+.tinita-filetree__label[data-icon='javascript'] .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-javascript, var(--tinita-filetree-text-dim));
+}
+
+.tinita-filetree__label[data-icon='css'] .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-css, var(--tinita-filetree-text-dim));
+}
+
+.tinita-filetree__label[data-icon='html'] .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-html, var(--tinita-filetree-text-dim));
+}
+
+.tinita-filetree__label[data-icon='json'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='code'] .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-json, var(--tinita-filetree-text-dim));
+}
+
+.tinita-filetree__label[data-icon='database'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='yml'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='yaml'] .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-database, var(--tinita-filetree-text-dim));
+}
+
+.tinita-filetree__label[data-icon='php'] .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-php, var(--tinita-filetree-text-dim));
+}
+
+.tinita-filetree__label[data-icon='vue'] .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-vue, var(--tinita-filetree-text-dim));
+}
+
+.tinita-filetree__label[data-icon='git'] .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-git, var(--tinita-filetree-text-dim));
+}
+
+.tinita-filetree__label[data-icon='text'] .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-text, var(--tinita-filetree-text-dim));
+}
+
+.tinita-filetree__label[data-icon='font'] .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-font, var(--tinita-filetree-text-dim));
+}
+
+.tinita-filetree__label[data-icon='image'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='jpg'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='jpeg'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='png'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='gif'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='svg'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='webp'] .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-image, var(--tinita-filetree-text-dim));
+}
+
+.tinita-filetree__label[data-icon='video'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='mp4'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='avi'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='mov'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='webm'] .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-video, var(--tinita-filetree-text-dim));
+}
+
+.tinita-filetree__label[data-icon='audio'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='mp3'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='wav'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='ogg'] .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-audio, var(--tinita-filetree-text-dim));
+}
+
+.tinita-filetree__label[data-icon='spreadsheet'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='xls'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='xlsx'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='csv'] .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-spreadsheet, var(--tinita-filetree-text-dim));
+}
+
+.tinita-filetree__label[data-icon='archive'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='zip'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='rar'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='tar'] .tinita-filetree__icon,
+.tinita-filetree__label[data-icon='gz'] .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-archive, var(--tinita-filetree-text-dim));
+}
+
+/* Default file icon color (for files without specific type) */
+.tinita-filetree__label--file .tinita-filetree__icon {
+  color: var(--tinita-filetree-icon-file, var(--tinita-filetree-text-dim));
+}
+
+/* Dark theme scrollbar override */
+.tinita-filetree[data-theme='dark']::-webkit-scrollbar-track,
+[data-theme='dark'] .tinita-filetree::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tinita-filetree[data-theme='dark']::-webkit-scrollbar-thumb,
+[data-theme='dark'] .tinita-filetree::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.tinita-filetree[data-theme='dark']::-webkit-scrollbar-thumb:hover,
+[data-theme='dark'] .tinita-filetree::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.tinita-filetree[data-theme='dark'],
+[data-theme='dark'] .tinita-filetree {
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+}
+
+/* Respect user's reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .tinita-filetree__arrow {
+    transition: none;
+  }
+
+  .tinita-filetree__accordion-trigger {
+    transition: none;
+  }
+
+  .tinita-filetree__label {
+    transition: none;
+  }
+
+  /* Disable accordion animations */
+  .tinita-filetree__accordion-content[data-state='open'],
+  .tinita-filetree__accordion-content[data-state='closed'] {
+    animation: none !important;
+  }
+}
