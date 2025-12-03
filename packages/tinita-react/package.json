@@ -50,10 +50,10 @@
       "import": "./dist/hooks/useToggle.mjs",
       "require": "./dist/hooks/useToggle.cjs"
     },
-    "./ui/FileTree": {
-      "types": "./dist/ui/FileTree/index.d.ts",
-      "import": "./dist/ui/FileTree/index.mjs",
-      "require": "./dist/ui/FileTree/index.cjs"
+    "./ui/file-tree": {
+      "types": "./dist/ui/file-tree/index.d.ts",
+      "import": "./dist/ui/file-tree/index.mjs",
+      "require": "./dist/ui/file-tree/index.cjs"
     },
     "./utils/autoInjectStyles": {
       "types": "./dist/utils/autoInjectStyles.d.ts",

@@ -217,7 +217,7 @@ export const ManualCSSImport: Story = {
         Make sure to import the CSS file:
         <br />
         <code style={{ background: '#f5f5f5', padding: '2px 6px', borderRadius: '4px' }}>
-          import 'tinita-react/ui/FileTree/FileTree.css';
+          import 'tinita-react/ui/file-tree/FileTree.css';
         </code>
       </p>
       <FileTree {...args} />

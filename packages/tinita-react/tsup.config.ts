@@ -4,7 +4,7 @@ export default defineConfig({
   entry: [
     'src/index.ts',
     'src/hooks/useToggle.ts',
-    'src/ui/FileTree/index.tsx',
+    'src/ui/file-tree/index.tsx',
     'src/utils/autoInjectStyles.ts'
 ],
   format: ['cjs', 'esm'],

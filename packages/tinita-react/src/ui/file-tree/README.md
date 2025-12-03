@@ -115,7 +115,7 @@ type FileNode = {
 
 ```tsx
 // app.tsx or _app.tsx (Next.js, Remix, etc.)
-import 'tinita-react/ui/FileTree/FileTree.css';
+import 'tinita-react/ui/file-tree/FileTree.css';
 
 function App() {
   return <FileTree text={treeText} />;

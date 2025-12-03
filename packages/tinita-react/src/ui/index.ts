@@ -1,2 +1,2 @@
 // Re-export all UI components
-export * from './FileTree';
+export * from './file-tree';
