@@ -1,5 +1,5 @@
 import type { Preview } from '@storybook/react-vite';
-import '../src/ui/FileTree/FileTree.css';
+import '../src/ui/file-tree/FileTree.css';
 
 const preview: Preview = {
   parameters: {

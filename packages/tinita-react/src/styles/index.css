@@ -1,0 +1,9 @@
+/**
+ * Index CSS for tinita-react
+ *
+ * This file is kept for organization but should NOT contain @import statements.
+ * The build script (build-css.mjs) automatically bundles all CSS files into styles.css.
+ *
+ * DO NOT add @import statements here - they will break in production!
+ * Instead, let the build script handle bundling automatically.
+ */

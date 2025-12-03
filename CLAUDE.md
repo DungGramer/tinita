@@ -450,6 +450,131 @@ All UI components MUST follow the **plug-and-play CSS approach** used by product
 6. **No-JS fallback** - Graceful degradation
 7. **Prefix all classes** - `tinita-{component}` convention
 
+### Tailwind CSS v4 Build-Time Approach (NEW)
+
+**tinita-react** uses **Tailwind CSS v4 as a BUILD-TIME tool** only:
+
+- **Developers write:** CSS with Tailwind utilities (`@apply`, etc.) + CSS variables
+- **Build compiles:** Tailwind → Pure CSS via PostCSS
+- **Users receive:** Pre-compiled CSS (NO Tailwind dependency required)
+- **Configuration:** Done in CSS using `@theme` directive (not `tailwind.config.ts`)
+
+#### Key Benefits
+
+1. **Developer Experience**: Use Tailwind utilities when writing styles
+2. **User Experience**: Ship pure CSS that works everywhere (Next.js, Vite, Remix, etc.)
+3. **Zero Dependencies**: Users don't need Tailwind installed
+4. **Ecosystem Agnostic**: Works in ANY JavaScript framework
+5. **Customization**: Users override via CSS variables or `@theme`
+
+#### Tailwind v4 Configuration (src/styles/tailwind.css)
+
+```css
+@import "tailwindcss";
+
+@theme {
+  /* Prefix ALL utilities with tinita- to avoid conflicts */
+  --prefix: tinita-;
+
+  /* Design tokens */
+  --color-tinita-bg: #ffffff;
+  --color-tinita-text: #1a1a1a;
+  --spacing-tree-indent: 16px;
+  --radius-sm: 4px;
+}
+
+/* Component CSS variables for user customization */
+:root {
+  --tinita-filetree-bg: var(--color-tinita-bg);
+  --tinita-filetree-text: var(--color-tinita-text);
+}
+```
+
+#### Writing Component CSS (with Tailwind)
+
+You can now use Tailwind utilities in component CSS:
+
+```css
+/* src/ui/Button/Button.css */
+@import "../../styles/tailwind.css";
+
+.tinita-button {
+  /* Option 1: Use Tailwind @apply */
+  @apply flex items-center gap-2 px-4 py-2 rounded-md;
+
+  /* Option 2: Use CSS variables */
+  background-color: var(--tinita-button-bg);
+
+  /* Option 3: Write vanilla CSS */
+  transition: background-color 0.15s ease;
+}
+```
+
+**Important:**
+- All Tailwind utilities are prefixed: `tinita-flex`, `tinita-items-center`, etc.
+- Users receive pure CSS - no Tailwind runtime
+- Use `@apply` for convenience, CSS variables for customization
+
+#### User Customization (Two Methods)
+
+**Method 1: CSS Variables (Simple)**
+```css
+/* User's app.css */
+:root {
+  --tinita-button-bg: #ff0000;
+  --tinita-button-text: #ffffff;
+}
+```
+
+**Method 2: Override @theme (Advanced - requires Tailwind)**
+```css
+/* User's styles.css */
+@import "tailwindcss";
+@import "tinita-react/styles.css";
+
+@theme {
+  /* Override tinita theme tokens */
+  --color-tinita-bg: #f5f5f5;
+  --color-tinita-text: #333333;
+}
+```
+
+#### Build Process
+
+CSS compilation happens automatically:
+
+```bash
+pnpm build:css  # Compiles Tailwind → Pure CSS
+pnpm build      # Builds both JS and CSS
+```
+
+Build script (`scripts/build-css.mjs`):
+1. Compiles `src/styles/tailwind.css` → `dist/tailwind.css` (Tailwind v4 → Pure CSS)
+2. Copies component CSS files: `src/ui/**/*.css` → `dist/ui/**/*.css`
+3. Bundles all CSS into `dist/styles.css` (Tailwind + components)
+
+**Output:**
+- `dist/styles.css` - All styles (Tailwind base + components)
+- `dist/ui/FileTree/FileTree.css` - Individual component styles
+- Pure CSS, no JavaScript runtime, works everywhere
+
+#### Important Notes
+
+**For Developers (Writing Components):**
+- ✅ Can use `@apply` for Tailwind utilities
+- ✅ Can use vanilla CSS directly
+- ✅ Must use CSS variables for customizable values
+- ✅ All classes prefixed with `tinita-{component}__*`
+- ❌ Do NOT use Tailwind classes in JSX (e.g., `className="flex"`)
+- ❌ Only use Tailwind in CSS files via `@apply`
+
+**For Users (Consuming Library):**
+- ✅ Import CSS: `import 'tinita-react/styles.css'`
+- ✅ Works without Tailwind installed
+- ✅ Customize via CSS variables
+- ✅ Override styles with CSS
+- ❌ No Tailwind dependency required
+
 ### CSS File Structure
 
 Every UI component with styles MUST have:

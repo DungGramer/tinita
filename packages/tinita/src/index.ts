@@ -1,7 +1,7 @@
-// File utilities
+// File
 export * from './file/fileSize';
 export * from './file/getFileNameParts';
 export * from './file/truncateFileName';
 
-// Uuid utilities
+// Uuid
 export * from './uuid/generateUUID';

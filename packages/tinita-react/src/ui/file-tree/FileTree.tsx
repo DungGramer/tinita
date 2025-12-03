@@ -48,15 +48,9 @@ export const FileTree = forwardRef<HTMLDivElement, FileTreeProps>(
     const tree = useMemo(() => parseFileTreeUniversal(text), [text]);
 
     // Optionally hide root name
-    const wrappedTree =
-      hideRootName && tree.length === 1 ? tree[0].children : tree;
+    const wrappedTree = hideRootName && tree.length === 1 ? tree[0].children : tree;
 
-    const containerClassName = [
-      'tinita-filetree',
-      className,
-    ]
-      .filter(Boolean)
-      .join(' ');
+    const containerClassName = ['tinita-filetree', className].filter(Boolean).join(' ');
 
     return (
       <div

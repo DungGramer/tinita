@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+/**
+ * Tailwind CSS v4 Theme Configuration
+ *
+ * All Tailwind config is done here (not in tailwind.config.ts).
+ * This ensures users can easily customize by overriding @theme variables.
+ */
+@theme {
+  /* Prefix all Tailwind utilities with tinita- to avoid conflicts */
+  --prefix: tinita-;
+
+  /* Design Tokens - Colors (internal tokens, no prefix needed) */
+  --color-bg: #ffffff;
+  --color-text: #1a1a1a;
+  --color-text-dim: #6b7280;
+  --color-hover: rgba(0, 0, 0, 0.06);
+  --color-active: rgba(0, 0, 0, 0.12);
+
+  /* Dark Theme Colors */
+  --color-dark-bg: #0a0a0a;
+  --color-dark-text: #e5e7eb;
+  --color-dark-text-dim: #9ca3af;
+  --color-dark-hover: rgba(255, 255, 255, 0.06);
+  --color-dark-active: rgba(255, 255, 255, 0.12);
+
+  /* Design Tokens - Spacing */
+  --spacing-tree-indent: 16px;
+
+  /* Design Tokens - Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  /* Design Tokens - Typography */
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+/**
+ * Component-specific CSS variables
+ * Users can override these for easy customization
+ */
+:root {
+  /* FileTree variables */
+  --tinita-filetree-bg: var(--color-bg);
+  --tinita-filetree-text: var(--color-text);
+  --tinita-filetree-text-dim: var(--color-text-dim);
+  --tinita-filetree-hover: var(--color-hover);
+  --tinita-filetree-active: var(--color-active);
+  --tinita-filetree-indent: var(--spacing-tree-indent);
+  --tinita-filetree-radius: var(--radius-sm);
+}
