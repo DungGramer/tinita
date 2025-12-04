@@ -2,6 +2,7 @@
   "name": "tinita-react",
   "version": "0.0.2",
   "description": "React hooks for the tinita ecosystem - tree-shakeable, type-safe utilities for React applications",
+  "source": "./src/index.ts",
   "author": {
     "name": "DungGramer",
     "email": "dung.dev.gramer@gmail.com",
@@ -26,49 +27,60 @@
   ],
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.cjs"
     },
-    "./ui": {
-      "import": "./dist/ui.mjs",
-      "require": "./dist/ui.cjs",
-      "types": "./dist/ui.d.ts"
+    "./hooks/useToggle": {
+      "types": "./dist/hooks/useToggle.d.ts",
+      "import": "./dist/hooks/useToggle.mjs",
+      "require": "./dist/hooks/useToggle.cjs"
     },
-    "./hooks": {
-      "import": "./dist/hooks.mjs",
-      "require": "./dist/hooks.cjs",
-      "types": "./dist/hooks.d.ts"
+    "./tailwind-preset": {
+      "types": "./dist/tailwind-preset.d.ts",
+      "import": "./dist/tailwind-preset.mjs",
+      "require": "./dist/tailwind-preset.cjs"
     },
-    "./styles.css": "./dist/styles.css"
+    "./styles/globals.css": "./dist/styles/globals.css",
+    "./styles.css": "./dist/styles.css",
+    "./ui/file-tree": {
+      "types": "./dist/ui/file-tree/index.d.ts",
+      "import": "./dist/ui/file-tree/index.mjs",
+      "require": "./dist/ui/file-tree/index.cjs"
+    },
+    "./ui/ping": {
+      "types": "./dist/ui/ping/index.d.ts",
+      "import": "./dist/ui/ping/index.mjs",
+      "require": "./dist/ui/ping/index.cjs"
+    },
+    "./utils/autoInjectStyles": {
+      "types": "./dist/utils/autoInjectStyles.d.ts",
+      "import": "./dist/utils/autoInjectStyles.mjs",
+      "require": "./dist/utils/autoInjectStyles.cjs"
+    }
   },
   "sideEffects": [
-    "./dist/styles.css"
+    "./dist/styles.css",
+    "./dist/ui/**/*.css"
   ],
   "engines": {
     "node": ">=18.0.0"
   },
   "scripts": {
-    "generate:exports": "node ../../scripts/generate-package-exports.mjs",
     "clean": "rimraf dist",
+    "dev": "concurrently \"tsup --watch\" \"pnpm run build:css --watch\"",
     "build:js": "tsup",
     "build:css": "node scripts/build-css.mjs",
     "build": "pnpm run clean && pnpm run build:js && pnpm run build:css",
     "lint": "eslint src --ext .ts,.tsx",
     "test": "vitest",
     "check-types": "tsc --noEmit",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "prepublishOnly": "pnpm run generate:exports && pnpm run build"
+    "prepublishOnly": "pnpm run build"
   },
   "peerDependencies": {
     "react": ">=18.0.0"
   },
   "devDependencies": {
-    "@storybook/addon-docs": "^10.1.2",
-    "@storybook/addon-links": "^10.1.2",
-    "@storybook/react": "^10.1.2",
-    "@storybook/react-vite": "^10.1.2",
     "@tailwindcss/postcss": "^4.1.17",
     "@testing-library/react": "^16.3.0",
     "@testing-library/react-hooks": "^8.0.1",
@@ -76,12 +88,12 @@
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.22",
     "cssnano": "^7.1.2",
-    "eslint-plugin-storybook": "10.1.2",
+    "concurrently": "^9.1.2",
     "jsdom": "^27.2.0",
     "postcss": "^8.5.6",
+    "postcss-import": "^16.1.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "storybook": "^10.1.2",
     "tailwindcss": "^4.1.17",
     "vite": "^7.2.6"
   },

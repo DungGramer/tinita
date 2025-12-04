@@ -38,7 +38,8 @@
   --tinita-filetree-icon-archive: #f59e0b;
 }
 
-/* Dark theme override */
+/* Dark theme override - Support both .dark (official) and [data-theme='dark'] (backward compat) */
+.dark .tinita-filetree,
 .tinita-filetree[data-theme='dark'],
 [data-theme='dark'] .tinita-filetree {
   --tinita-filetree-bg: #0a0a0a;
@@ -482,22 +483,26 @@
   color: var(--tinita-filetree-icon-file, var(--tinita-filetree-text-dim));
 }
 
-/* Dark theme scrollbar override */
+/* Dark theme scrollbar override - Support both .dark and [data-theme='dark'] */
+.dark .tinita-filetree::-webkit-scrollbar-track,
 .tinita-filetree[data-theme='dark']::-webkit-scrollbar-track,
 [data-theme='dark'] .tinita-filetree::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.dark .tinita-filetree::-webkit-scrollbar-thumb,
 .tinita-filetree[data-theme='dark']::-webkit-scrollbar-thumb,
 [data-theme='dark'] .tinita-filetree::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
 }
 
+.dark .tinita-filetree::-webkit-scrollbar-thumb:hover,
 .tinita-filetree[data-theme='dark']::-webkit-scrollbar-thumb:hover,
 [data-theme='dark'] .tinita-filetree::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
 }
 
+.dark .tinita-filetree,
 .tinita-filetree[data-theme='dark'],
 [data-theme='dark'] .tinita-filetree {
   scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);

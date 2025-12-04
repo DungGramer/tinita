@@ -22,6 +22,7 @@ import React, { forwardRef, useMemo } from 'react';
 import type { FileTreeProps } from './types';
 import { parseFileTreeUniversal } from './utils';
 import { renderTreeNodes } from './components';
+import './FileTree.css';
 
 /**
  * FileTree - A tree view component for displaying hierarchical file/folder structures

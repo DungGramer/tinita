@@ -1,0 +1,40 @@
+{
+  "name": "@tinita/storybook",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tinita-react": "workspace:*"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@storybook/addon-a11y": "^10.1.4",
+    "@storybook/addon-docs": "^10.1.4",
+    "@storybook/addon-links": "^10.1.4",
+    "@storybook/react": "^10.1.4",
+    "@storybook/react-vite": "^10.1.4",
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/node": "^22.15.3",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.22",
+    "eslint": "^9.39.1",
+    "eslint-plugin-storybook": "^10.1.4",
+    "postcss": "^8.5.6",
+    "storybook": "^10.1.4",
+    "tailwindcss": "^4.1.17",
+    "typescript": "5.9.2",
+    "vite": "^7.2.6"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

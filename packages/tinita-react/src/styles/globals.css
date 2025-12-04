@@ -1,0 +1,124 @@
+/**
+ * Tinita React - Design Tokens & Theme
+ *
+ * This file contains:
+ * 1. CSS variables (--tinita-*) as single source of truth
+ * 2. @theme inline block to map variables to Tailwind utilities
+ * 3. @layer base with minimal base styles
+ *
+ * Users should import this file AFTER @import "tailwindcss"
+ */
+
+/* ============================================
+   1. CSS Variables - Light Theme
+   ============================================ */
+:root {
+  /* Colors */
+  --tinita-background: #ffffff;
+  --tinita-foreground: #1a1a1a;
+  --tinita-primary: #2563eb;
+  --tinita-primary-foreground: #ffffff;
+  --tinita-secondary: #f3f4f6;
+  --tinita-secondary-foreground: #1a1a1a;
+  --tinita-muted: #6b7280;
+  --tinita-muted-foreground: #ffffff;
+  --tinita-accent: rgba(0, 0, 0, 0.06);
+  --tinita-accent-foreground: #1a1a1a;
+  --tinita-destructive: #dc2626;
+  --tinita-destructive-foreground: #ffffff;
+  --tinita-border: #e5e7eb;
+  --tinita-input: #ffffff;
+  --tinita-ring: #2563eb;
+  --tinita-ping: oklch(55.6% 0 0);
+
+  /* Border Radius */
+  --tinita-radius: 0.5rem;
+  --tinita-radius-sm: 0.25rem;
+  --tinita-radius-md: 0.375rem;
+  --tinita-radius-lg: 0.5rem;
+
+  /* Spacing */
+  --tinita-spacing-tree-indent: 16px;
+
+  /* Typography */
+  --tinita-font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --tinita-font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
+
+  /* Color Scheme */
+  color-scheme: light;
+}
+
+/* ============================================
+   2. CSS Variables - Dark Theme
+   ============================================ */
+.dark,
+[data-theme='dark'] {
+  /* Colors */
+  --tinita-background: #0a0a0a;
+  --tinita-foreground: #e5e7eb;
+  --tinita-primary: #60a5fa;
+  --tinita-primary-foreground: #0a0a0a;
+  --tinita-secondary: #1f1f1f;
+  --tinita-secondary-foreground: #e5e7eb;
+  --tinita-muted: #9ca3af;
+  --tinita-muted-foreground: #0a0a0a;
+  --tinita-accent: rgba(255, 255, 255, 0.06);
+  --tinita-accent-foreground: #e5e7eb;
+  --tinita-destructive: #f87171;
+  --tinita-destructive-foreground: #0a0a0a;
+  --tinita-border: #374151;
+  --tinita-input: #1f1f1f;
+  --tinita-ring: #60a5fa;
+  --tinita-ping: oklch(70.8% 0 0);
+
+  /* Color Scheme */
+  color-scheme: dark;
+}
+
+/* ============================================
+   3. @theme inline - Map to Tailwind Utilities
+   ============================================ */
+@theme inline {
+  /* Colors */
+  --color-background: var(--tinita-background);
+  --color-foreground: var(--tinita-foreground);
+  --color-primary: var(--tinita-primary);
+  --color-primary-foreground: var(--tinita-primary-foreground);
+  --color-secondary: var(--tinita-secondary);
+  --color-secondary-foreground: var(--tinita-secondary-foreground);
+  --color-muted: var(--tinita-muted);
+  --color-muted-foreground: var(--tinita-muted-foreground);
+  --color-accent: var(--tinita-accent);
+  --color-accent-foreground: var(--tinita-accent-foreground);
+  --color-destructive: var(--tinita-destructive);
+  --color-destructive-foreground: var(--tinita-destructive-foreground);
+  --color-border: var(--tinita-border);
+  --color-input: var(--tinita-input);
+  --color-ring: var(--tinita-ring);
+
+  /* Border Radius */
+  --radius: var(--tinita-radius);
+  --radius-sm: var(--tinita-radius-sm);
+  --radius-md: var(--tinita-radius-md);
+  --radius-lg: var(--tinita-radius-lg);
+
+  /* Spacing */
+  --spacing-tree-indent: var(--tinita-spacing-tree-indent);
+
+  /* Typography */
+  --font-sans: var(--tinita-font-sans);
+  --font-mono: var(--tinita-font-mono);
+}
+
+/* ============================================
+   4. @layer base - Minimal Base Styles
+   ============================================ */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}

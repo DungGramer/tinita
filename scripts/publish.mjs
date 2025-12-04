@@ -131,9 +131,6 @@ async function publishPackage(packageInfo, dryRun = false) {
   // Run prepublish checks
   log('\n🔍 Running pre-publish checks...', Colors.cyan);
 
-  log('  ✓ Generating exports...', Colors.cyan);
-  exec('pnpm run generate:exports');
-
   log('  ✓ Building package...', Colors.cyan);
   exec('pnpm run build');
 

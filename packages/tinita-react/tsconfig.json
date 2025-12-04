@@ -1,6 +1,6 @@
 {
   "extends": "../../config/typescript-config/react-library.json",
-  "include": ["src", "tests", ".storybook"],
+  "include": ["src", "tests"],
   "compilerOptions": {
     "moduleResolution": "bundler",
     "skipLibCheck": true

@@ -27,13 +27,12 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "generate:exports": "node ../../scripts/generate-package-exports.mjs",
     "clean": "rimraf dist",
     "build": "pnpm run clean && tsup",
     "lint": "eslint src --ext .ts",
     "test": "vitest",
     "check-types": "tsc --noEmit",
-    "prepublishOnly": "pnpm run generate:exports && pnpm run build"
+    "prepublishOnly": "pnpm run build"
   },
   "exports": {
     ".": {

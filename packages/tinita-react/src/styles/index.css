@@ -1,9 +1,9 @@
 /**
- * Index CSS for tinita-react
+ * Build Entry Point for tinita-react CSS (internal use only)
  *
- * This file is kept for organization but should NOT contain @import statements.
- * The build script (build-css.mjs) automatically bundles all CSS files into styles.css.
- *
- * DO NOT add @import statements here - they will break in production!
- * Instead, let the build script handle bundling automatically.
+ * This file is used during build to process Tailwind CSS.
+ * Users should import globals.css directly (which doesn't include @import "tailwindcss").
  */
+
+@import "tailwindcss";
+@import "./globals.css";

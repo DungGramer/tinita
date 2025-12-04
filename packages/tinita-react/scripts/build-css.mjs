@@ -3,12 +3,10 @@
 /**
  * Build CSS files for tinita-react
  *
- * 1. Compiles Tailwind CSS to static CSS (so users don't need Tailwind)
- * 2. Copies component CSS files from src/ to dist/
- * 3. Creates bundled styles.css with Tailwind + component styles
+ * Builds CSS from globals.css using Tailwind v4 CSS-first approach.
  */
 
-import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync, copyFileSync } from 'fs';
+import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync, copyFileSync, unlinkSync, watch } from 'fs';
 import { join, relative, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import postcss from 'postcss';
@@ -21,8 +19,11 @@ const __dirname = dirname(__filename);
 const packageRoot = join(__dirname, '..');
 const srcDir = join(packageRoot, 'src');
 const distDir = join(packageRoot, 'dist');
-const tailwindInputFile = join(srcDir, 'styles', 'tailwind.css');
-const tailwindOutputFile = join(distDir, 'tailwind.css');
+const tailwindInputFile = join(srcDir, 'styles', 'index.css');
+const tailwindOutputFile = join(distDir, 'styles.css');
+const globalsSrcFile = join(srcDir, 'styles', 'globals.css');
+const globalsDistFile = join(distDir, 'styles', 'globals.css');
+const tailwindConfigFile = join(packageRoot, 'tailwind.config.lib.cjs');
 
 /**
  * Recursively find all CSS files
@@ -96,13 +97,26 @@ async function compileTailwindCSS() {
     return null;
   }
 
-  console.log('   ⚙️  Compiling Tailwind CSS...');
+  if (!existsSync(tailwindConfigFile)) {
+    console.error('   ❌ tailwind.config.lib.cjs not found. Make sure it exists.');
+    throw new Error('tailwind.config.lib.cjs not found');
+  }
+
+  console.log('   ⚙️  Compiling Tailwind CSS from index.css (includes globals.css)...');
 
   const inputCSS = readFileSync(tailwindInputFile, 'utf-8');
 
+  // Temporarily copy config to standard name for Tailwind detection
+  const standardConfigFile = join(packageRoot, 'tailwind.config.cjs');
+  const configCopied = !existsSync(standardConfigFile);
+
   try {
+    if (configCopied) {
+      copyFileSync(tailwindConfigFile, standardConfigFile);
+    }
+
     const result = await postcss([
-      tailwindcssPlugin,
+      tailwindcssPlugin(),
       autoprefixer,
       cssnano({
         preset: 'default',
@@ -119,14 +133,39 @@ async function compileTailwindCSS() {
     }
 
     writeFileSync(tailwindOutputFile, result.css);
-    console.log('   ✓ Compiled Tailwind CSS to dist/tailwind.css');
+    console.log('   ✓ Compiled Tailwind CSS to dist/styles.css');
 
     return result.css;
   } catch (error) {
     console.error('   ❌ Failed to compile Tailwind CSS:', error.message);
     throw error;
+  } finally {
+    // Clean up temporary config file
+    if (configCopied && existsSync(standardConfigFile)) {
+      unlinkSync(standardConfigFile);
+    }
   }
 }
+
+/**
+ * Copy globals.css to dist (raw file for users to import)
+ */
+async function copyGlobalsCSS() {
+  if (!existsSync(globalsSrcFile)) {
+    console.error('   ❌ src/styles/globals.css not found.');
+    throw new Error('src/styles/globals.css not found');
+  }
+
+  const destDir = dirname(globalsDistFile);
+  if (!existsSync(destDir)) {
+    mkdirSync(destDir, { recursive: true });
+  }
+
+  // Copy as-is (raw file, no minification - users will process it with their Tailwind)
+  copyFileSync(globalsSrcFile, globalsDistFile);
+  console.log('   ✓ Copied globals.css to dist/styles/globals.css');
+}
+
 
 /**
  * Create bundled styles.css with Tailwind + component styles
@@ -148,7 +187,7 @@ async function createBundledCSS(cssFiles, tailwindCSS) {
     bundledCSS += '\n';
   }
 
-  // Minify bundled CSS (remove header comments before minifying)
+  // Minify bundled CSS
   const bundledPath = join(distDir, 'styles.css');
   try {
     const minifiedResult = await postcss([
@@ -176,23 +215,24 @@ async function main() {
   console.log('\n📦 Building CSS files...');
 
   try {
-    // Step 1: Compile Tailwind CSS
-    console.log('\n   🎨 Step 1: Compiling Tailwind CSS');
+    console.log('\n   🎨 Step 1: Copying globals.css (raw file for users)');
+    await copyGlobalsCSS();
+
+    console.log('\n   🎨 Step 2: Compiling Tailwind CSS');
     const tailwindCSS = await compileTailwindCSS();
 
-    // Step 2: Find and copy component CSS files (excluding tailwind.css)
-    console.log('\n   🔍 Step 2: Scanning for component CSS files...');
+    console.log('\n   🔍 Step 3: Scanning for component CSS files...');
     const allCSSFiles = findCSSFiles(srcDir, srcDir);
 
-    // Exclude tailwind.css from component CSS files
     const componentCSSFiles = allCSSFiles.filter(
-      ({ relativePath }) => !relativePath.includes('styles/tailwind.css')
+      ({ relativePath }) =>
+        !relativePath.includes('styles/index.css') &&
+        !relativePath.includes('styles/globals.css')
     );
 
     if (componentCSSFiles.length > 0) {
       console.log(`   ✓ Found ${componentCSSFiles.length} component CSS file(s)`);
 
-      // Copy and minify component CSS files to dist
       console.log('   📝 Copying and minifying component CSS files...');
       for (const { srcPath, relativePath } of componentCSSFiles) {
         await copyCSSFile(srcPath, relativePath);
@@ -201,8 +241,7 @@ async function main() {
       console.log('   ℹ️  No component CSS files found (only Tailwind)');
     }
 
-    // Step 3: Create bundled CSS with Tailwind + components
-    console.log('\n   📦 Step 3: Creating bundled styles.css...');
+    console.log('\n   📦 Step 4: Creating bundled styles.css...');
     await createBundledCSS(componentCSSFiles, tailwindCSS);
 
     console.log('\n   ✅ CSS build complete!\n');
@@ -214,4 +253,86 @@ async function main() {
   }
 }
 
-main();
+/**
+ * Watch for file changes and rebuild CSS
+ */
+function watchFiles() {
+  console.log('\n👀 Watching for CSS file changes...\n');
+
+  let rebuildTimeout = null;
+  const DEBOUNCE_MS = 300; // Debounce rebuilds by 300ms
+
+  const scheduleRebuild = (changedFile) => {
+    if (rebuildTimeout) {
+      clearTimeout(rebuildTimeout);
+    }
+
+    rebuildTimeout = setTimeout(async () => {
+      const relativePath = relative(packageRoot, changedFile);
+      console.log(`\n🔄 File changed: ${relativePath}`);
+      console.log('   Rebuilding CSS...\n');
+
+      try {
+        await main();
+        console.log('   ✅ Rebuild complete!\n');
+      } catch (error) {
+        console.error('   ❌ Rebuild failed:', error.message);
+        console.log('   👀 Still watching for changes...\n');
+      }
+    }, DEBOUNCE_MS);
+  };
+
+  // Watch main CSS files
+  const filesToWatch = [
+    tailwindInputFile,
+    globalsSrcFile,
+    tailwindConfigFile,
+  ];
+
+  for (const file of filesToWatch) {
+    if (existsSync(file)) {
+      watch(file, { persistent: true }, (eventType) => {
+        if (eventType === 'change') {
+          scheduleRebuild(file);
+        }
+      });
+      const relativePath = relative(packageRoot, file);
+      console.log(`   👁️  Watching: ${relativePath}`);
+    }
+  }
+
+  // Watch component CSS files directory
+  const uiDir = join(srcDir, 'ui');
+  if (existsSync(uiDir)) {
+    watch(uiDir, { recursive: true, persistent: true }, (eventType, filename) => {
+      if (filename && filename.endsWith('.css')) {
+        const changedFile = join(uiDir, filename);
+        scheduleRebuild(changedFile);
+      }
+    });
+    console.log(`   👁️  Watching: src/ui/**/*.css (recursive)`);
+  }
+
+  console.log('\n   ✨ Ready! Edit CSS files to trigger rebuilds.\n');
+  console.log('   Press Ctrl+C to stop watching.\n');
+}
+
+// Check for --watch flag
+// process is available in Node.js runtime
+// eslint-disable-next-line no-undef
+const isWatchMode = process.argv.includes('--watch');
+
+if (isWatchMode) {
+  // Initial build
+  main().then(() => {
+    // Start watching after initial build
+    watchFiles();
+  }).catch((error) => {
+    console.error('\n   ❌ Initial build failed:', error.message);
+    // process is available in Node.js runtime
+    // eslint-disable-next-line no-undef
+    process.exit(1);
+  });
+} else {
+  main();
+}

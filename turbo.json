@@ -2,13 +2,8 @@
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
   "tasks": {
-    "generate:exports": {
-      "inputs": ["src/**/*.ts", "src/**/*.tsx"],
-      "outputs": ["package.json", "tsup.config.ts", "src/index.ts"],
-      "cache": true
-    },
     "build": {
-      "dependsOn": ["^build", "generate:exports"],
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**"]
     },
@@ -25,6 +20,14 @@
     "test": {
       "dependsOn": ["build"],
       "outputs": []
+    },
+    "storybook": {
+      "cache": false,
+      "persistent": true
+    },
+    "build-storybook": {
+      "dependsOn": ["^build"],
+      "outputs": ["storybook-static/**"]
     }
   }
 }

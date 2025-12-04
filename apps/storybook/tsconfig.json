@@ -1,0 +1,11 @@
+{
+  "extends": "../../config/typescript-config/react-library.json",
+  "include": ["stories", ".storybook"],
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
+  }
+}
