@@ -1,0 +1,26 @@
+/**
+ * CarouselTicker CSS
+ *
+ * Styles for the CarouselTicker component.
+ * Dynamic styles (transform, willChange) are applied inline via JavaScript.
+ * Static styles use Tailwind CSS classes where possible.
+ */
+
+/* Root container */
+.tinita-carousel-ticker {
+  box-sizing: border-box;
+}
+
+/* Ensure children don't interfere with flex layout */
+.tinita-carousel-ticker * {
+  box-sizing: border-box;
+}
+
+/* Accessibility: Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .tinita-carousel-ticker * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

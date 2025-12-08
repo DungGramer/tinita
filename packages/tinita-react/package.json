@@ -53,6 +53,11 @@
       "import": "./dist/ui/ping/index.mjs",
       "require": "./dist/ui/ping/index.cjs"
     },
+    "./ui/carousel-ticker": {
+      "types": "./dist/ui/carousel-ticker/index.d.ts",
+      "import": "./dist/ui/carousel-ticker/index.mjs",
+      "require": "./dist/ui/carousel-ticker/index.cjs"
+    },
     "./utils/autoInjectStyles": {
       "types": "./dist/utils/autoInjectStyles.d.ts",
       "import": "./dist/utils/autoInjectStyles.mjs",
@@ -87,8 +92,8 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.22",
-    "cssnano": "^7.1.2",
     "concurrently": "^9.1.2",
+    "cssnano": "^7.1.2",
     "jsdom": "^27.2.0",
     "postcss": "^8.5.6",
     "postcss-import": "^16.1.1",
@@ -121,7 +126,9 @@
   ],
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
+    "clsx": "^2.1.1",
     "lucide-react": "^0.555.0",
-    "motion": "^12.23.25"
+    "motion": "^12.23.25",
+    "tailwind-merge": "^3.4.0"
   }
 }
