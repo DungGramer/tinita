@@ -42,6 +42,7 @@
       "require": "./dist/tailwind-preset.cjs"
     },
     "./styles/globals.css": "./dist/styles/globals.css",
+    "./styles/animations.css": "./dist/styles/animations.css",
     "./styles.css": "./dist/styles.css",
     "./ui/file-tree": {
       "types": "./dist/ui/file-tree/index.d.ts",
@@ -66,6 +67,8 @@
   },
   "sideEffects": [
     "./dist/styles.css",
+    "./dist/styles/globals.css",
+    "./dist/styles/animations.css",
     "./dist/ui/**/*.css"
   ],
   "engines": {
@@ -76,7 +79,7 @@
     "dev": "concurrently \"tsup --watch\" \"pnpm run build:css --watch\"",
     "build:js": "tsup",
     "build:css": "node scripts/build-css.mjs",
-    "build": "pnpm run clean && pnpm run build:js && pnpm run build:css",
+    "build": "pnpm run build:js && pnpm run build:css",
     "lint": "eslint src --ext .ts,.tsx",
     "test": "vitest",
     "check-types": "tsc --noEmit",
@@ -96,6 +99,7 @@
     "cssnano": "^7.1.2",
     "jsdom": "^27.2.0",
     "postcss": "^8.5.6",
+    "postcss-cli": "^11.0.1",
     "postcss-import": "^16.1.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

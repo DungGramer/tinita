@@ -36,6 +36,8 @@ const autoDiscoverEntries = () => {
 const entries = autoDiscoverEntries();
 console.log(`📦 Auto-discovered ${entries.length} entry points`);
 
+const isWatchMode = process.argv.includes('--watch');
+
 export default defineConfig({
   entry: entries,
   format: ['cjs', 'esm'],
@@ -43,7 +45,7 @@ export default defineConfig({
   bundle: true,
   external: ['react', 'react-dom', 'lucide-react', '@radix-ui/react-accordion', 'motion'],
   splitting: false,
-  clean: true,
+  clean: !isWatchMode,
   minify: true,
   // Remove comments when minifying
   esbuildOptions(options) {

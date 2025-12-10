@@ -1,0 +1,557 @@
+/* ==============================================
+   1. Core Animation Variables
+   ============================================== */
+
+:root {
+  /* -------------------
+     Duration
+     ------------------- */
+  --tinita-duration-instant: 100ms; /* Button press, touch feedback */
+  --tinita-duration-fast: 200ms; /* Quick UI updates, toggles */
+  --tinita-duration-base: 300ms; /* Standard interactions */
+  --tinita-duration-medium: 350ms; /* Sheet, navigation, modals */
+  --tinita-duration-slow: 400ms; /* Page transitions, first-time */
+
+  /* -------------------
+     Spring Physics Parameters
+     ------------------- */
+  /* Standard spring - Balanced, no overshoot */
+  --tinita-spring-standard-damping: 0.85;
+  --tinita-spring-standard-stiffness: 200;
+  --tinita-spring-standard-mass: 1.0;
+
+  /* Interactive spring - More bounce, gesture-driven */
+  --tinita-spring-interactive-damping: 0.7;
+  --tinita-spring-interactive-stiffness: 170;
+  --tinita-spring-interactive-mass: 1.0;
+
+  /* Smooth spring - Critically damped, subtle */
+  --tinita-spring-smooth-damping: 0.95;
+  --tinita-spring-smooth-stiffness: 220;
+  --tinita-spring-smooth-mass: 1.0;
+
+  /* Bounce spring - Playful overshoot */
+  --tinita-spring-bounce-damping: 0.6;
+  --tinita-spring-bounce-stiffness: 180;
+  --tinita-spring-bounce-mass: 1.0;
+
+  /* -------------------
+     Easing Curves (cubic-bezier approximations)
+     ------------------- */
+  --tinita-ease-standard: cubic-bezier(0.4, 0.0, 0.2, 1); /* Defaultcurve */
+  --tinita-ease-decelerate: cubic-bezier(0.0, 0.0, 0.2, 1); /* Elements entering */
+  --tinita-ease-accelerate: cubic-bezier(0.4, 0.0, 1, 1); /* Elements exiting */
+  --tinita-ease-sharp: cubic-bezier(0.4, 0.0, 0.6, 1); /* Attention-grabbing */
+  --tinita-ease-spring: cubic-bezier(0.36, 0.66, 0.04, 1); /* Spring approximation */
+  --tinita-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1); /* Bounce approximation */
+
+  /* -------------------
+     Scale Values by Context
+     ------------------- */
+  --tinita-scale-button-press: 0.96; /* Button active state */
+  --tinita-scale-button-release: 1.0; /* Button idle */
+  --tinita-scale-card-lift: 1.02; /* Card hover lift */
+  --tinita-scale-modal-enter: 0.95; /* Modal presentation start */
+  --tinita-scale-alert-enter: 1.15; /* Alert bounce in (overshoot) */
+  --tinita-scale-popover-enter: 0.9; /* Popover snap in */
+  --tinita-scale-sheet-drag: 0.98; /* Sheet while dragging */
+
+  /* -------------------
+     Opacity Values
+     ------------------- */
+  --tinita-opacity-full: 1.0; /* Active elements */
+  --tinita-opacity-press: 0.8; /* Button press feedback */
+  --tinita-opacity-disabled: 0.4; /* Disabled state */
+  --tinita-opacity-placeholder: 0.5; /* Placeholder text */
+  --tinita-opacity-hidden: 0; /* Hidden elements */
+
+  /* -------------------
+     Backdrop Blur Effects (Frosted Glass)
+     ------------------- */
+  /* Standard blur - Sheets, popovers */
+  --tinita-backdrop-blur-standard: 20px;
+  --tinita-backdrop-saturate-standard: 180%;
+  --tinita-backdrop-light-standard: rgba(255, 255, 255, 0.72);
+  --tinita-backdrop-dark-standard: rgba(30, 30, 30, 0.72);
+
+  /* Heavy blur - Alerts, important modals */
+  --tinita-backdrop-blur-heavy: 40px;
+  --tinita-backdrop-saturate-heavy: 200%;
+  --tinita-backdrop-light-heavy: rgba(255, 255, 255, 0.9);
+  --tinita-backdrop-dark-heavy: rgba(20, 20, 20, 0.9);
+
+  /* Overlay - Modal backgrounds */
+  --tinita-backdrop-blur-overlay: 4px;
+  --tinita-backdrop-light-overlay: rgba(0, 0, 0, 0.4);
+  --tinita-backdrop-dark-overlay: rgba(0, 0, 0, 0.6);
+
+  /* -------------------
+     Context-Aware Timing (Adaptive UX)
+     ------------------- */
+  --tinita-duration-first-time: 400ms; /* First interaction (educational) */
+  --tinita-duration-repeated: 200ms; /* Repeated action (efficient) */
+  --tinita-duration-destructive: 400ms; /* Destructive action (warning) */
+  --tinita-duration-feedback: 100ms; /* Instant feedback */
+
+  /* -------------------
+     Transform Values
+     ------------------- */
+  --tinita-translate-parallax: -30%; /* Navigation parallax effect */
+  --tinita-translate-sheet: 100%; /* Sheet full height */
+  --tinita-translate-slide: 20px; /* General slide distance */
+}
+
+/* ==============================================
+   2. Core Transition Utilities
+   ============================================== */
+
+@layer utilities {
+  /* -------------------
+     Standard Transitions (GPU-Accelerated Only)
+     ------------------- */
+
+  /* Default smooth transition - Standard interactions */
+  .transition-smooth {
+    transition-property: transform, opacity;
+    transition-duration: var(--tinita-duration-base);
+    transition-timing-function: var(--tinita-ease-standard);
+  }
+
+  /* Spring transition - Bouncy, playful */
+  .transition-spring {
+    transition-property: transform, opacity;
+    transition-duration: var(--tinita-duration-medium);
+    transition-timing-function: var(--tinita-ease-spring);
+  }
+
+  /* Modal transition - Scale + opacity */
+  .transition-modal {
+    transition-property: transform, opacity;
+    transition-duration: var(--tinita-duration-base);
+    transition-timing-function: var(--tinita-ease-decelerate);
+  }
+
+  /* Fade transition - Opacity only */
+  .transition-fade {
+    transition-property: opacity;
+    transition-duration: var(--tinita-duration-base);
+    transition-timing-function: var(--tinita-ease-standard);
+  }
+
+  /* Slide transition - Transform only */
+  .transition-slide {
+    transition-property: transform;
+    transition-duration: var(--tinita-duration-medium);
+    transition-timing-function: var(--tinita-ease-standard);
+  }
+
+  /* Instant - Button press */
+  .transition-instant {
+    transition-property: transform, opacity;
+    transition-duration: var(--tinita-duration-instant);
+    transition-timing-function: var(--tinita-ease-sharp);
+  }
+
+  /* Fast - Quick updates */
+  .transition-fast {
+    transition-property: transform, opacity;
+    transition-duration: var(--tinita-duration-fast);
+    transition-timing-function: var(--tinita-ease-sharp);
+  }
+
+  /* Slow - Page transitions */
+  .transition-slow {
+    transition-property: transform, opacity;
+    transition-duration: var(--tinita-duration-slow);
+    transition-timing-function: var(--tinita-ease-standard);
+  }
+
+  /* -------------------
+     Component-Specific Transitions
+     ------------------- */
+
+  /* Button - Press effect */
+  .tinita-btn {
+    transition-property: transform, opacity;
+    transition-duration: var(--tinita-duration-instant);
+    transition-timing-function: var(--tinita-ease-sharp);
+  }
+
+  .tinita-btn:active {
+    transform: scale(var(--tinita-scale-button-press));
+    opacity: var(--tinita-opacity-press);
+  }
+
+  /* Card - Hover lift */
+  .tinita-card {
+    transition-property: transform, box-shadow;
+    transition-duration: var(--tinita-duration-fast);
+    transition-timing-function: var(--tinita-ease-standard);
+  }
+
+  .tinita-card:hover {
+    transform: scale(var(--tinita-scale-card-lift)) translateY(-2px);
+  }
+
+  /* Interactive - Will-change optimization (hover only) */
+  .interactive:hover,
+  .interactive:focus-visible {
+    will-change: transform;
+  }
+
+  /* -------------------
+     Backdrop Effects (Frosted Glass)
+     ------------------- */
+
+  /* Standard backdrop - Sheets, popovers */
+  .tinita-backdrop {
+    backdrop-filter: blur(var(--tinita-backdrop-blur-standard))
+      saturate(var(--tinita-backdrop-saturate-standard));
+    background-color: var(--tinita-backdrop-light-standard);
+  }
+
+  .dark .tinita-backdrop {
+    background-color: var(--tinita-backdrop-dark-standard);
+  }
+
+  /* Heavy backdrop - Alerts */
+  .tinita-backdrop-heavy {
+    backdrop-filter: blur(var(--tinita-backdrop-blur-heavy))
+      saturate(var(--tinita-backdrop-saturate-heavy));
+    background-color: var(--tinita-backdrop-light-heavy);
+  }
+
+  .dark .tinita-backdrop-heavy {
+    background-color: var(--tinita-backdrop-dark-heavy);
+  }
+
+  /* Overlay backdrop - Modal backgrounds */
+  .tinita-backdrop-overlay {
+    backdrop-filter: blur(var(--tinita-backdrop-blur-overlay));
+    background-color: var(--tinita-backdrop-light-overlay);
+  }
+
+  .dark .tinita-backdrop-overlay {
+    background-color: var(--tinita-backdrop-dark-overlay);
+  }
+
+  /* -------------------
+     Animation Classes
+     ------------------- */
+
+  /* Fade animations */
+  .animate-fade-in {
+    animation: tinita-fade-in var(--tinita-duration-base) var(--tinita-ease-decelerate);
+  }
+
+  .animate-fade-out {
+    animation: tinita-fade-out var(--tinita-duration-base) var(--tinita-ease-accelerate);
+  }
+
+  /* Sheet presentation (bottom to top) */
+  .animate-sheet-up {
+    animation: tinita-sheet-up var(--tinita-duration-medium) var(--tinita-ease-decelerate);
+  }
+
+  .animate-sheet-down {
+    animation: tinita-sheet-down var(--tinita-duration-medium) var(--tinita-ease-accelerate);
+  }
+
+  /* Alert (bounce in) */
+  .animate-alert-in {
+    animation: tinita-alert-in var(--tinita-duration-slow) var(--tinita-ease-bounce);
+  }
+
+  .animate-alert-out {
+    animation: tinita-alert-out var(--tinita-duration-base) var(--tinita-ease-accelerate);
+  }
+
+  /* Modal (scale + fade) */
+  .animate-modal-in {
+    animation: tinita-modal-in var(--tinita-duration-base) var(--tinita-ease-spring);
+  }
+
+  .animate-modal-out {
+    animation: tinita-modal-out var(--tinita-duration-base) var(--tinita-ease-accelerate);
+  }
+
+  /* Popover (snap in) */
+  .animate-popover-in {
+    animation: tinita-popover-in var(--tinita-duration-fast) var(--tinita-ease-sharp);
+  }
+
+  .animate-popover-out {
+    animation: tinita-popover-out var(--tinita-duration-fast) var(--tinita-ease-accelerate);
+  }
+
+  /* Navigation push (right to left) */
+  .animate-push-in {
+    animation: tinita-push-in var(--tinita-duration-medium) var(--tinita-ease-standard);
+  }
+
+  .animate-push-out {
+    animation: tinita-push-out var(--tinita-duration-medium) var(--tinita-ease-standard);
+  }
+
+  /* Navigation pop (left to right) */
+  .animate-pop-in {
+    animation: tinita-pop-in var(--tinita-duration-base) var(--tinita-ease-standard);
+  }
+
+  .animate-pop-out {
+    animation: tinita-pop-out var(--tinita-duration-base) var(--tinita-ease-accelerate);
+  }
+
+  /* General slide animations */
+  .animate-slide-up {
+    animation: tinita-slide-up var(--tinita-duration-medium) var(--tinita-ease-decelerate);
+  }
+
+  .animate-slide-down {
+    animation: tinita-slide-down var(--tinita-duration-medium) var(--tinita-ease-accelerate);
+  }
+
+  .animate-slide-left {
+    animation: tinita-slide-left var(--tinita-duration-medium) var(--tinita-ease-standard);
+  }
+
+  .animate-slide-right {
+    animation: tinita-slide-right var(--tinita-duration-medium) var(--tinita-ease-standard);
+  }
+}
+
+/* ==============================================
+   3. Keyframe Animations
+   ============================================== */
+
+/* Fade animations */
+@keyframes tinita-fade-in {
+  from {
+    opacity: var(--tinita-opacity-hidden);
+  }
+  to {
+    opacity: var(--tinita-opacity-full);
+  }
+}
+
+@keyframes tinita-fade-out {
+  from {
+    opacity: var(--tinita-opacity-full);
+  }
+  to {
+    opacity: var(--tinita-opacity-hidden);
+  }
+}
+
+/* Sheet presentation (iOS bottom sheet) */
+@keyframes tinita-sheet-up {
+  from {
+    transform: translateY(var(--tinita-translate-sheet));
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes tinita-sheet-down {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(var(--tinita-translate-sheet));
+  }
+}
+
+/* Alert (bounce in - overshoot effect) */
+@keyframes tinita-alert-in {
+  from {
+    transform: scale(var(--tinita-scale-alert-enter));
+    opacity: var(--tinita-opacity-hidden);
+  }
+  to {
+    transform: scale(var(--tinita-scale-button-release));
+    opacity: var(--tinita-opacity-full);
+  }
+}
+
+@keyframes tinita-alert-out {
+  from {
+    transform: scale(var(--tinita-scale-button-release));
+    opacity: var(--tinita-opacity-full);
+  }
+  to {
+    transform: scale(var(--tinita-scale-modal-enter));
+    opacity: var(--tinita-opacity-hidden);
+  }
+}
+
+/* Modal (scale + fade) */
+@keyframes tinita-modal-in {
+  from {
+    transform: scale(var(--tinita-scale-modal-enter));
+    opacity: var(--tinita-opacity-hidden);
+  }
+  to {
+    transform: scale(var(--tinita-scale-button-release));
+    opacity: var(--tinita-opacity-full);
+  }
+}
+
+@keyframes tinita-modal-out {
+  from {
+    transform: scale(var(--tinita-scale-button-release));
+    opacity: var(--tinita-opacity-full);
+  }
+  to {
+    transform: scale(var(--tinita-scale-modal-enter));
+    opacity: var(--tinita-opacity-hidden);
+  }
+}
+
+/* Popover (snap in) */
+@keyframes tinita-popover-in {
+  from {
+    transform: scale(var(--tinita-scale-popover-enter));
+    opacity: var(--tinita-opacity-hidden);
+  }
+  to {
+    transform: scale(var(--tinita-scale-button-release));
+    opacity: var(--tinita-opacity-full);
+  }
+}
+
+@keyframes tinita-popover-out {
+  from {
+    transform: scale(var(--tinita-scale-button-release));
+    opacity: var(--tinita-opacity-full);
+  }
+  to {
+    transform: scale(var(--tinita-scale-popover-enter));
+    opacity: var(--tinita-opacity-hidden);
+  }
+}
+
+/* Navigation push (incoming view) */
+@keyframes tinita-push-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Navigation push (outgoing view with parallax) */
+@keyframes tinita-push-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(var(--tinita-translate-parallax));
+    opacity: var(--tinita-opacity-press);
+  }
+}
+
+/* Navigation pop (returning view) */
+@keyframes tinita-pop-in {
+  from {
+    transform: translateX(var(--tinita-translate-parallax));
+    opacity: var(--tinita-opacity-press);
+  }
+  to {
+    transform: translateX(0);
+    opacity: var(--tinita-opacity-full);
+  }
+}
+
+/* Navigation pop (dismissing view) */
+@keyframes tinita-pop-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* General slide animations */
+@keyframes tinita-slide-up {
+  from {
+    transform: translateY(var(--tinita-translate-slide));
+    opacity: var(--tinita-opacity-hidden);
+  }
+  to {
+    transform: translateY(0);
+    opacity: var(--tinita-opacity-full);
+  }
+}
+
+@keyframes tinita-slide-down {
+  from {
+    transform: translateY(0);
+    opacity: var(--tinita-opacity-full);
+  }
+  to {
+    transform: translateY(var(--tinita-translate-slide));
+    opacity: var(--tinita-opacity-hidden);
+  }
+}
+
+@keyframes tinita-slide-left {
+  from {
+    transform: translateX(var(--tinita-translate-slide));
+    opacity: var(--tinita-opacity-hidden);
+  }
+  to {
+    transform: translateX(0);
+    opacity: var(--tinita-opacity-full);
+  }
+}
+
+@keyframes tinita-slide-right {
+  from {
+    transform: translateX(calc(var(--tinita-translate-slide) * -1));
+    opacity: var(--tinita-opacity-hidden);
+  }
+  to {
+    transform: translateX(0);
+    opacity: var(--tinita-opacity-full);
+  }
+}
+
+/* ==============================================
+   4. Accessibility - Reduced Motion
+   ============================================== */
+
+/**
+ * WCAG 2.1 Level AA Compliance
+ * Respects user's motion sensitivity preferences
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    /* Disable all animations */
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Disable spring/bounce effects */
+  .transition-spring,
+  .animate-alert-in,
+  .animate-modal-in,
+  .animate-popover-in {
+    transition-timing-function: ease !important;
+    animation-timing-function: ease !important;
+  }
+
+  /* Preserve essential fade transitions */
+  .transition-fade,
+  .animate-fade-in,
+  .animate-fade-out {
+    transition-duration: 150ms !important;
+    animation-duration: 150ms !important;
+  }
+}

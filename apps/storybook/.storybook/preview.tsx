@@ -2,7 +2,8 @@ import type { Preview } from '@storybook/react-vite';
 import React from 'react';
 
 // Import component CSS from source
-import 'tinita-react/styles.css';
+import 'tinita-react/styles/globals.css';
+import 'tinita-react/styles/animations.css';
 
 // Custom viewports for responsive testing
 const customViewports = {
