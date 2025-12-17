@@ -1,0 +1,9 @@
+/**
+ * Build Entry Point for tinita-react CSS (NO Tailwind utilities)
+ *
+ * This file is used during build to create styles.css without Tailwind utility classes.
+ * Users should use their own Tailwind setup.
+ */
+
+@import "./globals.css";
+@import "./animations.css";

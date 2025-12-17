@@ -20,13 +20,13 @@ const __dirname = dirname(__filename);
 const packageRoot = join(__dirname, '..');
 const srcDir = join(packageRoot, 'src');
 const distDir = join(packageRoot, 'dist');
-const tailwindInputFile = join(srcDir, 'styles', 'index.css');
+const tailwindInputFile = join(srcDir, 'styles', 'build-entry.css');
 const tailwindOutputFile = join(distDir, 'styles.css');
 const globalsSrcFile = join(srcDir, 'styles', 'globals.css');
 const globalsDistFile = join(distDir, 'styles', 'globals.css');
 const animationsSrcFile = join(srcDir, 'styles', 'animations.css');
 const animationsDistFile = join(distDir, 'styles', 'animations.css');
-const tailwindConfigFile = join(packageRoot, 'tailwind.config.lib.cjs');
+const tailwindConfigFile = join(packageRoot, 'tailwind.config.cjs');
 
 /**
  * Recursively find all CSS files in src/ui
@@ -94,8 +94,8 @@ function compileTailwindCSS() {
   }
 
   if (!existsSync(tailwindConfigFile)) {
-    console.error('   ❌ tailwind.config.lib.cjs not found. Make sure it exists.');
-    throw new Error('tailwind.config.lib.cjs not found');
+    console.error('   ❌ tailwind.config.cjs not found. Make sure it exists.');
+    throw new Error('tailwind.config.cjs not found');
   }
 
   console.log('   ⚙️  Compiling Tailwind CSS from index.css...');
@@ -105,16 +105,8 @@ function compileTailwindCSS() {
     mkdirSync(distDir, { recursive: true });
   }
 
-  // Temporarily copy config to standard name for Tailwind detection
-  const standardConfigFile = join(packageRoot, 'tailwind.config.cjs');
-  const configCopied = !existsSync(standardConfigFile);
-
   try {
-    if (configCopied) {
-      copyFileSync(tailwindConfigFile, standardConfigFile);
-    }
-
-    // Use PostCSS CLI to compile Tailwind
+    // Use PostCSS CLI to compile Tailwind (it will auto-detect tailwind.config.cjs)
     execSync(
       `npx postcss "${tailwindInputFile}" -o "${tailwindOutputFile}" --no-map`,
       { cwd: packageRoot, stdio: 'inherit' }
@@ -125,11 +117,6 @@ function compileTailwindCSS() {
   } catch (error) {
     console.error('   ❌ Failed to compile Tailwind CSS:', error.message);
     throw error;
-  } finally {
-    // Clean up temporary config file
-    if (configCopied && existsSync(standardConfigFile)) {
-      unlinkSync(standardConfigFile);
-    }
   }
 }
 
@@ -172,14 +159,14 @@ function copyAnimationsCSS() {
 }
 
 /**
- * Create bundled styles.css with Tailwind + component styles
+ * Create bundled styles.css with theme CSS + component styles (NO Tailwind utilities)
  */
-function createBundledCSS(componentCSSFiles, tailwindCSS) {
+function createBundledCSS(componentCSSFiles, themeCSS) {
   let bundledCSS = '';
 
-  // Include compiled Tailwind CSS first
-  if (tailwindCSS) {
-    bundledCSS += tailwindCSS;
+  // Include theme CSS (globals + animations, no Tailwind utilities)
+  if (themeCSS) {
+    bundledCSS += themeCSS;
     bundledCSS += '\n';
   }
 
@@ -231,8 +218,8 @@ async function main() {
     console.log('\n   🎨 Step 1.5: Copying animations.css (Apple iOS animation system)');
     copyAnimationsCSS();
 
-    console.log('\n   🎨 Step 2: Compiling Tailwind CSS');
-    const tailwindCSS = compileTailwindCSS();
+    console.log('\n   🎨 Step 2: Compiling theme CSS (no Tailwind utilities)');
+    const themeCSS = compileTailwindCSS();
 
     console.log('\n   🔍 Step 3: Scanning for component CSS files...');
     const uiDir = join(srcDir, 'ui');
@@ -250,7 +237,7 @@ async function main() {
     }
 
     console.log('\n   📦 Step 4: Creating bundled styles.css...');
-    createBundledCSS(componentCSSFiles, tailwindCSS);
+    createBundledCSS(componentCSSFiles, themeCSS);
 
     console.log('\n   ✅ CSS build complete!\n');
   } catch (error) {

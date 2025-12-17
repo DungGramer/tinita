@@ -6,4 +6,4 @@
  */
 
 @import "tailwindcss";
-@import "./globals.css";
+@import "./build-entry.css";

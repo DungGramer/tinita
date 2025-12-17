@@ -1,6 +1,6 @@
 {
   "name": "tinita-react",
-  "version": "0.0.2",
+  "version": "0.0.2-alpha.1",
   "description": "React hooks for the tinita ecosystem - tree-shakeable, type-safe utilities for React applications",
   "source": "./src/index.ts",
   "author": {
@@ -35,11 +35,6 @@
       "types": "./dist/hooks/useToggle.d.ts",
       "import": "./dist/hooks/useToggle.mjs",
       "require": "./dist/hooks/useToggle.cjs"
-    },
-    "./tailwind-preset": {
-      "types": "./dist/tailwind-preset.d.ts",
-      "import": "./dist/tailwind-preset.mjs",
-      "require": "./dist/tailwind-preset.cjs"
     },
     "./styles/globals.css": "./dist/styles/globals.css",
     "./styles/animations.css": "./dist/styles/animations.css",

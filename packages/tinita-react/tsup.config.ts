@@ -22,9 +22,6 @@ const autoDiscoverEntries = () => {
     ...globSync('src/utils/**/*.ts', {
       ignore: ['**/*.test.ts']
     }),
-
-    // Standalone files
-    'src/tailwind-preset.ts',
   ];
 
   // Remove duplicates, normalize paths (Windows backslash -> forward slash)
