@@ -13,10 +13,10 @@ Tinita is a high-performance monorepo delivering framework-agnostic utilities, R
 
 - **Zero Bundle Bloat**: One file = one function architecture with guaranteed tree-shaking
 - **Framework Agnostic Core**: Pure TypeScript utilities that work everywhere
-- **React Ecosystem**: Hooks and UI components with automatic CSS handling
+- **React Ecosystem**: Hooks and UI components with Tailwind CSS + animations
 - **TypeScript First**: Full type safety with strict mode and comprehensive `.d.ts` generation
 - **Per-File Builds**: Optimal tree-shaking through unbundled module output
-- **Automated Exports**: Script-generated subpath exports for every utility
+- **No Manual Exports**: Subpath exports handled automatically
 
 ---
 
@@ -52,10 +52,10 @@ const id = generateUUID();  // "550e8400-e29b-41d4-a716-446655440000"
 **React Hooks**:
 
 ```typescript
-import { useToggle } from 'tinita-react/hooks';
+import { useToggle } from 'tinita-react/hooks/useToggle';
 
 function MyComponent() {
-  const [isOpen, toggle] = useToggle(false);
+  const [isOpen, toggle, setTrue, setFalse] = useToggle(false);
 
   return (
     <div>
@@ -73,7 +73,7 @@ function MyComponent() {
 import 'tinita-react/styles.css';
 
 // Use components
-import { FileTree } from 'tinita-react/ui';
+import { FileTree } from 'tinita-react/ui/file-tree';
 
 const data = [
   { id: '1', name: 'src', type: 'folder', children: [...] },
@@ -104,11 +104,11 @@ tinita/
 
 ## Packages
 
-### tinita (Core)
-Framework-agnostic TypeScript utilities with zero dependencies. Includes file utilities and UUID generation.
+### tinita (v0.0.1)
+Framework-agnostic utilities: file operations (fileSize, truncateFileName, getFileNameParts) and UUID generation. Zero dependencies.
 
-### tinita-react
-React hooks (`useToggle`) and UI components (`FileTree`, `Ping`) with automatic CSS handling.
+### tinita-react (v0.0.2-alpha.1)
+React hooks (useToggle, useIsomorphicLayoutEffect) and UI components (FileTree, Ping, CarouselTicker) with Tailwind CSS v4 and animations.
 
 ---
 
@@ -156,12 +156,13 @@ pnpm publish:all        # Publish all packages
 
 ### Adding New Utilities
 
-1. Create utility file in `packages/tinita/src/` or `packages/tinita-react/src/`
-2. Run `pnpm run generate:exports` to update exports
-3. Write tests in `tests/`
-4. Build and verify: `pnpm build && pnpm test`
+1. Create utility file in `packages/tinita/src/category/` (e.g., `src/string/isEmpty.ts`)
+2. Write tests in `tests/`
+3. Update `tsup.config.ts` entry array manually
+4. Update `package.json` exports manually
+5. Build and verify: `pnpm build && pnpm test`
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed workflow.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) and [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed guidance.
 
 ---
 
@@ -206,11 +207,11 @@ We welcome contributions! Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [ARCHITE
 
 ## Roadmap
 
-**v0.0.x (Current)**: Monorepo setup, core utilities, React package, automated exports
-**v0.1.x (Next)**: Vue/Node packages, expand utilities, more hooks/components
-**v1.0.x (Future)**: Documentation site, playground, benchmarks, a11y, i18n
+**v0.0.x (Current)**: Core utilities (4), React hooks (2) + components (3), CSS architecture, Turborepo setup
+**v0.1.x (Next)**: Expand utilities (string, array, object), more hooks, additional UI components
+**v1.0.x (Future)**: Vue package, Node package, documentation site, CI/CD, 100+ utilities
 
-See [Project Overview PDR](./docs/project-overview-pdr.md) for detailed roadmap.
+See [Project Roadmap](./docs/project-roadmap.md) and [Project Overview PDR](./docs/project-overview-pdr.md).
 
 ---
 

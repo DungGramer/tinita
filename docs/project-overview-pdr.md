@@ -1,9 +1,9 @@
 # Project Overview & Product Development Requirements (PDR)
 
 **Project Name**: Tinita
-**Version**: 0.0.1
-**Last Updated**: 2025-12-03
-**Status**: Early Development
+**Version**: 0.0.1 (tinita), 0.0.2-alpha.1 (tinita-react)
+**Last Updated**: 2026-03-30
+**Status**: Active Development
 **Repository**: https://github.com/dunggramer/tinita
 
 ## Executive Summary
@@ -112,20 +112,19 @@ import { fileSize } from 'tinita/file/fileSize';  // Subpath import (optimal)
 - All styles bundled into `dist/styles.css`
 - Individual component CSS available as subpath exports
 
-### 5. Automated Export Generation
+### 5. Manual Export Management
 
-**Script**: `scripts/generate-package-exports.mjs`
+**Note**: Automated export generation script was removed. Exports now managed manually.
 
-**Capabilities**:
-- Scans `src/` directory for all `.ts` and `.tsx` files
-- Generates `package.json` exports field
-- Updates `tsup.config.ts` entry array
-- Creates barrel exports in `src/index.ts`
-- Handles both single-file utilities and folder-based components
+**Current Approach**:
+- Update `package.json` exports field manually for new utilities
+- Update `tsup.config.ts` entry array manually
+- Update `src/index.ts` barrel exports manually
+- Ensures explicit control over what gets exported
 
-**Workflow Integration**:
-- Runs automatically before build in Turborepo pipeline
-- Triggered by `generate:exports` task
+**No Turborepo Task**:
+- Export generation no longer part of build pipeline
+- Build depends on: `^build` only (not generate:exports)
 
 ### 6. Component Colocation Pattern
 
@@ -403,12 +402,12 @@ ComponentName/
 ## Future Roadmap
 
 ### Phase 1: Foundation (v0.0.x - Current)
-- ✅ Monorepo setup with Turborepo
-- ✅ Core utilities package (`tinita`)
-- ✅ React package (`tinita-react`) with hooks and UI components
-- ✅ Automated export generation
-- ✅ CSS handling for UI components
-- ✅ Build and test infrastructure
+- ✅ Monorepo setup with Turborepo (2.6.1)
+- ✅ Core utilities package (`tinita` v0.0.1): 4 utilities across 2 categories
+- ✅ React package (`tinita-react` v0.0.2-alpha.1): 2 hooks + 3 UI components
+- ✅ Tailwind CSS v4 build-time architecture (compiles to pure CSS)
+- ✅ CSS handling with manual + auto-inject modes
+- ✅ Build and test infrastructure (Vitest ready)
 
 ### Phase 2: Expansion (v0.1.x - Next)
 - 📋 Vue composables package (`tinita-vue`)

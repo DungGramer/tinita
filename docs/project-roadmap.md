@@ -1,258 +1,275 @@
-# ClaudeKit Engineer - Project Roadmap
+# Tinita - Project Roadmap
 
-**Last Updated:** 2025-11-11
-**Current Version:** 1.8.0
-**Repository:** https://github.com/claudekit/claudekit-engineer
+**Last Updated:** 2026-03-30
+**Current Version:** 0.0.1 (tinita), 0.0.2-alpha.1 (tinita-react)
+**Repository:** https://github.com/dunggramer/tinita
 
 ## Executive Summary
 
-ClaudeKit Engineer is an AI-powered development orchestration framework enabling developers to build professional software faster through intelligent agent collaboration, automated workflows, and comprehensive quality management. The project has successfully completed core foundation phases and is advancing cross-platform compatibility and advanced features.
+Tinita is a tree-shakeable TypeScript utility ecosystem providing framework-agnostic utilities, React hooks, and UI components with zero runtime bloat. The project has established core infrastructure and is expanding utilities, hooks, and components while building test coverage.
 
 ---
 
 ## Phase Overview
 
-### Phase 1: Foundation (COMPLETE)
-**Status:** ✅ Complete | **Completion:** v1.8.0
-**Progress:** 100%
+### Phase 1: Foundation (CURRENT - v0.0.x)
+**Status:** ✅ Complete | **Target Completion:** v0.1.0
+**Progress:** 60%
 
-Established core agent orchestration framework, slash command system, automated releases, and foundational skills library.
+Established core monorepo infrastructure, build system, and initial packages.
 
-**Key Achievements:**
-- Multi-agent orchestration engine
-- 50+ slash commands (plan, cook, test, ask, bootstrap, debug, fix:*)
-- Semantic versioning & automated releases
-- 20+ skills library (auth, cloud, databases, design, etc.)
-- Documentation system with repomix integration
-- Scout Block Hook for cross-platform performance optimization
-- Git workflows with conventional commits enforcement
+**Completed Achievements:**
+- ✅ Turborepo monorepo setup (2.6.1)
+- ✅ Core utilities package (`tinita` v0.0.1): 4 utilities (file, uuid)
+- ✅ React package (`tinita-react` v0.0.2-alpha.1): 2 hooks + 3 UI components
+- ✅ Tailwind CSS v4 build-time compilation to pure CSS
+- ✅ CSS architecture (globals, animations, component-specific)
+- ✅ Per-file builds with tree-shaking guarantee
+- ✅ Shared ESLint and TypeScript configurations
+- ✅ Publishing pipeline with NPM automation
+
+**Remaining Foundation Work:**
+- 📋 Export hooks/useIsomorphicLayoutEffect from hooks/index.ts
+- 📋 Test infrastructure setup (Vitest configured, no tests written)
+- 📋 CI/CD with GitHub Actions
+- 📋 Comprehensive documentation
 
 ---
 
-### Phase 2: Cross-Platform Enhancement (IN PROGRESS)
-**Status:** 🔄 In Progress | **Completion Target:** Dec 2025
-**Progress:** 35%
+### Phase 2: Expansion (PLANNED - v0.1.x)
+**Status:** 📋 Planned | **Target Start:** Q2 2026
+**Progress:** 0%
 
-Expanding platform support and improving developer experience across Windows, macOS, and Linux environments.
+Expand utilities, hooks, and components while establishing test coverage and documentation.
 
-#### Sub-Task: Windows Statusline Support
-**Status:** ✅ COMPLETE
-**Completed:** 2025-11-11
-**Priority:** Medium
+**Planned Utilities:**
+- String helpers (isEmpty, trim, capitalize, etc.)
+- Array utilities (flatten, compact, unique, etc.)
+- Object utilities (merge, pick, omit, etc.)
+- Number utilities (clamp, random, format, etc.)
 
-Enabled Windows users to use Claude Code statusline functionality through multiple cross-platform script implementations.
+**Planned React Hooks:**
+- useDebounce (debounced value hook)
+- useLocalStorage (persistent state)
+- usePrevious (track previous value)
+- useWindowSize (responsive design)
+- useClickOutside (click outside detection)
 
-**Deliverables Completed:**
-- `statusline.ps1` - PowerShell native implementation for Windows
-- `statusline.js` - Node.js universal fallback implementation
-- `docs/statusline-windows-support.md` - Comprehensive user guide (4 setup options)
-- `docs/statusline-architecture.md` - Technical architecture & implementation details
-- All 5 implementation phases complete:
-  - Phase 1: Research & Analysis
-  - Phase 2: PowerShell Implementation
-  - Phase 3: Node.js Fallback
-  - Phase 4: Platform Detection & Wrapper
-  - Phase 5: Testing & Documentation
+**Planned UI Components:**
+- Button (accessible button variants)
+- Input (text input with validation)
+- Modal (dialog component)
+- Toast (notification system)
+- Tabs (tabbed content)
 
-**Features:**
-- ✅ PowerShell 5.1+ & PowerShell Core 7+ support
-- ✅ Node.js 16+ universal fallback
-- ✅ Git Bash integration
-- ✅ WSL full compatibility
-- ✅ Feature parity: colors, git branch, models, sessions, costs, tokens, progress bars
-- ✅ ANSI color support with NO_COLOR environment variable
-- ✅ ccusage integration for session metrics
-- ✅ UTF-8 encoding & emoji support
+**Quality Goals:**
+- Test coverage > 80% for all packages
+- Zero TypeScript errors with strict mode
+- Comprehensive JSDoc for all public APIs
+- CI/CD pipeline with automated testing
 
-**Performance:**
-- PowerShell 5.1: ~250ms cold, ~150ms warm
-- PowerShell 7+: ~150ms cold, ~100ms warm
-- Node.js: ~100ms cold, ~50ms warm
-- With ccusage: ~300ms typical
+---
 
-**Documentation Quality:**
-- User setup guide with 4 configuration options
-- Troubleshooting section (9 common issues)
+### Phase 3: Framework Expansion (FUTURE - v0.2.x)
+**Status:** 📋 Planned | **Target Start:** Q3 2026
+**Progress:** 0%
+
+Add support for additional frameworks while maintaining zero-dependency core.
+
+**New Packages:**
+- `tinita-vue`: Vue 3 composables (matching React hooks)
+- `tinita-node`: Node.js-specific utilities (file, path, stream helpers)
+- `tinita-cli`: Command-line utilities for development
+
+**Framework Bridges:**
+- Vue version of reactive hooks
+- Node.js file system abstractions
+- Cross-platform path utilities
+
+---
+
+### Phase 4: Documentation & Tools (FUTURE - v1.0.x)
+**Status:** 📋 Planned | **Target Start:** Q4 2026
+**Progress:** 0%
+
+Build comprehensive documentation and developer tools.
+
+**Documentation:**
+- VitePress documentation site
+- Interactive API reference
+- Code examples for all utilities
+- Migration guides
 - Performance benchmarks
-- Platform compatibility matrix
-- Migration guide between implementations
-- Advanced configuration examples
-- 380+ lines of comprehensive guidance
 
----
+**Developer Tools:**
+- CLI scaffolding tool
+- Bundle size analyzer
+- Tree-shaking validator
+- Component playground
 
-### Phase 3: Advanced Features (PLANNED)
-**Status:** 📋 Planned | **Target Start:** Jan 2026
-**Progress:** 0%
-
-Future enhancements for AI-assisted development capabilities.
-
-**Planned Items:**
-- Visual workflow builder UI
-- Custom agent creator UI
-- Enhanced caching mechanisms
-- Real-time collaboration features
-- Analytics & insights dashboard
-- Performance telemetry
-
----
-
-### Phase 4: Enterprise (FUTURE)
-**Status:** 📋 Future | **Target Start:** Q2 2026
-**Progress:** 0%
-
-Enterprise-grade features and deployment options.
-
-**Planned Items:**
-- Self-hosted deployment options
-- Advanced security features
-- Compliance automation
-- Custom enterprise integrations
-- Dedicated enterprise support
+**Community:**
+- Contribution guidelines
+- Community Discord
+- Open source governance
+- Release announcements
 
 ---
 
 ## Current Development Focus
 
-### 1. Windows Ecosystem Support
-- ✅ Statusline cross-platform support
-- 📋 Windows terminal integration optimization
-- 📋 PowerShell Core expansion
-- 📋 WSL2 performance optimization
+### 1. Bug Fixes & Completions
+- [ ] Export useIsomorphicLayoutEffect from hooks/index.ts
+- [ ] Clean up build-entry.css (currently nearly empty)
+- [ ] Verify all component CSS imports and exports
 
-### 2. Additional Cloud Skills
-- 📋 Google Cloud Platform (GCP) integration
-- 📋 Amazon Web Services (AWS) integration
-- 📋 Microsoft Azure integration
+### 2. Testing Infrastructure
+- [ ] Write tests for all 4 core utilities (tinita)
+- [ ] Write tests for all 2 hooks (tinita-react)
+- [ ] Write tests for all 3 UI components (tinita-react)
+- [ ] Set up test coverage reporting
+- [ ] Target: > 80% coverage
 
-### 3. Enhanced Documentation
-- ✅ Updated Windows support guides
-- 📋 API reference automation
-- 📋 Architecture guide expansion
-- 📋 Tutorial library
+### 3. CI/CD Setup
+- [ ] Create GitHub Actions workflows
+- [ ] Automated linting on PR
+- [ ] Automated testing on PR
+- [ ] Automated type checking on PR
+- [ ] Automated publishing on release
 
-### 4. Performance Optimization
-- ✅ Scout Block Hook for agent performance
-- 📋 Caching strategies for common operations
-- 📋 Token optimization
-- 📋 Parallel execution enhancements
-
----
-
-## Milestone Tracking
-
-### Q4 2025 Milestones
-| Milestone | Status | Due Date | Progress |
-|-----------|--------|----------|----------|
-| Windows Statusline Support | ✅ Complete | 2025-11-11 | 100% |
-| Additional Skills Library Expansion | 📋 Pending | 2025-12-15 | 0% |
-| Enhanced Error Handling | 📋 Pending | 2025-12-31 | 0% |
-
-### Q1 2026 Milestones
-| Milestone | Status | Due Date | Progress |
-|-----------|--------|----------|----------|
-| Visual Workflow Builder | 📋 Planned | 2026-03-31 | 0% |
-| Custom Agent Creator UI | 📋 Planned | 2026-03-31 | 0% |
-| Cloud Platform Integrations (GCP, AWS, Azure) | 📋 Planned | 2026-03-31 | 0% |
+### 4. Documentation
+- [ ] Complete API documentation for all utilities
+- [ ] Write component usage guides
+- [ ] Create CSS customization guides
+- [ ] Add troubleshooting section
 
 ---
 
 ## Success Metrics
 
-### Adoption
-- GitHub stars: Tracking (public launch pending)
-- NPM downloads: Tracking
-- Active users & installations: Tracking
-- Community engagement: In development
+### v0.0.x (Current)
+- NPM packages published and installable
+- Core utilities working with zero dependencies
+- React components rendering with CSS styles
+- Tree-shaking verified (bundle size < 1KB per utility)
 
-### Performance Targets
-- Bootstrap time: < 10 minutes
-- Planning to implementation cycle: 50% reduction
-- Documentation coverage: > 90%
-- Test coverage: > 80%
-- Code review time: 75% reduction
+### v0.1.x (Next Phase)
+- 20+ utilities across core package
+- 8+ React hooks
+- 5+ UI components
+- Test coverage > 80%
+- CI/CD fully automated
+- Documentation coverage 100%
 
-### Quality Standards
-- Conventional commit compliance: 100%
-- Zero secrets in commits: 100%
-- Automated test pass rate: > 95%
-- Documentation freshness: < 24 hours lag
-
-### Developer Experience
-- Time to first commit: < 5 minutes
-- Onboarding time: 50% reduction vs baseline
-- Context switching overhead: 60% reduction
-- Satisfaction score target: > 4.5/5.0
+### v1.0.x (Maturity)
+- 100+ utilities across all packages
+- 3+ framework packages (core, React, Vue)
+- Comprehensive documentation site
+- 1000+ GitHub stars
+- Active community with regular contributors
 
 ---
 
 ## Feature Inventory
 
 ### Core Features (COMPLETE)
-- ✅ Multi-agent orchestration system
-- ✅ 50+ slash commands
-- ✅ Comprehensive skills library (20+)
-- ✅ Automated release management
-- ✅ Development workflow automation
-- ✅ Documentation system with repomix
-- ✅ Cross-platform performance optimization
-- ✅ Git workflow automation
-- ✅ Comprehensive error handling
+- ✅ Monorepo with Turborepo orchestration
+- ✅ Per-file builds with tree-shaking
+- ✅ Subpath exports for all utilities
+- ✅ TypeScript strict mode
+- ✅ ESLint & Prettier enforcement
+- ✅ Zero dependencies in core package
+- ✅ React package with hooks and components
+- ✅ Tailwind CSS v4 build-time compilation
+- ✅ CSS auto-inject and manual import modes
 
-### Recent Additions (2025-11-11)
-- ✅ Windows statusline support (PowerShell, Node.js)
-- ✅ Cross-platform statusline documentation
-- ✅ Advanced configuration guides
+### Recent Additions (2026-03)
+- ✅ CarouselTicker component (infinite scroll)
+- ✅ Animation system (18+ keyframes)
+- ✅ useIsomorphicLayoutEffect hook
+- ✅ Tailwind v4 architecture
 
-### In Development
-- 🔄 Additional cloud platform integrations
-- 🔄 UI/UX improvements
-- 🔄 Enhanced error handling patterns
-- 🔄 Performance optimization phase 2
+### In Progress
+- 🔄 Test coverage buildup
+- 🔄 CI/CD setup
+- 🔄 Documentation expansion
 
 ### Planned
-- 📋 Visual workflow builder
-- 📋 Custom agent creator
-- 📋 Team collaboration features
-- 📋 Analytics dashboard
+- 📋 Utility expansion (20+ new utilities)
+- 📋 Hook expansion (8+ new hooks)
+- 📋 Component expansion (5+ new components)
+- 📋 Vue package (tinita-vue)
+- 📋 Node package (tinita-node)
+- 📋 Documentation site
 
 ---
 
-## Technical Architecture
+## Known Limitations & Constraints
 
-### Technology Stack
-- **Runtime:** Node.js >= 18.0.0, Bash, PowerShell, Cross-platform hooks
-- **AI Platforms:** Anthropic Claude, OpenRouter, Google Gemini, Grok Code
-- **Development Tools:** Semantic Release, Commitlint, Husky, Repomix, Scout Block Hook
-- **CI/CD:** GitHub Actions
-- **Languages:** JavaScript, Bash, PowerShell, Markdown
+### Current Limitations
+- No tests written yet (infrastructure ready)
+- No CI/CD pipeline (manual publishing)
+- useIsomorphicLayoutEffect not exported from hooks barrel
+- build-entry.css needs cleanup
 
-### Integration Points
-- MCP Tools: context7, sequential-thinking, SearchAPI, review-website, VidCap
-- External Services: GitHub (Actions, Releases, PRs), Discord, NPM
-- Platforms: Windows, macOS, Linux, WSL, Git Bash
+### Design Constraints
+- One file = one utility/hook/composable (enforced)
+- No external dependencies in core package (enforced)
+- File size limit of 500 lines per file
+- Framework dependencies as peer dependencies only
+
+### Technical Constraints
+- Node.js >= 18.0.0 required
+- pnpm workspaces for monorepo structure
+- Manual export management (no auto-generation)
 
 ---
 
-## Known Constraints & Limitations
+## Dependency & Integration Points
 
-### Technical
-- Requires Node.js >= 18.0.0
-- Depends on Claude Code or Open Code CLI
-- File-based communication has I/O overhead
-- Token limits on AI model context windows
+### Required
+- Node.js 18.0.0+
+- pnpm 9.0.0+
+- Git (for version control)
 
-### Operational
-- Requires API keys for AI platforms
-- GitHub Actions minutes for CI/CD
-- Internet connection for MCP tools
-- Storage for repomix output files
+### Development Tools
+- Turborepo 2.6.1
+- TypeScript 5.9.2
+- ESLint 9.39.1
+- Prettier 3.6.2
+- Vitest 4.0.14
 
-### Design
-- Agent definitions must be Markdown with frontmatter
-- Commands follow slash syntax
-- Reports use specific naming conventions
-- Conventional commits required
+### Framework Dependencies
+- React >= 18.0.0 (tinita-react)
+- Vue >= 3.0.0 (tinita-vue, planned)
+
+---
+
+## Milestone Schedule
+
+### Q1 2026 (Current)
+| Milestone | Status | Target |
+|-----------|--------|--------|
+| useIsomorphicLayoutEffect export fix | 📋 Pending | 2026-04-15 |
+| Core utility tests | 📋 Pending | 2026-04-30 |
+| React hook tests | 📋 Pending | 2026-04-30 |
+| React component tests | 📋 Pending | 2026-04-30 |
+| CI/CD setup | 📋 Pending | 2026-05-15 |
+
+### Q2 2026
+| Milestone | Status | Target |
+|-----------|--------|--------|
+| 8+ new utilities added | 📋 Planned | 2026-06-30 |
+| 5+ new React hooks | 📋 Planned | 2026-06-30 |
+| 3+ new UI components | 📋 Planned | 2026-06-30 |
+| Test coverage > 80% | 📋 Planned | 2026-06-30 |
+| v0.1.0 release | 📋 Planned | 2026-06-30 |
+
+### Q3 2026
+| Milestone | Status | Target |
+|-----------|--------|--------|
+| tinita-vue package created | 📋 Planned | 2026-09-30 |
+| tinita-node package created | 📋 Planned | 2026-09-30 |
+| Documentation site launched | 📋 Planned | 2026-09-30 |
 
 ---
 
@@ -260,142 +277,71 @@ Enterprise-grade features and deployment options.
 
 | Risk | Impact | Likelihood | Mitigation |
 |------|--------|-----------|-----------|
-| AI Model API Failures | High | Medium | Retry logic, fallback models, graceful degradation |
-| Context Window Limits | Medium | High | Repomix for code compaction, selective loading, chunking |
-| Agent Coordination Failures | High | Low | Validation checks, error recovery, rollback mechanisms |
-| Secret Exposure | Critical | Low | Pre-commit scanning, .gitignore enforcement, security reviews |
-| Documentation Drift | Medium | Medium | Automated triggers, freshness checks, validation workflows |
+| Export generation complexity | Medium | High | Manual management reduces complexity |
+| Test coverage gaps | Medium | Medium | Automated test runners, CI enforcement |
+| CSS maintenance burden | Low | Low | Component-specific CSS keeps complexity local |
+| Breaking changes between versions | High | Low | Semantic versioning, changelog discipline |
+| Framework dependency version conflicts | Medium | Medium | Peer dependency ranges, clear documentation |
 
 ---
 
-## Dependencies & External Requirements
+## Long-Term Vision (v1.0+)
 
-### Required
-- Node.js runtime environment
-- Git version control
-- Claude Code or Open Code CLI
-- API keys for AI platforms
+### 2027 Goals
+- Reach 100+ utilities across core package
+- Establish as community standard for tree-shakeable utilities
+- Build active open-source community (100+ stars)
+- Integrate with major frameworks (Next.js, Nuxt, etc.)
+- Monthly NPM downloads in 10K+ range
 
-### Optional
-- Discord webhook for notifications
-- GitHub repository for CI/CD
-- NPM account for publishing
-- PowerShell 5.1+ (Windows statusline)
-
-### Key External Tools
-- Semantic Release
-- Commitlint
-- Husky
-- Repomix
-- Scout Block Hook
-- Various MCP servers
+### 2028+ Aspirations
+- Become go-to utility library ecosystem
+- Support 5+ languages/runtimes (JS, Python, Rust, etc.)
+- Educational content and tutorials
+- Commercial support options
+- 1M+ monthly NPM downloads
 
 ---
 
-## Compliance & Standards
+## Decision Log
 
-### Code Standards
-- YANGI (You Aren't Gonna Need It)
-- KISS (Keep It Simple, Stupid)
-- DRY (Don't Repeat Yourself)
-- Files < 500 lines
-- Comprehensive error handling
-- Security-first development
+### Decision 1: Manual Export Management
+**Date:** 2026-03-30
+**Status:** Implemented
+**Rationale:** Removed automated export generation script for explicit control over what gets exported. Manual management provides clarity and prevents unexpected changes.
 
-### Git Standards
-- Conventional Commits
-- Clean commit history
-- No AI attribution
-- No secrets in commits
-- Professional PR descriptions
+### Decision 2: Tailwind CSS v4 Build-Time
+**Date:** 2026-03
+**Status:** Implemented
+**Rationale:** Tailwind v4 compiles to pure CSS at build time, eliminating runtime dependency while allowing developers to use Tailwind utilities in component CSS.
 
-### Documentation Standards
-- Markdown format
-- Up-to-date (< 24 hours)
-- Comprehensive coverage
-- Clear examples
-- Proper versioning
-
-### Testing Standards
-- Unit test coverage > 80%
-- Integration tests for workflows
-- Error scenario coverage
-- Performance validation
-- Security testing
+### Decision 3: Component Colocation Pattern
+**Date:** 2025-12
+**Status:** Implemented
+**Rationale:** Main component file + index.ts re-export pattern improves discoverability and maintainability. Follows industry best practices (Meta, Google, Microsoft).
 
 ---
 
-## Changelog
+## Related Documentation
 
-### Version 1.8.0 (Current - 2025-11-11)
-
-#### Features Added
-- **Windows Statusline Support:** Complete cross-platform statusline implementation
-  - PowerShell native implementation (statusline.ps1)
-  - Node.js universal fallback (statusline.js)
-  - Support for Windows PowerShell 5.1+, PowerShell Core 7+
-  - Git Bash and WSL full compatibility
-
-#### Documentation Added
-- Comprehensive Windows statusline user guide (statusline-windows-support.md)
-- Technical architecture documentation (statusline-architecture.md)
-- Setup guides for 4 different Windows environments
-- Troubleshooting guide with 9 common issue solutions
-- Performance benchmarks for all implementations
-
-#### Quality Improvements
-- Feature parity across bash, PowerShell, and Node.js
-- Enhanced ANSI color support
-- UTF-8 encoding verification
-- Cross-platform path handling
-- Silent degradation error handling
-
-#### Implementation Details
-- Phase 1: Research & analysis complete
-- Phase 2: PowerShell implementation complete
-- Phase 3: Node.js fallback complete
-- Phase 4: Platform detection & wrapper complete
-- Phase 5: Testing & documentation complete
-
----
-
-## Document References
-
-### Core Documentation
 - [Project Overview & PDR](./project-overview-pdr.md)
+- [Codebase Summary](./codebase-summary.md)
 - [Code Standards](./code-standards.md)
 - [System Architecture](./system-architecture.md)
-- [Codebase Summary](./codebase-summary.md)
-- [Release Process](./RELEASE.md)
-
-### Feature Documentation
-- [Windows Statusline Support Guide](./statusline-windows-support.md)
-- [Statusline Architecture](./statusline-architecture.md)
-
-### External Resources
-- [Claude Code Documentation](https://docs.claude.com/en/docs/claude-code/overview)
-- [Open Code Documentation](https://opencode.ai/docs)
-- [Conventional Commits](https://conventionalcommits.org/)
-- [Semantic Versioning](https://semver.org/)
-- [Keep a Changelog](https://keepachangelog.com/)
+- [ARCHITECTURE.md](../ARCHITECTURE.md)
+- [CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ---
 
-## Questions & Notes
+## Contacts & Links
 
-### Current Status
-- Windows statusline support implementation fully delivered and documented
-- Ready for integration testing with Claude Code CLI
-- All 5 phases of implementation complete with comprehensive documentation
-
-### Next Steps (Not Yet Scheduled)
-1. Integration testing with Claude Code CLI production
-2. Performance validation on target Windows platforms
-3. User feedback collection from Windows developer community
-4. Consideration of additional Windows ecosystem enhancements
+- **GitHub:** https://github.com/dunggramer/tinita
+- **NPM (tinita):** https://www.npmjs.com/package/tinita
+- **NPM (tinita-react):** https://www.npmjs.com/package/tinita-react
+- **Author:** DungGramer (dung.dev.gramer@gmail.com)
 
 ---
 
-**Maintained By:** ClaudeKit Engineer Team
-**Last Review:** 2025-11-11
-**Next Review Target:** 2025-12-11
+**Maintained By:** Tinita Core Team
+**Last Review:** 2026-03-30
+**Next Review Target:** 2026-06-30

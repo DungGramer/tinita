@@ -1,7 +1,7 @@
 # Code Standards & Codebase Structure
 
-**Last Updated**: 2025-12-03
-**Version**: 0.0.1
+**Last Updated**: 2026-03-30
+**Version**: 0.0.1 (tinita), 0.0.2-alpha.1 (tinita-react)
 **Applies To**: All code within Tinita monorepo
 
 ## Overview

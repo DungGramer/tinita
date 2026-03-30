@@ -1,11 +1,9 @@
 # Codebase Summary
 
-**Last Updated**: 2025-12-03
-**Version**: 0.0.1
+**Last Updated**: 2026-03-30
+**Version**: 0.0.1 (tinita), 0.0.2-alpha.1 (tinita-react)
 **Repository**: [dunggramer/tinita](https://github.com/dunggramer/tinita)
-**Total Files**: 361 files
-**Total Tokens**: 1,016,078 tokens
-**Total Characters**: 3,613,616 characters
+**Status**: Active development with CSS animations and carousel component
 
 ## Overview
 
@@ -95,8 +93,8 @@ packages/tinita/
 ### 2. tinita-react (React Ecosystem)
 
 **Location**: `packages/tinita-react/`
-**Version**: 0.0.2
-**Description**: React hooks and UI components with tree-shaking and SSR support
+**Version**: 0.0.2-alpha.1
+**Description**: React hooks and UI components with Tailwind CSS v4 and animations
 
 **Directory Structure**:
 ```
@@ -104,44 +102,53 @@ packages/tinita-react/
 ├── src/
 │   ├── hooks/                # React hooks (single-file)
 │   │   ├── index.ts          # Hooks barrel export
-│   │   └── useToggle.ts      # Boolean toggle hook
+│   │   ├── useToggle.ts      # Boolean toggle with controls
+│   │   └── useIsomorphicLayoutEffect.ts  # SSR-safe layout effect
 │   ├── ui/                   # UI components (folder-based)
 │   │   ├── index.ts          # UI barrel export
-│   │   ├── FileTree/         # File tree component
+│   │   ├── file-tree/        # File tree component
 │   │   │   ├── FileTree.tsx  # Main component
 │   │   │   ├── FileTree.css  # Component styles
 │   │   │   ├── components/   # Private subcomponents
-│   │   │   ├── utils/        # Component utilities
-│   │   │   └── index.tsx     # Re-exports
-│   │   └── ping/             # Ping component
+│   │   │   ├── utils/        # Parser + icon utilities
+│   │   │   ├── types.ts      # Type definitions
+│   │   │   └── index.ts      # Re-exports
+│   │   ├── ping/             # Ping indicator component
+│   │   │   ├── Ping.tsx
+│   │   │   └── index.ts
+│   │   └── carousel-ticker/  # Infinite scroll component
+│   │       ├── CarouselTicker.tsx
+│   │       ├── CarouselTicker.css
+│   │       ├── CarouselTicker.types.ts
+│   │       ├── CarouselTicker.utils.ts
+│   │       └── index.ts
 │   ├── utils/                # Shared utilities
-│   │   └── autoInjectStyles.ts  # CSS injection helper
+│   │   ├── autoInjectStyles.ts  # SSR-safe CSS injection
+│   │   └── cn.ts            # clsx + tailwindMerge
 │   ├── styles/               # Global styles
-│   │   └── tailwind.css      # Tailwind base styles
+│   │   ├── globals.css      # Base styles + color tokens
+│   │   ├── animations.css   # 18+ keyframe animations
+│   │   └── tailwind.css     # Tailwind v4 configuration
 │   └── index.ts              # Empty (no barrel export)
 ├── dist/                     # Build output
-│   ├── hooks/                # Compiled hooks
-│   ├── ui/                   # Compiled components
-│   ├── utils/                # Compiled utilities
-│   ├── styles.css            # All component styles
-│   └── tailwind.css          # Tailwind styles
 ├── scripts/
 │   └── build-css.mjs         # CSS build script
 ├── .storybook/               # Storybook configuration
 ├── tests/                    # Component tests
 ├── package.json              # Package with CSS exports
 ├── tsup.config.ts            # Build config with React external
-├── tailwind.config.ts        # Tailwind configuration
+├── tailwind.config.ts        # Tailwind v4 configuration
 └── vitest.config.ts          # Test configuration
 ```
 
-**Components**:
-- **Hooks** (1 hook)
-  - `useToggle(initialValue)` - Boolean state toggle management
+**Hooks** (2):
+- `useToggle(initialValue)` - Boolean state with setValue/setTrue/setFalse controls
+- `useIsomorphicLayoutEffect` - SSR-safe layout effect hook (not re-exported from hooks/index.ts yet)
 
-- **UI Components** (2 components)
-  - `FileTree` - Tree view for file/folder structures with icons
-  - `Ping` - Loading/activity indicator
+**UI Components** (3):
+- `FileTree` - Tree view with 18+ file icons, dark/light themes, Radix accordion, ARIA accessible
+- `Ping` - Loading indicator with CSS animation
+- `CarouselTicker` - Infinite scroll ticker with ResizeObserver, IntersectionObserver, pausable on hover
 
 **Build Configuration**:
 ```typescript
@@ -161,24 +168,23 @@ packages/tinita-react/
 }
 ```
 
-**CSS Build Process**:
-```javascript
-// scripts/build-css.mjs
-1. Copy all CSS files from src/ to dist/
-2. Bundle all component CSS into dist/styles.css
-3. Process Tailwind styles to dist/tailwind.css
-```
+**CSS Architecture**:
+- **Tailwind v4**: Build-time compilation to pure CSS (no runtime dependency)
+- **globals.css**: 128 lines, 11 color tokens, dark theme support
+- **animations.css**: 558 lines, 18+ keyframes, spring physics, configurable durations/easing
+- **Component CSS**: BEM naming with tinita- prefix, 60+ CSS variables for customization
+- **Build Process**: CSS files copied to dist/, bundled into dist/styles.css
 
-**Package Exports**:
+**Package Exports** (Sample):
 ```json
 {
-  ".": "./dist/index.{mjs,cjs}",
   "./hooks/useToggle": "./dist/hooks/useToggle.{mjs,cjs}",
-  "./ui/FileTree": "./dist/ui/FileTree/index.{mjs,cjs}",
+  "./ui/file-tree": "./dist/ui/file-tree/index.{mjs,cjs}",
   "./ui/ping": "./dist/ui/ping/index.{mjs,cjs}",
-  "./utils/autoInjectStyles": "./dist/utils/autoInjectStyles.{mjs,cjs}",
+  "./ui/carousel-ticker": "./dist/ui/carousel-ticker/index.{mjs,cjs}",
   "./styles.css": "./dist/styles.css",
-  "./tailwind.css": "./dist/tailwind.css"
+  "./styles/globals.css": "./dist/styles/globals.css",
+  "./styles/animations.css": "./dist/styles/animations.css"
 }
 ```
 
@@ -188,6 +194,8 @@ packages/tinita-react/
   - `@radix-ui/react-accordion` ^1.2.12
   - `lucide-react` ^0.555.0
   - `motion` ^12.23.25
+  - `clsx` (class merging)
+  - `tailwind-merge` (utility conflict resolution)
 
 ## Configuration Packages
 
@@ -239,26 +247,12 @@ packages/tinita-react/
 
 ## Build & Automation Scripts
 
-### 1. generate-package-exports.mjs
+### Scripts Overview
 
-**Location**: `scripts/generate-package-exports.mjs`
-**Purpose**: Automatically generate package.json exports and tsup entries
-
-**Capabilities**:
-- Scans `src/` directory for all TypeScript files
-- Generates subpath exports for each file
-- Updates `tsup.config.ts` entry array
-- Creates barrel exports in `src/index.ts`
-- Handles both single-file and folder-based structures
-
-**Usage**:
-```bash
-# From package directory
-pnpm run generate:exports
-
-# From root
-node scripts/generate-package-exports.mjs packages/tinita
-```
+**generate-package-exports.mjs** (Deprecated):
+- Previously automated export generation
+- Removed in favor of manual control
+- Manual updates now required for exports and tsup entries
 
 ### 2. publish.mjs
 
@@ -319,11 +313,12 @@ pnpm publish:dry-run        # Test publishing
 }
 ```
 
-**Key Features**:
-- **Task Dependencies**: `build` runs after `generate:exports`
-- **Caching**: Intelligent caching for faster rebuilds
-- **Parallel Execution**: Independent tasks run in parallel
-- **Persistent Tasks**: Dev mode runs continuously
+**Key Points**:
+- Build depends on `^build` only (generate:exports removed)
+- Test depends on build
+- Caching enabled for reproducible builds
+- Parallel execution of independent tasks
+- Dev mode runs in persistent watch mode
 
 ## Development Technologies
 
@@ -532,60 +527,45 @@ pnpm publish:all        # Publish all packages
 ## Current State Summary
 
 **Packages Ready**:
-- ✅ `tinita` (v0.0.1) - 4 utilities across 2 categories
-- ✅ `tinita-react` (v0.0.2) - 1 hook + 2 UI components
+- ✅ `tinita` (v0.0.1) - 4 utilities (file + uuid)
+- ✅ `tinita-react` (v0.0.2-alpha.1) - 2 hooks + 3 UI components
+
+**Recent Additions** (Recent commits):
+- ✅ CarouselTicker component (infinite scroll with ResizeObserver)
+- ✅ Animation system (18+ keyframes with spring physics)
+- ✅ Tailwind v4 build-time CSS compilation
+- ✅ useIsomorphicLayoutEffect hook (SSR-safe)
 
 **Infrastructure Complete**:
-- ✅ Turborepo monorepo setup
+- ✅ Turborepo monorepo (simplified pipeline)
 - ✅ Per-file builds with tree-shaking
-- ✅ Automated export generation
-- ✅ CSS build pipeline
-- ✅ Testing infrastructure
+- ✅ Tailwind v4 build-time architecture
+- ✅ CSS auto-inject + manual import modes
+- ✅ Testing infrastructure (Vitest ready)
 - ✅ Shared configurations
 
-**Documentation Coverage**:
-- ✅ Comprehensive root-level docs
-- ✅ Package-specific READMEs
-- ✅ Component-level documentation
-- ✅ CSS handling guide
-- ✅ Contributing guidelines
+**Known Issues**:
+- useIsomorphicLayoutEffect not exported from hooks/index.ts yet
+- build-entry.css nearly empty
 
 ## Next Steps
 
-**Immediate Priorities**:
-1. Expand `tinita` core utilities (string, array, object helpers)
-2. Add more React hooks (`useDebounce`, `useLocalStorage`, etc.)
-3. Increase test coverage to > 80%
-4. Create comprehensive API documentation
+**Immediate**:
+1. Export useIsomorphicLayoutEffect from hooks/index.ts
+2. Write tests for all utilities and components
+3. Set up CI/CD with GitHub Actions
+4. Expand core utilities (string, array, object)
 
-**Short-Term Goals**:
-5. Begin `tinita-vue` package development
-6. Add more UI components to `tinita-react`
-7. Set up documentation site (VitePress or Docusaurus)
-8. Implement CI/CD with GitHub Actions
+**Short-Term**:
+5. Add more React hooks (useDebounce, useLocalStorage, etc.)
+6. Add more UI components (Button, Input, Modal, etc.)
+7. Create comprehensive API documentation
+8. Begin tinita-vue package development
 
-**Long-Term Vision**:
+**Long-Term**:
 9. Reach 100+ utilities across all categories
-10. Establish Tinita as go-to utility library ecosystem
-11. Build vibrant open-source community
-12. Achieve 1M+ monthly NPM downloads
-
-## Repository Metrics
-
-**Code Distribution**:
-- **Packages**: 50% (main publishable code)
-- **Config**: 5% (shared configurations)
-- **Scripts**: 5% (automation and tooling)
-- **Documentation**: 10% (guides and READMEs)
-- **Tests**: 10% (test suites)
-- **Claude Skills**: 20% (AI development assistance)
-
-**File Types**:
-- TypeScript/TSX: 70%
-- Markdown: 15%
-- JSON/Configuration: 10%
-- CSS: 3%
-- Shell/PowerShell: 2%
+10. Documentation site (VitePress or similar)
+11. Community growth and ecosystem establishment
 
 ## Related Documentation
 

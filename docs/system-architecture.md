@@ -1,8 +1,8 @@
 # System Architecture
 
-**Last Updated**: 2025-12-03
-**Version**: 0.0.1
-**Status**: Production Ready
+**Last Updated**: 2026-03-30
+**Version**: 0.0.1 (tinita), 0.0.2-alpha.1 (tinita-react)
+**Status**: Active Development
 
 ## Overview
 
@@ -107,18 +107,23 @@ tinita/
 │       │   │   ├── useToggle.ts
 │       │   │   └── index.ts     # Hooks barrel
 │       │   ├── ui/              # UI components (folder-based)
-│       │   │   ├── FileTree/    # Component colocation
+│       │   │   ├── file-tree/    # File tree component
 │       │   │   │   ├── FileTree.tsx      # Main component
 │       │   │   │   ├── FileTree.css      # Component styles
 │       │   │   │   ├── components/       # Private subcomponents
-│       │   │   │   ├── utils/            # Component utilities
-│       │   │   │   └── index.tsx         # Re-exports
-│       │   │   ├── ping/
+│       │   │   │   ├── utils/            # Parser + icons
+│       │   │   │   ├── types.ts
+│       │   │   │   └── index.ts          # Re-exports
+│       │   │   ├── ping/        # Ping indicator
+│       │   │   ├── carousel-ticker/  # Infinite scroll
 │       │   │   └── index.ts     # UI barrel
-│       │   ├── utils/           # Shared utilities
-│       │   │   └── autoInjectStyles.ts
+│       │       │   ├── utils/           # Shared utilities
+│       │   │   ├── autoInjectStyles.ts  # SSR-safe CSS injection
+│       │   │   └── cn.ts                 # clsx + tailwindMerge
 │       │   ├── styles/          # Global styles
-│       │   │   └── tailwind.css
+│       │   │   ├── globals.css          # Base + color tokens
+│       │   │   ├── animations.css       # 18+ keyframes
+│       │   │   └── tailwind.css         # Tailwind v4 config
 │       │   └── index.ts         # Empty (no barrel export)
 │       ├── scripts/
 │       │   └── build-css.mjs    # CSS build automation
@@ -132,7 +137,6 @@ tinita/
 │   └── ui/                      # Internal shared components
 │
 ├── scripts/                      # Build automation
-│   ├── generate-package-exports.mjs  # Auto-generate exports
 │   ├── publish.mjs                   # Publishing automation
 │   └── update-package-versions.mjs   # Version management
 │
@@ -260,16 +264,14 @@ Package-Specific
 │                    Turborepo Task Graph                          │
 └─────────────────────────────────────────────────────────────────┘
 
-generate:exports ─┐
-                  │
-                  ├──► build ─┐
-                  │            │
-^build ───────────┘            ├──► test
-                               │
-                               └──► check-types
+build ─┐
+       │
+       ├──► test
+       │
+^build ─┘
 
-lint ◄──── ^lint
-
+lint (independent)
+check-types (independent)
 dev (persistent, not cached)
 
 
@@ -278,13 +280,7 @@ Task Definitions:
 ┌──────────────────┬──────────────────────────────────────────────┐
 │ Task             │ Configuration                                │
 ├──────────────────┼──────────────────────────────────────────────┤
-│ generate:exports │ • Scans src/ for TypeScript files          │
-│                  │ • Updates package.json exports             │
-│                  │ • Updates tsup.config.ts entries           │
-│                  │ • Creates barrel exports in index.ts       │
-│                  │ • Cached based on src/ changes             │
-├──────────────────┼──────────────────────────────────────────────┤
-│ build            │ • Depends on: ^build, generate:exports     │
+│ build            │ • Depends on: ^build                       │
 │                  │ • Runs tsup (per-file builds)              │
 │                  │ • Outputs: dist/**                         │
 │                  │ • Cached based on src/ and config changes  │
