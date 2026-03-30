@@ -40,7 +40,7 @@ export default defineConfig({
   format: ['cjs', 'esm'],
   dts: true,
   bundle: true,
-  external: ['react', 'react-dom', 'lucide-react', '@radix-ui/react-accordion', 'motion'],
+  external: ['react', 'react-dom', 'tinita', 'lucide-react', '@radix-ui/react-accordion', 'motion'],
   splitting: false,
   clean: !isWatchMode,
   minify: true,

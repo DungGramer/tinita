@@ -36,6 +36,16 @@
       "import": "./dist/hooks/useToggle.mjs",
       "require": "./dist/hooks/useToggle.cjs"
     },
+    "./hooks/useUrlDownload": {
+      "types": "./dist/hooks/useUrlDownload.d.ts",
+      "import": "./dist/hooks/useUrlDownload.mjs",
+      "require": "./dist/hooks/useUrlDownload.cjs"
+    },
+    "./hooks/useDownloadQueue": {
+      "types": "./dist/hooks/useDownloadQueue.d.ts",
+      "import": "./dist/hooks/useDownloadQueue.mjs",
+      "require": "./dist/hooks/useDownloadQueue.cjs"
+    },
     "./styles/globals.css": "./dist/styles/globals.css",
     "./styles/animations.css": "./dist/styles/animations.css",
     "./styles.css": "./dist/styles.css",
@@ -81,7 +91,8 @@
     "prepublishOnly": "pnpm run build"
   },
   "peerDependencies": {
-    "react": ">=18.0.0"
+    "react": ">=18.0.0",
+    "tinita": ">=0.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.17",
@@ -99,6 +110,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tailwindcss": "^4.1.17",
+    "tinita": "workspace:*",
     "vite": "^7.2.6"
   },
   "publishConfig": {
@@ -128,6 +140,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.555.0",
     "motion": "^12.23.25",
+    "p-limit": "^7.3.0",
     "tailwind-merge": "^3.4.0"
   }
 }

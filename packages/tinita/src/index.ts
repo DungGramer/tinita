@@ -5,3 +5,6 @@ export * from './file/truncateFileName';
 
 // Uuid
 export * from './uuid/generateUUID';
+
+// Download
+export * from './download';

@@ -10,6 +10,9 @@ const autoDiscoverEntries = () => {
   const entries = [
     'src/index.ts', // Main barrel export
 
+    // Category barrel exports (index.ts per category)
+    ...globSync('src/*/index.ts'),
+
     // Auto-discover all utilities in category folders (file/, uuid/, etc.)
     ...globSync('src/*/**/*.ts', {
       ignore: ['**/*.test.ts', '**/*.spec.ts', '**/index.ts']

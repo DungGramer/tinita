@@ -59,6 +59,81 @@
       "types": "./dist/uuid/generateUUID.d.ts",
       "import": "./dist/uuid/generateUUID.mjs",
       "require": "./dist/uuid/generateUUID.cjs"
+    },
+    "./download": {
+      "types": "./dist/download/index.d.ts",
+      "import": "./dist/download/index.mjs",
+      "require": "./dist/download/index.cjs"
+    },
+    "./download/download": {
+      "types": "./dist/download/download.d.ts",
+      "import": "./dist/download/download.mjs",
+      "require": "./dist/download/download.cjs"
+    },
+    "./download/downloadFromUrl": {
+      "types": "./dist/download/download-from-url.d.ts",
+      "import": "./dist/download/download-from-url.mjs",
+      "require": "./dist/download/download-from-url.cjs"
+    },
+    "./download/prepareDownload": {
+      "types": "./dist/download/prepare-download.d.ts",
+      "import": "./dist/download/prepare-download.mjs",
+      "require": "./dist/download/prepare-download.cjs"
+    },
+    "./download/toBlob": {
+      "types": "./dist/download/to-blob.d.ts",
+      "import": "./dist/download/to-blob.mjs",
+      "require": "./dist/download/to-blob.cjs"
+    },
+    "./download/resolveFilename": {
+      "types": "./dist/download/resolve-filename.d.ts",
+      "import": "./dist/download/resolve-filename.mjs",
+      "require": "./dist/download/resolve-filename.cjs"
+    },
+    "./download/fetchWithTimeout": {
+      "types": "./dist/download/fetch-with-timeout.d.ts",
+      "import": "./dist/download/fetch-with-timeout.mjs",
+      "require": "./dist/download/fetch-with-timeout.cjs"
+    },
+    "./download/downloadBlob": {
+      "types": "./dist/download/download-blob.d.ts",
+      "import": "./dist/download/download-blob.mjs",
+      "require": "./dist/download/download-blob.cjs"
+    },
+    "./download/formatBytes": {
+      "types": "./dist/download/format-bytes.d.ts",
+      "import": "./dist/download/format-bytes.mjs",
+      "require": "./dist/download/format-bytes.cjs"
+    },
+    "./download/formatDuration": {
+      "types": "./dist/download/format-duration.d.ts",
+      "import": "./dist/download/format-duration.mjs",
+      "require": "./dist/download/format-duration.cjs"
+    },
+    "./download/sanitizeFilename": {
+      "types": "./dist/download/sanitize-filename.d.ts",
+      "import": "./dist/download/sanitize-filename.mjs",
+      "require": "./dist/download/sanitize-filename.cjs"
+    },
+    "./download/isRetryableError": {
+      "types": "./dist/download/is-retryable-error.d.ts",
+      "import": "./dist/download/is-retryable-error.mjs",
+      "require": "./dist/download/is-retryable-error.cjs"
+    },
+    "./download/smoothProgress": {
+      "types": "./dist/download/smooth-progress.d.ts",
+      "import": "./dist/download/smooth-progress.mjs",
+      "require": "./dist/download/smooth-progress.cjs"
+    },
+    "./download/retryDownload": {
+      "types": "./dist/download/retry-download.d.ts",
+      "import": "./dist/download/retry-download.mjs",
+      "require": "./dist/download/retry-download.cjs"
+    },
+    "./download/minDurationDelay": {
+      "types": "./dist/download/min-duration-delay.d.ts",
+      "import": "./dist/download/min-duration-delay.mjs",
+      "require": "./dist/download/min-duration-delay.cjs"
     }
   },
   "publishConfig": {
@@ -80,5 +155,8 @@
     "uuid",
     "esm",
     "cjs"
-  ]
+  ],
+  "devDependencies": {
+    "happy-dom": "^20.8.9"
+  }
 }
