@@ -3,17 +3,17 @@ import {
   resolveRetryConfig,
   calculateRetryDelay,
   withRetry,
-} from '../../src/download/retry-download';
+} from '../../src/download/retry/retry-download';
 import {
   NetworkError,
   HttpStatusError,
   AbortDownloadError,
-} from '../../src/download/errors';
+} from '../../src/download/errors/download-errors';
 import {
   RETRY_BASE_DELAY_MS,
   RETRY_MAX_DELAY_MS,
   RETRY_JITTER_FACTOR,
-} from '../../src/download/constants';
+} from '../../src/download/core/constants';
 
 // ── resolveRetryConfig ────────────────────────────────────────────────────────
 

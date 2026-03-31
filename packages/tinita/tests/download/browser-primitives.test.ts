@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createObjectUrl } from '../../src/download/create-object-url';
-import { createAnchor } from '../../src/download/create-anchor';
-import { triggerDownload } from '../../src/download/trigger-download';
+import { createObjectUrl } from '../../src/download/browser/create-object-url';
+import { createAnchor } from '../../src/download/browser/create-anchor';
+import { triggerDownload } from '../../src/download/browser/trigger-download';
 
 // happy-dom may not implement URL.createObjectURL — mock if needed
 function setupObjectUrlMocks() {

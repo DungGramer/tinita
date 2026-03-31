@@ -1,39 +1,22 @@
 import { defineConfig } from 'tsup';
 import { globSync } from 'glob';
 
-/**
- * Auto-discover entry points
- * - Automatically scans for hooks, UI components, utils, and theme files
- * - No need to manually add entries when creating new components
- */
 const autoDiscoverEntries = () => {
   const entries = [
-    'src/index.ts', // Main barrel export
-
-    // Auto-discover hooks
-    ...globSync('src/hooks/**/*.ts', {
-      ignore: ['**/*.test.ts', '**/*.stories.ts', '**/index.ts']
-    }),
-
-    // Auto-discover UI components (folder-based with index.ts/tsx)
+    'src/index.ts',
+    ...globSync('src/hooks/*.ts', { ignore: ['**/*.test.ts', '**/*.stories.ts'] }),
+    ...globSync('src/hooks/*/index.ts'),
     ...globSync('src/ui/*/index.{ts,tsx}'),
-
-    // Auto-discover utils
-    ...globSync('src/utils/**/*.ts', {
-      ignore: ['**/*.test.ts']
-    }),
+    ...globSync('src/utils/**/*.ts', { ignore: ['**/*.test.ts'] }),
   ];
 
-  // Remove duplicates, normalize paths (Windows backslash -> forward slash)
-  return [...new Set(entries)]
-    .map(entry => entry.replace(/\\/g, '/'))
-    .filter(Boolean);
+  return [...new Set(entries)].map((entry) => entry.replace(/\\/g, '/')).filter(Boolean);
 };
 
 const entries = autoDiscoverEntries();
-console.log(`📦 Auto-discovered ${entries.length} entry points`);
+const isProd = process.env.NODE_ENV === 'production';
 
-const isWatchMode = process.argv.includes('--watch');
+console.log(`📦 Auto-discovered ${entries.length} entry points`);
 
 export default defineConfig({
   entry: entries,
@@ -42,11 +25,12 @@ export default defineConfig({
   bundle: true,
   external: ['react', 'react-dom', 'tinita', 'lucide-react', '@radix-ui/react-accordion', 'motion'],
   splitting: false,
-  clean: !isWatchMode,
-  minify: true,
-  // Remove comments when minifying
+  clean: isProd,
+  minify: isProd,
+  outDir: 'dist',
   esbuildOptions(options) {
-    options.legalComments = 'none';
+    if (isProd) {
+      options.legalComments = 'none';
+    }
   },
-  outDir: 'dist'
 });

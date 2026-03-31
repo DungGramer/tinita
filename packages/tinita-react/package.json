@@ -37,14 +37,19 @@
       "require": "./dist/hooks/useToggle.cjs"
     },
     "./hooks/useUrlDownload": {
-      "types": "./dist/hooks/useUrlDownload.d.ts",
-      "import": "./dist/hooks/useUrlDownload.mjs",
-      "require": "./dist/hooks/useUrlDownload.cjs"
+      "types": "./dist/hooks/use-url-download/index.d.ts",
+      "import": "./dist/hooks/use-url-download/index.mjs",
+      "require": "./dist/hooks/use-url-download/index.cjs"
     },
     "./hooks/useDownloadQueue": {
-      "types": "./dist/hooks/useDownloadQueue.d.ts",
-      "import": "./dist/hooks/useDownloadQueue.mjs",
-      "require": "./dist/hooks/useDownloadQueue.cjs"
+      "types": "./dist/hooks/use-download-queue/index.d.ts",
+      "import": "./dist/hooks/use-download-queue/index.mjs",
+      "require": "./dist/hooks/use-download-queue/index.cjs"
+    },
+    "./hooks/useDownloadTask": {
+      "types": "./dist/hooks/use-download-task/index.d.ts",
+      "import": "./dist/hooks/use-download-task/index.mjs",
+      "require": "./dist/hooks/use-download-task/index.cjs"
     },
     "./styles/globals.css": "./dist/styles/globals.css",
     "./styles/animations.css": "./dist/styles/animations.css",

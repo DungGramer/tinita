@@ -4,11 +4,21 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 // ── Mock tinita/download ──────────────────────────────────────────────────────
 
-vi.mock('tinita/download', () => ({
-  downloadFromUrl: vi.fn(),
-}));
+vi.mock('tinita/download', () => {
+  class AbortDownloadError extends Error {
+    code = 'DOWNLOAD_ABORTED';
+    constructor() {
+      super('Download was aborted');
+      this.name = 'AbortDownloadError';
+    }
+  }
+  return {
+    downloadFromUrl: vi.fn(),
+    AbortDownloadError,
+  };
+});
 
-import { useUrlDownload } from '../../src/hooks/useUrlDownload';
+import { useUrlDownload } from '../../src/hooks/use-url-download';
 
 // ── Local type definitions ───────────────────────────────────────────────────
 
@@ -373,9 +383,12 @@ describe('useUrlDownload (useMutation pattern)', () => {
 
     await act(async () => {
       result.current.abort();
+      // The hook's onAbort wrapper dispatches ABORTED state
       handle.hookedOptions.onAbort?.();
       handle.rejectPromise(new Error('aborted'));
       await handle.task.promise.catch(() => {});
+      // Wait for the wrapper promise's catch to settle
+      await new Promise((r) => setTimeout(r, 0));
     });
 
     expect(handle.task.abort).toHaveBeenCalledTimes(1);

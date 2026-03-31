@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { resolveFilename } from '../../src/download/resolve-filename';
-import { DEFAULT_FILENAME } from '../../src/download/constants';
+import { resolveFilename } from '../../src/download/core/resolve-filename';
+import { DEFAULT_FILENAME } from '../../src/download/core/constants';
 
 describe('resolveFilename', () => {
   describe('priority 1: explicit filename option', () => {

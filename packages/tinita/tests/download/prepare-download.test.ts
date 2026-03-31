@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { prepareDownload } from '../../src/download/prepare-download';
-import { DownloadError, DownloadErrorCode } from '../../src/download/errors';
+import { prepareDownload } from '../../src/download/api/prepare-download';
+import { DownloadError, DownloadErrorCode } from '../../src/download/errors/download-errors';
 
 function setupBrowserMocks() {
   if (!URL.createObjectURL) {

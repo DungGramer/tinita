@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { download } from '../../src/download/download';
-import { DownloadError, DownloadErrorCode } from '../../src/download/errors';
+import { download } from '../../src/download/api/download';
+import { DownloadError, DownloadErrorCode } from '../../src/download/errors/download-errors';
 
 // ─── MockXHR ──────────────────────────────────────────────────────────────────
 

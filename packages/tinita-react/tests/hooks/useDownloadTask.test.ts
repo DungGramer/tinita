@@ -11,7 +11,7 @@ vi.mock('tinita/download', () => {
   return { downloadFromUrl };
 });
 
-import { useDownloadTask } from '../../src/hooks/useDownloadTask';
+import { useDownloadTask } from '../../src/hooks/use-download-task';
 
 // ── Local type definitions (mirrors tinita/download types) ────────────────────
 

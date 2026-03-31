@@ -8,8 +8,8 @@ vi.mock('tinita/download', () => ({
   downloadFromUrl: vi.fn(),
 }));
 
-import { useDownloadQueue } from '../../src/hooks/useDownloadQueue';
-import type { QueueItem } from '../../src/hooks/useDownloadQueue';
+import { useDownloadQueue } from '../../src/hooks/use-download-queue';
+import type { QueueItem } from '../../src/hooks/use-download-queue';
 
 // ── Local type mirrors ────────────────────────────────────────────────────────
 

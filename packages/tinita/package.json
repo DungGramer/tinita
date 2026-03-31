@@ -40,10 +40,10 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
-    "./file/fileSize": {
-      "types": "./dist/file/fileSize.d.ts",
-      "import": "./dist/file/fileSize.mjs",
-      "require": "./dist/file/fileSize.cjs"
+    "./file/formatBytes": {
+      "types": "./dist/file/formatBytes.d.ts",
+      "import": "./dist/file/formatBytes.mjs",
+      "require": "./dist/file/formatBytes.cjs"
     },
     "./file/getFileNameParts": {
       "types": "./dist/file/getFileNameParts.d.ts",

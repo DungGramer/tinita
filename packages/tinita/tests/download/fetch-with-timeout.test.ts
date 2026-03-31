@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { fetchWithTimeout } from '../../src/download/fetch-with-timeout';
-import { DownloadError, DownloadErrorCode } from '../../src/download/errors';
+import { fetchWithTimeout } from '../../src/download/browser/fetch-with-timeout';
+import { DownloadError, DownloadErrorCode } from '../../src/download/errors/download-errors';
 
 describe('fetchWithTimeout', () => {
   let mockFetch: ReturnType<typeof vi.fn>;

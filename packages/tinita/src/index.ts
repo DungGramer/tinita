@@ -1,5 +1,5 @@
 // File
-export * from './file/fileSize';
+export * from './file/formatBytes';
 export * from './file/getFileNameParts';
 export * from './file/truncateFileName';
 

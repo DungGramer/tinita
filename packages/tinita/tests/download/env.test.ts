@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, it, expect } from 'vitest';
-import { isBrowser, assertBrowser, supportsDownloadAttribute, supportsMsSaveBlob } from '../../src/download/env';
-import { DownloadError, DownloadErrorCode } from '../../src/download/errors';
+import { isBrowser, assertBrowser, supportsDownloadAttribute, supportsMsSaveBlob } from '../../src/download/core/env';
+import { DownloadError, DownloadErrorCode } from '../../src/download/errors/download-errors';
 
 describe('env (browser environment)', () => {
   describe('isBrowser()', () => {

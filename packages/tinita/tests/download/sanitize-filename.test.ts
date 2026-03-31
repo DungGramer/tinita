@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { sanitizeFilename } from '../../src/download/sanitize-filename';
+import { sanitizeFilename } from '../../src/download/core/sanitize-filename';
 
 describe('sanitizeFilename()', () => {
   // Path traversal

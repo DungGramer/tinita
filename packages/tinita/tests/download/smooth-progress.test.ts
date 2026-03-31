@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createSpeedSmoother } from '../../src/download/smooth-progress';
+import { createSpeedSmoother } from '../../src/download/retry/smooth-progress';
 
 describe('createSpeedSmoother()', () => {
   it('current() returns null before first update', () => {

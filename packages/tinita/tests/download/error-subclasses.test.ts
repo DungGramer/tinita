@@ -7,7 +7,7 @@ import {
   TimeoutError,
   AbortDownloadError,
   InvalidBlobResponseError,
-} from '../../src/download/errors';
+} from '../../src/download/errors/download-errors';
 
 describe('HttpStatusError', () => {
   const err = new HttpStatusError(404, 'Not Found');

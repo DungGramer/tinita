@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { waitMinDuration } from '../../src/download/min-duration-delay';
-import { AbortDownloadError } from '../../src/download/errors';
+import { waitMinDuration } from '../../src/download/retry/min-duration-delay';
+import { AbortDownloadError } from '../../src/download/errors/download-errors';
 
 describe('waitMinDuration()', () => {
   beforeEach(() => {

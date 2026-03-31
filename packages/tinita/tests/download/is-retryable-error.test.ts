@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { isRetryableError, parseRetryAfterMs } from '../../src/download/is-retryable-error';
+import { isRetryableError, parseRetryAfterMs } from '../../src/download/retry/is-retryable-error';
 import {
   NetworkError,
   TimeoutError,
   HttpStatusError,
   AbortDownloadError,
   InvalidBlobResponseError,
-} from '../../src/download/errors';
+} from '../../src/download/errors/download-errors';
 
 describe('isRetryableError()', () => {
   it('NetworkError -> true', () => {

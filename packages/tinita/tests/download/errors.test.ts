@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DownloadError, DownloadErrorCode } from '../../src/download/errors';
+import { DownloadError, DownloadErrorCode } from '../../src/download/errors/download-errors';
 
 describe('DownloadError', () => {
   it('extends Error', () => {

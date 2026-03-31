@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { downloadFromUrl } from '../../src/download/download-from-url';
+import { downloadFromUrl } from '../../src/download/api/download-from-url';
 import {
   DownloadError,
   HttpStatusError,
@@ -9,8 +9,8 @@ import {
   AbortDownloadError,
   InvalidBlobResponseError,
   DownloadErrorCode,
-} from '../../src/download/errors';
-import type { DownloadTask } from '../../src/download/types';
+} from '../../src/download/errors/download-errors';
+import type { DownloadTask } from '../../src/download/types/download-types';
 
 // ─── MockXHR ──────────────────────────────────────────────────────────────────
 

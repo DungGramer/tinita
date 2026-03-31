@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { toBlob } from '../../src/download/to-blob';
-import { DownloadError, DownloadErrorCode } from '../../src/download/errors';
+import { toBlob } from '../../src/download/core/to-blob';
+import { DownloadError, DownloadErrorCode } from '../../src/download/errors/download-errors';
 
 describe('toBlob', () => {
   describe('Blob input', () => {

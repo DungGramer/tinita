@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectInputType } from '../../src/download/detect-input-type';
+import { detectInputType } from '../../src/download/core/detect-input-type';
 
 describe('detectInputType', () => {
   it('File -> file (checked before Blob)', () => {

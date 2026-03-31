@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseContentDisposition } from '../../src/download/parse-content-disposition';
+import { parseContentDisposition } from '../../src/download/core/parse-content-disposition';
 
 describe('parseContentDisposition', () => {
   describe('quoted filename', () => {
