@@ -28,7 +28,7 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "build": "pnpm run clean && tsup",
+    "build": "pnpm run clean && tsdown",
     "lint": "eslint src --ext .ts",
     "test": "vitest",
     "check-types": "tsc --noEmit",

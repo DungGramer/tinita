@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsup';
+import { defineConfig } from 'tsdown';
 import { globSync } from 'glob';
 
 /**
@@ -34,15 +34,9 @@ export default defineConfig({
   entry: entries,
   format: ['cjs', 'esm'],
   dts: true,
-  bundle: false, // Keep unbundled for optimal tree-shaking (utilities don't have dependencies)
-  splitting: false,
+  unbundle: true, // Keep unbundled for optimal tree-shaking (utilities don't have dependencies)
   clean: isProd,
   minify: isProd,
-  // Remove comments when minifying
-  esbuildOptions(options) {
-    if (isProd) {
-      options.legalComments = 'none';
-    }
-  },
-  outDir: 'dist'
+  outDir: 'dist',
+  target: isProd ? 'es2020' : false,
 });

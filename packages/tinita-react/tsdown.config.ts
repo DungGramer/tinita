@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsup';
+import { defineConfig } from 'tsdown';
 import { globSync } from 'glob';
 
 const autoDiscoverEntries = () => {
@@ -22,15 +22,11 @@ export default defineConfig({
   entry: entries,
   format: ['cjs', 'esm'],
   dts: true,
-  bundle: true,
-  external: ['react', 'react-dom', 'tinita', 'lucide-react', '@radix-ui/react-accordion', 'motion'],
-  splitting: false,
   clean: isProd,
   minify: isProd,
   outDir: 'dist',
-  esbuildOptions(options) {
-    if (isProd) {
-      options.legalComments = 'none';
-    }
+  deps: {
+    neverBundle: ['react', 'react-dom', 'tinita', 'lucide-react', '@radix-ui/react-accordion', 'motion'],
   },
+  target: isProd ? 'es2020' : false,
 });

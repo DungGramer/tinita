@@ -86,8 +86,8 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "dev": "concurrently \"tsup --watch\" \"pnpm run build:css --watch\"",
-    "build:js": "tsup",
+    "dev": "concurrently \"tsdown --watch\" \"pnpm run build:css --watch\"",
+    "build:js": "tsdown",
     "build:css": "node scripts/build-css.mjs",
     "build": "pnpm run build:js && pnpm run build:css",
     "lint": "eslint src --ext .ts,.tsx",
