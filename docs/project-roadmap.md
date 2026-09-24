@@ -1,401 +1,318 @@
-# ClaudeKit Engineer - Project Roadmap
-
-**Last Updated:** 2025-11-11
-**Current Version:** 1.8.0
-**Repository:** https://github.com/claudekit/claudekit-engineer
-
-## Executive Summary
-
-ClaudeKit Engineer is an AI-powered development orchestration framework enabling developers to build professional software faster through intelligent agent collaboration, automated workflows, and comprehensive quality management. The project has successfully completed core foundation phases and is advancing cross-platform compatibility and advanced features.
-
----
-
-## Phase Overview
-
-### Phase 1: Foundation (COMPLETE)
-**Status:** ✅ Complete | **Completion:** v1.8.0
-**Progress:** 100%
-
-Established core agent orchestration framework, slash command system, automated releases, and foundational skills library.
-
-**Key Achievements:**
-- Multi-agent orchestration engine
-- 50+ slash commands (plan, cook, test, ask, bootstrap, debug, fix:*)
-- Semantic versioning & automated releases
-- 20+ skills library (auth, cloud, databases, design, etc.)
-- Documentation system with repomix integration
-- Scout Block Hook for cross-platform performance optimization
-- Git workflows with conventional commits enforcement
-
----
-
-### Phase 2: Cross-Platform Enhancement (IN PROGRESS)
-**Status:** 🔄 In Progress | **Completion Target:** Dec 2025
-**Progress:** 35%
-
-Expanding platform support and improving developer experience across Windows, macOS, and Linux environments.
-
-#### Sub-Task: Windows Statusline Support
-**Status:** ✅ COMPLETE
-**Completed:** 2025-11-11
-**Priority:** Medium
-
-Enabled Windows users to use Claude Code statusline functionality through multiple cross-platform script implementations.
-
-**Deliverables Completed:**
-- `statusline.ps1` - PowerShell native implementation for Windows
-- `statusline.js` - Node.js universal fallback implementation
-- `docs/statusline-windows-support.md` - Comprehensive user guide (4 setup options)
-- `docs/statusline-architecture.md` - Technical architecture & implementation details
-- All 5 implementation phases complete:
-  - Phase 1: Research & Analysis
-  - Phase 2: PowerShell Implementation
-  - Phase 3: Node.js Fallback
-  - Phase 4: Platform Detection & Wrapper
-  - Phase 5: Testing & Documentation
-
-**Features:**
-- ✅ PowerShell 5.1+ & PowerShell Core 7+ support
-- ✅ Node.js 16+ universal fallback
-- ✅ Git Bash integration
-- ✅ WSL full compatibility
-- ✅ Feature parity: colors, git branch, models, sessions, costs, tokens, progress bars
-- ✅ ANSI color support with NO_COLOR environment variable
-- ✅ ccusage integration for session metrics
-- ✅ UTF-8 encoding & emoji support
-
-**Performance:**
-- PowerShell 5.1: ~250ms cold, ~150ms warm
-- PowerShell 7+: ~150ms cold, ~100ms warm
-- Node.js: ~100ms cold, ~50ms warm
-- With ccusage: ~300ms typical
-
-**Documentation Quality:**
-- User setup guide with 4 configuration options
-- Troubleshooting section (9 common issues)
-- Performance benchmarks
-- Platform compatibility matrix
-- Migration guide between implementations
-- Advanced configuration examples
-- 380+ lines of comprehensive guidance
-
----
-
-### Phase 3: Advanced Features (PLANNED)
-**Status:** 📋 Planned | **Target Start:** Jan 2026
-**Progress:** 0%
-
-Future enhancements for AI-assisted development capabilities.
-
-**Planned Items:**
-- Visual workflow builder UI
-- Custom agent creator UI
-- Enhanced caching mechanisms
-- Real-time collaboration features
-- Analytics & insights dashboard
-- Performance telemetry
-
----
-
-### Phase 4: Enterprise (FUTURE)
-**Status:** 📋 Future | **Target Start:** Q2 2026
-**Progress:** 0%
-
-Enterprise-grade features and deployment options.
-
-**Planned Items:**
-- Self-hosted deployment options
-- Advanced security features
-- Compliance automation
-- Custom enterprise integrations
-- Dedicated enterprise support
-
----
-
-## Current Development Focus
-
-### 1. Windows Ecosystem Support
-- ✅ Statusline cross-platform support
-- 📋 Windows terminal integration optimization
-- 📋 PowerShell Core expansion
-- 📋 WSL2 performance optimization
-
-### 2. Additional Cloud Skills
-- 📋 Google Cloud Platform (GCP) integration
-- 📋 Amazon Web Services (AWS) integration
-- 📋 Microsoft Azure integration
-
-### 3. Enhanced Documentation
-- ✅ Updated Windows support guides
-- 📋 API reference automation
-- 📋 Architecture guide expansion
-- 📋 Tutorial library
-
-### 4. Performance Optimization
-- ✅ Scout Block Hook for agent performance
-- 📋 Caching strategies for common operations
-- 📋 Token optimization
-- 📋 Parallel execution enhancements
-
----
-
-## Milestone Tracking
-
-### Q4 2025 Milestones
-| Milestone | Status | Due Date | Progress |
-|-----------|--------|----------|----------|
-| Windows Statusline Support | ✅ Complete | 2025-11-11 | 100% |
-| Additional Skills Library Expansion | 📋 Pending | 2025-12-15 | 0% |
-| Enhanced Error Handling | 📋 Pending | 2025-12-31 | 0% |
-
-### Q1 2026 Milestones
-| Milestone | Status | Due Date | Progress |
-|-----------|--------|----------|----------|
-| Visual Workflow Builder | 📋 Planned | 2026-03-31 | 0% |
-| Custom Agent Creator UI | 📋 Planned | 2026-03-31 | 0% |
-| Cloud Platform Integrations (GCP, AWS, Azure) | 📋 Planned | 2026-03-31 | 0% |
-
----
-
-## Success Metrics
-
-### Adoption
-- GitHub stars: Tracking (public launch pending)
-- NPM downloads: Tracking
-- Active users & installations: Tracking
-- Community engagement: In development
-
-### Performance Targets
-- Bootstrap time: < 10 minutes
-- Planning to implementation cycle: 50% reduction
-- Documentation coverage: > 90%
-- Test coverage: > 80%
-- Code review time: 75% reduction
-
-### Quality Standards
-- Conventional commit compliance: 100%
-- Zero secrets in commits: 100%
-- Automated test pass rate: > 95%
-- Documentation freshness: < 24 hours lag
-
-### Developer Experience
-- Time to first commit: < 5 minutes
-- Onboarding time: 50% reduction vs baseline
-- Context switching overhead: 60% reduction
-- Satisfaction score target: > 4.5/5.0
-
----
-
-## Feature Inventory
-
-### Core Features (COMPLETE)
-- ✅ Multi-agent orchestration system
-- ✅ 50+ slash commands
-- ✅ Comprehensive skills library (20+)
-- ✅ Automated release management
-- ✅ Development workflow automation
-- ✅ Documentation system with repomix
-- ✅ Cross-platform performance optimization
-- ✅ Git workflow automation
-- ✅ Comprehensive error handling
-
-### Recent Additions (2025-11-11)
-- ✅ Windows statusline support (PowerShell, Node.js)
-- ✅ Cross-platform statusline documentation
-- ✅ Advanced configuration guides
-
-### In Development
-- 🔄 Additional cloud platform integrations
-- 🔄 UI/UX improvements
-- 🔄 Enhanced error handling patterns
-- 🔄 Performance optimization phase 2
-
-### Planned
-- 📋 Visual workflow builder
-- 📋 Custom agent creator
-- 📋 Team collaboration features
-- 📋 Analytics dashboard
-
----
-
-## Technical Architecture
-
-### Technology Stack
-- **Runtime:** Node.js >= 18.0.0, Bash, PowerShell, Cross-platform hooks
-- **AI Platforms:** Anthropic Claude, OpenRouter, Google Gemini, Grok Code
-- **Development Tools:** Semantic Release, Commitlint, Husky, Repomix, Scout Block Hook
-- **CI/CD:** GitHub Actions
-- **Languages:** JavaScript, Bash, PowerShell, Markdown
-
-### Integration Points
-- MCP Tools: context7, sequential-thinking, SearchAPI, review-website, VidCap
-- External Services: GitHub (Actions, Releases, PRs), Discord, NPM
-- Platforms: Windows, macOS, Linux, WSL, Git Bash
-
----
-
-## Known Constraints & Limitations
-
-### Technical
-- Requires Node.js >= 18.0.0
-- Depends on Claude Code or Open Code CLI
-- File-based communication has I/O overhead
-- Token limits on AI model context windows
-
-### Operational
-- Requires API keys for AI platforms
-- GitHub Actions minutes for CI/CD
-- Internet connection for MCP tools
-- Storage for repomix output files
-
-### Design
-- Agent definitions must be Markdown with frontmatter
-- Commands follow slash syntax
-- Reports use specific naming conventions
-- Conventional commits required
-
----
-
-## Risk Management
-
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|-----------|-----------|
-| AI Model API Failures | High | Medium | Retry logic, fallback models, graceful degradation |
-| Context Window Limits | Medium | High | Repomix for code compaction, selective loading, chunking |
-| Agent Coordination Failures | High | Low | Validation checks, error recovery, rollback mechanisms |
-| Secret Exposure | Critical | Low | Pre-commit scanning, .gitignore enforcement, security reviews |
-| Documentation Drift | Medium | Medium | Automated triggers, freshness checks, validation workflows |
-
----
-
-## Dependencies & External Requirements
-
-### Required
-- Node.js runtime environment
-- Git version control
-- Claude Code or Open Code CLI
-- API keys for AI platforms
-
-### Optional
-- Discord webhook for notifications
-- GitHub repository for CI/CD
-- NPM account for publishing
-- PowerShell 5.1+ (Windows statusline)
-
-### Key External Tools
-- Semantic Release
-- Commitlint
-- Husky
-- Repomix
-- Scout Block Hook
-- Various MCP servers
-
----
-
-## Compliance & Standards
-
-### Code Standards
-- YANGI (You Aren't Gonna Need It)
-- KISS (Keep It Simple, Stupid)
-- DRY (Don't Repeat Yourself)
-- Files < 500 lines
-- Comprehensive error handling
-- Security-first development
-
-### Git Standards
-- Conventional Commits
-- Clean commit history
-- No AI attribution
-- No secrets in commits
-- Professional PR descriptions
-
-### Documentation Standards
-- Markdown format
-- Up-to-date (< 24 hours)
-- Comprehensive coverage
-- Clear examples
-- Proper versioning
-
-### Testing Standards
-- Unit test coverage > 80%
-- Integration tests for workflows
-- Error scenario coverage
-- Performance validation
-- Security testing
-
----
-
-## Changelog
-
-### Version 1.8.0 (Current - 2025-11-11)
-
-#### Features Added
-- **Windows Statusline Support:** Complete cross-platform statusline implementation
-  - PowerShell native implementation (statusline.ps1)
-  - Node.js universal fallback (statusline.js)
-  - Support for Windows PowerShell 5.1+, PowerShell Core 7+
-  - Git Bash and WSL full compatibility
-
-#### Documentation Added
-- Comprehensive Windows statusline user guide (statusline-windows-support.md)
-- Technical architecture documentation (statusline-architecture.md)
-- Setup guides for 4 different Windows environments
-- Troubleshooting guide with 9 common issue solutions
-- Performance benchmarks for all implementations
-
-#### Quality Improvements
-- Feature parity across bash, PowerShell, and Node.js
-- Enhanced ANSI color support
-- UTF-8 encoding verification
-- Cross-platform path handling
-- Silent degradation error handling
-
-#### Implementation Details
-- Phase 1: Research & analysis complete
-- Phase 2: PowerShell implementation complete
-- Phase 3: Node.js fallback complete
-- Phase 4: Platform detection & wrapper complete
-- Phase 5: Testing & documentation complete
-
----
-
-## Document References
-
-### Core Documentation
-- [Project Overview & PDR](./project-overview-pdr.md)
-- [Code Standards](./code-standards.md)
-- [System Architecture](./system-architecture.md)
-- [Codebase Summary](./codebase-summary.md)
-- [Release Process](./RELEASE.md)
-
-### Feature Documentation
-- [Windows Statusline Support Guide](./statusline-windows-support.md)
-- [Statusline Architecture](./statusline-architecture.md)
-
-### External Resources
-- [Claude Code Documentation](https://docs.claude.com/en/docs/claude-code/overview)
-- [Open Code Documentation](https://opencode.ai/docs)
-- [Conventional Commits](https://conventionalcommits.org/)
-- [Semantic Versioning](https://semver.org/)
-- [Keep a Changelog](https://keepachangelog.com/)
-
----
-
-## Questions & Notes
-
-### Current Status
-- Windows statusline support implementation fully delivered and documented
-- Ready for integration testing with Claude Code CLI
-- All 5 phases of implementation complete with comprehensive documentation
-
-### Next Steps (Not Yet Scheduled)
-1. Integration testing with Claude Code CLI production
-2. Performance validation on target Windows platforms
-3. User feedback collection from Windows developer community
-4. Consideration of additional Windows ecosystem enhancements
-
----
-
-**Maintained By:** ClaudeKit Engineer Team
-**Last Review:** 2025-11-11
-**Next Review Target:** 2025-12-11
+# Tinita - Project Roadmap
+
+Cập nhật: 2026-09-24 (vòng 2) · commit 0a1dd88
+
+Tài liệu này thay thế toàn bộ nội dung cũ (bản trước là roadmap lọt từ project
+"ClaudeKit Engineer", không liên quan tới Tinita). Mọi claim về hiện trạng bên dưới lấy từ
+kiểm chứng trực tiếp code ngày 2026-09-24; phần định hướng lấy từ brief kiến trúc do owner
+mang vào cùng ngày.
+
+## Tóm tắt
+
+Tinita là monorepo pnpm + Turborepo cung cấp utility framework-agnostic (`tinita`) và React
+hooks/UI components (`tinita-react`), kèm Storybook để phát triển component trực quan. Repo đã
+ship được utilities và 3 UI component đầu tiên, nhưng thiếu test, có vài chỗ cấu hình hỏng, và
+chưa có CI/CD. Hướng đi tiếp theo: dọn nợ kỹ thuật trước, dựng nền tảng accessibility qua lớp
+chống ăn mòn (anti-corruption layer) quanh nền tảng UI không đồng nhất (antd cho một số component,
+Base UI cho số khác), sau đó mới mở rộng bộ component.
+
+**Vòng 2 (2026-09-24):** owner đưa thêm hai ràng buộc kiến trúc bắt buộc, không phải "nice to
+have": (1) mỗi component phải khai dependency riêng, user chỉ dùng 1-2 component không được ép cài
+cả lib; (2) CSS global của library đã từng xung đột thật với web của client khi deploy - đây là sự
+cố production, không phải rủi ro giả định. Cả hai được đưa vào nợ kỹ thuật, mốc mới, và nâng ưu
+tiên bên dưới.
+
+## Điểm xuất phát (đã ship)
+
+### packages/tinita v0.0.1
+4 utility: `fileSize`, `getFileNameParts`, `truncateFileName` (dưới `file/`), `generateUUID`
+(dưới `uuid/`). Build bằng tsup, `bundle: false` giữ đúng ranh giới module cho tree-shaking,
+xuất cả CJS/ESM/`.d.ts`. Không có dependency ngoài.
+
+### packages/tinita-react v0.0.2-alpha.1
+- 2 hook: `useToggle`, `useIsomorphicLayoutEffect`
+- 3 UI component (đều theo đúng pattern colocation - file chính riêng + `index.ts` re-export):
+  `FileTree` (dùng `@radix-ui/react-accordion` trực tiếp), `Ping`, `CarouselTicker`
+- CSS pipeline: Tailwind v4 (`@theme inline` trong `globals.css`) + `packages/tinita-react/scripts/build-css.mjs` tự
+  viết (copy theme CSS, compile qua PostCSS, gộp với CSS từng component thành `dist/styles.css`)
+- `tsup.config.ts` ở đây dùng `bundle: true` (khác `tinita`, và khác nguyên tắc "no bundling"
+  trong CLAUDE.md) vì cần external hoá `react`, `react-dom`, `lucide-react`,
+  `@radix-ui/react-accordion`, `motion`
+
+### apps/storybook
+Tên workspace thật là `@tinita/storybook` (private, v0.0.1). Storybook 10.1.4 với builder
+`@storybook/react-vite`, addon a11y/docs/links. 9 story file cho FileTree (6 file), Ping,
+CarouselTicker, Animations.
+
+### config/
+3 package dùng chung: `@repo/eslint-config` (base/next-js/react-internal),
+`@repo/typescript-config` (base/react-library/nextjs/vue-library), `@repo/ui` (card/code/button
+mẫu cho nội bộ monorepo, không phải sản phẩm publish).
+
+## Nợ kỹ thuật (ưu tiên cao, đã kiểm chứng)
+
+| # | Vấn đề | Vị trí |
+|---|---|---|
+| 1 | Zero test trong toàn repo dù cả 2 package khai `"test": "vitest"` và đã có `vitest.config.ts` | `packages/tinita`, `packages/tinita-react` |
+| 2 | Root script `generate:exports` gọi `turbo run generate:exports` nhưng task này không tồn tại trong `turbo.json` (chỉ có 7 task: build, lint, check-types, dev, test, storybook, build-storybook) | `package.json` root |
+| 3 | `pnpm storybook` / `pnpm build-storybook` dùng filter `--filter=@storybook/tinita`, đảo ngược scope thật (`@tinita/storybook`) -> khớp 0 package | `package.json` root |
+| 4 | `apps/storybook` không có script tên `storybook`, chỉ có `dev` -> kể cả sửa filter #3, turbo task `storybook` vẫn không chạy được | `apps/storybook/package.json` |
+| 5 | Path alias chết `@tinita-internal/*` -> `packages/core/src/*`; `packages/core` không tồn tại trong workspace | `config/typescript-config/base.json` |
+| 6 | `next.js` import named `{ config as baseConfig }` từ `./base.js`, nhưng `base.js` chỉ `export default` -> `...baseConfig` sẽ throw nếu preset này được dùng ở đâu đó (chưa xác minh có consumer thật hay không) | `config/eslint-config/next.js` |
+| 7 | `src/index.ts` của `tinita-react` có barrel export thật (re-export hooks, cả 3 UI, util) - mâu thuẫn trực tiếp với quy tắc "NO barrel imports" trong `CLAUDE.md`. Đây là xung đột code-vs-rule đang tồn tại, chưa rõ bên nào nên nhường bên nào | `packages/tinita-react/src/index.ts` |
+| 8 | `ARCHITECTURE.md` và `DOCUMENT_REQUIRED.md` còn mô tả scope `@tinita/*` (`@tinita/core`, `@tinita/react`, `@tinita/vue`, `@tinita/node`, `@tinita/config`) - tên thật không có scope (`tinita`, `tinita-react`), và package Vue/Node chưa từng tồn tại | `ARCHITECTURE.md`, `DOCUMENT_REQUIRED.md` |
+| 9 | Không có CI/CD: không `.github/`, không `.changeset/`. Release hoàn toàn thủ công qua `scripts/publish.mjs` + `scripts/update-package-versions.mjs` | repo root |
+| 10 | `motion` là dependency CHẾT: khai trong `dependencies` (`^12.23.25`) nhưng không file nào trong `src/` hay `apps/storybook` import nó - hit duy nhất là comment "prefers-reduced-motion". Kéo theo chuỗi `framer-motion` -> `motion-dom`, `motion-utils` (~4 gói) cho MỌI consumer dù không dùng. Gỡ được ngay, chi phí gần bằng 0, ưu tiên cao nhất trong nhóm dependency | `packages/tinita-react/package.json`, comment tại `src/ui/file-tree/types.ts:93` |
+| 11 | `clsx`, `tailwind-merge` khai ở `dependencies` cứng nhưng bị tsup inline vào bundle (không có trong mảng `external` của `tsup.config.ts`) - runtime không cần chúng là dependency ngoài, có thể hạ xuống `devDependencies` ngay | `packages/tinita-react/package.json`, `tsup.config.ts` |
+| 12 | Cả 5 dependency ngoài (`@radix-ui/react-accordion`, `clsx`, `lucide-react`, `motion`, `tailwind-merge`) khai ở `dependencies` cấp package, trong khi dependency-set của 3 component RỜI NHAU hoàn toàn: `Ping`={}, `CarouselTicker`={clsx, tailwind-merge}, `FileTree`={`@radix-ui/react-accordion`, `lucide-react`}. User chỉ dùng `Ping` (0 dep thật) vẫn phải tải ~20 gói vào `node_modules`. Đây chính là ràng buộc mới #1 của owner - xem mốc M2 | `packages/tinita-react/package.json` |
+| 13 | `src/styles/index.css` mồ côi: có `@import "tailwindcss"` đầy đủ (tức ship cả Preflight) nhưng không nằm trong build pipeline (`build-css.mjs` chỉ compile `build-entry.css`) và không có trong `exports` - không file nào reference. Gỡ hoặc nêu rõ mục đích | `packages/tinita-react/src/styles/index.css` |
+| 14 | `src/utils/cn.ts` được tsup build ra `dist/utils/cn.{mjs,cjs,d.ts}` qua glob nhưng không có subpath export trong `package.json` - output tồn tại trên đĩa nhưng không import được qua entry chính thức | `packages/tinita-react/src/utils/cn.ts` |
+| 15 | `apps/storybook/stories/Ping/Ping.stories.tsx:3` dùng barrel `import { Ping } from 'tinita-react'`, trong khi 7 story còn lại dùng subpath - chính storybook đang vi phạm quy ước subpath-only mà repo muốn áp dụng | `apps/storybook/stories/Ping/Ping.stories.tsx` |
+| 16 | `autoInjectStyles` không component nào gọi (chỉ có định nghĩa + re-export ở `src/index.ts`), và cơ chế của nó (`document.head.appendChild` chèn cuối head) thua thứ tự nguồn nếu có ai gọi thật - API chết về runtime nhưng tài liệu cũ mô tả như đang hoạt động, cần sửa hoặc gỡ | `packages/tinita-react/src/utils/autoInjectStyles.ts` |
+| 17 | CSS ship rò rỉ ra global scope của host app - **sự cố production đã xảy ra thật (ràng buộc mới #2 của owner), không phải giả định**: reset tự viết trên `*`/`body` (`globals.css:116-127`), 22 token không prefix vừa ghi đè namespace `--color-*`/`--radius*`/`--spacing-*`/`--font-*` của Tailwind v4 vừa trùng tên bộ token chuẩn shadcn (`globals.css:81-111`), 27 class không prefix (`animations.css:114-318`), selector `.dark` không prefix (nhiều file), universal + `!important` không scope trong khối reduced-motion (`animations.css:530-539`), CSS component (`FileTree.css`, `CarouselTicker.css`) nằm ngoài mọi `@layer` nên luôn thắng CSS trong layer của client, biến nội bộ Radix `--radix-accordion-content-height` lọt vào CSS công khai (`FileTree.css:230,237`), và Tailwind class thô trong JSX của `Ping`/`CarouselTicker` mà `dist/styles.css` không ship kèm nên chỉ hiển thị đúng nếu client tình cờ có đúng Tailwind config. Chi tiết đầy đủ và cách xử lý ở mốc M1 | `packages/tinita-react/src/styles/globals.css`, `src/styles/animations.css`, `src/ui/file-tree/FileTree.css`, `src/ui/carousel-ticker/CarouselTicker.css`, `src/ui/ping/Ping.tsx`, `src/ui/carousel-ticker/CarouselTicker.tsx`, `tailwind.config.cjs` |
+
+Ghi chú bổ sung: `CLAUDE.md` mô tả script `generate-package-exports.mjs` tự sinh exports/tsup
+entry/barrel - script này không tồn tại ở bất kỳ đâu trong repo; exports trong `package.json`
+hiện được maintain thủ công, tsup tự khám phá entry bằng glob.
+
+## Định hướng kiến trúc (target state, chưa triển khai)
+
+Nguồn: brief "Thiết kế UI library" do owner mang vào 2026-09-24. Phần này mô tả đích hướng tới,
+không phải hiện trạng.
+
+### Nguyên tắc trung tâm: own the contract, borrow the machinery
+Tự sở hữu 100%: design tokens, component API, styling/visual language, composition, business
+component, accessibility contract, documentation.
+Mượn (không tự viết lại): ARIA implementation, focus management, keyboard navigation,
+positioning, portal, dismissable layer.
+
+### Primitive foundation: Base UI
+Chọn **Base UI** (`@base-ui/react`, headless, MIT) làm nền accessibility/positioning cho
+component mới, thay vì tự implement. shadcn đã chuyển Base UI thành default cho project mới từ
+07/2026; Base UI v1.8.0 phát hành 09/2026. Radix vẫn chấp nhận được cho phần code sẵn có
+(FileTree đang dùng `@radix-ui/react-accordion` trực tiếp) nhưng cần một lớp chống ăn mòn
+(anti-corruption layer) bọc quanh: consumer gọi `import { Dialog } from "tinita-react"` không
+được biết bên dưới là Base UI hay Radix, để sau này đổi implementation không phá public API.
+Không fork shadcn ở tầng component - dùng shadcn như reference implementation + convention +
+distribution model, không phải dependency.
+
+### Kiến trúc phân tầng dài hạn
+```
+tokens -> core/primitives -> react (components) -> blocks -> registry -> applications
+```
+- tokens: color, spacing, radius, font, shadow, motion, breakpoint, z-index
+- core: `cn()`, `Slot`, `Portal`, `mergeProps`, motion, utility function
+- react: Button, Input, Field, Select, Combobox, Dialog, Popover, Dropdown, Tabs, Toast, Tooltip, Table
+- blocks: DataTable, FilterBar, CommandPalette, Form, Sidebar, Navbar, Dashboard
+- registry: phân phối source code kiểu shadcn (`registry.json` + `registry/<component>/`),
+  consumer chạy `pnpm dlx shadcn@latest add @tinita/button`
+
+### Phạm vi khởi đầu cho bộ component
+Không nhảy thẳng lên 30-50 component. 8-12 component chất lượng rất cao trước: Button, Input,
+Select, Checkbox, Radio, Switch, Dialog, Popover, Tooltip, Dropdown, Tabs, Table. API tệ ở
+Button/Input sẽ lan ra toàn library nên phải làm đúng ngay từ đầu.
+
+### CSS isolation cho library (4 lớp bảo vệ, hiện mới có prefix quy ước bằng tay)
+1. Không ship Preflight - không `@import "tailwindcss"` đầy đủ (kéo global reset lên
+   img/video/h1/button/input); chỉ dùng phần theme + utilities cần thiết
+2. Prefix toàn bộ utility qua engine Tailwind v4 (`@import "tailwindcss" prefix(tinita)`), không
+   chỉ đặt tên class thủ công như hiện tại
+3. Token là CSS variable, không hard-code giá trị (đã làm đúng phần lớn - 140+ token dùng
+   biến, còn vài chỗ cần rà lại)
+4. Scope token dưới `[data-ui]` thay vì `:root` trần, để coexist an toàn với design system khác
+   của host app
+
+Không dùng Shadow DOM mặc định - isolation mạnh nhưng phá theming/portal/SSR/a11y tooling.
+
+### 3 mức customization cho consumer
+Level 1 (đa số): override CSS variable trong `[data-ui]`, không chạm component. Level 2:
+variant + size prop (`<Button variant="primary" size="lg" />`) + `className`. Level 3: full
+override qua `className` / `slotProps` / CSS riêng. Dấu hiệu kiến trúc sai: consumer phải đấu
+specificity (`.my-app .ui-button`, rồi `!important`).
+
+## Các mốc (thứ tự phụ thuộc, không có deadline - owner chưa đưa ra thời hạn)
+
+Không dùng lịch cụ thể. Thứ tự dưới đây là điều kiện tiên quyết: mốc sau phụ thuộc mốc trước
+trừ khi ghi rõ "có thể song song". Ước lượng quy mô theo T-shirt size (S/M/L/XL) chỉ mang tính
+tham khảo.
+
+### M0 - Ổn định nền tảng & dọn nợ kỹ thuật
+**Tiên quyết:** không có, làm trước tiên.
+**Mục tiêu:** mọi lệnh trong `CLAUDE.md`/`package.json` chạy đúng như mô tả, không còn tài liệu
+hay script trỏ tới thứ không tồn tại.
+**Việc cụ thể:**
+- Gỡ hoặc triển khai thật `generate:exports` (nợ #2) - nếu giữ, phải có script + turbo task thật
+- Sửa filter storybook về đúng `@tinita/storybook` (nợ #3), thêm script `storybook` alias `dev`
+  trong `apps/storybook/package.json` (nợ #4)
+- Xoá path alias chết `@tinita-internal/*` trong `config/typescript-config/base.json` (nợ #5)
+- Sửa `config/eslint-config/next.js` cho khớp export thật của `base.js`, hoặc export named
+  `config` từ `base.js` (nợ #6)
+- Quyết định rõ ràng cho xung đột barrel export (nợ #7): hoặc xoá barrel trong
+  `tinita-react/src/index.ts` để khớp rule, hoặc sửa rule trong `CLAUDE.md` để khớp code - không
+  được để cả hai mâu thuẫn
+- Dọn `ARCHITECTURE.md` và `DOCUMENT_REQUIRED.md` khỏi scope `@tinita/*` ảo và package Vue/Node
+  chưa từng tồn tại (nợ #8)
+- **Gỡ `motion` khỏi `dependencies`** - không file nào import nó (hit duy nhất là comment
+  `prefers-reduced-motion` tại `src/ui/file-tree/types.ts:93`). Nó bắt mọi consumer tải thêm ~4 gói
+  mà không đổi lại gì. Chi phí sửa gần bằng 0, lợi ích tức thì.
+- **Hạ `clsx` và `tailwind-merge` xuống `devDependencies`** - cả hai không nằm trong `external` của
+  tsup nên đã bị inline vào `dist/`, không cần có mặt trong `node_modules` của consumer.
+- Gỡ file mồ côi `src/styles/index.css` (có `@import "tailwindcss"` nhưng không nằm trong build
+  pipeline lẫn `exports`) hoặc ghi rõ mục đích của nó
+- Quyết định cho `src/utils/cn.ts`: hoặc thêm subpath export, hoặc loại khỏi entry tsup - hiện nó
+  build ra `dist/utils/cn.*` nhưng không import được qua entry chính thức
+- Sửa `apps/storybook/stories/Ping/Ping.stories.tsx:3` dùng subpath thay vì barrel, cho khớp 7
+  story còn lại
+**Tiêu chí hoàn thành:** `pnpm build`, `pnpm lint`, `pnpm check-types` chạy sạch toàn repo;
+`pnpm storybook` thực sự mở được Storybook; không còn reference tới file/task/package không tồn
+tại trong toàn bộ docs gốc.
+**Quy mô:** S.
+
+### M1 - Bịt rò rỉ CSS ra global scope  **[SỰ CỐ PRODUCTION]**
+**Tiên quyết:** M0.
+**Vì sao ưu tiên cao:** đây **không phải phòng xa**. Owner đã deploy library vào web của client và
+CSS global + Tailwind của library xung đột với CSS của client. Mỗi ngày chưa sửa là mỗi consumer
+mới gặp lại đúng lỗi đó. Ràng buộc RB-2.
+**Mục tiêu:** library chỉ sở hữu CSS của component và token trong scope của mình; không chạm global
+CSS của consumer.
+**Việc cụ thể (theo thứ tự tác động giảm dần):**
+- Gỡ reset tự viết `@layer base { * { @apply border-border } body { @apply bg-background
+  text-foreground } }` tại `src/styles/globals.css:116-127`. `*` và `body` thuộc về consumer.
+- Đưa 22 token trong `@theme inline` (`globals.css:81-111`) ra khỏi namespace `--color-*`,
+  `--radius*`, `--spacing-*`, `--font-*`. Đây là namespace **Tailwind v4 dành riêng**, đồng thời
+  trùng khít bộ token chuẩn **shadcn/ui** - client dùng shadcn là va chạm chắc chắn.
+- Prefix 27 class đang trần tại `animations.css:114-318` (18 `.animate-*`, 8 `.transition-*`,
+  `.interactive`). `.animate-*` đụng thẳng utility `animate-*` của Tailwind bên client.
+- Bọc `FileTree.css` và `CarouselTicker.css` vào `@layer` - hiện chúng ngoài mọi layer nên **luôn
+  thắng** CSS trong layer của client, buộc client phải đấu specificity.
+- Scope selector `.dark` dưới prefix của tinita, không để nó bắt dark-mode toggle của client.
+- Scope khối reduced-motion `*, *::before, *::after { ... !important }`
+  (`animations.css:530-539`) - hiện nó đè mọi xử lý reduced-motion của client trên toàn trang.
+- Gỡ Tailwind class thô khỏi JSX của `Ping.tsx:45-50` và `CarouselTicker.tsx:211-291`. Bundle
+  không ship utility nên 2 component này đang ngầm bắt host phải có Tailwind đúng version/theme.
+  `bg-green-500` còn hard-code màu dù `--tinita-ping` đã tồn tại.
+- Bọc `var(--radix-accordion-content-height)` (`FileTree.css:230,237`) sau token của tinita -
+  biến nội bộ Radix không được nằm trong contract CSS công khai.
+**Tiêu chí hoàn thành (kiểm được):**
+- `dist/styles.css` không chứa selector nào ngoài class có prefix `tinita-` (không `*`, không
+  `body`, không `html`, không element trần)
+- grep `dist/styles.css` tìm class không prefix -> 0 kết quả
+- grep tìm token không bắt đầu bằng `--tinita-` -> 0 kết quả
+- Dựng một trang thử có sẵn Tailwind + shadcn, nhúng cả 3 component, xác nhận không có style nào
+  của trang bị đổi
+**Quy mô:** M.
+
+### M2 - Chiến lược dependency: cài lẻ theo component
+**Tiên quyết:** M0. Có thể song song M1.
+**Mục tiêu:** ràng buộc RB-1 - user dùng 1-2 component không phải cài toàn bộ dependency.
+**Điều kiện thuận lợi:** tập dependency của 3 component hiện **rời nhau hoàn toàn** -
+`Ping`={}, `CarouselTicker`={clsx, tailwind-merge}, `FileTree`={@radix-ui/react-accordion,
+lucide-react}. Không dep nào bị chia sẻ nên tách được sạch, làm sớm sẽ rẻ hơn nhiều so với làm
+sau khi có 12 component.
+**Bốn hướng, KHÔNG chốt hộ owner - đây là lựa chọn cần quyết:**
+- **A. `peerDependencies` + `peerDependenciesMeta.optional: true`.** User chỉ cài lib mà component
+  họ dùng cần. Đổi lại: thiếu lib thì lỗi lúc runtime chứ không lúc install, nên **bắt buộc** phải
+  có bảng component -> dependency trong README.
+- **B. Subpath + bỏ barrel `src/index.ts`.** Barrel hiện re-export mọi component, nên
+  `import { Ping } from 'tinita-react'` kéo theo đồ thị của cả `file-tree` lẫn `carousel-ticker`.
+  Đây là lý do **kỹ thuật** để bỏ barrel, mạnh hơn lý do "quy ước" mà docs vẫn nêu (liên quan nợ #7).
+- **C. Tách nhiều package theo cụm dependency** (`tinita-react` core zero-dep +
+  `tinita-react-antd` + `tinita-react-base`...). Cô lập triệt để nhất; đổi lại chi phí
+  version/publish/đồng bộ tăng theo số cụm.
+- **D. Registry distribution** - xem M9, giải quyết triệt để nhất.
+
+**A + B làm được ngay và bổ sung cho nhau**: A cắt được thứ phải `npm install`, B cắt được bytes
+gửi tới browser. C và D là quyết định lớn hơn, nên quyết sau khi có thêm component thật.
+**Việc cụ thể:**
+- Quyết chọn hướng, ghi quyết định vào `docs/system-architecture.md`
+- Duy trì bảng component -> dependency trong README và `docs/codebase-summary.md`, cập nhật mỗi
+  lần thêm component
+- Dựng kiểm tự động: xác minh `import 'tinita-react/ui/<x>'` không kéo lib mà `<x>` không dùng
+  (hiện chưa có cơ chế nào)
+**Tiêu chí hoàn thành:** cài `tinita-react` vào một project sạch rồi chỉ dùng `Ping`, đếm số gói
+thực sự vào `node_modules` - phải giảm rõ rệt so với ~20 gói hiện tại.
+**Quy mô:** M.
+
+### M3 - Test baseline
+**Tiên quyết:** M0 (tránh viết test cho code sắp đổi cấu hình).
+**Mục tiêu:** xoá nợ #1 - có test thật cho toàn bộ surface API hiện có.
+**Việc cụ thể:** test cho 4 utility của `tinita`; test cho 2 hook và 3 UI component của
+`tinita-react` (dùng `@testing-library/react` đã có sẵn trong devDependencies).
+**Tiêu chí hoàn thành:** `pnpm test` chạy ra số test > 0 ở cả 2 package, coverage report v8 sinh
+ra được, mọi export public có ít nhất 1 test.
+**Quy mô:** M.
+
+### M4 - CI tối thiểu
+**Tiên quyết:** M0, M3 (CI phải chạy build/lint/test đã sạch và có ý nghĩa).
+**Mục tiêu:** xoá nợ #9 - có kiểm tra tự động trên mỗi PR.
+**Việc cụ thể:** GitHub Actions workflow chạy `pnpm build`, `pnpm lint`, `pnpm check-types`,
+`pnpm test` trên PR và trên push vào `main`.
+**Tiêu chí hoàn thành:** workflow xanh trên một PR thử nghiệm; badge/status hiển thị trong repo.
+**Quy mô:** S.
+
+### M5 - Anti-corruption layer & Base UI adoption
+**Tiên quyết:** M0.
+**Mục tiêu:** tách public API của `tinita-react` khỏi implementation detail Radix/Base UI.
+**Việc cụ thể:** bọc `@radix-ui/react-accordion` hiện đang dùng trực tiếp trong `FileTree` sau
+một module nội bộ (ví dụ `src/primitives/`); đánh giá và thử nghiệm Base UI
+(`@base-ui/react`) làm nền cho component mới ở M7.
+**Tiêu chí hoàn thành:** không còn `import` trực tiếp từ `@radix-ui/*` hay `@base-ui/*` bên
+ngoài thư mục primitive nội bộ; `FileTree` build và test vẫn pass sau khi bọc.
+**Quy mô:** M.
+
+### M6 - CSS isolation hoàn chỉnh (phần dài hạn)
+**Tiên quyết:** M1 (phần bịt rò rỉ khẩn cấp phải xong trước). Có thể làm song song M5.
+**Mục tiêu:** đạt đủ 4 lớp bảo vệ CSS mô tả ở phần định hướng.
+**Việc cụ thể:** chuyển sang `@import "tailwindcss" prefix(tinita)` để prefix cả utility engine
+(không chỉ quy ước đặt tên thủ công như hiện tại); loại Preflight khỏi output build; scope token
+dưới `[data-ui]` thay vì `:root` trần; giữ nguyên các token CSS variable đã đúng.
+**Tiêu chí hoàn thành:** `dist/styles.css` không chứa reset global trên thẻ HTML chuẩn (img,
+button, input, h1...); mọi utility class trong output có prefix `tinita-`; token đọc được dưới
+`[data-ui]`, không leak ra `:root` của host app.
+**Quy mô:** M.
+
+### M7 - Bộ component lõi (8-12 component)
+**Tiên quyết:** M5, M6 (cần cả anti-corruption layer lẫn CSS isolation trước khi nhân bản pattern
+ra nhiều component).
+**Mục tiêu:** Button, Input, Select, Checkbox, Radio, Switch, Dialog, Popover, Tooltip, Dropdown,
+Tabs, Table - mỗi component dùng Base UI qua lớp primitive của M5, CSS theo chuẩn M6.
+**Việc cụ thể:** mỗi component theo đúng colocation pattern đã dùng cho FileTree/Ping/
+CarouselTicker (main file riêng + `index.ts` + CSS riêng), kèm test (nối tiếp M3) và story
+(nối tiếp bộ Storybook hiện có).
+**Tiêu chí hoàn thành:** đủ 8-12 component ship trong `tinita-react`, mỗi component có test pass,
+story trong Storybook, và tuân thủ 3 mức customization mô tả ở phần định hướng.
+**Quy mô:** XL (chia nhỏ theo từng component, có thể release tăng dần).
+
+### M8 - Phân tầng package dài hạn
+**Tiên quyết:** M7 (cần đủ component thật để biết ranh giới tokens/core nằm ở đâu, tránh tách
+sớm sai chỗ).
+**Mục tiêu:** tách `tokens` và `core` (`cn()`, `Slot`, `Portal`, `mergeProps`, motion utility)
+thành package riêng trong workspace, `tinita-react` phụ thuộc vào chúng thay vì tự chứa.
+**Tiêu chí hoàn thành:** workspace có thêm package tokens/core độc lập, publish/test được riêng;
+`tinita-react` không còn định nghĩa trùng token hay utility đã chuyển ra ngoài.
+**Quy mô:** L.
+
+### M9 - Registry distribution kiểu shadcn
+**Tiên quyết:** M8.
+**Mục tiêu:** cho phép consumer cài component qua `pnpm dlx shadcn@latest add @tinita/<component>`
+song song với cài package npm thông thường.
+**Việc cụ thể:** `registry.json` ở root, thư mục `registry/<component>/` chứa source có thể copy
+trực tiếp vào project consumer.
+**Tiêu chí hoàn thành:** ít nhất 1 component (ví dụ Button) cài được qua registry command trên
+một project thử nghiệm sạch.
+**Quy mô:** M.
+
+## Rủi ro cần theo dõi
+- Nợ #7 (xung đột barrel export) phải được quyết định ở M0 trước khi thêm bất kỳ export mới nào,
+  nếu không số lượng vi phạm rule sẽ tăng theo mỗi component mới.
+- `bundle: true` trong `tinita-react/tsup.config.ts` khác nguyên tắc "no bundling" áp dụng cho
+  `tinita` - cần ghi nhận đây là ngoại lệ có chủ đích (do cần external hoá dependency) chứ không
+  phải sai sót, tránh bị "sửa" nhầm khi dọn nợ ở M0.
+- Base UI mới release v1.8.0 (09/2026) - cần theo dõi độ ổn định API trước khi cam kết dùng cho
+  M7.
+
+## Tài liệu liên quan
+- [Tổng quan sản phẩm & PDR](./project-overview-pdr.md)
+- [Kiến trúc hệ thống](./system-architecture.md)
+- [Tóm tắt codebase](./codebase-summary.md)
+- [Chuẩn code](./code-standards.md)

@@ -1,9 +1,8 @@
 # Project Overview & Product Development Requirements (PDR)
 
-**Project Name**: Tinita
-**Version**: 0.0.1
-**Last Updated**: 2025-12-03
-**Status**: Early Development
+**Project Name**: Tinita  
+**Current Status**: Alpha (v0.0.1 tinita, v0.0.2-alpha.1 tinita-react)  
+**Last Updated**: 2026-09-24 (vòng 2) · commit 0a1dd88  
 **Repository**: https://github.com/dunggramer/tinita
 
 ## Executive Summary
@@ -60,18 +59,22 @@ Provide production-ready utility packages that:
 
 ### 1. Monorepo Architecture
 
-**Structure**:
-- **`tinita`**: Framework-agnostic core utilities (file, string, number, UUID, etc.)
-- **`tinita-react`**: React hooks and UI components with auto-inject CSS
-- **`tinita-vue`**: Vue 3 composables (planned)
-- **`tinita-node`**: Node.js-specific utilities (planned)
-- **`config/*`**: Shared ESLint, TypeScript, and Prettier configurations
+**Current State (v0.0.x)**:
+- **`tinita`** (v0.0.1): Framework-agnostic utilities - 4 files (fileSize, getFileNameParts, truncateFileName, generateUUID)
+- **`tinita-react`** (v0.0.2-alpha.1): React hooks (2) + UI components (3) + CSS
+  - Hooks: useToggle, useIsomorphicLayoutEffect
+  - Components: FileTree, Ping, CarouselTicker
+  - CSS: Tailwind v4 + CSS variables + prefix `tinita-`
+- **`config/*`**: ESLint, TypeScript, UI (shared configs)
+- **`apps/storybook`** (private): Storybook 10.1.4 for component documentation
 
 **Build System**:
-- Turborepo for task orchestration
-- tsup for fast, zero-config TypeScript bundling
-- Per-file builds with `bundle: false` for tree-shaking
-- Automated export generation via scripts
+- Turborepo for task orchestration (7 tasks)
+- tsup for TypeScript bundling:
+  - tinita: `bundle: false` (tree-shaking)
+  - tinita-react: `bundle: true` (external react deps)
+- PostCSS + Tailwind v4 for CSS build (6-step pipeline)
+- Manual exports maintenance in package.json
 
 ### 2. Tree-Shaking First Design
 
@@ -112,20 +115,16 @@ import { fileSize } from 'tinita/file/fileSize';  // Subpath import (optimal)
 - All styles bundled into `dist/styles.css`
 - Individual component CSS available as subpath exports
 
-### 5. Automated Export Generation
+### 5. Export Management
 
-**Script**: `scripts/generate-package-exports.mjs`
+**Current Approach**:
+- Exports trong `package.json` được maintain **thủ công** cho mỗi package
+- tsup tự khám phá entry files bằng glob pattern trong `tsup.config.ts`
+- tinita: entry = `src/index.ts` + glob `src/*/**/*.ts`
+- tinita-react: entry = 9 files (hooks, ui, utils)
 
-**Capabilities**:
-- Scans `src/` directory for all `.ts` and `.tsx` files
-- Generates `package.json` exports field
-- Updates `tsup.config.ts` entry array
-- Creates barrel exports in `src/index.ts`
-- Handles both single-file utilities and folder-based components
-
-**Workflow Integration**:
-- Runs automatically before build in Turborepo pipeline
-- Triggered by `generate:exports` task
+**Known Issue**:
+- Root script `generate:exports` không tồn tại - là hỏng cần gỡ (legacy)
 
 ### 6. Component Colocation Pattern
 
@@ -262,10 +261,10 @@ ComponentName/
 **3. Export System**
 - **Barrel Exports**: Convenience imports from main entry
 - **Subpath Exports**: Optimal tree-shaking via direct paths
-- **Automated Generation**: Script-based export management
+- **Manual Management**: Exports in `package.json` maintained manually; tsup entries auto-discovered via glob
 
 **4. CSS System** (tinita-react)
-- **Build Script**: `scripts/build-css.mjs` copies and bundles CSS
+- **Build Script**: `packages/tinita-react/scripts/build-css.mjs` copies and bundles CSS
 - **Auto-Inject Utility**: `utils/autoInjectStyles.ts` for development
 - **Manual Imports**: Production-ready CSS files in `dist/`
 
@@ -310,10 +309,10 @@ ComponentName/
 **Goal**: Add toggle state management
 **Flow**:
 1. Install: `pnpm add tinita-react react`
-2. Import hook: `import { useToggle } from 'tinita-react/hooks'`
+2. Import hook: `import { useToggle } from 'tinita-react/hooks/useToggle'`
 3. Use in component: `const [isOpen, toggle] = useToggle(false)`
 
-**Outcome**: Clean hook usage with tree-shaking
+**Outcome**: Type-safe hook with minimal bundle impact
 
 ### UC3: Add UI Component
 **Actor**: React Developer
@@ -321,10 +320,10 @@ ComponentName/
 **Flow**:
 1. Install: `pnpm add tinita-react`
 2. Import styles (once): `import 'tinita-react/styles.css'`
-3. Import component: `import { FileTree } from 'tinita-react/ui'`
+3. Import component: `import { FileTree } from 'tinita-react/ui/file-tree'`
 4. Use component: `<FileTree data={fileData} />`
 
-**Outcome**: Working UI component with styles
+**Outcome**: Working UI component with CSS + Tailwind theming
 
 ### UC4: Contribute New Utility
 **Actor**: Open Source Contributor
@@ -332,12 +331,13 @@ ComponentName/
 **Flow**:
 1. Clone repository
 2. Create `packages/tinita/src/string/isEmpty.ts`
-3. Run `pnpm run generate:exports`
-4. Write tests in `packages/tinita/tests/string.test.ts`
-5. Run `pnpm build && pnpm test`
-6. Submit PR
+3. Add to `tsup.config.ts` entry (or relies on glob auto-discovery)
+4. Add export to `package.json` exports field manually
+5. Write tests in `packages/tinita/tests/`
+6. Run `pnpm build && pnpm test`
+7. Submit PR
 
-**Outcome**: New utility added with automated exports
+**Outcome**: New utility added, tree-shakeable via subpath export
 
 ### UC5: Create New Package
 **Actor**: Maintainer
@@ -363,15 +363,45 @@ ComponentName/
 
 ### Operational Constraints
 - Package naming: `tinita` (not `@tinita/`)
-- Must run `generate:exports` before building
 - Turborepo required for monorepo orchestration
-- Manual export updates for `tinita-react` UI components
+- Manual export updates in `package.json` when adding new utilities/components
+- Manual export updates for `tinita-react` UI components (subpath exports)
 
 ### Design Constraints
 - File size limit: 500 lines
 - No external runtime dependencies in core package
 - CSS must be separate from JavaScript bundles
 - Framework dependencies must be peer dependencies
+
+### Ràng Buộc Bắt Buộc Từ Owner (2026-09-24)
+
+Hai ràng buộc dưới đây là **điều kiện cứng** cho mọi quyết định kiến trúc về sau, không phải
+"nice to have".
+
+**RB-1: Cài lẻ theo component.** Component sẽ dùng dependency **không đồng nhất** - có component
+dùng `motion`, có component không; có component dùng `antd`, có component dùng Base UI. User chỉ
+dùng 1-2 component **không được** phải cài toàn bộ dependency của library.
+
+- *Hiện trạng chưa đạt:* cả 5 dependency khai ở `dependencies` cấp package, nên
+  `npm install tinita-react` kéo ~20 gói kể cả khi user chỉ dùng `Ping` (component 0 dependency).
+- *Điều kiện thuận lợi:* tập dependency của 3 component hiện **rời nhau hoàn toàn** -
+  `Ping`={}, `CarouselTicker`={clsx, tailwind-merge}, `FileTree`={@radix-ui/react-accordion,
+  lucide-react}. Không có dep nào bị chia sẻ, nên tách được sạch.
+- *Lãng phí đã xác định:* `motion` khai trong `dependencies` nhưng **không file nào import**
+  (hit duy nhất là comment `prefers-reduced-motion` tại `src/ui/file-tree/types.ts:93`).
+- Bốn hướng xử lý kèm đánh đổi: xem `system-architecture.md` mục "Chiến Lược Đóng Gói Dependency".
+
+**RB-2: CSS của library không được xung đột với web của client.** Owner **đã gặp sự cố này khi
+deploy thật** - Tailwind + CSS global của library đụng CSS của client. Đây là sự cố production đã
+xảy ra, không phải lo xa.
+
+- *Hiện trạng chưa đạt:* reset tự viết trên `*` và `body`, 22 token không prefix ghi vào namespace
+  riêng của Tailwind v4 và trùng tên token shadcn, 27 class không prefix, CSS component nằm ngoài
+  mọi `@layer`, Tailwind class thô trong JSX của `Ping`/`CarouselTicker` mà bundle không ship.
+- Bảng đầy đủ có file:dòng: xem `system-architecture.md` mục "Bề Mặt Rò Rỉ CSS Ra Global Scope"
+  và `design-guidelines.md` mục 4.
+- Nguyên tắc rút ra: *library chỉ sở hữu CSS của component và token trong scope của mình; global
+  CSS thuộc về consumer.*
 
 ## Risks & Mitigation
 
@@ -400,38 +430,83 @@ ComponentName/
 **Likelihood**: Medium
 **Mitigation**: Lock files, peer dependency ranges, comprehensive testing
 
-## Future Roadmap
+## Target Architecture & Future Roadmap
 
-### Phase 1: Foundation (v0.0.x - Current)
-- ✅ Monorepo setup with Turborepo
-- ✅ Core utilities package (`tinita`)
-- ✅ React package (`tinita-react`) with hooks and UI components
-- ✅ Automated export generation
-- ✅ CSS handling for UI components
-- ✅ Build and test infrastructure
+**Status**: Định hướng được quyết định từ 2026-09-24, chưa triển khai toàn bộ.
 
-### Phase 2: Expansion (v0.1.x - Next)
-- 📋 Vue composables package (`tinita-vue`)
-- 📋 Node.js utilities package (`tinita-node`)
-- 📋 Expand core utilities (date, array, object helpers)
-- 📋 More React hooks (useDebounce, useLocalStorage, etc.)
-- 📋 Additional UI components (Button, Input, Modal, etc.)
-- 📋 Storybook integration for component documentation
+### Nguyên tắc trung tâm: Own the Contract, Borrow the Machinery
 
-### Phase 3: Maturity (v1.0.x - Planned)
-- 📋 Comprehensive documentation site
-- 📋 Interactive examples and playground
-- 📋 Migration guides for major versions
-- 📋 Performance benchmarks
-- 📋 Accessibility compliance for UI components
+- **Own**: Design tokens, component API, styling/visual language, accessibility contract, documentation
+- **Borrow**: ARIA, focus management, keyboard navigation (từ headless primitives như Base UI)
+
+### Foundation Chọn Cho 2026
+
+- **Primitive Foundation**: **Base UI** (`@base-ui/react`) - headless, MIT, v1.8.0 (2026-09 release)
+- **Distribution Model**: shadcn-as-reference (không phải dependency) - lấy convention + registry model
+- **CSS Strategy**: Tailwind v4 build-time (Pure CSS output), không ship Preflight, prefix utilities, CSS variables cho customization, CSS layers cho isolation
+
+**Lưu ý quan trọng (2026-09-24):** foundation sẽ **không đồng nhất** - owner dự định dùng `antd`
+cho một số component và Base UI cho số khác. Điều này làm **anti-corruption layer trở thành bắt
+buộc, không còn là tuỳ chọn**:
+
+- Public API phải **giấu được** foundation bên dưới. Consumer viết `<Dialog>` của tinita không
+  được thấy dấu vết của antd hay Base UI.
+- Nếu để foundation lộ ra, user sẽ gặp **hai phong cách API lẫn lộn trong cùng một library** -
+  đúng thứ mà nguyên tắc "own the contract" tồn tại để ngăn.
+- Foundation không đồng nhất cũng khuếch đại RB-1: `antd` là dependency rất nặng, không được để
+  nó thành gánh nặng cho người chỉ dùng một component Base UI.
+- *Hiện trạng:* `antd` và Base UI **chưa xuất hiện ở đâu trong repo** (grep toàn bộ `packages/`,
+  `apps/`, mọi `package.json` -> 0 kết quả). `FileTree` đang dùng thẳng
+  `@radix-ui/react-accordion` mà chưa có lớp bọc nào - đây là khoảng cách so với định hướng, và
+  đã rò rỉ ra CSS công khai qua `var(--radix-accordion-content-height)`.
+
+### Kiến Trúc Phân Tầng (Target)
+
+```
+tokens -> core/primitives -> react (components) -> blocks -> registry
+```
+
+- tokens: color, spacing, radius, font, shadow, motion, breakpoint
+- core: cn(), Slot, Portal, mergeProps, motion utilities
+- react: 8-12 component chất lượng cao (Button, Input, Select, Dialog, Popover, Tabs, Tooltip, Table)
+- blocks: DataTable, FilterBar, CommandPalette, Form, Sidebar, Dashboard
+- registry: shadcn-style distribution (`registry.json` + source code)
+
+### Phạm vi khởi đầu
+
+**Chỉ xây 8-12 component chất lượng rất cao**, không 30-50:  
+Button, Input, Select, Checkbox, Radio, Switch, Dialog, Popover, Tooltip, Dropdown, Tabs, Table.
+
+API ở tầng đầu (Button/Input) sẽ lan ra toàn library - phải tốt ngay.
+
+### CSS: 4 Lớp Bảo Vệ Chống Conflict
+
+1. Không ship Preflight (`@import "tailwindcss"` kéo theo global reset)
+2. Prefix toàn bộ utilities (tinita- prefix)
+3. Token là CSS variables, không hard-code
+4. CSS layers + scoped tokens nếu cần isolation mạnh
+
+### Phase 1 (v0.0.x - Current)
+- ✅ Monorepo setup (Turborepo + pnpm)
+- ✅ tinita (4 utilities)
+- ✅ tinita-react (2 hooks + 3 components)
+- ✅ Storybook 10.1.4
+- ✓ CSS handling (Tailwind v4 + CSS variables + prefix `tinita-`)
+
+### Phase 2 (v0.1.x - Next - Target)
+- 📋 Migrate to Base UI foundation
+- 📋 Build 8-12 core components high-quality
+- 📋 Set up registry model (shadcn-style)
+- 📋 Implement CSS isolation strategy fully
+- 📋 Expand tinita core utilities
+- 📋 Comprehensive component tests
+
+### Phase 3+ (v1.0.x+)
+- 📋 Documentation site
+- 📋 Accessibility compliance (WCAG 2.1 AA)
 - 📋 Internationalization support
-
-### Phase 4: Ecosystem (v2.0.x - Future)
-- 📋 Plugin system for extensions
-- 📋 CLI for scaffolding
-- 📋 Code generation tools
-- 📋 Design system integration
-- 📋 Advanced theming capabilities
+- 📋 Vue package (dùng headless primitives tương tự)
+- 📋 Advanced theming + customization levels
 
 ## Dependencies & Integration
 
