@@ -38,4 +38,5 @@ yarn-error.log*
 *.pem
 *.md
 !README.md
+!docs/*.md
 nul
