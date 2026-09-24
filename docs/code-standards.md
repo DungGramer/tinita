@@ -1,855 +1,624 @@
-# Code Standards & Codebase Structure
+# Code Standards & Conventions
 
-**Last Updated**: 2025-12-03
-**Version**: 0.0.1
-**Applies To**: All code within Tinita monorepo
+Cập nhật: 2026-09-24 (vòng 2) · commit 0a1dd88
+
+---
 
 ## Overview
 
-This document defines coding standards, file organization patterns, naming conventions, and best practices for the Tinita project. All code must adhere to these standards to ensure consistency, maintainability, tree-shakeability, and quality.
+Tài liệu này định nghĩa chuẩn code, tổ chức file, naming convention cho Tinita. Phân tách rõ giữa **Hiện Trạng** (code đang áp dụng) và **Định Hướng** (quy tắc mong muốn từ design-brief).
 
-For comprehensive architectural principles, see [ARCHITECTURE.md](../ARCHITECTURE.md).
-For contribution workflow, see [CONTRIBUTING.md](../CONTRIBUTING.md).
+---
 
-## Core Development Principles
-
-### YAGNI (You Aren't Gonna Need It)
-- Implement features only when needed
-- Avoid over-engineering and premature optimization
-- Start simple, refactor when necessary
-- Don't build infrastructure for hypothetical future requirements
-
-### KISS (Keep It Simple, Stupid)
-- Prefer simple, straightforward solutions
-- Write code that's easy to understand and modify
-- Choose clarity over cleverness
-- Avoid unnecessary complexity
-
-### DRY (Don't Repeat Yourself)
-- Eliminate code duplication through abstraction
-- Extract common logic into reusable functions/modules
-- Use composition appropriately
-- Maintain single source of truth
-
-## File Organization Standards
+## File Organization
 
 ### Monorepo Structure
 
 ```
 tinita/
-├── packages/                  # Main publishable packages
-│   ├── tinita/               # Framework-agnostic core
-│   └── tinita-react/         # React hooks and UI components
-├── config/                    # Shared configurations
-│   ├── eslint-config/        # ESLint presets
-│   ├── typescript-config/    # TypeScript configs
-│   └── ui/                   # Shared React components
-├── scripts/                   # Build and publishing automation
-├── docs/                      # Project documentation
-├── package.json              # Root workspace config
-├── pnpm-workspace.yaml       # pnpm workspaces definition
-└── turbo.json                # Turborepo task pipeline
+├── packages/
+│   ├── tinita                (4 utilities)
+│   └── tinita-react          (2 hooks + 3 components + CSS)
+├── apps/storybook            (Storybook 10.1.4)
+├── config/
+│   ├── eslint-config
+│   ├── typescript-config
+│   └── ui
+├── scripts/
+│   ├── publish.mjs
+│   └── update-package-versions.mjs
+└── docs/
 ```
 
-### Package Structure (tinita)
+### Package Structure: tinita
 
 ```
 packages/tinita/
 ├── src/
-│   ├── category1/            # Utility category
-│   │   ├── utility1.ts       # One file = one function
-│   │   └── utility2.ts
-│   ├── category2/
-│   │   └── utility3.ts
-│   └── index.ts              # Barrel exports
-├── tests/                     # Vitest test suites
-│   ├── category1.test.ts
-│   └── category2.test.ts
-├── dist/                      # Build output (ESM + CJS)
-├── package.json               # Package configuration
-├── tsup.config.ts             # Build configuration
-├── tsconfig.json              # TypeScript configuration
-└── README.md                  # Package documentation
+│   ├── file/
+│   │   ├── fileSize.ts                # One file = one utility
+│   │   ├── getFileNameParts.ts
+│   │   └── truncateFileName.ts
+│   ├── uuid/
+│   │   └── generateUUID.ts
+│   └── index.ts                       # Barrel export (re-exports tất cả)
+├── dist/
+├── package.json
+├── tsup.config.ts
+└── tsconfig.json
 ```
 
-### Package Structure (tinita-react)
+### Package Structure: tinita-react
 
+**Hiện Trạng:**
 ```
 packages/tinita-react/
 ├── src/
-│   ├── hooks/                 # React hooks (single-file)
-│   │   ├── index.ts           # Hooks barrel export
-│   │   ├── useHook1.ts        # One file = one hook
-│   │   └── useHook2.ts
-│   ├── ui/                    # UI components (folder-based)
-│   │   ├── index.ts           # UI barrel export
-│   │   ├── Component1/
-│   │   │   ├── Component1.tsx  # Main component
-│   │   │   ├── Component1.css  # Component styles
-│   │   │   ├── SubComponent.tsx  # Private components
-│   │   │   ├── types.ts        # Type definitions
-│   │   │   ├── utils/          # Component utilities
-│   │   │   └── index.tsx       # Re-export only
-│   │   └── Component2/
-│   ├── utils/                 # Shared utilities
+│   ├── hooks/
+│   │   ├── index.ts                   # Barrel export
+│   │   ├── useToggle.ts               # One file = one hook
+│   │   └── useIsomorphicLayoutEffect.ts
+│   ├── ui/
+│   │   ├── index.ts                   # Barrel export
+│   │   ├── file-tree/
+│   │   │   ├── FileTree.tsx           # Main component (PascalCase, tên file riêng)
+│   │   │   ├── FileTree.css           # CSS (CSS variables + Tailwind)
+│   │   │   ├── types.ts               # Type definitions
+│   │   │   ├── utils/                 # Utilities riêng component
+│   │   │   ├── components/            # Private subcomponents
+│   │   │   └── index.ts               # Re-export ONLY (đúng, là .ts không .tsx)
+│   │   ├── ping/
+│   │   │   ├── Ping.tsx
+│   │   │   └── index.ts
+│   │   └── carousel-ticker/
+│   │       ├── CarouselTicker.tsx
+│   │       ├── CarouselTicker.css
+│   │       ├── .types.ts, .utils.ts
+│   │       └── index.ts
+│   ├── utils/
 │   │   └── autoInjectStyles.ts
-│   ├── styles/                # Global styles
-│   │   └── tailwind.css
-│   └── index.ts               # Empty (no barrel export)
-├── scripts/
-│   └── build-css.mjs          # CSS build script
-├── tests/                     # Component tests
-├── dist/                      # Build output
-├── .storybook/                # Storybook config
+│   ├── styles/
+│   │   ├── globals.css                # Tailwind base + tokens
+│   │   ├── animations.css             # @keyframes
+│   │   ├── build-entry.css            # PostCSS entry
+│   │   └── index.css
+│   └── index.ts                       # CÓ barrel export (mâu thuẫn với quy tắc)
+├── scripts/build-css.mjs
+├── .storybook/
 ├── package.json
 ├── tsup.config.ts
-├── tailwind.config.ts
-└── README.md
+├── tailwind.config.cjs
+└── vitest.config.ts
 ```
 
-## File Naming Conventions
+**⚠️ Mâu Thuẫn:**
+- `src/index.ts` CÓ barrel export (re-export useToggle, useIsomorphicLayoutEffect, ui/file-tree, ping, carousel-ticker, autoInjectStyles)
+- Quy tắc nói "NO barrel import cho tinita-react" nhưng code hiện tại vi phạm
+- Đây là **xung đột code-vs-rule đã biết, nên sửa**
 
-### Source Files
-
-**TypeScript Utilities** (packages/tinita):
-- Format: `camelCase.ts`
-- One file = one function
-- Examples: `fileSize.ts`, `isEmpty.ts`, `generateUUID.ts`
-
-**React Hooks** (packages/tinita-react/src/hooks):
-- Format: `useCamelCase.ts`
-- One file = one hook
-- Examples: `useToggle.ts`, `useDebounce.ts`, `useLocalStorage.ts`
-
-**React Components** (packages/tinita-react/src/ui):
-- Format: `PascalCase.tsx` for main component
-- Folder name: `PascalCase/`
-- Examples: `FileTree/FileTree.tsx`, `Button/Button.tsx`
-
-**Test Files**:
-- Format: Match source file + `.test.ts` or `.test.tsx`
-- Location: `tests/` directory
-- Examples: `fileSize.test.ts`, `useToggle.test.tsx`
-
-**CSS Files**:
-- Format: Match component name + `.css`
-- Location: Same directory as component
-- Examples: `FileTree.css`, `Button.css`
-
-### Directories
-
-- Use `kebab-case` for category directories: `file-utils/`, `string-helpers/`
-- Use `PascalCase` for component directories: `FileTree/`, `Button/`
-- Use `camelCase` for utility directories: `utils/`, `helpers/`
+---
 
 ## Naming Conventions
 
-### TypeScript Code
+### Files
 
-**Variables**:
+| Loại | Quy Tắc | Ví Dụ |
+|------|---------|-------|
+| Utilities (tinita) | camelCase.ts | `fileSize.ts`, `generateUUID.ts` |
+| Hooks | `use` + PascalCase.ts | `useToggle.ts`, `useIsomorphicLayoutEffect.ts` |
+| Components (Main) | PascalCase.tsx | `FileTree.tsx`, `Ping.tsx` |
+| Components (Private) | camelCase.tsx | `fileLabel.tsx`, `folderNode.tsx` |
+| CSS | Match component + .css | `FileTree.css`, `CarouselTicker.css` |
+| Types | types.ts hoặc ComponentName.types.ts | `types.ts`, `FileTree.types.ts` |
+| Utils (component-local) | camelCase.ts | `parser.ts`, `icons.ts` |
+| Tests | Match source + .test | `fileSize.test.ts`, `useToggle.test.tsx` |
+| Index (re-export) | index.ts (không .tsx nếu không JSX) | `src/hooks/index.ts`, `src/ui/FileTree/index.ts` |
+
+### Directories
+
+| Loại | Quy Tắc | Ví Dụ |
+|------|---------|-------|
+| Utility Categories | kebab-case | `src/file/`, `src/uuid/` |
+| Component Folders | kebab-case | `src/ui/file-tree/`, `src/ui/carousel-ticker/` |
+| Utilities | camelCase | `utils/`, `helpers/`, `constants/` |
+| Config | camelCase | `config/`, `.storybook/` |
+
+---
+
+## Component Colocation Pattern
+
+**Quy Tắc:** Main component file riêng + index.ts chỉ re-export.
+
+**✅ Đúng (hiện trạng):**
+```
+src/ui/FileTree/
+  ├── FileTree.tsx              ← Main logic (PascalCase, tên file riêng)
+  ├── FileTree.css              ← Styles
+  ├── types.ts                  ← Type definitions
+  ├── utils/                    ← Helper utilities
+  │   ├── parser.ts
+  │   └── icons.ts
+  ├── components/               ← Private subcomponents
+  │   ├── FileLabel.tsx
+  │   ├── FolderNode.tsx
+  │   └── index.ts              ← Re-export private components
+  └── index.ts                  ← Re-export PUBLIC (chỉ FileTree)
+```
+
+**❌ Sai (don't do this):**
+```
+src/ui/FileTree/
+  ├── index.tsx                 ← Logic ở index (khó tìm)
+  ├── FileLabel.tsx
+  └── FolderNode.tsx
+```
+
+**Lợi ích:**
+1. **Discoverability** - `FileTree.tsx` dễ tìm hơn logic trong index
+2. **Maintainability** - Rõ ràng main logic vs barrel export
+3. **Scalability** - Dễ thêm types, utils mà không cluttering
+4. **Convention** - Theo Meta, Google, Microsoft (1 unit = 1 file)
+
+---
+
+## TypeScript Configuration
+
+**File:** `config/typescript-config/base.json`
+
+| Compiler Option | Value | Ghi chú |
+|-----------------|-------|--------|
+| target | **ES2020** (KHÔNG ES2022) | Ground-truth: ES2020, không ES2022 |
+| module | ESNext | |
+| moduleResolution | **Node** (KHÔNG NodeNext) | Ground-truth: Node, không NodeNext |
+| lib | [ES2020, DOM] | |
+| strict | true | |
+| esModuleInterop | true | |
+| declaration | true | |
+| sourceMap | true | |
+| skipLibCheck | true | |
+
+**Extends:**
+- `react-library.json` - base + `jsx: react-jsx`
+- `nextjs.json` - base + Bundler moduleResolution, allowJs, noEmit
+- `vue-library.json` - base + `jsx: preserve`
+
+**⚠️ Note:** Docs cũ nói base.json có "ES2022 target, NodeNext, noUncheckedIndexedAccess, isolatedModules" - **đều SAI**. Thực tế là ES2020 + Node.
+
+---
+
+## Build Configuration
+
+### tsup (tinita)
+
 ```typescript
-// camelCase
-const userName = 'John';
-const isValid = true;
-const itemCount = 10;
-```
-
-**Functions**:
-```typescript
-// camelCase
-function calculateTotal(items: Item[]): number { }
-const getUserById = (id: string) => { };
-```
-
-**Classes**:
-```typescript
-// PascalCase
-class UserService { }
-class AuthenticationManager { }
-```
-
-**Interfaces & Types**:
-```typescript
-// PascalCase
-interface User { }
-type UserRole = 'admin' | 'user';
-```
-
-**Constants**:
-```typescript
-// UPPER_SNAKE_CASE
-const MAX_RETRY_COUNT = 3;
-const API_BASE_URL = 'https://api.example.com';
-```
-
-**Enums**:
-```typescript
-// PascalCase for enum name, UPPER_SNAKE_CASE for values
-enum HttpStatus {
-  OK = 200,
-  NOT_FOUND = 404,
-  SERVER_ERROR = 500
-}
-```
-
-### React Components
-
-**Component Names**:
-```typescript
-// PascalCase
-export function FileTree(props: FileTreeProps) { }
-export function Button(props: ButtonProps) { }
-```
-
-**Props Interfaces**:
-```typescript
-// PascalCase with Props suffix
-export interface FileTreeProps {
-  data: TreeNode[];
-  onSelect?: (node: TreeNode) => void;
-}
-```
-
-**Hooks**:
-```typescript
-// camelCase with use prefix
-export function useToggle(initialValue = false) { }
-export function useDebounce<T>(value: T, delay: number) { }
-```
-
-## File Size Management
-
-### Hard Limit
-**Maximum file size**: 500 lines of code
-
-**Compliance**:
-- Files exceeding 500 lines MUST be refactored
-- Exception: Auto-generated files (with clear marking)
-- Current status: All files comply ✅
-
-### Refactoring Strategies
-
-When a file exceeds 500 lines:
-
-1. **Extract Utility Functions**: Move to separate `utils/` directory
-2. **Component Splitting**: Break into smaller, focused components
-3. **Service Classes**: Extract business logic to dedicated services
-4. **Module Organization**: Group related functionality into modules
-
-**Example**:
-```
-Before:
-userService.ts (750 lines)
-
-After:
-services/
-├── userService.ts (200 lines)      # Core service
-├── userValidation.ts (150 lines)   # Validation logic
-└── userRepository.ts (180 lines)   # Database operations
-utils/
-└── passwordHasher.ts (80 lines)    # Utility functions
-```
-
-## TypeScript Standards
-
-### Configuration
-
-**Strict Mode Required**:
-```json
 {
-  "compilerOptions": {
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "isolatedModules": true
-  }
-}
-```
-
-**Type Safety**:
-- NO `any` types (use `unknown` or specific types)
-- Type guards return `value is Type` for narrowing
-- Comprehensive type definitions for all public APIs
-- No type assertions without justification
-
-**Examples**:
-```typescript
-// ✅ GOOD: Type guard with narrowing
-export function isNumber(value: unknown): value is number {
-  return typeof value === 'number';
-}
-
-// ❌ BAD: Using any
-function processData(data: any) {  // Don't do this
-  return data.value;
-}
-
-// ✅ GOOD: Using unknown with type guard
-function processData(data: unknown) {
-  if (isValidData(data)) {
-    return data.value;
-  }
-  throw new Error('Invalid data');
-}
-```
-
-### JSDoc Comments
-
-**Public APIs**:
-```typescript
-/**
- * Convert file size to human readable format
- *
- * @param size - File size in bytes
- * @param base - Base for conversion (1000 or 1024)
- * @returns Human-readable file size string
- *
- * @example
- * fileSize(1024)        // => "1.02 KB"
- * fileSize(1024, 1024)  // => "1 KB"
- */
-export function fileSize(size: number, base: 1000 | 1024 = 1000): string {
-  // Implementation
-}
-```
-
-## Build Configuration Standards
-
-### tsup Configuration (Utilities)
-
-**Template for packages/tinita**:
-```typescript
-import { defineConfig } from 'tsup';
-
-export default defineConfig({
   entry: [
     'src/index.ts',
-    'src/category/utility1.ts',
-    'src/category/utility2.ts',
-    // Add each utility explicitly
+    'src/file/fileSize.ts',
+    'src/file/getFileNameParts.ts',
+    'src/file/truncateFileName.ts',
+    'src/uuid/generateUUID.ts'
   ],
   format: ['cjs', 'esm'],
   dts: true,
-  bundle: false,       // CRITICAL: Never bundle utilities
+  bundle: false,              // CRITICAL - no bundling for tree-shaking
   splitting: false,
   clean: true,
+  minify: true,
   outDir: 'dist'
-});
-```
-
-### tsup Configuration (React)
-
-**Template for packages/tinita-react**:
-```typescript
-import { defineConfig } from 'tsup';
-
-export default defineConfig({
-  entry: [
-    'src/index.ts',
-    'src/hooks/useHook1.ts',
-    'src/ui/Component1/index.tsx',
-    'src/utils/utility.ts'
-  ],
-  format: ['cjs', 'esm'],
-  dts: true,
-  bundle: false,
-  external: ['react', 'react-dom'],  // CRITICAL: Never bundle frameworks
-  splitting: false,
-  clean: true,
-  outDir: 'dist'
-});
-```
-
-### Package.json Exports
-
-**Subpath exports are MANDATORY**:
-```json
-{
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
-    },
-    "./category/utility": {
-      "types": "./dist/category/utility.d.ts",
-      "import": "./dist/category/utility.mjs",
-      "require": "./dist/category/utility.cjs"
-    }
-  }
 }
 ```
 
-## CSS & Styling Standards (tinita-react)
+### tsup (tinita-react)
 
-### CSS Architecture
-
-**Plug-and-Play Approach**:
-- CSS files separate from JavaScript bundles
-- Manual import for production builds
-- Auto-inject for development/prototyping
-- SSR compatibility with browser checks
-
-### CSS File Structure
-
-**Component CSS**:
+```typescript
+{
+  entry: [
+    'src/index.ts',
+    'src/hooks/useToggle.ts',
+    'src/hooks/useIsomorphicLayoutEffect.ts',
+    'src/ui/file-tree/index.ts',
+    'src/ui/ping/index.ts',
+    'src/ui/carousel-ticker/index.ts',
+    'src/utils/autoInjectStyles.ts'
+  ],
+  format: ['cjs', 'esm'],
+  dts: true,
+  bundle: true,               // Bundle components (khác tinita)
+  external: [
+    'react', 'react-dom',
+    'lucide-react',
+    '@radix-ui/react-accordion',
+    'motion'                  // External runtime deps
+  ],
+  splitting: false,
+  clean: !isWatchMode,
+  minify: true,
+  outDir: 'dist'
+}
 ```
-src/ui/ComponentName/
-├── ComponentName.tsx
-├── ComponentName.css      # Component-specific styles
-└── index.tsx
-```
 
-### CSS Naming Convention (BEM-like)
+**Khác biệt:**
+- tinita: `bundle: false` - tree-shaking perfect
+- tinita-react: `bundle: true` - vì có runtime deps, dùng external để avoid bundling framework
 
+---
+
+## CSS Standards
+
+### Architecture (Hiện Trạng)
+
+**Tailwind v4 build-time approach:**
+- Developers write CSS với Tailwind utilities + CSS variables
+- Build compiles Tailwind -> Pure CSS via PostCSS
+- Users receive pre-compiled CSS (no Tailwind dependency)
+
+**CSS Files:**
+- `src/styles/globals.css` - Tailwind base + theme tokens (CSS variables)
+- `src/styles/animations.css` - @keyframes animations
+- Component CSS (`FileTree.css`, `CarouselTicker.css`) - CSS variables + vanilla CSS, KHÔNG @apply
+
+**Build** (script tự log: Step 1, 1.5, 2, 3, 4):
+1. Copy globals.css -> dist/styles/globals.css
+1.5. Copy animations.css -> dist/styles/animations.css
+2. PostCSS build-entry.css -> theme CSS
+3. PostCSS ui/**/*.css -> component CSS, minified -> dist/ui/
+4. Bundle stage: theme + components -> minify -> ghi đè dist/styles.css
+
+Watch mode (`--watch`) là chế độ riêng, không phải một step: debounce 300ms, chạy lại pipeline.
+
+### Naming & Prefixing
+
+**Quy Tắc (Hiện Trạng ✓):**
+- Prefix tất cả class: `tinita-{component}__*`
+- BEM-like: `tinita-filetree__label--folder`
+- CSS variable: `tinita-primary`, `tinita-radius-md`, `tinita-ease-in-out`
+
+**Ví dụ:**
 ```css
-/* Block */
-.tinita-component { }
+/* src/ui/FileTree/FileTree.css */
+.tinita-filetree {
+  background-color: var(--tinita-filetree-bg);
+  color: var(--tinita-filetree-text);
+}
 
-/* Element */
-.tinita-component__item { }
+.tinita-filetree__label {
+  padding: var(--tinita-spacing-2);
+}
 
-/* Modifier */
-.tinita-component__item--active { }
+.tinita-filetree__label--folder {
+  font-weight: 600;
+}
 ```
 
-### CSS Variables
+### Customization
 
-**Required for all customizable values**:
+**CSS Variables (Level 1):**
 ```css
 :root {
-  --tinita-component-bg: #ffffff;
-  --tinita-component-text: #000000;
-  --tinita-component-border: #e0e0e0;
-  --tinita-component-hover: #f5f5f5;
-}
-
-.tinita-component {
-  background-color: var(--tinita-component-bg);
-  color: var(--tinita-component-text);
-  border: 1px solid var(--tinita-component-border);
-}
-
-.tinita-component:hover {
-  background-color: var(--tinita-component-hover);
+  --tinita-filetree-bg: #ffffff;
+  --tinita-filetree-text: #000000;
+  --tinita-primary: #007bff;
 }
 ```
 
-### Auto-Inject Styles Pattern
-
+**Variants + Props (Level 2):**
 ```typescript
-import { useEffect } from 'react';
-import { autoInjectStyles } from '../../utils/autoInjectStyles';
-
-const CSS_CONTENT = `/* CSS content */`;
-
-export function Component({ autoInjectStyles: shouldAutoInject = true, ...props }) {
-  useEffect(() => {
-    if (shouldAutoInject && typeof window !== 'undefined') {
-      autoInjectStyles('tinita-component-styles', CSS_CONTENT);
-    }
-  }, [shouldAutoInject]);
-
-  return <div className="tinita-component">...</div>;
-}
+<Button variant="primary" size="lg" />
 ```
 
-## Testing Standards
-
-### Test Framework
-**Vitest** for all testing
-
-### Test File Organization
-```
-tests/
-├── category1.test.ts      # Utility tests
-├── category2.test.ts
-└── ui/
-    └── Component.test.tsx # Component tests
-```
-
-### Test Structure
-
-**Unit Tests**:
+**className Escape Hatch (Level 3):**
 ```typescript
-import { describe, it, expect } from 'vitest';
-import { fileSize } from '../src/file/fileSize';
-
-describe('fileSize', () => {
-  it('should convert bytes to KB', () => {
-    expect(fileSize(1024)).toBe('1.02 KB');
-  });
-
-  it('should use binary base when specified', () => {
-    expect(fileSize(1024, 1024)).toBe('1 KB');
-  });
-
-  it('should return "0 Byte" for zero size', () => {
-    expect(fileSize(0)).toBe('0 Byte');
-  });
-});
+<FileTree className="my-custom-styles" />
 ```
 
-**Component Tests**:
+---
+
+## CSS Định Hướng (Target - Chưa Triển Khai Toàn Bộ)
+
+**6 Nguyên Tắc từ design-brief:**
+1. **Không ship Preflight** - Tránh global reset trên img, button, input
+2. **Prefix utilities** - Tất cả Tailwind utilities prefix `tinita-`
+3. **Namespace tokens** - CSS variables cho design tokens, không hard-code
+4. **CSS layers** - Tổ chức CSS vào layers (resets, tokens, components, overrides)
+5. **className escape hatch** - Cho phép consumer override via className
+6. **Semantic variants** - `<Button variant="primary" />` thay vì raw Tailwind classes
+
+**Hiện Trạng:**
+- ✓ Prefix `tinita-` - đã áp dụng
+- ✓ CSS variables - đã áp dụng
+- ✓ className prop - đã có
+- ❌ No Preflight - chưa ép (cần check Tailwind config)
+- ❌ CSS layers - chưa áp dụng
+- ❓ Semantic variants - Ping có, FileTree chưa check
+
+---
+
+## ESLint & Prettier
+
+### ESLint
+
+**Root:** `.eslintrc.cjs` (legacy)
+- base config: js.recommended + tseslint.recommended + turbo plugin
+- ignore: dist/**
+
+**Flat Configs (at packages):**
+- base.js (base config flat)
+- react-internal.js (base + react)
+- next.js (next/core-web-vitals + react-hooks)
+
+**Known Issue:** next.js preset import named export từ base.js mà không tồn tại.
+
+### Prettier
+
+**File:** `prettier.config.js`
+- Uỷ quyền hoàn toàn cho preset ngoài: `{ ...require("@dunggramer/prettier") }`
+- Không override gì
+
+---
+
+## Testing (0 Tests Currently)
+
+**Setup:**
+- vitest.config.ts (root) - environment: node, globals: true, coverage: v8
+- vitest.config.ts (tinita-react) - environment: jsdom, globals: true
+
+**Quy Tắc (chưa áp dụng):**
+- Location: `tests/` directory (parallel structure with src/)
+- Format: `*.test.ts` hoặc `*.test.tsx`
+- Coverage: > 80% (mục tiêu)
+
+**Current:** 0 test files.
+
+---
+
+## One-File-One-Function Rule
+
+**Quy Tắc (Hiện Trạng ✓):**
+
+**tinita:**
+- Mỗi utility = 1 file
+- `fileSize.ts` = `fileSize()` function
+- `generateUUID.ts` = `generateUUID()` function
+
+**tinita-react hooks:**
+- Mỗi hook = 1 file
+- `useToggle.ts` = `useToggle()` hook
+- `useIsomorphicLayoutEffect.ts` = `useIsomorphicLayoutEffect()` hook
+
+**tinita-react components:**
+- Mỗi component = 1 folder
+- Main logic ở `ComponentName.tsx`
+- Private components gom trong `components/` subfolder
+
+**Lợi ích:**
+- Perfect tree-shaking
+- Subpath imports work
+- Easy to locate, modify, test
+- Clear responsibility
+
+---
+
+## Export Management
+
+### tinita
+
+**Hiện Trạng:** Barrel + subpath
 ```typescript
-import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { FileTree } from '../src/ui/FileTree';
-
-describe('FileTree', () => {
-  it('should render tree structure', () => {
-    render(<FileTree data={mockData} />);
-    expect(screen.getByText('folder1')).toBeInTheDocument();
-  });
-
-  it('should expand on click', () => {
-    render(<FileTree data={mockData} />);
-    fireEvent.click(screen.getByText('folder1'));
-    expect(screen.getByText('file1.txt')).toBeVisible();
-  });
-});
-```
-
-### Test Coverage Requirements
-- **Unit tests**: > 80% code coverage
-- **Component tests**: Critical user interactions
-- **Integration tests**: Complex workflows
-- **Error scenarios**: All error paths tested
-
-## Import/Export Patterns
-
-### Core Package (tinita)
-
-**One file = one function**:
-```typescript
-// src/string/isEmpty.ts
-export function isEmpty(value: unknown): value is '' {
-  return typeof value === 'string' && value.length === 0;
-}
-```
-
-**Barrel exports** (src/index.ts):
-```typescript
+// src/index.ts - barrel export (re-exports tất cả)
 export * from './file/fileSize';
 export * from './file/getFileNameParts';
-export * from './string/isEmpty';
+export * from './file/truncateFileName';
+export * from './uuid/generateUUID';
+
+// Usage
+import { fileSize } from 'tinita';                    // Barrel
+import { fileSize } from 'tinita/file/fileSize';      // Subpath (optimal)
 ```
 
-**Usage**:
+### tinita-react
+
+**⚠️ Hiện Trạng (vi phạm quy tắc):**
 ```typescript
-// Both work, subpath is optimal for tree-shaking
-import { fileSize } from 'tinita';
-import { fileSize } from 'tinita/file/fileSize';  // Recommended
+// src/index.ts - CÓ barrel export
+export { useToggle } from './hooks/useToggle';
+export { useIsomorphicLayoutEffect } from './hooks/useIsomorphicLayoutEffect';
+export * from './ui/file-tree';
+export * from './ui/ping';
+export * from './ui/carousel-ticker';
+export { autoInjectStyles } from './utils/autoInjectStyles';
+
+// Usage
+import { useToggle } from 'tinita-react';             // Barrel (không nên)
+import { useToggle } from 'tinita-react/hooks/useToggle';  // Subpath (đúng)
 ```
 
-### React Package (tinita-react)
-
-**NO barrel imports from main entry**:
+**Quy Tắc (Mong Muốn):** NO barrel - chỉ subpath
 ```typescript
-// src/index.ts
-// Empty - no exports
-```
+// src/index.ts - EMPTY (đúng quy tắc)
+export {};
 
-**Category barrel exports**:
-```typescript
-// src/hooks/index.ts
-export * from './useToggle';
-export * from './useDebounce';
-
-// src/ui/index.ts
-export * from './FileTree';
-export * from './Button';
-```
-
-**Usage** (MUST use category or subpath):
-```typescript
-// ✅ GOOD: Category import
-import { useToggle } from 'tinita-react/hooks';
-import { FileTree } from 'tinita-react/ui';
-
-// ✅ GOOD: Subpath import
+// Usage - phải dùng subpath
 import { useToggle } from 'tinita-react/hooks/useToggle';
-
-// ❌ BAD: Main entry import (not allowed)
-import { useToggle } from 'tinita-react';  // This won't work
+import { FileTree } from 'tinita-react/ui/file-tree';
 ```
 
-## Component Colocation Pattern (tinita-react UI)
+**Tình Hình:** Code hiện tại vi phạm. Nên fix: xoá barrel exports khỏi `src/index.ts`.
 
-### MANDATORY Pattern
+---
 
-**Main component in separate file**:
-```
-src/ui/ComponentName/
-├── ComponentName.tsx       # Main component logic (REQUIRED)
-├── ComponentName.css       # Component styles
-├── SubComponent.tsx        # Private components
-├── types.ts                # Type definitions
-├── utils/                  # Component utilities
-└── index.tsx               # Re-exports only (REQUIRED)
-```
+## Quy Tắc Dependency
 
-**Why separate file + index.tsx?**
-- **Discoverability**: Easy to find `ComponentName.tsx` in file tree
-- **Maintainability**: Clear separation between logic and exports
-- **Scalability**: Room to add types, utils without cluttering index
-- **Industry Standard**: Follows "1 file = 1 unit" convention
+**Ràng Buộc (từ 2026-09-24):** tinita-react sẽ có foundation không đồng nhất (antd, Base UI, Radix v.v.), nên user chỉ dùng 1-2 component KHÔNG được phải cài toàn bộ dependency.
 
-### Implementation
+### Quy Tắc Cụ Thể
 
-**Main Component** (ComponentName.tsx):
-```typescript
-export interface ComponentNameProps {
-  data: any[];
-}
+1. **Thêm component mới + dùng lib mới -> lib KHÔNG vào `dependencies` cứng**
+   - Hiện trạng: tất cả 5 lib (`@radix-ui/react-accordion`, `clsx`, `lucide-react`, `motion`, `tailwind-merge`) ở `dependencies`
+   - Tương lai: chuyển sang `peerDependencies` với `peerDependenciesMeta.optional: true` (xem chi tiết ở `docs/system-architecture.md`)
+   - Điều kiện: PHẢI cập nhật bảng component->dependency (xem dưới) để user biết component nào cần lib gì
 
-export function ComponentName({ data }: ComponentNameProps) {
-  // Component implementation
-}
-```
+2. **Component không cần lib ngoài -> giữ zero-dep**
+   - Ping hiện tại zero-dep, phải giữ nguyên
+   - Không được vô tình kéo `cn()` hay `clsx` vào component vốn không cần
 
-**Index Re-export** (index.tsx):
-```typescript
-export { ComponentName } from './ComponentName';
-export type { ComponentNameProps } from './ComponentName';
-```
+3. **Phải cập nhật bảng "Component -> Runtime Dependency" cùng lúc thêm component**
+   - Bảng ở `docs/codebase-summary.md`
+   - Mỗi component mới phải ghi rõ dep runtime mà nó cần (nếu có)
 
-## Code Quality Standards
+### Bảng Component -> Runtime Dependency (Hiện Trạng)
 
-### Linting
+| Component | Runtime Dep | Status |
+|-----------|-------------|--------|
+| `Ping` | - | Zero-dep ✓ |
+| `CarouselTicker` | clsx, tailwind-merge | Bundled (inline) |
+| `FileTree` | @radix-ui/react-accordion, lucide-react | Externalized |
 
-**ESLint configuration**:
-- Extends shared config: `@repo/eslint-config/base`
-- No warnings allowed in production
-- Auto-fix on save recommended
+---
 
-**Run linting**:
-```bash
-pnpm lint           # Lint all packages
-pnpm lint --fix     # Auto-fix issues
-```
+## Quy Tắc CSS Chống Rò Rỉ Global
 
-### Formatting
+**Ràng Buộc (từ 2026-09-24, từ sự cố production):** CSS của library KHÔNG được xung đột global scope của app client.
 
-**Prettier configuration**:
-- Shared config in `prettier.config.js`
-- 2-space indentation
-- Single quotes for strings
-- Trailing commas
+### Quy Tắc & Hiện Trạng Vi Phạm
 
-**Run formatting**:
-```bash
-pnpm format         # Format all files
-```
+1. **Không ship Preflight hay global reset**
+   - ❌ **Hiện trạng vi phạm:** `src/styles/globals.css:116-127` có `@layer base { * { @apply border-border; } body { @apply bg-background text-foreground; } }`
+   - Đây là global reset tự viết, tương đương Preflight -> đè lên `body`, `*` của client
+   - Fix: Bỏ block này hoặc scope nó trong `[data-tinita]`
 
-### Type Checking
+2. **Prefix tất cả class Tailwind utility**
+   - ❌ **Hiện trạng vi phạm:** 27 class không prefix ở `src/styles/animations.css:114-318`
+     - 18 class `.animate-*` (fade-in/out, slide-*, modal-*, etc.)
+     - 8 class `.transition-*` (smooth, spring, modal, fade, slide, etc.)
+     - 1 class `.interactive`
+   - Tên cực kỳ chung chung, `.animate-*` va đạo trực tiếp Tailwind utility của client
+   - Fix: Prefix tất cả thành `.tinita-animate-*`, `.tinita-transition-*`, `.tinita-interactive`
 
-**Must pass with strict mode**:
-```bash
-pnpm check-types    # Type check all packages
-```
+3. **Namespace + prefix CSS variable**
+   - ❌ **Hiện trạng vi phạm:** `src/styles/globals.css:81-111` có 22 token KHÔNG prefix nằm trong Tailwind v4 namespace riêng
+     - `--color-background`, `--color-foreground`, `--color-primary`... (15 token)
+     - `--radius`, `--radius-sm`, `--radius-md`, `--radius-lg` (4 token)
+     - `--spacing-tree-indent` (1 token)
+     - `--font-sans`, `--font-mono` (2 token)
+   - Tên token này **trùng khít shadcn/ui** (thư viện phổ biến nhất) -> va chạm chắc chắn
+   - Fix: Prefix tất cả thành `--tinita-color-background`, `--tinita-radius-sm`, v.v.
 
-## Error Handling
+4. **Mọi selector CSS phải bắt đầu bằng class có prefix `tinita-`**
+   - ❌ **Hiện trạng vi phạm:**
+     - `src/styles/globals.css:116-127`: selector `*` và `body` trần
+     - `src/styles/animations.css:530-539`: `*, *::before, *::after` trong `@media (prefers-reduced-motion: reduce)` + `!important` - đè toàn trang
+     - `CarouselTicker.css:15-17`: `.tinita-carousel-ticker * { box-sizing: border-box; }` - ép children của client
+     - `FileTree.css`, `CarouselTicker.css`: selector `.dark` không prefix (Tailwind dark mode convention)
+   - Fix: Loại bỏ selector trần, scope mọi rule trong `.tinita-{component}` hoặc `[data-tinita]`
 
-### Input Validation
+5. **CSS component phải nằm trong `@layer`**
+   - ❌ **Hiện trạng vi phạm:** `FileTree.css`, `CarouselTicker.css` KHÔNG có `@layer` block
+   - Css không nằm trong layer luôn thắng CSS trong layer của client (Cascade Layers spec)
+   - Hệ quả: client không override được mà không đấu specificity
+   - Fix: Wrap tất cả component CSS vào `@layer components { ... }`
 
-**Always validate inputs**:
-```typescript
-export function divide(a: number, b: number): number {
-  if (!isNumber(a) || !isNumber(b)) {
-    throw new TypeError('Arguments must be numbers');
+6. **Không Tailwind class thô trong JSX**
+   - ❌ **Hiện trạng vi phạm:**
+     - `src/ui/Ping/Ping.tsx:45-50`: `inline-flex items-center gap-1`, `absolute size-2 animate-ping rounded-full bg-green-500 opacity-75`, `min-w-8 text-xs font-medium tabular-nums`
+     - `src/ui/CarouselTicker/CarouselTicker.tsx:211-291`: `shrink-0 grow-0 flex will-change-transform`, `absolute inset-0 pointer-events-none`, `relative overflow-hidden h-full min-h-[100px]`, `m-0 p-0 relative flex w-full`...
+   - Bundle KHÔNG ship các utility này (build-entry.css không import Tailwind) -> chỉ hiển thị đúng nếu client có Tailwind, đúng version/config
+   - Hard-code `bg-green-500` trong Ping dù `--tinita-ping` đã có
+   - Fix: Loại bỏ Tailwind class khỏi JSX, chuyển tất cả style vào CSS file với CSS variables
+
+7. **Variable runtime từ third-party không lọt vào public CSS**
+   - ❌ **Hiện trạng vi phạm:** `FileTree.css:230,237` - `height: var(--radix-accordion-content-height);` trong keyframes
+   - Biến runtime nội bộ của Radix lọt vào CSS công khai -> rò rỉ chi tiết nội bộ
+   - Đổi foundation sang Base UI sẽ vỡ keyframes
+   - Fix: Bọc lại sau token của tinita: `--tinita-accordion-content-height: var(--radix-accordion-content-height)` rồi dùng biến tinita
+
+---
+
+## Turborepo Task Dependencies
+
+```json
+{
+  "build": {
+    "dependsOn": ["^build"],
+    "outputs": ["dist/**"]
+  },
+  "lint": {
+    "dependsOn": ["^lint"]
+  },
+  "check-types": {
+    "dependsOn": ["^check-types"]
+  },
+  "dev": {
+    "cache": false,
+    "persistent": true
+  },
+  "test": {
+    "dependsOn": ["build"]
+  },
+  "storybook": {
+    "cache": false,
+    "persistent": true
+  },
+  "build-storybook": {
+    "dependsOn": ["^build"],
+    "outputs": ["storybook-static/**"]
   }
-  if (b === 0) {
-    throw new Error('Division by zero');
-  }
-  return a / b;
 }
 ```
 
-### Type Guards
+**Chú ý:** Không có task `generate:exports`.
 
-**Use type guards for runtime validation**:
+---
+
+## Code Style
+
+### Comments
+
+**Quy Tắc (Caveman):** Ngắn gọn, giữ mọi con số, date, mechanism.
+
+**✓ Tốt:**
 ```typescript
-function isValidData(data: unknown): data is ValidData {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'field' in data &&
-    typeof data.field === 'string'
-  );
+// Split filename into name and extension.
+// Handles dots in names: "file.name.txt" -> ["file.name", "txt"]
+function getFileNameParts(fileName: string) {
+  // ...
 }
 ```
 
-## Documentation Standards
-
-### Package README Requirements
-
-Every package MUST have:
-1. Installation instructions
-2. Basic usage examples
-3. API reference
-4. Import patterns (barrel vs subpath)
-5. TypeScript types
-6. Link to main documentation
-
-### Component Documentation
-
-UI components SHOULD have:
-1. Component README in component directory
-2. Storybook stories (`.stories.tsx`)
-3. Props documentation (TypeScript interfaces)
-4. Usage examples
-5. CSS customization guide
-
-## Git Standards
-
-### Commit Messages
-
-**Format**: Conventional Commits
-```
-type(scope): description
-
-feat(tinita): add isEmpty string utility
-fix(react): resolve FileTree expand issue
-docs: update code standards
-```
-
-**Types**:
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation
-- `refactor`: Code refactoring
-- `test`: Test additions/changes
-- `chore`: Maintenance tasks
-
-### Branch Naming
-
-**Format**: `type/description`
-```
-feature/add-debounce-hook
-fix/filetree-expand-bug
-docs/update-standards
-```
-
-## Automated Workflows
-
-### Pre-Commit Checklist
-
-Before committing:
-- ✅ No secrets or credentials
-- ✅ All tests pass (`pnpm test`)
-- ✅ No linting errors (`pnpm lint`)
-- ✅ Type checking passes (`pnpm check-types`)
-- ✅ Files under 500 lines
-- ✅ Conventional commit message
-
-### Pre-Build Checklist
-
-Before building:
-- ✅ Run `generate:exports` for updated exports
-- ✅ Clean previous build (`rimraf dist`)
-- ✅ Verify tsup configuration
-- ✅ Check package.json exports
-
-## Performance Standards
-
-### Bundle Size
-
-**Targets**:
-- Core utilities: < 1KB per function
-- React hooks: < 2KB per hook
-- UI components: < 5KB per component (excluding CSS)
-
-**Verification**:
-- Monitor with bundlephobia
-- Test tree-shaking effectiveness
-- Check dist/ output sizes
-
-### Build Performance
-
-**Targets**:
-- Package build: < 10 seconds
-- Full monorepo build: < 30 seconds
-- Test execution: < 5 seconds per package
-
-## Security Standards
-
-### No Secrets in Code
-
-**Never commit**:
-- API keys
-- Passwords
-- Tokens
-- Credentials
-
-**Use environment variables**:
+**❌ Không:**
 ```typescript
-// ✅ GOOD
-const apiKey = process.env.API_KEY;
-
-// ❌ BAD
-const apiKey = 'sk-1234567890';  // Don't do this
+// This function is used to split filenames. It takes a filename string
+// as input and returns an object with the name and extension properties.
+// This is useful when you need to separate the extension from the name.
 ```
 
-### Input Sanitization
+### Identifiers
 
-**Always sanitize user inputs**:
-```typescript
-export function processUserInput(input: string): string {
-  // Validate and sanitize
-  if (typeof input !== 'string') {
-    throw new TypeError('Input must be string');
-  }
-  return input.trim().toLowerCase();
-}
-```
+- Hàm: camelCase (`fileSize`, `getFileNameParts`)
+- Component: PascalCase (`FileTree`, `Ping`)
+- Biến: camelCase (`count`, `isOpen`)
+- Constant: CONSTANT_CASE (`MAX_FILE_SIZE`)
+- Type: PascalCase (`FileTreeNode`, `UseToggleReturn`)
 
-## Compliance Checklist
+---
 
-### Before Publishing
+## Linting Rules
 
-- [ ] All files < 500 lines
-- [ ] All tests pass
-- [ ] Linting passes
-- [ ] Type checking passes
-- [ ] Subpath exports configured
-- [ ] README.md complete
-- [ ] Version bumped (SemVer)
-- [ ] No bundled framework dependencies
-- [ ] Tree-shaking verified
+**Chạy:** `pnpm lint` (all packages)
 
-### Architecture Compliance
+**Tools:**
+- ESLint 9.39.1
+- @typescript-eslint
+- eslint-config-prettier (no formatting rules)
+- Turbo plugin (env-var warnings)
 
-- [ ] One file = one function/hook/composable
-- [ ] Per-file builds (`bundle: false`)
-- [ ] No runtime dependencies (core package)
-- [ ] Framework code only in framework packages
-- [ ] Frameworks as peer dependencies
-- [ ] Subpath exports for tree-shaking
-- [ ] CSS separate from JS bundles
+**CI:** Không có CI/CD, lint thủ công.
 
-## References
+---
 
-### Internal Documentation
-- [Project Overview PDR](./project-overview-pdr.md)
-- [Codebase Summary](./codebase-summary.md)
-- [System Architecture](./system-architecture.md)
-- [ARCHITECTURE.md](../ARCHITECTURE.md) - Detailed architectural principles
-- [CONTRIBUTING.md](../CONTRIBUTING.md) - Contribution workflow
+## Related Documents
 
-### External Resources
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-- [Vitest Documentation](https://vitest.dev/)
-- [Conventional Commits](https://conventionalcommits.org/)
-- [Semantic Versioning](https://semver.org/)
-
-## Summary
-
-The Tinita monorepo follows strict standards to ensure:
-1. **Tree-shaking**: One file = one function, per-file builds
-2. **Type Safety**: TypeScript strict mode, comprehensive types
-3. **Maintainability**: 500-line limit, clear organization
-4. **Quality**: 80%+ test coverage, linting, formatting
-5. **Performance**: Minimal bundle sizes, fast builds
-6. **Developer Experience**: Consistent patterns, clear documentation
-
-These standards are non-negotiable and apply to all contributions.
+- [ARCHITECTURE.md](../ARCHITECTURE.md) - Architectural principles
+- [codebase-summary.md](./codebase-summary.md) - Current state snapshot
+- [system-architecture.md](./system-architecture.md) - Build system details
+- [naming-guidelines.md](./naming-guidelines.md) - Detailed naming & colocation

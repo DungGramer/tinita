@@ -1,231 +1,142 @@
 # Tinita
 
-**A tree-shakeable TypeScript utility ecosystem for modern web development**
+Monorepo với framework-agnostic utilities, React hooks + UI components, Storybook.
 
-Tinita is a high-performance monorepo delivering framework-agnostic utilities, React hooks, and UI components with zero runtime bloat. Built with Turborepo + pnpm + tsup, emphasizing optimal bundle sizes and exceptional developer experience.
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![NPM Version](https://img.shields.io/npm/v/tinita)](https://www.npmjs.com/package/tinita)
-
----
-
-## Key Features
-
-- **Zero Bundle Bloat**: One file = one function architecture with guaranteed tree-shaking
-- **Framework Agnostic Core**: Pure TypeScript utilities that work everywhere
-- **React Ecosystem**: Hooks and UI components with automatic CSS handling
-- **TypeScript First**: Full type safety with strict mode and comprehensive `.d.ts` generation
-- **Per-File Builds**: Optimal tree-shaking through unbundled module output
-- **Automated Exports**: Script-generated subpath exports for every utility
+**Packages:** `tinita` (v0.0.1, 4 utilities) · `tinita-react` (v0.0.2-alpha.1, 2 hooks + 3 components)
 
 ---
 
 ## Quick Start
 
-### Installation
-
 ```bash
-# Core utilities (framework-agnostic)
-pnpm add tinita
-
-# React hooks and UI components
-pnpm add tinita-react react
-```
-
-### Basic Usage
-
-**Core Utilities (tinita)**:
-
-```typescript
-// File utilities
-import { fileSize } from 'tinita/file/fileSize';
-
-fileSize(1024);        // "1.02 KB"
-fileSize(1024, 1024);  // "1 KB" (binary base)
-
-// UUID generation (cross-platform)
-import { generateUUID } from 'tinita/uuid/generateUUID';
-
-const id = generateUUID();  // "550e8400-e29b-41d4-a716-446655440000"
-```
-
-**React Hooks**:
-
-```typescript
-import { useToggle } from 'tinita-react/hooks';
-
-function MyComponent() {
-  const [isOpen, toggle] = useToggle(false);
-
-  return (
-    <div>
-      <button onClick={toggle}>Toggle</button>
-      {isOpen && <div>Visible content</div>}
-    </div>
-  );
-}
-```
-
-**React UI Components**:
-
-```typescript
-// Import CSS (once in your app)
-import 'tinita-react/styles.css';
-
-// Use components
-import { FileTree } from 'tinita-react/ui';
-
-const data = [
-  { id: '1', name: 'src', type: 'folder', children: [...] },
-  { id: '2', name: 'README.md', type: 'file' }
-];
-
-function App() {
-  return <FileTree data={data} />;
-}
-```
-
----
-
-## Project Structure
-
-```
-tinita/
-├── packages/
-│   ├── tinita/           # Core utilities (0 dependencies)
-│   └── tinita-react/     # React hooks + UI components
-├── config/               # Shared ESLint, TypeScript configs
-├── scripts/              # Build automation
-├── docs/                 # Comprehensive documentation
-└── turbo.json            # Turborepo task pipeline
+pnpm install      # Cài dependencies
+pnpm build        # Xây toàn bộ
+pnpm dev          # Dev mode
+pnpm storybook    # Chạy Storybook (xem note bên dưới)
 ```
 
 ---
 
 ## Packages
 
-### tinita (Core)
-Framework-agnostic TypeScript utilities with zero dependencies. Includes file utilities and UUID generation.
+### tinita (v0.0.1)
 
-### tinita-react
-React hooks (`useToggle`) and UI components (`FileTree`, `Ping`) with automatic CSS handling.
+4 framework-agnostic utilities:
 
----
-
-## Development
-
-### Prerequisites
-
-- **Node.js**: >= 18.0.0
-- **pnpm**: >= 9.0.0
-
-### Setup
-
-```bash
-# Clone repository
-git clone https://github.com/dunggramer/tinita.git
-cd tinita
-
-# Install dependencies
-pnpm install
-
-# Build all packages
-pnpm build
+```typescript
+import { fileSize } from 'tinita/file/fileSize';
+import { getFileNameParts } from 'tinita/file/getFileNameParts';
+import { truncateFileName } from 'tinita/file/truncateFileName';
+import { generateUUID } from 'tinita/uuid/generateUUID';
 ```
 
-### Available Commands
+### tinita-react (v0.0.2-alpha.1)
 
-```bash
-# Development
-pnpm dev          # Watch mode for all packages
-pnpm build        # Build all packages
-pnpm test         # Run all tests
-pnpm test --watch # Run tests in watch mode
+2 hooks + 3 UI components (CSS included). **Import từng file, không dùng barrel:**
 
-# Code Quality
-pnpm lint         # Lint all packages
-pnpm check-types  # Type check all packages
-pnpm format       # Format code with Prettier
+```typescript
+// Hooks
+import { useToggle } from 'tinita-react/hooks/useToggle';
+import { useIsomorphicLayoutEffect } from 'tinita-react/hooks/useIsomorphicLayoutEffect';
 
-# Publishing
-pnpm publish:dry-run    # Test publishing
-pnpm publish:tinita     # Publish tinita package
-pnpm publish:tinita-react # Publish tinita-react package
-pnpm publish:all        # Publish all packages
+// Components
+import { FileTree } from 'tinita-react/ui/file-tree';
+import { Ping } from 'tinita-react/ui/ping';
+import { CarouselTicker } from 'tinita-react/ui/carousel-ticker';
+
+// Utility
+import { autoInjectStyles } from 'tinita-react/utils/autoInjectStyles';
+
+// CSS
+import 'tinita-react/styles.css';
 ```
 
-### Adding New Utilities
+#### Component Dependencies
 
-1. Create utility file in `packages/tinita/src/` or `packages/tinita-react/src/`
-2. Run `pnpm run generate:exports` to update exports
-3. Write tests in `tests/`
-4. Build and verify: `pnpm build && pnpm test`
+| Component | Runtime Dependencies | Notes |
+|-----------|---------------------|-------|
+| `Ping` | - | Zero external dependencies |
+| `CarouselTicker` | clsx, tailwind-merge | Bundled in output (no install needed) |
+| `FileTree` | @radix-ui/react-accordion, lucide-react | Both externalized |
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed workflow.
-
----
-
-## Architecture
-
-**Tree-Shaking Guarantee**: Import one function, ship only that function (~500 bytes). Achieved through per-file builds, subpath exports, and zero bundling.
-
-**Monorepo Stack**: Turborepo (task orchestration), pnpm (dependencies), tsup (builds), Vitest (tests).
-
-See [System Architecture](./docs/system-architecture.md) for complete details.
+**⚠️ Current Issue:** `npm install tinita-react` kéo theo ~20 gói (bao gồm `motion` không được dùng). Chỉ dùng `Ping` vẫn phải cài cả `@radix-ui/react-accordion`, `lucide-react`, `motion`. Định hướng: chuyển sang optional peer dependencies (xem `docs/system-architecture.md`).
 
 ---
 
-## Documentation
+## Root Scripts (13)
 
-### Core Documentation
+| Script | Mục đích | Status |
+|--------|---------|--------|
+| build | Xây toàn bộ | ✓ |
+| dev | Dev mode (Storybook + tsup watch) | ✓ |
+| lint | Lint toàn bộ | ✓ |
+| test | Run tests (vitest) | ✓ |
+| format | Format với prettier | ✓ |
+| check-types | Type check | ✓ |
+| storybook | Chạy Storybook | ⚠️ Hỏng* |
+| build-storybook | Build Storybook static | ⚠️ Hỏng* |
+| publish:tinita | Publish tinita | ✓ |
+| publish:tinita-react | Publish tinita-react | ✓ |
+| publish:all | Publish cả hai | ✓ |
+| publish:dry-run | Dry run | ✓ |
+| generate:exports | Generate exports | ❌ Không tồn tại** |
 
-- **[Project Overview & PDR](./docs/project-overview-pdr.md)** - Vision, roadmap, requirements
-- **[Codebase Summary](./docs/codebase-summary.md)** - Current state, metrics, structure
-- **[Code Standards](./docs/code-standards.md)** - Coding conventions, file organization
-- **[System Architecture](./docs/system-architecture.md)** - Build system, data flow, module resolution
+\* Storybook lỗi vì filter package sai và script name không khớp. Thay bằng: `turbo build --filter=storybook && cd apps/storybook && pnpm dev`.  
+\*\* Script này không tồn tại. Exports maintain thủ công trong `package.json`.
 
-### Developer Guides
+---
 
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Architectural principles and compliance rules
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contribution workflow and guidelines
-- **[CLAUDE.md](./CLAUDE.md)** - AI assistant development instructions
+## Cấu trúc
 
-### Package-Specific
+```
+tinita/
+  ├── packages/tinita          # 4 utilities
+  ├── packages/tinita-react    # 2 hooks + 3 components + CSS
+  ├── apps/storybook           # Storybook 10.1.4
+  ├── config/                  # ESLint, TypeScript, UI configs
+  ├── scripts/                 # publish.mjs, update-package-versions.mjs
+  └── docs/                    # Documentation (xem docs/README.md)
+```
 
-- **[tinita README](./packages/tinita/README.md)** - Core utilities documentation
-- **[tinita-react README](./packages/tinita-react/README.md)** - React package documentation
-- **[CSS Guide](./packages/tinita-react/CSS_GUIDE.md)** - CSS handling patterns
+---
+
+## Stack
+
+- **Workspace:** pnpm 9.0.0 + Turborepo
+- **Node:** >=18
+- **Build:** tsup (JS) + PostCSS (CSS)
+- **Test:** Vitest (0 test hiện tại)
+- **Release:** Manual qua `scripts/publish.mjs`
+
+---
+
+## Docs
+
+Xem [`docs/README.md`](./docs/README.md) để tìm:
+- **Project Overview & PDR** - mục tiêu, roadmap, requirements
+- **Codebase Summary** - thực trạng hiện tại, metrics
+- **Code Standards** - quy tắc naming, colocation, CSS
+- **System Architecture** - kiến trúc workspace, build pipeline
+- **Design Guidelines** - nguyên tắc design component (định hướng)
+
+---
+
+## Known Issues
+
+Xem `docs/system-architecture.md` phần "Known Issues" để chi tiết. Tóm tắt:
+1. **Storybook scripts hỏng** - filter package sai scope, script name không khớp
+2. **generate:exports không tồn tại** - exports maintain thủ công
+3. **tsconfig base path alias chết** - trỏ tới package không tồn tại
+4. **ESLint next preset export sai** - named import không tồn tại
+5. **`motion` là dependency chết** - khai trong dependencies nhưng không file nào import
+6. **`Ping` + `CarouselTicker` cần Tailwind** - dùng class Tailwind thô trong JSX, chỉ hiển thị đúng nếu host có Tailwind (xem chi tiết ở `docs/system-architecture.md` phần CSS)
 
 ---
 
 ## Contributing
 
-We welcome contributions! Read [CONTRIBUTING.md](./CONTRIBUTING.md) and [ARCHITECTURE.md](./ARCHITECTURE.md) before starting. Key principles: one-file-one-function, pass all tests, follow code standards.
+Đọc [ARCHITECTURE.md](./ARCHITECTURE.md) và [CONTRIBUTING.md](./CONTRIBUTING.md) trước. Nguyên tắc: one-file-one-function, subpath exports, strict typing.
 
 ---
 
-## Roadmap
-
-**v0.0.x (Current)**: Monorepo setup, core utilities, React package, automated exports
-**v0.1.x (Next)**: Vue/Node packages, expand utilities, more hooks/components
-**v1.0.x (Future)**: Documentation site, playground, benchmarks, a11y, i18n
-
-See [Project Overview PDR](./docs/project-overview-pdr.md) for detailed roadmap.
-
----
-
-## License
-
-[MIT](./LICENSE) - Copyright (c) 2025 Tinita Contributors
-
----
-
-## Links
-
-- **GitHub**: [https://github.com/dunggramer/tinita](https://github.com/dunggramer/tinita)
-- **NPM (tinita)**: [https://www.npmjs.com/package/tinita](https://www.npmjs.com/package/tinita)
-- **NPM (tinita-react)**: [https://www.npmjs.com/package/tinita-react](https://www.npmjs.com/package/tinita-react)
-
----
-
-**Built with care for developers who value bundle size and code quality.**
+Cập nhật: 2026-09-24 (vòng 2) · commit 0a1dd88
