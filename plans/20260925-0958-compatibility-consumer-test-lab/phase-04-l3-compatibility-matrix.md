@@ -17,7 +17,7 @@
   manager. Pha này KHÔNG thêm ca test mới - nó thêm **môi trường**. Giá trị nằm ở chỗ bắt được lỗi
   chỉ xuất hiện dưới resolver khác (Yarn PnP) hoặc Node cũ hơn.
 - **Priority:** P1 - cần trước lần publish tới, không cần mỗi commit
-- **Implementation status:** Not started
+- **Implementation status:** Done
 - **Review status:** Not reviewed
 
 ## Key Insights
