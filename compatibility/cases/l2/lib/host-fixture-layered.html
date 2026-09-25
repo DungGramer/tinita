@@ -1,0 +1,36 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>host fixture - CSS trong @layer (mô phỏng consumer Tailwind v4)</title>
+<style>
+  /* Consumer Tailwind v4 đặt CSS của mình TRONG layer. Đây là tình huống của sự cố production:
+     CSS trong layer THUA CSS không layer, nên component CSS layerless của library đè được. */
+  @layer theme, base, components, utilities;
+
+  @layer theme {
+    :root {
+      --color-primary: rgb(1, 2, 3);
+      --radius: 11px;
+      --font-sans: "HostFont";
+    }
+  }
+  @layer base {
+    body { background-color: rgb(10, 20, 30); color: rgb(40, 50, 60); margin: 0; }
+    div[data-host] { border-color: rgb(70, 80, 90); border-style: solid; border-width: 1px; }
+  }
+  @layer utilities {
+    .animate-fade-in { animation-name: hostFade; animation-duration: 7s; }
+    .transition-fast { transition-duration: 777ms; }
+    .interactive { opacity: 0.77; }
+  }
+  @layer components {
+    .tinita-filetree { border-color: rgb(123, 123, 123); }
+  }
+  @keyframes hostFade { from { opacity: 0 } to { opacity: 1 } }
+</style>
+
+<div data-host id="host-box">host box</div>
+<div class="animate-fade-in" id="host-animate">host animate</div>
+<div class="transition-fast" id="host-transition">host transition</div>
+<div class="interactive" id="host-interactive">host interactive</div>
+<div class="tinita-filetree" id="host-filetree-override">filetree override probe</div>
+<div class="tinita-carousel-ticker" id="host-ticker"><span id="host-ticker-child" style="box-sizing: content-box">child</span></div>

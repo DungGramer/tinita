@@ -19,7 +19,7 @@
   thuần (ESM và CJS), và một consumer `tsc` để kiểm type resolution dưới 3 `moduleResolution`. Đây
   là tầng đầu tiên thấy được lỗi bundler, CSS và SSR - những thứ `node -e` của pha 02 không chạm tới.
 - **Priority:** P0 - cùng pha 02 tạo thành tier 1, là hai tầng đáng đầu tư nhất theo tài liệu nguồn
-- **Implementation status:** Not started
+- **Implementation status:** Partial - SSR, tsc-matrix, CSS leak xong; Vite và Next chưa
 - **Review status:** Not reviewed
 
 ## Key Insights
