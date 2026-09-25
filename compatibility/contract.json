@@ -1,0 +1,153 @@
+{
+  "_why": "Nguồn sự thật của ca test. KHAI TAY, không sinh từ package.json exports - nếu sinh từ exports thì xoá một export sẽ làm ca biến mất theo và test vẫn xanh. Ca 05 đối chiếu HAI CHIỀU.",
+  "packages": {
+    "tinita": {
+      "specifiers": [
+        ".",
+        "./file/fileSize",
+        "./file/getFileNameParts",
+        "./file/truncateFileName",
+        "./file/truncateFileNameParts",
+        "./uuid/generateUUID"
+      ],
+      "namedExports": {
+        ".": [
+          "fileSize",
+          "getFileNameParts",
+          "truncateFileName",
+          "truncateFileNameParts",
+          "generateUUID"
+        ],
+        "./file/fileSize": [
+          "fileSize"
+        ],
+        "./file/getFileNameParts": [
+          "getFileNameParts"
+        ],
+        "./file/truncateFileName": [
+          "truncateFileName"
+        ],
+        "./file/truncateFileNameParts": [
+          "truncateFileNameParts"
+        ],
+        "./uuid/generateUUID": [
+          "generateUUID"
+        ]
+      },
+      "requiredFiles": [
+        "dist/index.mjs",
+        "dist/index.cjs",
+        "dist/index.d.ts"
+      ],
+      "forbiddenFiles": [
+        "src",
+        "tests",
+        "node_modules",
+        "tsconfig.json",
+        "tsup.config.ts"
+      ],
+      "accepted": [
+        {
+          "tool": "attw",
+          "problem": "FalseCJS",
+          "scope": "all",
+          "since": "2026-09-25",
+          "reason": "exports[x].types trỏ .d.ts trong khi import trỏ .mjs; tsup CÓ emit .d.mts nhưng exports không dùng. Sửa ở pha 06 rồi xoá entry này."
+        },
+        {
+          "tool": "attw",
+          "problem": "NoResolution",
+          "scope": "node10",
+          "since": "2026-09-25",
+          "reason": "TS cũ (moduleResolution: node) không resolve subpath exports. Có support TS cũ hay không là QĐ-2 của owner ở pha 06."
+        },
+        {
+          "tool": "publint",
+          "problem": "types-ambiguous-import",
+          "scope": "all",
+          "since": "2026-09-25",
+          "reason": "cùng gốc với FalseCJS ở trên."
+        }
+      ]
+    },
+    "tinita-react": {
+      "specifiers": [
+        ".",
+        "./hooks/useToggle",
+        "./ui/ping",
+        "./ui/carousel-ticker",
+        "./ui/file-tree",
+        "./utils/autoInjectStyles"
+      ],
+      "cssSpecifiers": [
+        "./styles.css",
+        "./styles/globals.css",
+        "./styles/animations.css"
+      ],
+      "namedExports": {
+        "./hooks/useToggle": [
+          "useToggle"
+        ],
+        "./ui/ping": [
+          "Ping"
+        ],
+        "./ui/carousel-ticker": [
+          "CarouselTicker"
+        ],
+        "./ui/file-tree": [
+          "FileTree"
+        ],
+        "./utils/autoInjectStyles": [
+          "autoInjectStyles"
+        ]
+      },
+      "requiredPeers": [
+        "react"
+      ],
+      "optionalPeers": {
+        ".": [
+          "@radix-ui/react-accordion",
+          "lucide-react"
+        ],
+        "./ui/file-tree": [
+          "@radix-ui/react-accordion",
+          "lucide-react"
+        ],
+        "./ui/ping": [],
+        "./ui/carousel-ticker": [],
+        "./hooks/useToggle": [],
+        "./utils/autoInjectStyles": []
+      },
+      "requiredFiles": [
+        "dist/index.mjs",
+        "dist/index.cjs",
+        "dist/styles.css",
+        "dist/styles/globals.css",
+        "dist/styles/animations.css",
+        "dist/ui/file-tree/index.mjs",
+        "dist/ui/file-tree/index.cjs"
+      ],
+      "forbiddenFiles": [
+        "src",
+        "tests",
+        "node_modules",
+        "tsconfig.json",
+        "tsup.config.ts"
+      ],
+      "documentedButMissing": [
+        {
+          "specifier": "./hooks",
+          "documentedIn": "CLAUDE.md",
+          "note": "CLAUDE.md nói `import { useToggle } from 'tinita-react/hooks'` là đường nhập BẮT BUỘC, nhưng specifier này không có trong exports lẫn dist. Tài liệu đang chỉ người dùng vào đường không tồn tại."
+        },
+        {
+          "specifier": "./ui",
+          "documentedIn": "CLAUDE.md",
+          "note": "CLAUDE.md nói `import { FileTree } from 'tinita-react/ui'` là đường nhập BẮT BUỘC; cũng không tồn tại."
+        }
+      ],
+      "accepted": [],
+      "_barrelNote": "Barrel '.' đòi CẢ HAI optional peer vì src/index.ts re-export ./ui/file-tree. Nghĩa là `import { Ping } from 'tinita-react'` vẫn kéo radix + lucide dù Ping không cần. Đây là bằng chứng consumer cho việc bỏ barrel (nợ #7, hướng B của M2)."
+    }
+  }
+}

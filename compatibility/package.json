@@ -1,0 +1,15 @@
+{
+  "name": "tinita-compatibility-lab",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Consumer/compatibility test lab. Deliberately OUTSIDE the pnpm workspace - see README.md",
+  "scripts": {
+    "pack": "node scripts/pack.mjs",
+    "assert-isolation": "node scripts/assert-isolation.mjs"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.2",
+    "publint": "0.3.24"
+  }
+}

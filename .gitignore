@@ -39,4 +39,14 @@ yarn-error.log*
 *.md
 !README.md
 !docs/*.md
+# Tài liệu ca test của compatibility lab phải commit được, nếu không người sau không hiểu ca
+!compatibility/**/*.md
+
+# Compatibility lab: artifact/cache/report/workdir là sản phẩm phụ, không commit.
+# Baseline ảnh (__screenshots__) THÌ commit - xem compatibility/README.md
+compatibility/.artifacts/
+compatibility/.npm-cache/
+compatibility/.reports/
+compatibility/**/.work/
+compatibility/node_modules/
 nul
