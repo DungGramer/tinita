@@ -147,6 +147,95 @@ process.stdout.write(renderToStaticMarkup(h(Ping, { count: 1 })));
   }
 }
 
+// ---------- Vite production build + chromium ----------
+{
+  const { chromium } = await import('playwright');
+  const work = createConsumer({
+    level: 'l2',
+    name: 'vite-react19',
+    deps: [...REACT, 'vite@7', '@vitejs/plugin-react@5', '@radix-ui/react-accordion', 'lucide-react'],
+    tarballs: TGZ,
+    pkgJson: { type: 'module' },
+    files: {
+      'index.html': '<!doctype html><div id="root"></div><script type="module" src="/main.jsx"></script>',
+      'vite.config.js': "import react from '@vitejs/plugin-react';\nexport default { plugins: [react()] };\n",
+      'main.jsx': `
+import { createRoot } from 'react-dom/client';
+import { createElement as h, Fragment } from 'react';
+import 'tinita-react/styles.css';
+import { Ping } from 'tinita-react/ui/ping';
+import { CarouselTicker } from 'tinita-react/ui/carousel-ticker';
+import { FileTree } from 'tinita-react/ui/file-tree';
+createRoot(document.getElementById('root')).render(
+  h(Fragment, null, h(Ping, { count: 1 }), h(CarouselTicker, null, h('span', null, 'x')), h(FileTree, { text: 'src\\n  a.ts' })),
+);
+`,
+    },
+  });
+
+  const built = run('npx', ['vite', 'build'], work, 300_000);
+  if (!built.ok) {
+    add('vite:build', false, `vite build exit=${built.code}: ${built.out.split('\n').find((l) => /rror/.test(l))?.trim() ?? ''}`);
+  } else {
+    add('vite:build', true, 'vite build exit 0');
+    // preview chạy nền -> spawn, không execFileSync
+    const { spawn } = await import('node:child_process');
+    const proc = spawn('npx', ['vite', 'preview', '--port', '4319', '--strictPort'], { cwd: work, stdio: 'ignore' });
+    try {
+      await new Promise((r) => setTimeout(r, 4000));
+      const browser = await chromium.launch();
+      const page = await browser.newPage();
+      await page.goto('http://127.0.0.1:4319/', { waitUntil: 'networkidle' });
+      const seen = await page.evaluate(() => ({
+        filetree: document.querySelectorAll('.tinita-filetree').length,
+        ping: document.querySelectorAll('[class*="tinita-ping"]').length,
+        tinitaRules: [...document.styleSheets].flatMap((sh) => { try { return [...sh.cssRules]; } catch { return []; } })
+          .filter((r) => r.selectorText?.includes('tinita-')).length,
+      }));
+      await browser.close();
+      const ok = seen.filetree >= 1 && seen.tinitaRules > 0;
+      add('vite:render', ok, `FileTree=${seen.filetree} Ping=${seen.ping} rule .tinita-*=${seen.tinitaRules}`);
+    } finally {
+      proc.kill('SIGTERM');
+    }
+  }
+}
+
+// ---------- Next App Router: câu hỏi 'use client' ----------
+// Chuỗi lỗi dưới đây ĐO THẬT 2026-09-25, không lấy từ tài liệu nghiên cứu (nguồn đó dự đoán sai).
+{
+  const base = {
+    level: 'l2',
+    deps: [...REACT, 'next@15', '@radix-ui/react-accordion', 'lucide-react'],
+    tarballs: TGZ,
+    files: {
+      'next.config.mjs': 'export default { eslint: { ignoreDuringBuilds: true }, typescript: { ignoreBuildErrors: true } };\n',
+      'app/layout.tsx': 'export default function L({ children }: { children: React.ReactNode }) {\n  return (<html lang="en"><body>{children}</body></html>);\n}\n',
+    },
+  };
+  const page = (directive, imp, jsx) => `${directive}import { ${imp} } from 'tinita-react/ui/${imp === 'FileTree' ? 'file-tree' : imp === 'Ping' ? 'ping' : 'carousel-ticker'}';\n\nconst TREE = ['src', '  a.ts'].join('\\n');\n\nexport default function Page() {\n  return ${jsx};\n}\n`;
+
+  const variants = [
+    { id: 'rsc-ping-no-directive', directive: '', imp: 'Ping', jsx: '<Ping count={1} />', expectOk: true, why: 'Ping không dùng hook nên Server Component chịu được' },
+    { id: 'rsc-filetree-no-directive', directive: '', imp: 'FileTree', jsx: '<FileTree text={TREE} />', expectOk: false, why: 'FileTree dùng hook qua Radix -> cần use client' },
+    { id: 'rsc-filetree-app-directive', directive: "'use client';\n", imp: 'FileTree', jsx: '<FileTree text={TREE} />', expectOk: true, why: 'consumer bọc use client LÀ ĐỦ' },
+  ];
+
+  for (const v of variants) {
+    const work = createConsumer({ ...base, name: `next-${v.id}`, files: { ...base.files, 'app/page.tsx': page(v.directive, v.imp, v.jsx) } });
+    const r = run('npx', ['next', 'build'], work, 600_000);
+    const hookErr = /is not a function/.test(r.out) ? r.out.split('\n').find((l) => /is not a function/.test(l))?.trim() : null;
+    const ok = r.ok === v.expectOk;
+    add(`next:${v.id}`, ok, `${v.why}; exit=${r.code}${hookErr ? ` | ${hookErr}` : ''}`, { expectedFailure: !v.expectOk, hookError: hookErr });
+  }
+
+  findings.push({
+    id: 'library-missing-use-client',
+    detail: "Source tinita-react không có directive 'use client' ở đâu. Đo được: FileTree trong Server Component -> `(0 , e.useState) is not a function`; CarouselTicker -> `(0 , e.useRef) is not a function`; Ping thì OK vì không dùng hook. Consumer tự bọc 'use client' LÀ ĐỦ để build xanh, nhưng việc đó bị đẩy sang mọi consumer. Nên thêm directive vào 2 component dùng hook.",
+    assignedTo: 'roadmap M1',
+  });
+}
+
 const payload = { level: 'l2', ranAt: new Date().toISOString(), wallClockMs: Date.now() - t0, cases, findings };
 const file = writeReport('l2', payload);
 const failed = printSummary(payload);
