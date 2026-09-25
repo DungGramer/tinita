@@ -211,14 +211,10 @@ importers:
   packages/tinita: {}
 
   packages/tinita-react:
-    dependencies:
+    devDependencies:
       '@radix-ui/react-accordion':
         specifier: ^1.2.12
         version: 1.2.12(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      lucide-react:
-        specifier: ^0.555.0
-        version: 0.555.0(react@19.2.0)
-    devDependencies:
       '@tailwindcss/postcss':
         specifier: ^4.1.17
         version: 4.1.17
@@ -249,6 +245,9 @@ importers:
       jsdom:
         specifier: ^27.2.0
         version: 27.2.0
+      lucide-react:
+        specifier: ^0.555.0
+        version: 0.555.0(react@19.2.0)
       postcss:
         specifier: ^8.5.6
         version: 8.5.6

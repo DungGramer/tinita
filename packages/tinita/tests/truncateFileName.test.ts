@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { getFileNameParts } from '../src/file/getFileNameParts';
 import { truncateFileName } from '../src/file/truncateFileName';
+import { truncateFileNameParts } from '../src/file/truncateFileNameParts';
 
 const LONG = 'very-long-document-name.pdf'; // 27 ký tự, name 23 + '.pdf'
 
@@ -99,9 +100,9 @@ describe('truncateFileName - fallback khi maxLength quá nhỏ', () => {
   });
 });
 
-describe('truncateFileName - output:"parts"', () => {
+describe('truncateFileNameParts', () => {
   it('trả object khi thực sự truncate', () => {
-    expect(truncateFileName(LONG, { maxLength: 20, output: 'parts' })).toEqual({
+    expect(truncateFileNameParts(LONG, { maxLength: 20 })).toEqual({
       prefix: 'very-long-',
       ellipsis: '...',
       suffix: 'ame',
@@ -112,9 +113,9 @@ describe('truncateFileName - output:"parts"', () => {
     });
   });
 
-  it('parts ghép lại bằng đúng chuỗi của output:"string"', () => {
+  it('parts ghép lại bằng đúng chuỗi của truncateFileName', () => {
     const cfg = { maxLength: 20 } as const;
-    const p = truncateFileName(LONG, { ...cfg, output: 'parts' });
+    const p = truncateFileNameParts(LONG, cfg);
     expect(`${p.prefix}${p.ellipsis}${p.suffix}${p.extensionWithDot}`).toBe(
       truncateFileName(LONG, cfg)
     );
@@ -134,12 +135,10 @@ describe('getFileNameParts', () => {
 
 /** Từng là lỗi, đã vá. Giữ lại làm chốt chặn hồi quy. */
 describe('hồi quy - các lỗi đã vá', () => {
-  // L160 return sớm trước khi xét `output`, nên trả string thay vì object.
-  // L174 lặp lại đúng điều kiện của L160 -> dead code, không bao giờ chạy.
-  it('output:"parts" trả object cả khi KHÔNG cần truncate', () => {
-    expect(
-      truncateFileName('a.pdf', { maxLength: 30, output: 'parts' })
-    ).toEqual({
+  // Từng là: return sớm chạy trước khi xét `output`, nên trả string thay vì object;
+  // nhánh đáng lẽ xử lý việc đó là dead code. Nay parts là hàm riêng, không còn cờ `output`.
+  it('parts trả object cả khi KHÔNG cần truncate', () => {
+    expect(truncateFileNameParts('a.pdf', { maxLength: 30 })).toEqual({
       prefix: 'a',
       ellipsis: '',
       suffix: '',
@@ -252,10 +251,7 @@ describe('bất biến trên mọi tổ hợp', () => {
   it('parts ghép lại === dạng string', () => {
     for (const fileName of inputs) {
       for (const maxLength of limits) {
-        const parts = truncateFileName(fileName, {
-          maxLength,
-          output: 'parts',
-        });
+        const parts = truncateFileNameParts(fileName, { maxLength });
         expect(
           `${parts.prefix}${parts.ellipsis}${parts.suffix}${parts.extensionWithDot}`
         ).toBe(truncateFileName(fileName, { maxLength }));
@@ -266,10 +262,7 @@ describe('bất biến trên mọi tổ hợp', () => {
   it('truncated=false thì dựng lại đúng input', () => {
     for (const fileName of inputs) {
       for (const maxLength of limits) {
-        const parts = truncateFileName(fileName, {
-          maxLength,
-          output: 'parts',
-        });
+        const parts = truncateFileNameParts(fileName, { maxLength });
         if (!parts.truncated) {
           expect(
             `${parts.prefix}${parts.ellipsis}${parts.suffix}${parts.extensionWithDot}`
