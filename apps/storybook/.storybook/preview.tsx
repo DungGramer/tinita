@@ -1,4 +1,4 @@
-import type { Preview } from '@storybook/react-vite';
+import type { Preview, StoryContext } from '@storybook/react-vite';
 import React from 'react';
 
 // Import component CSS from source
@@ -66,19 +66,19 @@ const customViewports = {
 };
 
 // Theme decorator
-const withTheme = (Story: React.ComponentType, context: any) => {
+const withTheme = (Story: React.ComponentType, context: StoryContext) => {
   const theme = context.globals?.theme || 'light';
   return React.createElement('div', { 'data-theme': theme }, React.createElement(Story));
 };
 
 // RTL decorator
-const withRTL = (Story: React.ComponentType, context: any) => {
+const withRTL = (Story: React.ComponentType, context: StoryContext) => {
   const direction = context.globals?.direction || 'ltr';
   return React.createElement('div', { dir: direction }, React.createElement(Story));
 };
 
 // No-JS decorator
-const withNoJS = (Story: React.ComponentType, context: any) => {
+const withNoJS = (Story: React.ComponentType, context: StoryContext) => {
   const noJS = context.parameters?.noJS || false;
   if (noJS) {
     return React.createElement(

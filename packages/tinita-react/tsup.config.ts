@@ -12,7 +12,7 @@ const autoDiscoverEntries = () => {
 
     // Auto-discover hooks
     ...globSync('src/hooks/**/*.ts', {
-      ignore: ['**/*.test.ts', '**/*.stories.ts', '**/index.ts']
+      ignore: ['**/*.test.ts', '**/*.stories.ts', '**/index.ts'],
     }),
 
     // Auto-discover UI components (folder-based with index.ts/tsx)
@@ -20,14 +20,12 @@ const autoDiscoverEntries = () => {
 
     // Auto-discover utils
     ...globSync('src/utils/**/*.ts', {
-      ignore: ['**/*.test.ts']
+      ignore: ['**/*.test.ts'],
     }),
   ];
 
   // Remove duplicates, normalize paths (Windows backslash -> forward slash)
-  return [...new Set(entries)]
-    .map(entry => entry.replace(/\\/g, '/'))
-    .filter(Boolean);
+  return [...new Set(entries)].map((entry) => entry.replace(/\\/g, '/')).filter(Boolean);
 };
 
 const entries = autoDiscoverEntries();
@@ -40,7 +38,7 @@ export default defineConfig({
   format: ['cjs', 'esm'],
   dts: true,
   bundle: true,
-  external: ['react', 'react-dom', 'lucide-react', '@radix-ui/react-accordion', 'motion'],
+  external: ['react', 'react-dom', 'lucide-react', '@radix-ui/react-accordion'],
   splitting: false,
   clean: !isWatchMode,
   minify: true,
@@ -48,5 +46,8 @@ export default defineConfig({
   esbuildOptions(options) {
     options.legalComments = 'none';
   },
-  outDir: 'dist'
+  // exports trong package.json trỏ require -> .cjs; không có outExtension thì tsup emit .js
+  // và mọi require() gãy.
+  outExtension: ({ format }) => ({ js: format === 'cjs' ? '.cjs' : '.mjs' }),
+  outDir: 'dist',
 });
