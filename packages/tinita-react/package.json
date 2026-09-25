@@ -76,7 +76,7 @@
     "build:css": "node scripts/build-css.mjs",
     "build": "pnpm run build:js && pnpm run build:css",
     "lint": "eslint src --ext .ts,.tsx",
-    "test": "vitest",
+    "test": "vitest --passWithNoTests",
     "check-types": "tsc --noEmit",
     "prepublishOnly": "pnpm run build"
   },
@@ -90,6 +90,7 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.22",
+    "clsx": "^2.1.1",
     "concurrently": "^9.1.2",
     "cssnano": "^7.1.2",
     "jsdom": "^27.2.0",
@@ -98,6 +99,7 @@
     "postcss-import": "^16.1.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.17",
     "vite": "^7.2.6"
   },
@@ -125,9 +127,6 @@
   ],
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.555.0",
-    "motion": "^12.23.25",
-    "tailwind-merge": "^3.4.0"
+    "lucide-react": "^0.555.0"
   }
 }

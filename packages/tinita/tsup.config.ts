@@ -12,13 +12,13 @@ const autoDiscoverEntries = () => {
 
     // Auto-discover all utilities in category folders (file/, uuid/, etc.)
     ...globSync('src/*/**/*.ts', {
-      ignore: ['**/*.test.ts', '**/*.spec.ts', '**/index.ts']
+      ignore: ['**/*.test.ts', '**/*.spec.ts', '**/index.ts'],
     }),
   ];
 
   // Remove duplicates, normalize paths (Windows backslash -> forward slash)
   return [...new Set(entries)]
-    .map(entry => entry.replace(/\\/g, '/'))
+    .map((entry) => entry.replace(/\\/g, '/'))
     .filter(Boolean);
 };
 
@@ -29,7 +29,10 @@ export default defineConfig({
   entry: entries,
   format: ['cjs', 'esm'],
   dts: true,
-  bundle: false, // Keep unbundled for optimal tree-shaking (utilities don't have dependencies)
+  // bundle:true bắt buộc ở đây: với bundle:false, esbuild giữ nguyên specifier tương đối
+  // không đuôi ('./getFileNameParts') và tsup KHÔNG viết lại chúng, nên Node ESM báo
+  // ERR_MODULE_NOT_FOUND. Mỗi entry là 1 file nên tree-shaking theo subpath vẫn nguyên.
+  bundle: true,
   splitting: false,
   clean: true,
   minify: true,
@@ -37,5 +40,6 @@ export default defineConfig({
   esbuildOptions(options) {
     options.legalComments = 'none';
   },
-  outDir: 'dist'
+  outExtension: ({ format }) => ({ js: format === 'cjs' ? '.cjs' : '.mjs' }),
+  outDir: 'dist',
 });

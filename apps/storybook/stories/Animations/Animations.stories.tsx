@@ -18,43 +18,6 @@ const meta: Meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// Helper component for interactive animations
-const AnimationDemo = ({
-  className,
-  label,
-  children,
-  onClick,
-}: {
-  className: string;
-  label: string;
-  children?: React.ReactNode;
-  onClick?: () => void;
-}) => {
-  return (
-    <div style={{ marginBottom: '1.5rem' }}>
-      <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: '#6b7280', fontWeight: 500 }}>
-        {label}
-      </div>
-      <div
-        className={className}
-        onClick={onClick}
-        style={{
-          padding: '1.5rem',
-          background: '#f9fafb',
-          border: '1px solid #e5e7eb',
-          borderRadius: '8px',
-          cursor: onClick ? 'pointer' : 'default',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '80px',
-        }}
-      >
-        {children || <div style={{ color: '#374151' }}>Click to trigger</div>}
-      </div>
-    </div>
-  );
-};
 
 // ============================================
 // 2. Component-Specific Transitions

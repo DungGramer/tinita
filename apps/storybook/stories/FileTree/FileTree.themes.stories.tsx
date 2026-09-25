@@ -71,6 +71,11 @@ export const DarkTheme: Story = {
 };
 
 export const ThemeComparison: Story = {
+  // `render` bỏ qua args, nhưng prop `text` của FileTree là bắt buộc nên Story
+  // vẫn đòi `args`. Giữ lại để docs panel có giá trị hiển thị.
+  args: {
+    text: treeText,
+  },
   render: () => (
     <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
       <div>

@@ -1,190 +1,258 @@
-import { getFileNameParts } from "./getFileNameParts";
+import { getFileNameParts } from './getFileNameParts';
+
+export type TruncateFileNameConfig = {
+  /** Maximum length of the result, in UTF-16 code units. Negative or NaN is clamped to 0. Default: 30 */
+  maxLength?: number;
+  /** String inserted between prefix and preserved suffix. Default: '...' */
+  ellipsis?: string;
+  /** Maximum characters kept from the end of the name, before the extension. Default: 3 */
+  preservedSuffixLength?: number;
+  /** Minimum characters kept from the start of the name when an ellipsis fits. Default: 1 */
+  minPrefixLength?: number;
+};
+
+export type TruncatedFileNameParts = {
+  /** Kept head of the name. */
+  prefix: string;
+  /** Ellipsis actually used - empty string when none was inserted. */
+  ellipsis: string;
+  /** Kept tail of the name, before the extension. */
+  suffix: string;
+  /** Extension including the leading dot, empty when there is none. */
+  extensionWithDot: string;
+  /** Full original name without the extension. */
+  name: string;
+  /** Original extension without the leading dot. */
+  extension: string;
+  /** Whether anything was dropped. `false` means the parts rebuild the input exactly. */
+  truncated: boolean;
+};
+
+type TruncateFileNameStringConfig = TruncateFileNameConfig & {
+  output?: 'string';
+};
+type TruncateFileNamePartsConfig = TruncateFileNameConfig & { output: 'parts' };
+
+const isHighSurrogate = (code: number) => code >= 0xd800 && code <= 0xdbff;
+const isLowSurrogate = (code: number) => code >= 0xdc00 && code <= 0xdfff;
 
 /**
- * Truncates a file name while preserving its extension and, when possible,
- * a minimum prefix and a suffix of the original file name.
+ * Take at most `count` code units from the start without splitting a surrogate
+ * pair. Splitting one yields a lone surrogate, which renders as a broken glyph.
+ */
+function takeStart(value: string, count: number): string {
+  if (count <= 0) return '';
+  if (count >= value.length) return value;
+  const splitsPair =
+    isLowSurrogate(value.charCodeAt(count)) &&
+    isHighSurrogate(value.charCodeAt(count - 1));
+  return value.slice(0, splitsPair ? count - 1 : count);
+}
+
+/**
+ * Take at most `count` code units from the end without splitting a surrogate pair.
+ * Guards count <= 0 explicitly: `slice(-0)` is `slice(0)` and returns the whole string.
+ */
+function takeEnd(value: string, count: number): string {
+  if (count <= 0) return '';
+  if (count >= value.length) return value;
+  let start = value.length - count;
+  if (
+    isLowSurrogate(value.charCodeAt(start)) &&
+    isHighSurrogate(value.charCodeAt(start - 1))
+  ) {
+    start += 1;
+  }
+  return value.slice(start);
+}
+
+/** Clamp a length option to a non-negative integer. NaN falls back to 0; Infinity passes through. */
+const toLength = (value: number): number =>
+  Number.isNaN(value) ? 0 : Math.max(0, Math.floor(value));
+
+/**
+ * Truncate a file name while preserving its extension and, when there is room,
+ * a minimum prefix and a suffix of the original name.
  *
- * By default, the function returns a truncated string. Set `output` to
- * `'parts'` to receive the individual file name parts instead.
+ * Available length is allocated in this order: extension, minimum prefix,
+ * ellipsis, preserved suffix.
  *
- * When truncation is required, the available length is allocated in this order:
- * extension, minimum prefix, ellipsis, and preserved suffix.
+ * The result never exceeds `maxLength`. It may come out one code unit shorter
+ * when the cut would otherwise split a surrogate pair.
  *
- * If `maxLength` is too small to fit the minimum prefix and ellipsis,
- * the function falls back to preserving as much of the prefix as possible.
- * The result always respects `maxLength`.
+ * Set `output` to `'parts'` to receive the pieces instead of a joined string;
+ * `prefix + ellipsis + suffix + extensionWithDot` always equals the string form.
  *
  * @param fileName - Full file name, optionally including an extension
  * @param config - Truncation configuration
- * @param config.maxLength - Maximum length of the returned file name (default: 30)
- * @param config.ellipsis - String inserted between the prefix and preserved suffix (default: '...')
- * @param config.preservedSuffixLength - Maximum number of characters preserved from the end of the file name before the extension (default: 3)
- * @param config.minPrefixLength - Minimum number of characters preserved from the beginning of the file name when truncation is possible (default: 1)
- * @param config.output - Output format: `'string'` returns the truncated file name, while `'parts'` returns its individual parts (default: `'string'`)
- * @returns The truncated file name as a string, or its individual parts when `output` is `'parts'`
+ * @returns The truncated file name, or its parts when `output` is `'parts'`
  *
  * @example
- * // Returns the original file name when it already fits within maxLength.
+ * // Already fits: returned unchanged.
  * truncateFileName('document.pdf');
  * // => 'document.pdf'
  *
  * @example
- * // Truncates the file name while preserving the extension
- * // and the last 3 characters of the original name.
+ * // 27 characters, under the default maxLength of 30, so nothing is cut.
  * truncateFileName('very-long-document-name.pdf');
- * // => 'very-long-document...ame.pdf'
+ * // => 'very-long-document-name.pdf'
  *
  * @example
- * // Limits the result to exactly 20 characters.
- * truncateFileName('very-long-document-name.pdf', {
- *   maxLength: 20,
- * });
- * // => 'very-long-do...ame.pdf'
+ * // Keeps the extension and the last 3 characters of the name.
+ * truncateFileName('very-long-document-name.pdf', { maxLength: 20 });
+ * // => 'very-long-...ame.pdf'
  *
  * @example
- * // Preserves 5 characters from the end of the file name.
+ * // Keep 5 characters from the end of the name.
  * truncateFileName('very-long-document-name.pdf', {
  *   maxLength: 24,
  *   preservedSuffixLength: 5,
  * });
- * // => 'very-long...-name.pdf'
+ * // => 'very-long-do...-name.pdf'
  *
  * @example
- * // Requires at least 5 characters at the beginning of the file name.
- * truncateFileName('very-long-document-name.pdf', {
- *   maxLength: 20,
- *   minPrefixLength: 5,
- * });
- * // => 'very-long...me.pdf'
- *
- * @example
- * // Uses a single-character ellipsis.
+ * // Single-character ellipsis leaves more room for the name.
  * truncateFileName('very-long-document-name.pdf', {
  *   maxLength: 20,
  *   ellipsis: '…',
  * });
- * // => 'very-long-doc…ame.pdf'
+ * // => 'very-long-do…ame.pdf'
  *
  * @example
- * // A suffix longer than the available space is automatically reduced.
+ * // A suffix longer than the available space is reduced automatically.
  * truncateFileName('very-long-document-name.pdf', {
  *   maxLength: 20,
  *   preservedSuffixLength: 20,
  * });
- * // => 'very-long-do...ame.pdf'
+ * // => 'v...ocument-name.pdf'
  *
  * @example
- * // When maxLength is too small to fit the minimum prefix and ellipsis,
- * // the function falls back to preserving as much of the prefix as possible.
- * // This avoids results such as "...e.pdf" with no meaningful prefix.
+ * // No room for minPrefixLength plus the ellipsis: the ellipsis is dropped and
+ * // as much of the prefix as possible is kept. Avoids results like '...e.pdf'.
  * truncateFileName('very-long-document-name.pdf', {
  *   maxLength: 10,
  *   minPrefixLength: 3,
  * });
- * // => 'very-lo.pdf'
+ * // => 'very-l.pdf'
  *
  * @example
- * // Supports file names without an extension.
- * truncateFileName('very-long-document-name', {
- *   maxLength: 15,
- * });
+ * // File names without an extension.
+ * truncateFileName('very-long-document-name', { maxLength: 15 });
  * // => 'very-long...ame'
  *
  * @example
- * // Returns the individual file name parts instead of a string.
+ * // Not even room for the extension: its tail is kept, nothing is duplicated.
+ * truncateFileName('a.pdf', { maxLength: 3 });
+ * // => 'pdf'
+ *
+ * @example
+ * // Dotfiles are names, not extensions.
+ * truncateFileName('.gitignore', { maxLength: 8 });
+ * // => '.g...ore'
+ *
+ * @example
+ * // Returns the pieces instead of a string.
  * truncateFileName('very-long-document-name.pdf', {
  *   maxLength: 20,
  *   output: 'parts',
  * });
  * // => {
- * //   prefix: 'very-long-do',
+ * //   prefix: 'very-long-',
  * //   ellipsis: '...',
  * //   suffix: 'ame',
  * //   extensionWithDot: '.pdf',
  * //   name: 'very-long-document-name',
  * //   extension: 'pdf',
+ * //   truncated: true,
  * // }
  *
  * @example
- * // The 'parts' output is useful when different sections need
- * // to be rendered separately in a UI.
- * const { prefix, ellipsis, suffix, extensionWithDot } =
- *   truncateFileName('very-long-document-name.pdf', {
- *     maxLength: 20,
- *     output: 'parts',
- *   });
+ * // `truncated` tells a UI whether a tooltip with the full name is needed.
+ * const { prefix, ellipsis, suffix, extensionWithDot, truncated } =
+ *   truncateFileName(name, { maxLength: 20, output: 'parts' });
  *
- * // Render separately:
- * // <span>{prefix}</span>
- * // <span>{ellipsis}</span>
- * // <span>{suffix}</span>
- * // <span>{extensionWithDot}</span>
+ * // <span title={truncated ? name : undefined}>
+ * //   <span>{prefix}</span>
+ * //   <span>{ellipsis}</span>
+ * //   <span>{suffix}</span>
+ * //   <span>{extensionWithDot}</span>
+ * // </span>
  */
-
-
-type TruncateFileNameConfig = {
-  maxLength?: number;
-  ellipsis?: string;
-  preservedSuffixLength?: number;
-  minPrefixLength?: number;
-};
-
-type TruncatedFileNameParts = {
-  prefix: string;
-  ellipsis: string;
-  suffix: string;
-  extensionWithDot: string;
-  name: string;
-  extension: string;
-};
-
-type TruncateFileNameStringConfig = TruncateFileNameConfig & { output?: 'string'};
-type TruncateFileNamePartsConfig = TruncateFileNameConfig & { output: 'parts' };
-
-// Overloads
-export function truncateFileName( fileName: string, config?: TruncateFileNameStringConfig): string;
-export function truncateFileName(fileName: string, config: TruncateFileNamePartsConfig): TruncatedFileNameParts;
+export function truncateFileName(
+  fileName: string,
+  config?: TruncateFileNameStringConfig
+): string;
+export function truncateFileName(
+  fileName: string,
+  config: TruncateFileNamePartsConfig
+): TruncatedFileNameParts;
 
 export function truncateFileName(
   fileName: string,
-  {
-    maxLength = 30,
-    ellipsis = '...',
-    preservedSuffixLength = 3,
-    minPrefixLength = 1,
-    output = 'string',
-  }: TruncateFileNameConfig & {
-    output?: 'string' | 'parts';
-  } = {},
+  config: TruncateFileNameConfig & { output?: 'string' | 'parts' } = {}
 ): string | TruncatedFileNameParts {
-  if (fileName.length <= maxLength) return fileName;
+  const { ellipsis = '...', output = 'string' } = config;
 
-  const [nameWithoutExt, extension] = getFileNameParts(fileName);
+  const maxLength = toLength(config.maxLength ?? 30);
+  const preservedSuffixLength = toLength(config.preservedSuffixLength ?? 3);
+  const minPrefixLength = toLength(config.minPrefixLength ?? 1);
+
+  const [name, extension] = getFileNameParts(fileName);
   const extensionWithDot = extension ? `.${extension}` : '';
 
-    const createOutput = (
+  // Takes the extension explicitly so no branch can append it twice.
+  const build = (
     prefix: string,
+    usedEllipsis: string,
     suffix: string,
-    outputEllipsis = ellipsis,
+    ext: string
   ): string | TruncatedFileNameParts => {
-    if (output === 'parts') return { prefix, ellipsis: outputEllipsis, suffix, extensionWithDot, name: nameWithoutExt, extension };
-    return `${prefix}${outputEllipsis}${suffix}${extensionWithDot}`;
+    const text = `${prefix}${usedEllipsis}${suffix}${ext}`;
+    if (output !== 'parts') return text;
+    return {
+      prefix,
+      ellipsis: usedEllipsis,
+      suffix,
+      extensionWithDot: ext,
+      name,
+      extension,
+      truncated: text !== fileName,
+    };
   };
 
-  if (fileName.length <= maxLength) return createOutput(nameWithoutExt, '', '');
+  // Fits already. Goes through build() so 'parts' is honoured here too.
+  if (fileName.length <= maxLength)
+    return build(name, '', '', extensionWithDot);
 
-  if (maxLength <= extensionWithDot.length) return createOutput('', extensionWithDot.slice(-maxLength), '');
+  // No room for the whole extension: keep its tail, and nothing else.
+  if (maxLength <= extensionWithDot.length) {
+    return build('', '', '', takeEnd(extensionWithDot, maxLength));
+  }
 
   const availableNameLength = maxLength - extensionWithDot.length;
 
-  if (availableNameLength <= minPrefixLength + ellipsis.length) return createOutput(nameWithoutExt.slice(0, availableNameLength), '', '');
+  // No room for minimum prefix plus ellipsis: drop the ellipsis, keep the prefix.
+  if (availableNameLength <= minPrefixLength + ellipsis.length) {
+    return build(
+      takeStart(name, availableNameLength),
+      '',
+      '',
+      extensionWithDot
+    );
+  }
 
-  const maxSuffixLength = availableNameLength - ellipsis.length - minPrefixLength;
-  const suffixLength = Math.min(preservedSuffixLength, Math.max(0, maxSuffixLength));
+  const maxSuffixLength =
+    availableNameLength - ellipsis.length - minPrefixLength;
+  const suffixLength = Math.min(
+    preservedSuffixLength,
+    Math.max(0, maxSuffixLength)
+  );
   const prefixLength = availableNameLength - ellipsis.length - suffixLength;
 
-  const prefix = nameWithoutExt.slice(0, prefixLength);
-  const suffix = nameWithoutExt.slice(-suffixLength);
-
-  return createOutput(prefix, suffix);
+  return build(
+    takeStart(name, prefixLength),
+    ellipsis,
+    takeEnd(name, suffixLength),
+    extensionWithDot
+  );
 }
