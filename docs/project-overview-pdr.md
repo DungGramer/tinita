@@ -451,9 +451,13 @@ dùng 1-2 component **không được** phải cài toàn bộ dependency của 
 deploy thật** - Tailwind + CSS global của library đụng CSS của client. Đây là sự cố production đã
 xảy ra, không phải lo xa.
 
-- _Hiện trạng chưa đạt:_ reset tự viết trên `*` và `body`, 22 token không prefix ghi vào namespace
-  riêng của Tailwind v4 và trùng tên token shadcn, 27 class không prefix, CSS component nằm ngoài
-  mọi `@layer`, Tailwind class thô trong JSX của `Ping`/`CarouselTicker` mà bundle không ship.
+- _Hiện trạng, đo trên artifact 2026-09-25 (không phải suy từ source):_ rò rỉ thật là `body`
+  background/color bị đè, class `.animate-fade-in` và `.transition-fast` của consumer bị **chiếm**
+  bởi class cùng tên của library, và `Ping` vỡ layout khi host không có Tailwind. Rò rỉ 22 token
+  **không tồn tại** - `@theme inline` không được emit vào bundle.
+- _Phát hiện quan trọng nhất:_ thắng/thua do **thứ tự khai layer**, không phải specificity.
+  Consumer khai `@layer theme, base, components, utilities` trước (đúng cách Tailwind v4 làm) thì
+  **tự bảo vệ được**. Đây là cách xử lý rẻ nhất và nên đưa vào hướng dẫn người dùng.
 - Bảng đầy đủ có file:dòng: xem `system-architecture.md` mục "Bề Mặt Rò Rỉ CSS Ra Global Scope"
   và `design-guidelines.md` mục 4.
 - Nguyên tắc rút ra: _library chỉ sở hữu CSS của component và token trong scope của mình; global

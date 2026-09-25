@@ -559,33 +559,70 @@ Cả 2 lib optional cũng nằm trong `devDependencies` để workspace build/ty
 ## Bề Mặt Rò Rỉ CSS Ra Global Scope
 
 **Ràng buộc từ owner (2026-09-24):** đã từng deploy library vào web của client và **CSS global +
-Tailwind của library xung đột với CSS của client**. Đây là **sự cố production đã xảy ra**, không
-phải rủi ro giả định.
+Tailwind của library xung đột với CSS của client**. Đây là **sự cố production đã xảy ra**.
 
-Nguyên tắc bị vi phạm: _library không được sở hữu global CSS của consumer_.
+**Cập nhật 2026-09-25 - bảng cũ SAI và đã được thay.** Bảng trước được suy từ source. Nay đo trực
+tiếp trên `dist/styles.css` trong Chromium thật (`compatibility/cases/l2`, ca `css-leak`). Ba điều
+suy từ source không ra được:
 
-| Bề mặt rò rỉ                                                                                             | file:dòng                                                                            | Ảnh hưởng tới client                                                                                                                                                                                                              |
-| -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Reset tự viết `@layer base { * { @apply border-border } body { @apply bg-background text-foreground } }` | `src/styles/globals.css:116-127`                                                     | `*` set `border-color` lên mọi element; `body` đổi nền/chữ/font-smoothing toàn trang                                                                                                                                              |
-| 22 token KHÔNG prefix trong `@theme inline`                                                              | `src/styles/globals.css:81-111`                                                      | Ghi vào namespace `--color-*`/`--radius*`/`--spacing-*`/`--font-*` **Tailwind v4 dành riêng**, đồng thời trùng khít bộ token chuẩn **shadcn/ui** (`background`, `primary`, `border`, `ring`...)                                   |
-| 27 class KHÔNG prefix: 18 `.animate-*`, 8 `.transition-*`, `.interactive`                                | `src/styles/animations.css:114-318`                                                  | Tên chung chung, đụng class của client; `.animate-*` đụng thẳng utility `animate-*` của Tailwind bên client                                                                                                                       |
-| Selector `.dark` không prefix                                                                            | `globals.css:54-76`, `animations.css:213,224,234`, `FileTree.css:42,487,493,499,505` | `.dark` là convention dark-mode chuẩn của Tailwind; client toggle dark mode của họ thì token tinita cũng fire                                                                                                                     |
-| `*, *::before, *::after { ... !important }` trong reduced-motion                                         | `src/styles/animations.css:530-539`                                                  | Universal + `!important`, không scope, đè mọi xử lý reduced-motion của client                                                                                                                                                     |
-| `FileTree.css` và `CarouselTicker.css` nằm NGOÀI mọi `@layer`                                            | cả 2 file, 0 match `@layer`                                                          | Theo spec cascade layers, CSS không thuộc layer nào **luôn thắng** CSS trong layer của client. Client muốn override phải đấu specificity hoặc `!important`                                                                        |
-| `.tinita-carousel-ticker * { box-sizing: border-box }` (+ bản `!important`)                              | `CarouselTicker.css:15-17, 20-25`                                                    | Ép style lên **mọi children client truyền vào** `<CarouselTicker>`                                                                                                                                                                |
-| Tailwind utility thô trong JSX                                                                           | `Ping.tsx:45-50`, `CarouselTicker.tsx:211-291`                                       | `build-entry.css` không `@import "tailwindcss"` nên `dist/styles.css` KHÔNG ship utility. 2 component này chỉ hiển thị đúng nếu **host** có Tailwind với đúng version/theme, và content-scan quét tới `node_modules/tinita-react` |
-| `--radix-accordion-content-height` trong keyframes public                                                | `FileTree.css:230,237`                                                               | Biến nội bộ của Radix thành phụ thuộc ngầm trong contract CSS công khai; đổi foundation sẽ vỡ keyframes                                                                                                                           |
-| `tailwind.config.cjs` thiếu hàng rào                                                                     | toàn file (17 dòng)                                                                  | Không có `prefix`, không có `important`, không có `corePlugins.preflight: false`                                                                                                                                                  |
-| `src/styles/index.css` có `@import "tailwindcss"`                                                        | `src/styles/index.css:8`                                                             | File mồ côi - `build-css.mjs:23` chỉ compile `build-entry.css`, không có trong `exports`, không ai reference. Chưa rò rỉ hôm nay nhưng là mìn chờ                                                                                 |
-| `autoInjectStyles` append cuối `document.head`                                                           | `src/utils/autoInjectStyles.ts:22-25`                                                | Load sau stylesheet của client -> thắng theo thứ tự nguồn khi cùng specificity. Có SSR guard và chống trùng id, nhưng không tự gỡ khi unmount. **Hiện không component nào gọi**                                                   |
+### 1. Token `@theme inline` KHÔNG được emit vào bundle
 
-**Điểm sáng:** Preflight chính chủ của Tailwind KHÔNG được ship - `build-entry.css` chỉ import
-`globals.css` + `animations.css`, không `@import "tailwindcss"`. Nhưng block reset tự viết ở hàng
-đầu bảng gây hậu quả tương đương trên đúng những property hay va chạm nhất.
+`--color-primary`, `--radius`, `--font-sans` và bạn bè **không tồn tại** trong `dist/styles.css`
+(`grep -c -- '--color-primary' dist/styles.css` = 0; `--tinita-*` = 278). Khẳng định trước đây rằng
+"client dùng shadcn là va chạm chắc chắn" là **sai** - khối `@theme inline` không ship. Nó chỉ tồn
+tại trong source để map sang utility lúc build.
 
-**Giới hạn kiểm chứng:** không verify được trên `dist/` vì `packages/*/dist` chưa từng được build
-và `postcss-cli` không có trong `node_modules/.bin`. Các kết luận trên dựa trên đọc source +
-logic `build-css.mjs`; riêng 3 mục đầu bảng đã được grep xác minh trực tiếp trên source.
+### 2. Reset và class không prefix CÓ ship, nhưng nằm trong layer
+
+`dist/styles.css:47` mở `@layer base` (chứa reset `* { border-color }` và `body { ... }`);
+`dist/styles.css:113` mở `@layer utilities` (chứa `.animate-*`, `.transition-*`, `.interactive`).
+CSS component (`FileTree.css`, `CarouselTicker.css`) thì **layerless**.
+
+### 3. Quyết định thắng/thua là THỨ TỰ KHAI LAYER, không phải specificity
+
+Đây là phần quan trọng nhất và chưa từng được nêu:
+
+| Consumer                                                                           | Kết quả            | Vì sao                                                                                       |
+| ---------------------------------------------------------------------------------- | ------------------ | -------------------------------------------------------------------------------------------- |
+| **Không** khai `@layer` order                                                      | **Library thắng**  | `@layer base` của library được khai SAU layer của consumer, layer khai sau thắng             |
+| Khai `@layer theme, base, components, utilities` trước (đúng cách Tailwind v4 làm) | **Consumer thắng** | `@layer base` của library map vào layer `base` ĐÃ KHAI, sort trước `components` của consumer |
+
+=> **Consumer tự bảo vệ được bằng một dòng khai layer order.** Đây là cách xử lý rẻ nhất cho sự cố
+đã xảy ra, và nên được đưa vào hướng dẫn cho người dùng.
+
+### Rò rỉ THẬT, đo được (consumer có khai layer order)
+
+| Bề mặt                            | Trước -> Sau                               | Nguồn                                                  |
+| --------------------------------- | ------------------------------------------ | ------------------------------------------------------ |
+| `body` background                 | `rgb(10,20,30)` -> `rgb(255,255,255)`      | `globals.css:121-126` -> dist `@layer base`            |
+| `body` color                      | `rgb(40,50,60)` -> `rgb(26,26,26)`         | `globals.css:121-126`                                  |
+| `.animate-fade-in` bị **chiếm**   | `hostFade` -> `tinita-fade-in`             | `animations.css:243` -> dist `@layer utilities`        |
+| `.transition-fast`                | `777ms` -> `200ms`                         | `animations.css:156` -> `dist:114`                     |
+| `Ping` khi host KHÔNG có Tailwind | `display: block` (đúng phải `inline-flex`) | `Ping.tsx:45-50` viết utility thô mà bundle không ship |
+
+### Không rò rỉ như từng nghĩ - kèm lý do
+
+| Từng khẳng định                                          | Thực tế đo được                                                                                                                  |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| 22 token không prefix đè token consumer                  | **Không ship** - xem mục 1                                                                                                       |
+| `* { border-color }` đè mọi element                      | Thua `div[data-host]` về specificity khi **cùng layer** (`*` = 0,0,0)                                                            |
+| `.interactive` đè `opacity` của consumer                 | `dist:171` là `.interactive:hover, .interactive:focus-visible` và chỉ set `will-change` - không đụng `opacity` ở trạng thái tĩnh |
+| `.tinita-carousel-ticker *` ép `box-sizing` lên children | Inline style của consumer thắng mọi stylesheet                                                                                   |
+
+### Bề mặt chưa đo (vẫn là rủi ro, chưa xác nhận)
+
+`.dark` không prefix; `*, *::before, *::after { ... !important }` trong reduced-motion
+(`animations.css:530-539`); `--radix-accordion-content-height` trong keyframes public
+(`FileTree.css:230,237`); `tailwind.config.cjs` thiếu `prefix`/`important`/`corePlugins.preflight`;
+`src/styles/index.css` mồ côi có `@import "tailwindcss"`; `autoInjectStyles` append cuối
+`document.head` (không component nào gọi nó). Pha 05 của plan phủ nhóm này.
+
+**Điểm sáng vẫn đúng:** Preflight chính chủ KHÔNG được ship - `build-entry.css` chỉ import
+`globals.css` + `animations.css`.
+
+**Cách tái lập:** `node compatibility/run.mjs l2 --no-pack`, ca `css-leak:unlayered` và
+`css-leak:layered`. Probe được chứng minh bằng ca `css-probe-proof` (chèn rule có chủ ý phải đo
+được), nên bảng trống sẽ fail chứ không đọc thành "library sạch".
 
 ---
 

@@ -2,3 +2,7 @@ packages:
   - "packages/*"
   - "apps/*"
   - "config/*"
+
+# KHÔNG thêm "compatibility/*" vào đây. Lab ở compatibility/ cố ý nằm ngoài workspace: nếu pnpm
+# link tinita-react vào consumer của lab thì mọi ca vẫn xanh trong khi không còn kiểm gì.
+# compatibility/scripts/assert-isolation.mjs chặn việc này. Xem compatibility/README.md.

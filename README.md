@@ -74,6 +74,26 @@ npm install tinita-react @radix-ui/react-accordion lucide-react   # thêm FileTr
 Thiếu peer thì lỗi xuất hiện lúc chạy (`Cannot find module 'lucide-react'`), không phải lúc install -
 npm không cảnh báo về optional peer. Bảng trên là chỗ tra.
 
+#### Tránh CSS của library đè CSS của bạn
+
+Đo được 2026-09-25: nếu app của bạn **khai thứ tự layer** thì CSS của bạn thắng. Một dòng:
+
+```css
+/* trước khi import tinita-react/styles.css */
+@layer theme, base, components, utilities;
+@import 'tinita-react/styles.css';
+```
+
+Cơ chế: reset và utility của library nằm trong `@layer base` / `@layer utilities`. Nếu bạn không khai
+thứ tự layer, layer của library được khai sau layer của bạn và thắng. Khai trước thì layer của
+library map vào layer đã khai và sort đúng chỗ - CSS của bạn thắng.
+
+Không khai thì các thứ sau bị đè: `body` background/color, và class trùng tên như `.animate-fade-in`,
+`.transition-fast`, `.interactive`.
+
+Còn `Ping` và `CarouselTicker` hiện viết class Tailwind thô trong JSX mà bundle không ship utility,
+nên chúng **cần app của bạn có Tailwind** mới hiển thị đúng. Đang được xử lý.
+
 ---
 
 ## Root Scripts (13)

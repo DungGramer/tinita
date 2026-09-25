@@ -17,6 +17,35 @@ Tinita là monorepo với framework-agnostic utilities (tinita) + React hooks + 
 - tinita: 35 test (`packages/tinita/tests/`); tinita-react: 0 test (nợ M3)
 - 0 CI/CD (release thủ công)
 
+## Compatibility Lab (`compatibility/`)
+
+**NGOÀI pnpm workspace** (`pnpm-workspace.yaml` chỉ glob `packages/*`, `apps/*`, `config/*`) - và
+phải giữ như vậy. Thêm `compatibility/*` vào workspace sẽ làm pnpm link `tinita-react` vào consumer
+và toàn bộ lab tiếp tục xanh trong khi không còn kiểm gì. `scripts/assert-isolation.mjs` chặn việc đó.
+
+Lab kiểm 2 package **từ góc nhìn người dùng npm**: mọi ca install từ tarball do `npm pack` tạo, cấm
+symlink / `file:` tới `packages/` / `workspace:*`. Lý do: symlink làm Node resolve ngược lên monorepo
+nên test pass giả - đã đo.
+
+| Level | Kiểm gì                                                                               | Trạng thái           | Docker |
+| ----- | ------------------------------------------------------------------------------------- | -------------------- | ------ |
+| L1    | package artifact: `exports`, ESM/CJS, optional peer, artifact shape, tarball registry | xong, 12 ca, ~21s    | không  |
+| L2    | consumer thật: SSR ESM/CJS, `tsc` 3 `moduleResolution`, rò rỉ CSS 2 biến thể host     | một phần, 9 ca, ~21s | không  |
+| L3    | ecosystem: Node 18-24 × npm/pnpm/yarn/bun                                             | chưa làm             | có     |
+| L4    | production: hydration, visual regression                                              | chưa làm             | có     |
+
+```
+node compatibility/run.mjs <l1|l2|l3|l4|all> [--no-pack] [--tier=1|2|3]
+# exit 0 pass · 1 package sai · 2 hạ tầng sai
+```
+
+Lab đã bắt được, chỉ trong lần chạy đầu: `tinita@0.0.1` publish với **6/18** đường dẫn trỏ file
+không có trong tarball, `tinita-react@0.0.2-alpha.1` **7/25**; barrel `tinita-react` đòi cả 2
+optional peer vì `src/index.ts` re-export `./ui/file-tree`; và bảng rò rỉ CSS trong docs sai hướng
+ở phần lớn bề mặt.
+
+Xem `compatibility/README.md`.
+
 ---
 
 ## Workspace Members (6)

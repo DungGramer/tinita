@@ -612,12 +612,13 @@ trong `tinita-react` (build ra `dist/utils/cn.*` nhưng không import được q
    - Fix: Prefix tất cả thành `.tinita-animate-*`, `.tinita-transition-*`, `.tinita-interactive`
 
 3. **Namespace + prefix CSS variable**
-   - ❌ **Hiện trạng vi phạm:** `src/styles/globals.css:81-111` có 22 token KHÔNG prefix nằm trong Tailwind v4 namespace riêng
-     - `--color-background`, `--color-foreground`, `--color-primary`... (15 token)
-     - `--radius`, `--radius-sm`, `--radius-md`, `--radius-lg` (4 token)
-     - `--spacing-tree-indent` (1 token)
-     - `--font-sans`, `--font-mono` (2 token)
-   - Tên token này **trùng khít shadcn/ui** (thư viện phổ biến nhất) -> va chạm chắc chắn
+   - ✅ **Đo lại 2026-09-25: KHÔNG vi phạm.** 22 token trong `@theme inline`
+     (`globals.css:81-111`) **không được emit vào `dist/styles.css`** - đo được 0 match cho
+     `--color-primary`, và 278 match cho `--tinita-*`. Khối `@theme inline` chỉ tồn tại trong source
+     để map sang utility lúc build.
+   - Khẳng định cũ "trùng khít shadcn/ui -> va chạm chắc chắn" là **sai**, đã gỡ. Nó được suy từ
+     source chứ không đo trên artifact.
+   - Quy tắc vẫn giữ: token mới phải prefix `--tinita-`. Nhưng đừng coi đây là nợ đang tồn tại.
    - Fix: Prefix tất cả thành `--tinita-color-background`, `--tinita-radius-sm`, v.v.
 
 4. **Mọi selector CSS phải bắt đầu bằng class có prefix `tinita-`**
