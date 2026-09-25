@@ -115,15 +115,20 @@ src/ui/FileTree/
 
 #### Dependencies
 
-**Peer:** `react >=18.0.0`
+**Runtime `dependencies`: KHÔNG CÓ** (từ 5 xuống 0, dọn 2026-09-25)
 
-**Runtime:** 2 dependency (từ 5, dọn 2026-09-25)
+`peerDependencies`:
 
-- `@radix-ui/react-accordion ^1.2.12` - chỉ FileTree dùng
-- `lucide-react ^0.555.0` - chỉ FileTree dùng (17 icon, named import)
+- `react >=18.0.0` - **bắt buộc**
+- `@radix-ui/react-accordion >=1.2.0` - **optional**, chỉ `FileTree` cần
+- `lucide-react >=0.400.0` - **optional**, chỉ `FileTree` cần (17 icon, named import)
+
+`peerDependenciesMeta` đánh dấu 2 lib sau `optional: true`, nên npm/pnpm không tự cài và không
+cảnh báo khi thiếu. Cả hai cũng ở `devDependencies` để workspace build/typecheck/Storybook chạy được.
 
 Đã gỡ: `motion` (dep chết, không file nào import). Hạ xuống `devDependencies`: `clsx`,
-`tailwind-merge` - cả hai không nằm trong tsup `external` nên đã được inline vào `dist/`.
+`tailwind-merge` - cả hai không nằm trong tsup `external` nên đã được inline vào `dist/`, consumer
+không cần cài.
 
 **Component -> Runtime Dependency (thực tế):**
 
@@ -134,8 +139,13 @@ src/ui/FileTree/
 | `FileTree`       | @radix-ui/react-accordion, lucide-react | Externalized (import lúc runtime) |
 
 Xác minh trên `dist/` đã build: `dist/ui/ping/index.mjs` chỉ import `react/jsx-runtime`;
-`carousel-ticker` chỉ `react`; `file-tree` đúng 2 lib trên. Còn lại: 2 dependency này vẫn là
-`dependencies` cứng nên người chỉ dùng `Ping` vẫn phải cài. Chuyển sang optional peer là mốc M2.
+`carousel-ticker` chỉ `react`; `file-tree` đúng 2 lib trên.
+
+Kiểm bằng `npm pack` vào project cô lập (symlink không dùng được - Node resolve ngược lên monorepo
+nên mọi thứ trông như chạy): `node_modules` chỉ có `react` + `tinita-react`; `Ping`,
+`CarouselTicker`, `useToggle`, `autoInjectStyles` load được, `FileTree` báo
+`Cannot find module 'lucide-react'` và load được sau khi cài 2 peer. Quy tắc và lệnh kiểm ở
+`code-standards.md` mục "Quy Tắc Dependency".
 
 **Dev:** tailwindcss, @tailwindcss/postcss, postcss tools, testing libraries, concurrently, etc.
 

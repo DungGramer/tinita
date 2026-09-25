@@ -496,15 +496,35 @@ consumer mà không đổi lại gì.
 
 Tree-shaking giảm **bytes gửi tới browser**; nó không giảm **thứ phải tải về khi cài**.
 
-### Bốn hướng xử lý (chưa chốt - đây là lựa chọn của owner)
+### Hướng đã chọn: A - optional peer dependencies (triển khai 2026-09-25)
 
-**A. `peerDependencies` + `peerDependenciesMeta.optional: true`**
+**A. `peerDependencies` + `peerDependenciesMeta.optional: true` - ĐÃ LÀM**
 
-- Chuyển `@radix-ui/react-accordion`, `lucide-react` (và sau này `antd`, `@base-ui/react`) sang
-  optional peer. User chỉ cài lib mà component họ dùng cần.
-- Đổi lại: user phải biết component nào cần lib gì -> **bắt buộc có bảng component -> dependency
-  trong README**, nếu không DX rất tệ. Thiếu lib thì lỗi lúc runtime, không lỗi lúc install.
-- Hiện `peerDependencies` chỉ có `react >=18.0.0`, chưa có `peerDependenciesMeta` nào.
+`tinita-react` không còn khối `dependencies`. Manifest hiện tại:
+
+```json
+"peerDependencies": {
+  "@radix-ui/react-accordion": ">=1.2.0",
+  "lucide-react": ">=0.400.0",
+  "react": ">=18.0.0"
+},
+"peerDependenciesMeta": {
+  "@radix-ui/react-accordion": { "optional": true },
+  "lucide-react": { "optional": true }
+}
+```
+
+Cả 2 lib optional cũng nằm trong `devDependencies` để workspace build/typecheck/Storybook chạy được.
+
+- Đổi lại đã chấp nhận: thiếu lib thì lỗi lúc **runtime**, không phải lúc install, và npm không
+  cảnh báo về optional peer. Vì vậy bảng component -> peer trong `README.md`,
+  `code-standards.md` và `codebase-summary.md` là **bắt buộc**, phải cập nhật cùng commit khi thêm
+  component. Quy tắc đầy đủ: `code-standards.md` mục "Quy Tắc Dependency".
+- Đo được: project cô lập (`npm pack` + `npm install`) chỉ có `react` và `tinita-react` trong
+  `node_modules`. `Ping`, `CarouselTicker`, `useToggle`, `autoInjectStyles` load được;
+  `FileTree` báo `Cannot find module 'lucide-react'` và load được sau khi cài 2 peer.
+- Lưu ý phương pháp: **symlink vào `node_modules` không kiểm được việc này** - Node resolve ngược
+  lên monorepo và tìm thấy lib, nên mọi thứ trông như chạy. Phải `npm pack`.
 
 **B. Subpath + bỏ barrel `src/index.ts`**
 
@@ -513,14 +533,17 @@ Tree-shaking giảm **bytes gửi tới browser**; nó không giảm **thứ ph�
 - Đây là lý do **kỹ thuật** để bỏ barrel, mạnh hơn lý do "quy ước" mà docs vẫn nêu.
 - Lưu ý: `apps/storybook/stories/Ping/Ping.stories.tsx:3` đang dùng barrel, 7 story còn lại dùng
   subpath - chính storybook đang vi phạm quy ước.
-- B giảm được code, nhưng không thay thế A. **A và B bổ sung cho nhau, cả hai làm được ngay.**
+- B giảm được code, nhưng không thay thế A. **Chưa làm** - barrel vẫn còn (nợ #7); A đã làm nên
+  việc _cài_ đã hết vấn đề, B còn lại chỉ ảnh hưởng bytes gửi tới browser.
 
-**C. Tách nhiều package theo cụm dependency**
+**C. Tách nhiều package theo cụm dependency - CHƯA LÀM, và A có thể đã làm C thành không cần thiết**
 
 - `tinita-react` (core zero-dep) + `tinita-react-antd` + `tinita-react-base` + ...
 - Cô lập triệt để nhất, mỗi package khai đúng dependency của mình.
 - Đổi lại: nhiều package phải version/publish/đồng bộ; user phải biết component nằm ở package nào;
   chi phí maintain tăng theo số cụm.
+- Sau khi có A, lý do chính để chọn C (cô lập install) đã mất. Chỉ cân nhắc lại nếu số cụm
+  foundation lớn tới mức bảng component -> peer trở nên khó tra.
 
 **D. Registry distribution kiểu shadcn**
 
