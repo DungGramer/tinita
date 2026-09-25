@@ -1,4 +1,3 @@
-
 # Codebase Naming & Component Design Guidelines
 
 **Audience:** Engineers and AI code generators  
@@ -262,7 +261,9 @@ class HttpClient {
   // ...
 }
 
-const FileTree: React.FC<FileTreeProps> = (props) => { /* ... */ };
+const FileTree: React.FC<FileTreeProps> = (props) => {
+  /* ... */
+};
 
 // Enums
 enum FileStatus {
@@ -294,7 +295,7 @@ const shouldLazyLoad = depth > 2;
 Avoid:
 
 ```ts
-const open = true;  // less clear than isOpen
+const open = true; // less clear than isOpen
 const child = true; // unclear boolean meaning
 ```
 
@@ -418,7 +419,7 @@ import type { FileTreeProps } from './file-tree.types';
 
 export function useFileTree(props: FileTreeProps) {
   const [expandedNodeIds, setExpandedNodeIds] = useState<Set<string>>(
-    () => new Set(),
+    () => new Set()
   );
 
   const toggleNode = (nodeId: string) => {

@@ -53,11 +53,11 @@ import 'tinita-react/styles.css';
 
 #### Component Dependencies
 
-| Component | Runtime Dependencies | Notes |
-|-----------|---------------------|-------|
-| `Ping` | - | Zero external dependencies |
-| `CarouselTicker` | clsx, tailwind-merge | Bundled in output (no install needed) |
-| `FileTree` | @radix-ui/react-accordion, lucide-react | Both externalized |
+| Component        | Runtime Dependencies                    | Notes                                 |
+| ---------------- | --------------------------------------- | ------------------------------------- |
+| `Ping`           | -                                       | Zero external dependencies            |
+| `CarouselTicker` | clsx, tailwind-merge                    | Bundled in output (no install needed) |
+| `FileTree`       | @radix-ui/react-accordion, lucide-react | Both externalized                     |
 
 **⚠️ Current Issue:** `npm install tinita-react` kéo theo ~20 gói (bao gồm `motion` không được dùng). Chỉ dùng `Ping` vẫn phải cài cả `@radix-ui/react-accordion`, `lucide-react`, `motion`. Định hướng: chuyển sang optional peer dependencies (xem `docs/system-architecture.md`).
 
@@ -65,21 +65,21 @@ import 'tinita-react/styles.css';
 
 ## Root Scripts (13)
 
-| Script | Mục đích | Status |
-|--------|---------|--------|
-| build | Xây toàn bộ | ✓ |
-| dev | Dev mode (Storybook + tsup watch) | ✓ |
-| lint | Lint toàn bộ | ✓ |
-| test | Run tests (vitest) | ✓ |
-| format | Format với prettier | ✓ |
-| check-types | Type check | ✓ |
-| storybook | Chạy Storybook | ⚠️ Hỏng* |
-| build-storybook | Build Storybook static | ⚠️ Hỏng* |
-| publish:tinita | Publish tinita | ✓ |
-| publish:tinita-react | Publish tinita-react | ✓ |
-| publish:all | Publish cả hai | ✓ |
-| publish:dry-run | Dry run | ✓ |
-| generate:exports | Generate exports | ❌ Không tồn tại** |
+| Script               | Mục đích                          | Status               |
+| -------------------- | --------------------------------- | -------------------- |
+| build                | Xây toàn bộ                       | ✓                    |
+| dev                  | Dev mode (Storybook + tsup watch) | ✓                    |
+| lint                 | Lint toàn bộ                      | ✓                    |
+| test                 | Run tests (vitest)                | ✓                    |
+| format               | Format với prettier               | ✓                    |
+| check-types          | Type check                        | ✓                    |
+| storybook            | Chạy Storybook                    | ⚠️ Hỏng\*            |
+| build-storybook      | Build Storybook static            | ⚠️ Hỏng\*            |
+| publish:tinita       | Publish tinita                    | ✓                    |
+| publish:tinita-react | Publish tinita-react              | ✓                    |
+| publish:all          | Publish cả hai                    | ✓                    |
+| publish:dry-run      | Dry run                           | ✓                    |
+| generate:exports     | Generate exports                  | ❌ Không tồn tại\*\* |
 
 \* Storybook lỗi vì filter package sai và script name không khớp. Thay bằng: `turbo build --filter=storybook && cd apps/storybook && pnpm dev`.  
 \*\* Script này không tồn tại. Exports maintain thủ công trong `package.json`.
@@ -105,7 +105,7 @@ tinita/
 - **Workspace:** pnpm 9.0.0 + Turborepo
 - **Node:** >=18
 - **Build:** tsup (JS) + PostCSS (CSS)
-- **Test:** Vitest (0 test hiện tại)
+- **Test:** Vitest - `tinita` 35 test, `tinita-react` chưa có test
 - **Release:** Manual qua `scripts/publish.mjs`
 
 ---
@@ -113,6 +113,7 @@ tinita/
 ## Docs
 
 Xem [`docs/README.md`](./docs/README.md) để tìm:
+
 - **Project Overview & PDR** - mục tiêu, roadmap, requirements
 - **Codebase Summary** - thực trạng hiện tại, metrics
 - **Code Standards** - quy tắc naming, colocation, CSS
@@ -124,6 +125,7 @@ Xem [`docs/README.md`](./docs/README.md) để tìm:
 ## Known Issues
 
 Xem `docs/system-architecture.md` phần "Known Issues" để chi tiết. Tóm tắt:
+
 1. **Storybook scripts hỏng** - filter package sai scope, script name không khớp
 2. **generate:exports không tồn tại** - exports maintain thủ công
 3. **tsconfig base path alias chết** - trỏ tới package không tồn tại
