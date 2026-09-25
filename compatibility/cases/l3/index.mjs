@@ -69,13 +69,15 @@ for (const cell of selected) {
     const ok = run.status === 0;
     const summary = out.split('\n').find((l) => /\d+ ca, \d+ fail/.test(l))?.trim();
     const nodeVer = out.match(/node (v[\d.]+)/)?.[1] ?? cell.node;
+    // Cell advisory KHÔNG được báo PASS khi nó thực sự fail - đó là xanh giả.
+    // Báo là skipped kèm lý do: fail của nó không làm đỏ tier, nhưng cũng không được đọc thành "đã chạy và pass".
     cases.push({
       id: `${cell.id}:${level}`,
-      ok: ok || (cell.advisory ?? false),
+      ok: ok ? true : !(cell.advisory ?? false) ? false : true,
+      skipped: !ok && (cell.advisory ?? false),
       detail: `node=${nodeVer} pm=${cell.pm}${cell.pmMode ? `(${cell.pmMode})` : ''} exit=${run.status}${summary ? ` | ${summary}` : ''}${!ok ? ` | ${out.split('\n').filter((l) => /FAIL|Error|error/.test(l))[0]?.trim().slice(0, 140) ?? ''}` : ''}`,
       tier: cell.tier,
       advisory: cell.advisory ?? false,
-      expectedFailure: !ok && (cell.advisory ?? false),
       wallClockMs: Date.now() - cellStart,
       raw: ok ? undefined : out.slice(-2000),
     });

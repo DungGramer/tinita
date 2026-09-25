@@ -179,3 +179,24 @@ Hiện `NoResolution` đang nằm trong `contract.json` `accepted` kèm lý do t
 
 Allowlist `contract.json` của `tinita` thu hẹp từ 3 entry xuống 1 - sửa xong thì **xoá** entry, không
 để allowlist phình thành thùng rác.
+
+## Tier 3 - kết quả đo 2026-09-25 và 3 vấn đề chưa xử
+
+Chạy `--tier=3` (gồm cả cell tier 2). 5504s. Kết quả đáng giá nhất:
+
+**`node18-npm:l1` PASS** - lần đầu tiên claim `engines: ">=18"` được kiểm thật. 12 ca L1 xanh trên
+Node 18.20.8. Trước đây không có gì xác nhận điều đó.
+
+Ba vấn đề:
+
+| #   | Vấn đề                                                                                           | Nguyên nhân                                                                                                                                                                                                                   | Trạng thái                                                                                                                                |
+| --- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `node24-npm:l2` fail `ENOENT /work/artifacts/manifest.json`, dù cùng cell PASS ở lần chạy tier 2 | **Tôi chạy `pack.mjs` trong lúc matrix đang đọc `.artifacts/`.** `pack.mjs` `rmSync(ARTIFACTS)` rồi tạo lại, nên có một khoảng thư mục không tồn tại và container `cp -r /artifacts/.` không thấy gì. Không phải lỗi package. | **ĐÃ SỬA:** `pack.mjs` nay ghi vào `.artifacts.staging-<pid>` rồi swap bằng `renameSync`, nên cửa sổ thư mục không tồn tại gần như bằng 0 |
+| 2   | `node22-yarn-classic:build` fail                                                                 | Docker Hub timeout khi pull `node:22-slim` - lỗi mạng tạm thời                                                                                                                                                                | Chạy lại là hết. Nhưng `run.mjs` nên phân biệt build-fail do mạng (hạ tầng, exit 2) với fail thật                                         |
+| 3   | `node22-yarn-pnp:build` fail                                                                     | `corepack prepare yarn@4.5.0 --activate` exit 1 trong image                                                                                                                                                                   | **CHƯA XỬ.** Đây là cell đáng giá nhất của matrix (bắt phantom dependency mà npm/pnpm bỏ qua) nên đáng làm cho chạy được                  |
+
+Và một lỗi trong chính runner, đã sửa: cell `bun-latest` được đánh `advisory` nên fail của nó
+không làm đỏ tier - nhưng runner báo nó là **PASS** trong khi detail ghi
+`Missing script to execute` (image bun không có `node`, nên `node /work/lab/run.mjs` không chạy).
+Advisory nghĩa là "fail không làm đỏ tier", KHÔNG phải "coi như pass". Nay báo là SKIP kèm lý do.
+Đây đúng loại xanh giả mà lab tồn tại để chặn, lần này trong runner của lab.
