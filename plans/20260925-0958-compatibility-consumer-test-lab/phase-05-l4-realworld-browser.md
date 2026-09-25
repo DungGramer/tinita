@@ -17,7 +17,7 @@
   bằng computed style, kiểm hydration trong Next, chụp visual regression với baseline sinh trong
   container. Đây là tầng duy nhất nhìn thấy được sự cố production mà owner đã gặp.
 - **Priority:** P1 - không chạy mỗi commit; nhưng là tầng có giá trị cao nhất cho sự cố đã xảy ra
-- **Implementation status:** Not started
+- **Implementation status:** Done - baseline ảnh chờ sinh trong container
 - **Review status:** Not reviewed
 
 ## Key Insights
