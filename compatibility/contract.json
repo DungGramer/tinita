@@ -49,24 +49,10 @@
       "accepted": [
         {
           "tool": "attw",
-          "problem": "FalseCJS",
-          "scope": "all",
-          "since": "2026-09-25",
-          "reason": "exports[x].types trỏ .d.ts trong khi import trỏ .mjs; tsup CÓ emit .d.mts nhưng exports không dùng. Sửa ở pha 06 rồi xoá entry này."
-        },
-        {
-          "tool": "attw",
           "problem": "NoResolution",
           "scope": "node10",
           "since": "2026-09-25",
           "reason": "TS cũ (moduleResolution: node) không resolve subpath exports. Có support TS cũ hay không là QĐ-2 của owner ở pha 06."
-        },
-        {
-          "tool": "publint",
-          "problem": "types-ambiguous-import",
-          "scope": "all",
-          "since": "2026-09-25",
-          "reason": "cùng gốc với FalseCJS ở trên."
         }
       ]
     },

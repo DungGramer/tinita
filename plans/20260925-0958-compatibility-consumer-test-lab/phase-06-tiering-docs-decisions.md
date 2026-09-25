@@ -17,7 +17,7 @@
   gán xử lý cho 4 khiếm khuyết mà lab phát hiện, và trình cho owner 2 quyết định mà plan cố ý không
   tự quyết. Không viết ca test mới ở pha này.
 - **Priority:** P1 - không chặn việc dùng lab, nhưng thiếu nó thì lab sẽ mục trong 3 tháng
-- **Implementation status:** Not started
+- **Implementation status:** Done
 - **Review status:** Not reviewed
 
 ## Key Insights

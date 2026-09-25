@@ -33,7 +33,7 @@ dùng thì KHÔNG có trong `exports` lẫn `dist`).
 | 03 | [L2 Consumer app](./phase-03-l2-consumer-apps.md) | Vite / Next / Node / tsc | không | **Done** | 100% |
 | 04 | [L3 Compatibility matrix](./phase-04-l3-compatibility-matrix.md) | Docker, Node 18-24, 4 PM | CÓ | **Done** | 100% |
 | 05 | [L4 Real-world: CSS leak, hydration, visual](./phase-05-l4-realworld-browser.md) | Docker + Chromium | CÓ | **Done** (baseline ảnh chờ sinh trong container) | 90% |
-| 06 | [Tiering, docs, quyết định cho owner](./phase-06-tiering-docs-decisions.md) | - | không | Not started | 0% |
+| 06 | [Tiering, docs, quyết định cho owner](./phase-06-tiering-docs-decisions.md) | - | không | **Done** | 100% |
 
 Mỗi pha có giá trị độc lập: xong 01 là đã có guardrail chống mất giá trị lab trong im lặng; xong 02
 là đã bắt được bug thật, không phải chờ 05.
@@ -47,13 +47,16 @@ roadmap. Lab chỉ *gọi lại* `turbo test` như tier-1 gate, không viết te
 - **BUỘC Docker:** mọi ca Node != 24 (matrix 18/20/22), yarn classic, yarn PnP (yarn bị chặn bởi
   `packageManager: pnpm@9.0.0` ở root), bun (chưa cài), Playwright, và mọi baseline ảnh.
 
-## Chi phí ước tính (điền số đo thật ở pha 06)
+## Chi phí - ĐO THẬT 2026-09-25 (macOS 15, Apple Silicon, Docker 29.7.2, Node 24.18.0)
 
-| Tier | Gồm | Mục tiêu wall-clock | Chạy khi |
-| --- | --- | --- | --- |
-| 1 | L0 + L1 + L2 (Node 24, npm) | < 4 phút | mỗi commit / PR |
-| 2 | L3 cells đã chọn | < 20 phút | trước publish |
-| 3 | L4 + yarn PnP + bun + Node 18 | < 45 phút | nightly / pre-release |
+| Tier | Gồm | Mục tiêu | Đo thật | Kết luận |
+| --- | --- | --- | --- | --- |
+| 1 | L1 + L2 local | < 4 phút | **~2.9 phút** | đạt, sát trần |
+| 2 | Tier 1 + L3 tier<=2 | < 20 phút | **~41 phút** | **vượt gấp đôi** |
+| 3 | Tier 2 + L3 tier 3 + L4 | < 45 phút | L4 329s, L3 tier 3 chưa xong | chưa chốt |
+
+Chi phí nằm ở hạ tầng (mỗi cell `docker build` + `npm install` riêng), không ở ca test. Bốn cách cắt
+đã ghi trong `compatibility/README.md`; chưa áp cách nào.
 
 ## Docs phải cập nhật (pha 06, không phải việc phụ)
 

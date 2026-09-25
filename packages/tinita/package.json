@@ -23,6 +23,7 @@
   "files": [
     "dist"
   ],
+  "sideEffects": false,
   "engines": {
     "node": ">=18.0.0"
   },
@@ -36,34 +37,64 @@
   },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./file/fileSize": {
-      "types": "./dist/file/fileSize.d.ts",
-      "import": "./dist/file/fileSize.mjs",
-      "require": "./dist/file/fileSize.cjs"
+      "import": {
+        "types": "./dist/file/fileSize.d.mts",
+        "default": "./dist/file/fileSize.mjs"
+      },
+      "require": {
+        "types": "./dist/file/fileSize.d.ts",
+        "default": "./dist/file/fileSize.cjs"
+      }
     },
     "./file/getFileNameParts": {
-      "types": "./dist/file/getFileNameParts.d.ts",
-      "import": "./dist/file/getFileNameParts.mjs",
-      "require": "./dist/file/getFileNameParts.cjs"
+      "import": {
+        "types": "./dist/file/getFileNameParts.d.mts",
+        "default": "./dist/file/getFileNameParts.mjs"
+      },
+      "require": {
+        "types": "./dist/file/getFileNameParts.d.ts",
+        "default": "./dist/file/getFileNameParts.cjs"
+      }
     },
     "./file/truncateFileName": {
-      "types": "./dist/file/truncateFileName.d.ts",
-      "import": "./dist/file/truncateFileName.mjs",
-      "require": "./dist/file/truncateFileName.cjs"
+      "import": {
+        "types": "./dist/file/truncateFileName.d.mts",
+        "default": "./dist/file/truncateFileName.mjs"
+      },
+      "require": {
+        "types": "./dist/file/truncateFileName.d.ts",
+        "default": "./dist/file/truncateFileName.cjs"
+      }
     },
     "./file/truncateFileNameParts": {
-      "types": "./dist/file/truncateFileNameParts.d.ts",
-      "import": "./dist/file/truncateFileNameParts.mjs",
-      "require": "./dist/file/truncateFileNameParts.cjs"
+      "import": {
+        "types": "./dist/file/truncateFileNameParts.d.mts",
+        "default": "./dist/file/truncateFileNameParts.mjs"
+      },
+      "require": {
+        "types": "./dist/file/truncateFileNameParts.d.ts",
+        "default": "./dist/file/truncateFileNameParts.cjs"
+      }
     },
     "./uuid/generateUUID": {
-      "types": "./dist/uuid/generateUUID.d.ts",
-      "import": "./dist/uuid/generateUUID.mjs",
-      "require": "./dist/uuid/generateUUID.cjs"
+      "import": {
+        "types": "./dist/uuid/generateUUID.d.mts",
+        "default": "./dist/uuid/generateUUID.mjs"
+      },
+      "require": {
+        "types": "./dist/uuid/generateUUID.d.ts",
+        "default": "./dist/uuid/generateUUID.cjs"
+      }
     }
   },
   "publishConfig": {
