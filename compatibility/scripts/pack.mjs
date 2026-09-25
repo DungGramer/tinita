@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
@@ -28,8 +28,12 @@ const REQUIRED_DIST = {
 
 async function main() {
   const startedAt = Date.now();
-  rmSync(ARTIFACTS, { recursive: true, force: true });
-  mkdirSync(ARTIFACTS, { recursive: true });
+  // KHÔNG rmSync(ARTIFACTS) trực tiếp: nếu có run khác (ví dụ matrix Docker) đang đọc thư mục này
+  // thì nó thấy thư mục biến mất và fail với ENOENT. Đã xảy ra 2026-09-25 với cell node24-npm:l2.
+  // Ghi vào thư mục tạm rồi swap - swap nhanh hơn nhiều so với cả quá trình build+pack.
+  const staging = `${ARTIFACTS}.staging-${process.pid}`;
+  rmSync(staging, { recursive: true, force: true });
+  mkdirSync(staging, { recursive: true });
 
   const entries = [];
 
@@ -56,9 +60,9 @@ async function main() {
     }
 
     process.stdout.write(`[pack] ${pkg.name}: npm pack\n`);
-    run('npm', ['pack', '--pack-destination', ARTIFACTS], pkg.dir);
+    run('npm', ['pack', '--pack-destination', staging], pkg.dir);
 
-    const files = await readdir(ARTIFACTS);
+    const files = await readdir(staging);
     const prefix = `${pkg.name}-`;
     const tgz = files.find((f) => f.startsWith(prefix) && f.endsWith('.tgz'));
     if (!tgz) {
@@ -67,7 +71,7 @@ async function main() {
     }
 
     const manifestVersion = JSON.parse(readFileSync(resolve(pkg.dir, 'package.json'), 'utf8')).version;
-    const tarball = resolve(ARTIFACTS, tgz);
+    const tarball = resolve(staging, tgz);
     entries.push({
       name: pkg.name,
       version: manifestVersion,
@@ -78,7 +82,16 @@ async function main() {
     process.stdout.write(`[pack] ${pkg.name}@${manifestVersion} -> ${tgz}\n`);
   }
 
-  writeFileSync(MANIFEST, `${JSON.stringify({ packages: entries }, null, 2)}\n`);
+  // Đường dẫn trong manifest phải là đường dẫn SAU khi swap, không phải trong staging.
+  const finalEntries = entries.map((e) => ({ ...e, tarball: resolve(ARTIFACTS, e.tarball.split('/').pop()) }));
+  writeFileSync(resolve(staging, 'manifest.json'), `${JSON.stringify({ packages: finalEntries }, null, 2)}\n`);
+
+  // Swap: đổi tên thư mục cũ ra rồi đưa staging vào. Cửa sổ không tồn tại ngắn nhất có thể.
+  const retired = `${ARTIFACTS}.retired-${process.pid}`;
+  if (existsSync(ARTIFACTS)) renameSync(ARTIFACTS, retired);
+  renameSync(staging, ARTIFACTS);
+  rmSync(retired, { recursive: true, force: true });
+
   process.stdout.write(`\n[pack] manifest: ${MANIFEST}\n`);
   process.exit(EXIT.PASS);
 }
