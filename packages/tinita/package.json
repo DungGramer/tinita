@@ -55,6 +55,11 @@
       "import": "./dist/file/truncateFileName.mjs",
       "require": "./dist/file/truncateFileName.cjs"
     },
+    "./file/truncateFileNameParts": {
+      "types": "./dist/file/truncateFileNameParts.d.ts",
+      "import": "./dist/file/truncateFileNameParts.mjs",
+      "require": "./dist/file/truncateFileNameParts.cjs"
+    },
     "./uuid/generateUUID": {
       "types": "./dist/uuid/generateUUID.d.ts",
       "import": "./dist/uuid/generateUUID.mjs",
