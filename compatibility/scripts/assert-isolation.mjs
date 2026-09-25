@@ -35,7 +35,13 @@ function globMatchesCompatibility(pattern) {
 
 // 1. pnpm-workspace.yaml không có glob nào khớp compatibility
 {
-  const raw = readFileSync(resolve(REPO, 'pnpm-workspace.yaml'), 'utf8');
+  const wsPath = resolve(REPO, 'pnpm-workspace.yaml');
+  // Không có file này = đang chạy NGOÀI monorepo (ví dụ trong container). Đó là dạng cô lập
+  // mạnh nhất có thể, không phải thiếu sót - assertion này là kiểm phía host.
+  if (!existsSync(wsPath)) {
+    record('workspace-excludes-lab', true, 'không có pnpm-workspace.yaml - đang chạy ngoài monorepo (cô lập tuyệt đối)');
+  } else {
+  const raw = readFileSync(wsPath, 'utf8');
   const globs = raw.split('\n').filter((l) => /^\s*-\s/.test(l)).map((l) => l.replace(/^\s*-\s*/, ''));
   const offenders = globs.filter(globMatchesCompatibility);
   record(
@@ -45,6 +51,7 @@ function globMatchesCompatibility(pattern) {
       ? `${globs.length} glob, không glob nào khớp compatibility: ${globs.join(', ')}`
       : `glob khớp compatibility: ${offenders.join(', ')}`,
   );
+  }
 }
 
 // 2. Không tồn tại compatibility/**/node_modules/tinita* là symlink
@@ -65,7 +72,9 @@ function globMatchesCompatibility(pattern) {
 {
   const offenders = [];
   walk(LAB, (abs) => {
-    if (!abs.endsWith('package.json') || abs.includes(`${LAB}/node_modules`)) return;
+    // CHỈ xét package.json do LAB viết. package.json bên trong bất kỳ node_modules nào là của
+    // vendor - `workspace:*` trong đó là chuyện nội bộ của họ, không phải rò rỉ của lab.
+    if (!abs.endsWith('package.json') || /[/\\]node_modules[/\\]/.test(abs)) return;
     const json = JSON.parse(readFileSync(abs, 'utf8'));
     for (const section of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']) {
       for (const [dep, spec] of Object.entries(json[section] ?? {})) {

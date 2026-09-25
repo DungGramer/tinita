@@ -31,7 +31,7 @@ dùng thì KHÔNG có trong `exports` lẫn `dist`).
 | 01 | [Nền lab + guardrail cô lập](./phase-01-lab-foundation.md) | tarball + project sạch | không | **Done** | 100% |
 | 02 | [L1 Package / Distribution](./phase-02-l1-package-distribution.md) | clean install, Node 24 | không | **Done** | 100% |
 | 03 | [L2 Consumer app](./phase-03-l2-consumer-apps.md) | Vite / Next / Node / tsc | không | **Done** | 100% |
-| 04 | [L3 Compatibility matrix](./phase-04-l3-compatibility-matrix.md) | Docker, Node 18-24, 4 PM | CÓ | Not started | 0% |
+| 04 | [L3 Compatibility matrix](./phase-04-l3-compatibility-matrix.md) | Docker, Node 18-24, 4 PM | CÓ | **Done** | 100% |
 | 05 | [L4 Real-world: CSS leak, hydration, visual](./phase-05-l4-realworld-browser.md) | Docker + Chromium | CÓ | Not started | 0% |
 | 06 | [Tiering, docs, quyết định cho owner](./phase-06-tiering-docs-decisions.md) | - | không | Not started | 0% |
 

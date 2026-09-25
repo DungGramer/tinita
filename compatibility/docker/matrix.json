@@ -1,0 +1,107 @@
+{
+  "_why": "Cartesian đầy đủ là 720 environment và tài liệu nguồn tự bác bỏ. Mỗi cell PHẢI có trường `why` trả lời một câu hỏi mà không cell nào khác trả lời. Cell không giải thích được thì xoá - run.mjs exit 2 nếu thiếu `why`.",
+  "_rejected": {
+    "node-20-18-x-pnpm": "cell pnpm-22 đã trả lời câu hỏi resolver strict; đổi Node không đổi câu trả lời",
+    "node-24-x-yarn-bun": "cell yarn/bun đã phủ trục PM; đổi Node không thêm thông tin về PM",
+    "L2-tren-moi-node": "next build/vite build tốn phút, lỗi bundler không phụ thuộc Node patch. Chỉ cell 1-2 chạy L2",
+    "3-react-version": "React version thuộc trục consumer, không thuộc trục môi trường - pha 05 phủ",
+    "npm-version-cu": "engines không khai npm; lockfile v3 đã ổn định. Không trả lời câu hỏi nào đang mở",
+    "macos-windows": "không có hạ tầng. .gitattributes đã ép eol=lf. Ghi là rủi ro CHƯA PHỦ, không giả vờ phủ",
+    "verdaccio": "ca 07 của L1 (npm pack từ registry thật) đã phủ câu hỏi quan trọng nhất là bản published có gãy không. Thêm verdaccio là thêm service phải chạy, đổi lại rất ít thông tin mới"
+  },
+  "cells": [
+    {
+      "id": "node24-npm",
+      "node": "24",
+      "pm": "npm",
+      "pmVersion": "latest",
+      "levels": [
+        "l1",
+        "l2"
+      ],
+      "tier": 2,
+      "why": "baseline khớp local - phát hiện lệch giữa host và container"
+    },
+    {
+      "id": "node22-npm",
+      "node": "22",
+      "pm": "npm",
+      "pmVersion": "latest",
+      "levels": [
+        "l1",
+        "l2"
+      ],
+      "tier": 2,
+      "why": "LTS hiện tại của phần lớn người dùng"
+    },
+    {
+      "id": "node20-npm",
+      "node": "20",
+      "pm": "npm",
+      "pmVersion": "latest",
+      "levels": [
+        "l1"
+      ],
+      "tier": 2,
+      "why": "LTS cũ còn support"
+    },
+    {
+      "id": "node18-npm",
+      "node": "18",
+      "pm": "npm",
+      "pmVersion": "latest",
+      "levels": [
+        "l1"
+      ],
+      "tier": 3,
+      "why": "sàn của engines >=18 - chưa ai từng chạy thử, claim này chưa được kiểm"
+    },
+    {
+      "id": "node22-pnpm",
+      "node": "22",
+      "pm": "pnpm",
+      "pmVersion": "9.0.0",
+      "levels": [
+        "l1"
+      ],
+      "tier": 2,
+      "why": "resolver strict, không hoist - bắt dependency khai thiếu"
+    },
+    {
+      "id": "node22-yarn-classic",
+      "node": "22",
+      "pm": "yarn",
+      "pmVersion": "1.22.22",
+      "levels": [
+        "l1"
+      ],
+      "tier": 3,
+      "why": "resolution khác npm/pnpm; KHÔNG chạy được ở local vì packageManager field chặn"
+    },
+    {
+      "id": "node22-yarn-pnp",
+      "node": "22",
+      "pm": "yarn",
+      "pmVersion": "4.5.0",
+      "pmMode": "pnp",
+      "levels": [
+        "l1"
+      ],
+      "tier": 3,
+      "why": "CELL ĐÁNG GIÁ NHẤT: không node_modules, resolver kiểm từng import theo khai báo -> bắt phantom dependency mà npm và pnpm đều bỏ qua"
+    },
+    {
+      "id": "bun-latest",
+      "dockerfile": "bun.Dockerfile",
+      "node": "bun",
+      "pm": "bun",
+      "pmVersion": "1",
+      "levels": [
+        "l1"
+      ],
+      "tier": 3,
+      "advisory": true,
+      "why": "runtime khác hẳn, chưa cài ở local nên chỉ tồn tại trong Docker. advisory: fail không làm đỏ tier 2"
+    }
+  ]
+}

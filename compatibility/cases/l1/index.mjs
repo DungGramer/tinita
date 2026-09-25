@@ -1,12 +1,29 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import { EXIT, LAB, PACKAGES, REPO } from '../../scripts/paths.mjs';
-import { createConsumer, tarballFor, tryLoad } from '../../scripts/consumer.mjs';
+import { ARTIFACTS, EXIT, LAB } from '../../scripts/paths.mjs';
+import { createConsumer, readManifest, tarballFor, tryLoad } from '../../scripts/consumer.mjs';
 import { printSummary, writeReport } from '../../scripts/report.mjs';
 
 const contract = JSON.parse(readFileSync(resolve(LAB, 'contract.json'), 'utf8')).packages;
+
+/**
+ * Giải nén tarball và dùng THƯ MỤC ĐÓ làm package root cho publint/attw/contract-drift.
+ * Đọc package.json trong cây `packages` sẽ kiểm SOURCE, không kiểm thứ được ship - và làm L1
+ * không chạy được trong container (nơi không có monorepo). Tarball là sự thật.
+ */
+function extractedRoot(name) {
+  const dir = resolve(ARTIFACTS, 'extracted', name);
+  if (!existsSync(resolve(dir, 'package.json'))) {
+    mkdirSync(dir, { recursive: true });
+    execFileSync('tar', ['-xzf', tarballFor(name), '-C', dir, '--strip-components=1'], { stdio: 'ignore' });
+  }
+  return dir;
+}
+
+/** Danh sách package lấy từ manifest, không từ cây repo. */
+const TARGETS = readManifest().map((e) => ({ name: e.name, dir: extractedRoot(e.name) }));
 const cases = [];
 const findings = [];
 const add = (id, ok, detail, extra = {}) => cases.push({ id, ok, detail, ...extra });
@@ -20,7 +37,7 @@ const npx = (args, cwd = LAB) => {
 };
 
 // ---------- 01 publint ----------
-for (const { name, dir } of PACKAGES) {
+for (const { name, dir } of TARGETS) {
   const { code, out } = npx(['publint', '--pack', 'npm', dir]);
   const errorLines = out.split('\n').filter((l) => /but the file does not exist|is not exported|is invalid/.test(l));
   const accepted = contract[name].accepted.filter((a) => a.tool === 'publint');
@@ -29,7 +46,7 @@ for (const { name, dir } of PACKAGES) {
 }
 
 // ---------- 02 attw ----------
-for (const { name, dir } of PACKAGES) {
+for (const { name, dir } of TARGETS) {
   const { out } = npx(['attw', '--pack', dir, '--format', 'table-flipped']);
   const problems = new Set();
   if (/Masquerading as CJS/.test(out)) problems.add('FalseCJS');
@@ -49,12 +66,12 @@ for (const { name, dir } of PACKAGES) {
     level: 'l1',
     name: '03-smoke',
     deps: ['react@19'],
-    tarballs: PACKAGES.map((p) => tarballFor(p.name)),
+    tarballs: TARGETS.map((p) => tarballFor(p.name)),
   });
   const peers = contract['tinita-react'].optionalPeers;
   let total = 0;
   const failures = [];
-  for (const { name } of PACKAGES) {
+  for (const { name } of TARGETS) {
     for (const spec of contract[name].specifiers) {
       const full = spec === '.' ? name : `${name}${spec.slice(1)}`;
       // Specifier cần optional peer thì bỏ ở ca này - ca 04 phụ trách.
@@ -107,7 +124,7 @@ for (const { name, dir } of PACKAGES) {
 }
 
 // ---------- 05 contract drift (hai chiều) ----------
-for (const { name, dir } of PACKAGES) {
+for (const { name, dir } of TARGETS) {
   const exportsMap = JSON.parse(readFileSync(resolve(dir, 'package.json'), 'utf8')).exports ?? {};
   const inExports = Object.keys(exportsMap);
   const declared = [...contract[name].specifiers, ...(contract[name].cssSpecifiers ?? [])];
@@ -124,7 +141,7 @@ for (const { name, dir } of PACKAGES) {
 }
 
 // ---------- 06 artifact shape ----------
-for (const { name } of PACKAGES) {
+for (const { name } of TARGETS) {
   const tgz = tarballFor(name);
   const listing = execFileSync('tar', ['-tzf', tgz], { encoding: 'utf8' })
     .split('\n').filter(Boolean).map((l) => l.replace(/^package\//, ''));
@@ -148,7 +165,7 @@ for (const { name } of PACKAGES) {
     const { mkdtempSync } = await import('node:fs');
     const { tmpdir } = await import('node:os');
     const results = [];
-    for (const { name, dir } of PACKAGES) {
+    for (const { name, dir } of TARGETS) {
       const version = JSON.parse(readFileSync(resolve(dir, 'package.json'), 'utf8')).version;
       const tmp = mkdtempSync(resolve(tmpdir(), `reg-${name}-`));
       let pulled;

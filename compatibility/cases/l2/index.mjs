@@ -87,7 +87,25 @@ findings.push({
 }
 
 // ---------- CSS leak: 2 biến thể host (CSS trần vs CSS trong @layer) ----------
-{
+// Playwright không có (ví dụ trong container Node trơn) -> skip SẠCH, không fail.
+const hasBrowser = await (async () => {
+  try {
+    const { chromium } = await import('playwright');
+    const b = await chromium.launch();
+    await b.close();
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
+if (!hasBrowser) {
+  for (const id of ['css-leak:unlayered', 'css-leak:layered', 'css-probe-proof', 'no-tailwind-missing-utilities', 'vite:render']) {
+    add(id, true, 'skip: không có chromium trong môi trường này', { skipped: true, reason: 'no-browser' });
+  }
+}
+
+if (hasBrowser) {
   const { probeLeak } = await import('./lib/css-probe.mjs');
   const work = createConsumer({ level: 'l2', name: 'css-host', deps: REACT, tarballs: TGZ });
   const cssPath = resolve(work, 'node_modules/tinita-react/dist/styles.css');
@@ -118,7 +136,7 @@ findings.push({
 }
 
 // ---------- host KHÔNG có Tailwind: utility thô trong JSX không được ship ----------
-{
+if (hasBrowser) {
   const { probeMissingUtilities } = await import('./lib/css-probe.mjs');
   const work = createConsumer({ level: 'l2', name: 'no-tailwind', deps: REACT, tarballs: TGZ, files: {
     'render.mjs': `
@@ -148,7 +166,7 @@ process.stdout.write(renderToStaticMarkup(h(Ping, { count: 1 })));
 }
 
 // ---------- Vite production build + chromium ----------
-{
+if (hasBrowser) {
   const { chromium } = await import('playwright');
   const work = createConsumer({
     level: 'l2',
