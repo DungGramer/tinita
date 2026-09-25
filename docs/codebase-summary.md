@@ -9,11 +9,12 @@ Cập nhật: 2026-09-24 (vòng 2) · commit 0a1dd88
 Tinita là monorepo với framework-agnostic utilities (tinita) + React hooks + UI components (tinita-react), build bằng Turborepo + pnpm + tsup, CSS build qua PostCSS + Tailwind v4.
 
 **Metrics:**
+
 - 6 workspace members
 - 4 utilities + 2 hooks + 3 UI components
 - 13 root scripts (1 hỏng, 1 không tồn tại)
 - 7 turbo tasks
-- 0 tests (vitest wired nhưng chưa dùng)
+- tinita: 35 test (`packages/tinita/tests/`); tinita-react: 0 test (nợ M3)
 - 0 CI/CD (release thủ công)
 
 ---
@@ -38,14 +39,15 @@ tinita/
 
 **4 Utilities** - Framework-agnostic, zero dependencies.
 
-| Utility | File | Mục đích |
-|---------|------|---------|
-| `fileSize` | `src/file/fileSize.ts` | Format bytes to human-readable (KB/MB) |
-| `getFileNameParts` | `src/file/getFileNameParts.ts` | Parse filename into name + extension |
-| `truncateFileName` | `src/file/truncateFileName.ts` | Shorten long filenames |
-| `generateUUID` | `src/uuid/generateUUID.ts` | Cross-platform UUID v4 |
+| Utility            | File                           | Mục đích                               |
+| ------------------ | ------------------------------ | -------------------------------------- |
+| `fileSize`         | `src/file/fileSize.ts`         | Format bytes to human-readable (KB/MB) |
+| `getFileNameParts` | `src/file/getFileNameParts.ts` | Parse filename into name + extension   |
+| `truncateFileName` | `src/file/truncateFileName.ts` | Shorten long filenames                 |
+| `generateUUID`     | `src/uuid/generateUUID.ts`     | Cross-platform UUID v4                 |
 
 **Exports (4 subpath):**
+
 ```json
 {
   ".": "./dist/index.{cjs,mjs}",
@@ -56,7 +58,7 @@ tinita/
 }
 ```
 
-**Build:** tsup, `bundle: false`, `splitting: false`, minified, dts, cjs+esm.
+**Build:** tsup, `bundle: true`, `outExtension` cjs->`.cjs`/esm->`.mjs`, `splitting: false`, minified, dts.
 
 ---
 
@@ -66,22 +68,23 @@ tinita/
 
 #### Hooks (2)
 
-| Hook | File | Mục đích |
-|------|------|---------|
-| `useToggle` | `src/hooks/useToggle.ts` | Boolean toggle state |
+| Hook                        | File                                     | Mục đích                      |
+| --------------------------- | ---------------------------------------- | ----------------------------- |
+| `useToggle`                 | `src/hooks/useToggle.ts`                 | Boolean toggle state          |
 | `useIsomorphicLayoutEffect` | `src/hooks/useIsomorphicLayoutEffect.ts` | Browser/SSR safe layoutEffect |
 
 #### Components (3)
 
-| Component | Folder | Mô tả |
-|-----------|--------|-------|
-| `FileTree` | `src/ui/file-tree/` | File/folder tree view với icon, expand/collapse |
-| `Ping` | `src/ui/ping/` | Activity/loading indicator (Ping animation) |
-| `CarouselTicker` | `src/ui/carousel-ticker/` | Auto-scroll carousel |
+| Component        | Folder                    | Mô tả                                           |
+| ---------------- | ------------------------- | ----------------------------------------------- |
+| `FileTree`       | `src/ui/file-tree/`       | File/folder tree view với icon, expand/collapse |
+| `Ping`           | `src/ui/ping/`            | Activity/loading indicator (Ping animation)     |
+| `CarouselTicker` | `src/ui/carousel-ticker/` | Auto-scroll carousel                            |
 
 #### Colocation Pattern (3/3 ✓)
 
 **Mẫu chuẩn (được tuân thủ):**
+
 ```
 src/ui/FileTree/
   ├── FileTree.tsx           # Main component (đúng, tên file riêng)
@@ -93,6 +96,7 @@ src/ui/FileTree/
 ```
 
 **Exports (9 subpath):**
+
 ```json
 {
   ".": "./dist/index.{cjs,mjs}",
@@ -113,22 +117,25 @@ src/ui/FileTree/
 
 **Peer:** `react >=18.0.0`
 
-**Runtime:** (5 hard dependencies - tất cả phải cài bất kể dùng component nào)
-- `@radix-ui/react-accordion ^1.2.12` - FileTree component
-- `clsx ^2.1.1` - Class name utility
-- `lucide-react ^0.555.0` - Icons for FileTree
-- `motion ^12.23.25` - (KHÔNG DÙNG ĐÂUUU - dep chết)
-- `tailwind-merge ^3.4.0` - Merge Tailwind classes
+**Runtime:** 2 dependency (từ 5, dọn 2026-09-25)
+
+- `@radix-ui/react-accordion ^1.2.12` - chỉ FileTree dùng
+- `lucide-react ^0.555.0` - chỉ FileTree dùng (17 icon, named import)
+
+Đã gỡ: `motion` (dep chết, không file nào import). Hạ xuống `devDependencies`: `clsx`,
+`tailwind-merge` - cả hai không nằm trong tsup `external` nên đã được inline vào `dist/`.
 
 **Component -> Runtime Dependency (thực tế):**
 
-| Component | Dep ngoài | Ghi chú |
-|-----------|----------|--------|
-| `Ping` | - | Zero dependencies |
-| `CarouselTicker` | clsx, tailwind-merge | Bundled (inline vào dist) |
-| `FileTree` | @radix-ui/react-accordion, lucide-react | Externalized (import lúc runtime) |
+| Component        | Dep ngoài                               | Ghi chú                           |
+| ---------------- | --------------------------------------- | --------------------------------- |
+| `Ping`           | -                                       | Zero dependencies                 |
+| `CarouselTicker` | clsx, tailwind-merge                    | Bundled (inline vào dist)         |
+| `FileTree`       | @radix-ui/react-accordion, lucide-react | Externalized (import lúc runtime) |
 
-**Issue:** Motion không ai dùng, nhưng vẫn phải cài. Ping chỉ cần 0 dep nhưng user phải cài cả 5. Định hướng: chuyển sang optional peer deps (xem `docs/system-architecture.md` mục "Dependency Packing Strategy").
+Xác minh trên `dist/` đã build: `dist/ui/ping/index.mjs` chỉ import `react/jsx-runtime`;
+`carousel-ticker` chỉ `react`; `file-tree` đúng 2 lib trên. Còn lại: 2 dependency này vẫn là
+`dependencies` cứng nên người chỉ dùng `Ping` vẫn phải cài. Chuyển sang optional peer là mốc M2.
 
 **Dev:** tailwindcss, @tailwindcss/postcss, postcss tools, testing libraries, concurrently, etc.
 
@@ -137,16 +144,19 @@ src/ui/FileTree/
 **Script:** `packages/tinita-react/scripts/build-css.mjs`
 
 **Main Build Steps** (script logs: Step 1, 1.5, 2, 3, 4):
+
 1. Copy `src/styles/globals.css` -> `dist/styles/globals.css`
-1.5. Copy `src/styles/animations.css` -> `dist/styles/animations.css`
+   1.5. Copy `src/styles/animations.css` -> `dist/styles/animations.css`
 2. PostCSS compile `src/styles/build-entry.css` -> theme CSS (dùng `tailwind.config.cjs`)
 3. PostCSS compile `src/ui/**/*.css` -> component CSS, minified (fallback copy thô nếu lỗi)
 4. Bundle stage: nối theme + components -> `dist/styles.temp.css` -> minify -> ghi đè `dist/styles.css` (bundle cuối)
 
 **Watch Mode** (--watch flag):
+
 - fs.watch `src/styles/` + `src/ui/`, debounce 300ms, re-run entire pipeline
 
 **Output:**
+
 - `dist/styles.css` - Complete bundle (globals + animations + components), minified
 - `dist/styles/globals.css` - Base tokens only
 - `dist/styles/animations.css` - Keyframes only
@@ -160,6 +170,7 @@ src/ui/FileTree/
 **Builder:** @storybook/react-vite, Vite 7.2.6
 
 **Stories (4 folder):**
+
 - `stories/FileTree/` - 6 stories (FileTree, accessibility, nojs, responsive, rtl, themes)
 - `stories/Ping/` - 1 story (Ping.stories.tsx)
 - `stories/CarouselTicker/` - 1 story (CarouselTicker.stories.tsx)
@@ -176,15 +187,17 @@ src/ui/FileTree/
 ### @repo/eslint-config
 
 **Exports:**
+
 - `./base` -> base.js (flat config, js.recommended + tseslint.recommended + turbo plugin)
 - `./react-internal` -> react-internal.js (base + react + react-hooks)
 - `./next-js` -> next.js (next/core-web-vitals + react-hooks)
 
-**Known Issue:** next.js imports `{ config as baseConfig }` từ `./base.js`, nhưng base.js là default export (named export không có) -> throw khi next preset dùng.
+**Đã vá 2026-09-25:** `next.js` và `config/ui/eslint.config.mjs` từng import named `{ config }` trong khi cả `base.js` và `react-internal.js` chỉ `export default`. `config/ui` lint gãy thật vì việc này. Cả hai đã chuyển sang default import.
 
 ### @repo/typescript-config
 
 **Presets (as file trực tiếp, không exports field):**
+
 - `base.json` - target ES2020, module ESNext, moduleResolution **Node** (KHÔNG NodeNext), strict true, declaration true
 - `react-library.json` - extends base + jsx: react-jsx
 - `nextjs.json` - extends base + moduleResolution Bundler, allowJs true, noEmit true
@@ -202,35 +215,35 @@ src/ui/FileTree/
 
 ## Root Scripts (13)
 
-| Script | Status | Mục đích |
-|--------|--------|---------|
-| build | ✓ | tsup + postcss, all packages |
-| dev | ✓ | concurrently tsup --watch + build:css --watch + storybook dev |
-| lint | ✓ | ESLint all packages |
-| test | ✓ | Vitest all packages |
-| format | ✓ | Prettier --write `**/*.{ts,tsx,md}` |
-| check-types | ✓ | tsc --noEmit all packages |
-| storybook | ⚠️ | turbo run storybook --filter=@storybook/tinita (filter sai, task chạy hỏng) |
-| build-storybook | ⚠️ | turbo run build-storybook --filter=@storybook/tinita (filter sai) |
-| publish:tinita | ✓ | scripts/publish.mjs tinita |
-| publish:tinita-react | ✓ | scripts/publish.mjs tinita-react |
-| publish:all | ✓ | scripts/publish.mjs all |
-| publish:dry-run | ✓ | scripts/publish.mjs --dry-run |
-| generate:exports | ❌ | Không tồn tại (hỏng, nên gỡ) |
+| Script               | Status | Mục đích                                                                    |
+| -------------------- | ------ | --------------------------------------------------------------------------- |
+| build                | ✓      | tsup + postcss, all packages                                                |
+| dev                  | ✓      | concurrently tsup --watch + build:css --watch + storybook dev               |
+| lint                 | ✓      | ESLint all packages                                                         |
+| test                 | ✓      | Vitest all packages                                                         |
+| format               | ✓      | Prettier --write `**/*.{ts,tsx,md}`                                         |
+| check-types          | ✓      | tsc --noEmit all packages                                                   |
+| storybook            | ⚠️     | turbo run storybook --filter=@storybook/tinita (filter sai, task chạy hỏng) |
+| build-storybook      | ⚠️     | turbo run build-storybook --filter=@storybook/tinita (filter sai)           |
+| publish:tinita       | ✓      | scripts/publish.mjs tinita                                                  |
+| publish:tinita-react | ✓      | scripts/publish.mjs tinita-react                                            |
+| publish:all          | ✓      | scripts/publish.mjs all                                                     |
+| publish:dry-run      | ✓      | scripts/publish.mjs --dry-run                                               |
+| generate:exports     | ❌     | Không tồn tại (hỏng, nên gỡ)                                                |
 
 ---
 
 ## Turborepo Tasks (7)
 
-| Task | dependsOn | Outputs | Cache | Note |
-|------|-----------|---------|-------|------|
-| build | ^build | dist/** | yes | Inputs: $TURBO_DEFAULT$, .env* |
-| lint | ^lint | - | yes | |
-| check-types | ^check-types | - | yes | |
-| dev | - | - | no | persistent: true |
-| test | build | - | no | |
-| storybook | - | - | no | persistent: true |
-| build-storybook | ^build | storybook-static/** | yes | |
+| Task            | dependsOn    | Outputs               | Cache | Note                            |
+| --------------- | ------------ | --------------------- | ----- | ------------------------------- |
+| build           | ^build       | dist/\*\*             | yes   | Inputs: $TURBO_DEFAULT$, .env\* |
+| lint            | ^lint        | -                     | yes   |                                 |
+| check-types     | ^check-types | -                     | yes   |                                 |
+| dev             | -            | -                     | no    | persistent: true                |
+| test            | build        | -                     | no    |                                 |
+| storybook       | -            | -                     | no    | persistent: true                |
+| build-storybook | ^build       | storybook-static/\*\* | yes   |                                 |
 
 **Chú ý:** Không có task `generate:exports`.
 
@@ -238,25 +251,27 @@ src/ui/FileTree/
 
 ## Naming Convention
 
-| Loại | Quy tắc | Ví dụ |
-|------|--------|-------|
-| Directory | kebab-case | `src/ui/file-tree/`, `src/file/` |
-| File (utility) | camelCase.ts | `fileSize.ts`, `generateUUID.ts` |
-| File (component) | PascalCase.tsx | `FileTree.tsx`, `Ping.tsx` |
-| File (private) | camelCase.ts | `utils.ts`, `parser.ts` |
-| CSS Class | BEM + `tinita-` prefix | `tinita-filetree__label--folder`, `tinita-ping__pulse` |
-| CSS Variable | `tinita-*` | `tinita-primary`, `tinita-radius-md`, `tinita-ease-in-out` |
+| Loại             | Quy tắc                | Ví dụ                                                      |
+| ---------------- | ---------------------- | ---------------------------------------------------------- |
+| Directory        | kebab-case             | `src/ui/file-tree/`, `src/file/`                           |
+| File (utility)   | camelCase.ts           | `fileSize.ts`, `generateUUID.ts`                           |
+| File (component) | PascalCase.tsx         | `FileTree.tsx`, `Ping.tsx`                                 |
+| File (private)   | camelCase.ts           | `utils.ts`, `parser.ts`                                    |
+| CSS Class        | BEM + `tinita-` prefix | `tinita-filetree__label--folder`, `tinita-ping__pulse`     |
+| CSS Variable     | `tinita-*`             | `tinita-primary`, `tinita-radius-md`, `tinita-ease-in-out` |
 
 ---
 
 ## CSS Architecture
 
 **Tailwind v4:**
+
 - `src/styles/globals.css` - `@theme inline`, `@apply border-border`
 - `src/styles/animations.css` - @keyframes (tinita-fade-in, tinita-slide-up, etc.)
 - Component CSS (`CarouselTicker.css`, `FileTree.css`) - CSS variables, không @apply
 
 **Token Prefix:** `tinita-` xuyên suốt
+
 - Colors: `tinita-primary`, `tinita-background`, `tinita-border`
 - Spacing/Radius: `tinita-radius-sm`, `tinita-radius-md`, `tinita-radius-lg`
 - Animation: `tinita-ease-in`, `tinita-ease-out`, `tinita-duration-300`
@@ -264,6 +279,7 @@ src/ui/FileTree/
 - Backdrop: `tinita-backdrop-*`
 
 **Build Output:**
+
 - `dist/styles.css` - Bundle cuối (globals + animations + components)
 - `dist/styles/globals.css` - Base tokens
 - `dist/styles/animations.css` - Keyframes
@@ -273,10 +289,11 @@ src/ui/FileTree/
 
 ## Testing Status
 
-**Current:** 0 tests
+**Current:** tinita 35 test; tinita-react 0 test
 
 **Setup:** Vitest configs tồn tại (`vitest.config.ts` root, `vitest.config.ts` tinita-react)
-- Root: environment node, globals true, coverage v8, exclude node_modules|dist|*.d.ts
+
+- Root: environment node, globals true, coverage v8, exclude node_modules|dist|\*.d.ts
 - tinita-react: environment jsdom, globals true
 
 **No test files:** Zero `*.test.ts`, `*.test.tsx`, `*.spec.ts` dưới packages/
@@ -293,7 +310,7 @@ src/ui/FileTree/
 
 4. **tsconfig base path alias chết** - `@tinita-internal/*` -> `packages/core/src/*`, nhưng `packages/core` không tồn tại. Không ai dùng prefix này nên lỗi chưa phát hiện.
 
-5. **ESLint next preset export sai** - `@repo/eslint-config/next.js` import `{ config as baseConfig }` từ `./base.js`, nhưng `base.js` chỉ có default export -> named import throw nếu preset next được dùng. Chưa xác minh ai dùng preset next.
+5. ~~**ESLint next preset export sai**~~ - **ĐÃ VÁ 2026-09-25**. Đã tìm ra consumer thật: `config/ui/eslint.config.mjs` cũng import named `{ config }` và làm `config/ui` lint gãy. Cả `next.js` lẫn `config/ui` nay dùng default import.
 
 6. **`motion` là dependency CHẾT** - `package.json` khai trong `dependencies`, nhưng không file nào import. Hit duy nhất là comment "prefers-reduced-motion" ở `src/ui/file-tree/types.ts:93`. Kéo ~4 gói vào node_modules.
 
@@ -317,7 +334,6 @@ storybook
        ├── @radix-ui/react-accordion ^1.2.12
        ├── clsx ^2.1.1
        ├── lucide-react ^0.555.0
-       ├── motion ^12.23.25
        └── tailwind-merge ^3.4.0
 
 tinita
@@ -337,7 +353,7 @@ config/eslint-config, config/typescript-config
 - Root `README.md` (khoảng 200 dòng)
 - Root `ARCHITECTURE.md`, `CONTRIBUTING.md`, `CLAUDE.md`, `CODE_OF_CONDUCT.md`, `DOCUMENT_REQUIRED.md`
 - `docs/` - project-overview-pdr.md, codebase-summary.md (đây), code-standards.md, system-architecture.md, naming-guidelines.md, project-roadmap.md, design-guidelines.md
-- `pnpm-workspace.yaml` - packages/*, apps/*, config/*
+- `pnpm-workspace.yaml` - packages/_, apps/_, config/\*
 - `turbo.json` - 7 tasks
 - `package.json` - 13 root scripts
 - `.eslintrc.cjs` - legacy ESLint config
@@ -350,6 +366,7 @@ config/eslint-config, config/typescript-config
 ## CI/CD
 
 **Không có.**
+
 - Không `.github/workflows/`
 - Không `.changeset/`
 - Release: thủ công qua `scripts/publish.mjs`

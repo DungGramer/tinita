@@ -7,6 +7,7 @@ Cập nhật: 2026-09-24 (vòng 2) · commit 0a1dd88
 ## Overview
 
 Tinita là monorepo (Turborepo + pnpm) với 6 workspace members:
+
 - 2 packages publishable (tinita + tinita-react)
 - 3 config packages (eslint, typescript, ui)
 - 1 private app (storybook)
@@ -132,7 +133,6 @@ storybook (@tinita/storybook)
        ├── @radix-ui/react-accordion ^1.2.12
        ├── clsx ^2.1.1
        ├── lucide-react ^0.555.0
-       ├── motion ^12.23.25
        └── tailwind-merge ^3.4.0
 
 tinita (v0.0.1)
@@ -159,7 +159,7 @@ All packages:
 
 ### tsup Configurations
 
-**tinita (bundle: false = tree-shakeable)**
+**tinita (bundle: true - bắt buộc, xem ghi chú dưới)**
 
 ```typescript
 {
@@ -172,7 +172,8 @@ All packages:
   ],
   format: ['cjs', 'esm'],
   dts: true,
-  bundle: false,        // CRITICAL: no bundling, each file separate
+  bundle: true,         // xem ghi chú dưới: bundle:false làm gãy ESM
+  outExtension: ({ format }) => ({ js: format === 'cjs' ? '.cjs' : '.mjs' }),
   splitting: false,
   clean: true,
   minify: true,
@@ -217,8 +218,9 @@ All packages:
 **Script:** `packages/tinita-react/scripts/build-css.mjs`
 
 **Main Build Steps** (script logs: Step 1, 1.5, 2, 3, 4):
+
 1. Copy `src/styles/globals.css` -> `dist/styles/globals.css` (Tailwind base config + theme tokens via @theme inline)
-1.5. Copy `src/styles/animations.css` -> `dist/styles/animations.css` (@keyframes for animations)
+   1.5. Copy `src/styles/animations.css` -> `dist/styles/animations.css` (@keyframes for animations)
 2. PostCSS compile `src/styles/build-entry.css` -> theme CSS (needs `tailwind.config.cjs` for content globs)
 3. PostCSS compile `src/ui/**/*.css` -> component CSS, minified to `dist/ui/<relpath>` (fallback raw copy if error)
 4. **Bundle stage** in `createBundledCSS()`:
@@ -227,15 +229,18 @@ All packages:
    - Cleanup: `rm dist/styles.temp.css`
 
 **Watch Mode** (--watch flag):
+
 - fs.watch `src/styles/` + `src/ui/`, debounce 300ms, re-run entire pipeline
 
 **Output:**
+
 - `dist/styles.css` - Complete bundle (globals + animations + components), minified
 - `dist/styles/globals.css` - Base tokens only
 - `dist/styles/animations.css` - Keyframes only
 - `dist/ui/<component>/<component>.css` - Component-specific CSS, minified
 
 **Tailwind v4:**
+
 - Config: `packages/tinita-react/tailwind.config.cjs` (content globs only, no preset/theme - uses @theme in CSS)
 - No Preflight import, just `@theme inline` in globals.css
 - Post-build: Pure CSS output, no Tailwind dependency for users
@@ -245,6 +250,7 @@ All packages:
 ## Module Resolution
 
 **TypeScript Config (base.json):**
+
 ```json
 {
   "moduleResolution": "Node",
@@ -254,13 +260,15 @@ All packages:
 ```
 
 **Path Alias (base.json):**
+
 ```json
 {
-  "@tinita-internal/*": "packages/core/src/*"  // BROKEN - packages/core not exist
+  "@tinita-internal/*": "packages/core/src/*" // BROKEN - packages/core not exist
 }
 ```
 
 **tsconfig Inheritance:**
+
 - tinita: extends @repo/typescript-config/base.json
 - tinita-react: extends @repo/typescript-config/react-library.json + jsdom for tests
 - storybook: custom tsconfig.json
@@ -294,7 +302,7 @@ All packages:
 
 ┌──────────┐
 │   test   │─────────> depends on build, cache: no
-│ Vitest   │         (0 test files currently)
+│ Vitest   │         (tinita: 35 test; tinita-react: 0)
 └──────────┘
 
 ┌─────────────────┐
@@ -310,6 +318,7 @@ All packages:
 ```
 
 **Run Example:**
+
 ```bash
 turbo build              # All packages sequentially per dependsOn
 turbo build --filter=tinita
@@ -321,21 +330,21 @@ turbo lint --filter=tinita-react
 
 ## Root Scripts (13)
 
-| Script | Command | Turbo | Notes |
-|--------|---------|-------|-------|
-| build | turbo build | yes | Per-file + CSS build |
-| dev | concurrently tsup --watch + build:css --watch | yes | storybook dev also runs |
-| lint | turbo lint | yes | ESLint all |
-| test | turbo test | yes | Vitest (0 tests) |
-| format | prettier --write | no | Prettier pass |
-| check-types | turbo check-types | yes | tsc --noEmit |
-| storybook | turbo run storybook --filter=@storybook/tinita | yes | ⚠️ BROKEN (filter sai) |
-| build-storybook | turbo run build-storybook --filter=@storybook/tinita | yes | ⚠️ BROKEN (filter sai) |
-| publish:tinita | scripts/publish.mjs tinita | no | Thủ công |
-| publish:tinita-react | scripts/publish.mjs tinita-react | no | Thủ công |
-| publish:all | scripts/publish.mjs all | no | Thủ công |
-| publish:dry-run | scripts/publish.mjs --dry-run | no | Thủ công |
-| generate:exports | turbo run generate:exports | yes | ❌ KHÔNG TỒN TẠI |
+| Script               | Command                                              | Turbo | Notes                                                              |
+| -------------------- | ---------------------------------------------------- | ----- | ------------------------------------------------------------------ |
+| build                | turbo build                                          | yes   | Per-file + CSS build                                               |
+| dev                  | concurrently tsup --watch + build:css --watch        | yes   | storybook dev also runs                                            |
+| lint                 | turbo lint                                           | yes   | ESLint all                                                         |
+| test                 | turbo test                                           | yes   | Vitest - tinita 35 test, tinita-react 0 test (`--passWithNoTests`) |
+| format               | prettier --write                                     | no    | Prettier pass                                                      |
+| check-types          | turbo check-types                                    | yes   | tsc --noEmit                                                       |
+| storybook            | turbo run storybook --filter=@storybook/tinita       | yes   | ⚠️ BROKEN (filter sai)                                             |
+| build-storybook      | turbo run build-storybook --filter=@storybook/tinita | yes   | ⚠️ BROKEN (filter sai)                                             |
+| publish:tinita       | scripts/publish.mjs tinita                           | no    | Thủ công                                                           |
+| publish:tinita-react | scripts/publish.mjs tinita-react                     | no    | Thủ công                                                           |
+| publish:all          | scripts/publish.mjs all                              | no    | Thủ công                                                           |
+| publish:dry-run      | scripts/publish.mjs --dry-run                        | no    | Thủ công                                                           |
+| generate:exports     | turbo run generate:exports                           | yes   | ❌ KHÔNG TỒN TẠI                                                   |
 
 ---
 
@@ -344,6 +353,7 @@ turbo lint --filter=tinita-react
 ### tinita
 
 **Barrel + Subpath (both work):**
+
 ```typescript
 // src/index.ts - barrel export
 export * from './file/fileSize';
@@ -364,6 +374,7 @@ import { fileSize } from 'tinita/file/fileSize';       // Subpath (tree-shake op
 ### tinita-react
 
 **Current (CÓ barrel - xung đột quy tắc):**
+
 ```typescript
 // src/index.ts
 export { useToggle, useIsomorphicLayoutEffect } from './hooks';
@@ -373,8 +384,8 @@ export * from './ui/carousel-ticker';
 export { autoInjectStyles } from './utils/autoInjectStyles';
 
 // Usage
-import { useToggle } from 'tinita-react';                      // Barrel (không nên per quy tắc)
-import { useToggle } from 'tinita-react/hooks/useToggle';     // Subpath (đúng)
+import { useToggle } from 'tinita-react'; // Barrel (không nên per quy tắc)
+import { useToggle } from 'tinita-react/hooks/useToggle'; // Subpath (đúng)
 ```
 
 **Rule Says (NO barrel):** KHÔNG export từ `src/index.ts`, dùng subpath only.
@@ -404,15 +415,17 @@ import { useToggle } from 'tinita-react/hooks/useToggle';     // Subpath (đúng
 
 ---
 
-## Testing Infrastructure (0 Tests)
+## Testing Infrastructure
 
 **Setup:**
+
 - vitest.config.ts (root) - environment: node
 - vitest.config.ts (tinita-react) - environment: jsdom
 
-**Files:** 0 test files currently
+**Files:** `packages/tinita/tests/truncateFileName.test.ts` (35 test). `tinita-react`: 0 test (nợ M3).
 
 **Convention (nếu viết tests):**
+
 - Location: `tests/` parallel with `src/`
 - Format: `*.test.ts(x)`
 - Coverage target: 80%+
@@ -422,13 +435,16 @@ import { useToggle } from 'tinita-react/hooks/useToggle';     // Subpath (đúng
 ## Linting & Type Checking
 
 **ESLint:**
+
 - Root: `.eslintrc.cjs` (legacy, js.recommended + tseslint)
 - Packages: flat config (base.js, react-internal.js, next.js)
 
 **Prettier:**
+
 - Config: `prettier.config.js` (delegates to preset)
 
 **TypeScript:**
+
 - Base: ES2020 + Node (NOT ES2022/NodeNext)
 - Strict: true
 - All packages extend config/typescript-config
@@ -445,17 +461,17 @@ import { useToggle } from 'tinita-react/hooks/useToggle';     // Subpath (đúng
 
 `dependencies` trong `package.json` là khai báo ở **cấp package**, không phải cấp entry. Package
 manager giải dependency tree lúc `install`, khi đó nó chưa biết user sẽ `import` subpath nào. Nên
-`npm install tinita-react` luôn kéo cả 5 dependency.
+`npm install tinita-react` kéo mọi dependency được khai, bất kể user import subpath nào.
 
 **Tập dependency của 3 component RỜI NHAU hoàn toàn** (đã kiểm chứng bằng grep toàn bộ `src/`):
 
-| Component | Dependency ngoài thật sự | tsup xử lý |
-|---|---|---|
-| `Ping` | **không có** (chỉ type `ReactNode` từ react) | - |
-| `CarouselTicker` | `clsx`, `tailwind-merge` (qua `utils/cn.ts`) | inline vào bundle |
-| `FileTree` | `@radix-ui/react-accordion`, `lucide-react` | external, import lúc runtime |
+| Component        | Dependency ngoài thật sự                     | tsup xử lý                   |
+| ---------------- | -------------------------------------------- | ---------------------------- |
+| `Ping`           | **không có** (chỉ type `ReactNode` từ react) | -                            |
+| `CarouselTicker` | `clsx`, `tailwind-merge` (qua `utils/cn.ts`) | inline vào bundle            |
+| `FileTree`       | `@radix-ui/react-accordion`, `lucide-react`  | external, import lúc runtime |
 
-`motion ^12.23.25` khai trong `dependencies` nhưng **không file nào import**. Hit duy nhất của
+**Đã sửa 2026-09-25:** `motion ^12.23.25` từng khai trong `dependencies` mà **không file nào import** - hit duy nhất của
 chuỗi "motion" trong `src/` là comment `prefers-reduced-motion` tại `src/ui/file-tree/types.ts:93`.
 Nó kéo theo chuỗi `motion` -> `framer-motion` -> `motion-dom`, `motion-utils` (~4 gói) cho mọi
 consumer mà không đổi lại gì.
@@ -476,13 +492,14 @@ consumer mà không đổi lại gì.
 
 `exports` có tách subpath (`./ui/file-tree`, `./ui/ping`, `./ui/carousel-ticker`). Đây là tách
 **IMPORT** - giúp bundler của user tree-shake code. Nó **không tách INSTALL** - `node_modules` vẫn
-đầy đủ 5 dependency.
+đầy đủ mọi dependency đã khai.
 
 Tree-shaking giảm **bytes gửi tới browser**; nó không giảm **thứ phải tải về khi cài**.
 
 ### Bốn hướng xử lý (chưa chốt - đây là lựa chọn của owner)
 
 **A. `peerDependencies` + `peerDependenciesMeta.optional: true`**
+
 - Chuyển `@radix-ui/react-accordion`, `lucide-react` (và sau này `antd`, `@base-ui/react`) sang
   optional peer. User chỉ cài lib mà component họ dùng cần.
 - Đổi lại: user phải biết component nào cần lib gì -> **bắt buộc có bảng component -> dependency
@@ -490,6 +507,7 @@ Tree-shaking giảm **bytes gửi tới browser**; nó không giảm **thứ ph�
 - Hiện `peerDependencies` chỉ có `react >=18.0.0`, chưa có `peerDependenciesMeta` nào.
 
 **B. Subpath + bỏ barrel `src/index.ts`**
+
 - `src/index.ts` hiện re-export **mọi** component. `import { Ping } from 'tinita-react'` kéo theo
   đồ thị module của cả `file-tree` (radix + lucide) lẫn `carousel-ticker`.
 - Đây là lý do **kỹ thuật** để bỏ barrel, mạnh hơn lý do "quy ước" mà docs vẫn nêu.
@@ -498,12 +516,14 @@ Tree-shaking giảm **bytes gửi tới browser**; nó không giảm **thứ ph�
 - B giảm được code, nhưng không thay thế A. **A và B bổ sung cho nhau, cả hai làm được ngay.**
 
 **C. Tách nhiều package theo cụm dependency**
+
 - `tinita-react` (core zero-dep) + `tinita-react-antd` + `tinita-react-base` + ...
 - Cô lập triệt để nhất, mỗi package khai đúng dependency của mình.
 - Đổi lại: nhiều package phải version/publish/đồng bộ; user phải biết component nằm ở package nào;
   chi phí maintain tăng theo số cụm.
 
 **D. Registry distribution kiểu shadcn**
+
 - User copy source component vào codebase của họ; CLI khai và cài đúng dependency cần.
 - Giải quyết **triệt để** đúng bài toán này - không tồn tại khái niệm "cài cả lib".
 - Đổi lại: user sở hữu source, không nhận update qua `npm update`; phải dựng và duy trì registry.
@@ -519,22 +539,22 @@ Tree-shaking giảm **bytes gửi tới browser**; nó không giảm **thứ ph�
 Tailwind của library xung đột với CSS của client**. Đây là **sự cố production đã xảy ra**, không
 phải rủi ro giả định.
 
-Nguyên tắc bị vi phạm: *library không được sở hữu global CSS của consumer*.
+Nguyên tắc bị vi phạm: _library không được sở hữu global CSS của consumer_.
 
-| Bề mặt rò rỉ | file:dòng | Ảnh hưởng tới client |
-|---|---|---|
-| Reset tự viết `@layer base { * { @apply border-border } body { @apply bg-background text-foreground } }` | `src/styles/globals.css:116-127` | `*` set `border-color` lên mọi element; `body` đổi nền/chữ/font-smoothing toàn trang |
-| 22 token KHÔNG prefix trong `@theme inline` | `src/styles/globals.css:81-111` | Ghi vào namespace `--color-*`/`--radius*`/`--spacing-*`/`--font-*` **Tailwind v4 dành riêng**, đồng thời trùng khít bộ token chuẩn **shadcn/ui** (`background`, `primary`, `border`, `ring`...) |
-| 27 class KHÔNG prefix: 18 `.animate-*`, 8 `.transition-*`, `.interactive` | `src/styles/animations.css:114-318` | Tên chung chung, đụng class của client; `.animate-*` đụng thẳng utility `animate-*` của Tailwind bên client |
-| Selector `.dark` không prefix | `globals.css:54-76`, `animations.css:213,224,234`, `FileTree.css:42,487,493,499,505` | `.dark` là convention dark-mode chuẩn của Tailwind; client toggle dark mode của họ thì token tinita cũng fire |
-| `*, *::before, *::after { ... !important }` trong reduced-motion | `src/styles/animations.css:530-539` | Universal + `!important`, không scope, đè mọi xử lý reduced-motion của client |
-| `FileTree.css` và `CarouselTicker.css` nằm NGOÀI mọi `@layer` | cả 2 file, 0 match `@layer` | Theo spec cascade layers, CSS không thuộc layer nào **luôn thắng** CSS trong layer của client. Client muốn override phải đấu specificity hoặc `!important` |
-| `.tinita-carousel-ticker * { box-sizing: border-box }` (+ bản `!important`) | `CarouselTicker.css:15-17, 20-25` | Ép style lên **mọi children client truyền vào** `<CarouselTicker>` |
-| Tailwind utility thô trong JSX | `Ping.tsx:45-50`, `CarouselTicker.tsx:211-291` | `build-entry.css` không `@import "tailwindcss"` nên `dist/styles.css` KHÔNG ship utility. 2 component này chỉ hiển thị đúng nếu **host** có Tailwind với đúng version/theme, và content-scan quét tới `node_modules/tinita-react` |
-| `--radix-accordion-content-height` trong keyframes public | `FileTree.css:230,237` | Biến nội bộ của Radix thành phụ thuộc ngầm trong contract CSS công khai; đổi foundation sẽ vỡ keyframes |
-| `tailwind.config.cjs` thiếu hàng rào | toàn file (17 dòng) | Không có `prefix`, không có `important`, không có `corePlugins.preflight: false` |
-| `src/styles/index.css` có `@import "tailwindcss"` | `src/styles/index.css:8` | File mồ côi - `build-css.mjs:23` chỉ compile `build-entry.css`, không có trong `exports`, không ai reference. Chưa rò rỉ hôm nay nhưng là mìn chờ |
-| `autoInjectStyles` append cuối `document.head` | `src/utils/autoInjectStyles.ts:22-25` | Load sau stylesheet của client -> thắng theo thứ tự nguồn khi cùng specificity. Có SSR guard và chống trùng id, nhưng không tự gỡ khi unmount. **Hiện không component nào gọi** |
+| Bề mặt rò rỉ                                                                                             | file:dòng                                                                            | Ảnh hưởng tới client                                                                                                                                                                                                              |
+| -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Reset tự viết `@layer base { * { @apply border-border } body { @apply bg-background text-foreground } }` | `src/styles/globals.css:116-127`                                                     | `*` set `border-color` lên mọi element; `body` đổi nền/chữ/font-smoothing toàn trang                                                                                                                                              |
+| 22 token KHÔNG prefix trong `@theme inline`                                                              | `src/styles/globals.css:81-111`                                                      | Ghi vào namespace `--color-*`/`--radius*`/`--spacing-*`/`--font-*` **Tailwind v4 dành riêng**, đồng thời trùng khít bộ token chuẩn **shadcn/ui** (`background`, `primary`, `border`, `ring`...)                                   |
+| 27 class KHÔNG prefix: 18 `.animate-*`, 8 `.transition-*`, `.interactive`                                | `src/styles/animations.css:114-318`                                                  | Tên chung chung, đụng class của client; `.animate-*` đụng thẳng utility `animate-*` của Tailwind bên client                                                                                                                       |
+| Selector `.dark` không prefix                                                                            | `globals.css:54-76`, `animations.css:213,224,234`, `FileTree.css:42,487,493,499,505` | `.dark` là convention dark-mode chuẩn của Tailwind; client toggle dark mode của họ thì token tinita cũng fire                                                                                                                     |
+| `*, *::before, *::after { ... !important }` trong reduced-motion                                         | `src/styles/animations.css:530-539`                                                  | Universal + `!important`, không scope, đè mọi xử lý reduced-motion của client                                                                                                                                                     |
+| `FileTree.css` và `CarouselTicker.css` nằm NGOÀI mọi `@layer`                                            | cả 2 file, 0 match `@layer`                                                          | Theo spec cascade layers, CSS không thuộc layer nào **luôn thắng** CSS trong layer của client. Client muốn override phải đấu specificity hoặc `!important`                                                                        |
+| `.tinita-carousel-ticker * { box-sizing: border-box }` (+ bản `!important`)                              | `CarouselTicker.css:15-17, 20-25`                                                    | Ép style lên **mọi children client truyền vào** `<CarouselTicker>`                                                                                                                                                                |
+| Tailwind utility thô trong JSX                                                                           | `Ping.tsx:45-50`, `CarouselTicker.tsx:211-291`                                       | `build-entry.css` không `@import "tailwindcss"` nên `dist/styles.css` KHÔNG ship utility. 2 component này chỉ hiển thị đúng nếu **host** có Tailwind với đúng version/theme, và content-scan quét tới `node_modules/tinita-react` |
+| `--radix-accordion-content-height` trong keyframes public                                                | `FileTree.css:230,237`                                                               | Biến nội bộ của Radix thành phụ thuộc ngầm trong contract CSS công khai; đổi foundation sẽ vỡ keyframes                                                                                                                           |
+| `tailwind.config.cjs` thiếu hàng rào                                                                     | toàn file (17 dòng)                                                                  | Không có `prefix`, không có `important`, không có `corePlugins.preflight: false`                                                                                                                                                  |
+| `src/styles/index.css` có `@import "tailwindcss"`                                                        | `src/styles/index.css:8`                                                             | File mồ côi - `build-css.mjs:23` chỉ compile `build-entry.css`, không có trong `exports`, không ai reference. Chưa rò rỉ hôm nay nhưng là mìn chờ                                                                                 |
+| `autoInjectStyles` append cuối `document.head`                                                           | `src/utils/autoInjectStyles.ts:22-25`                                                | Load sau stylesheet của client -> thắng theo thứ tự nguồn khi cùng specificity. Có SSR guard và chống trùng id, nhưng không tự gỡ khi unmount. **Hiện không component nào gọi**                                                   |
 
 **Điểm sáng:** Preflight chính chủ của Tailwind KHÔNG được ship - `build-entry.css` chỉ import
 `globals.css` + `animations.css`, không `@import "tailwindcss"`. Nhưng block reset tự viết ở hàng
@@ -565,6 +585,7 @@ registry (shadcn-style distribution model)
 ### CSS Strategy (Future)
 
 **6 Nguyên Tắc:**
+
 1. No Preflight - tránh global reset
 2. Prefix utilities - `tinita-` trên tất cả Tailwind classes
 3. Namespace tokens - CSS variables, không hard-code
@@ -573,6 +594,7 @@ registry (shadcn-style distribution model)
 6. Semantic variants - `<Button variant="primary" />` not `className="..."`
 
 **Current Status:**
+
 - ✓ Prefix tinita- (done)
 - ✓ CSS variables (done)
 - ✓ className prop (done)
@@ -591,6 +613,7 @@ registry (shadcn-style distribution model)
 ## Known Issues (5)
 
 ### 1. Storybook Script Filter Sai Scope
+
 - **Root script:** `pnpm storybook` / `pnpm build-storybook`
 - **Filter:** `--filter=@storybook/tinita`
 - **Actual package name:** `@tinita/storybook`
@@ -598,12 +621,14 @@ registry (shadcn-style distribution model)
 - **Fix:** Change filter to `--filter=storybook` or `--filter=@tinita/storybook`, and check script name
 
 ### 2. Storybook Task Cannot Run
+
 - **Even if filter fixed**, turbo task `storybook` calls non-existent script
 - **apps/storybook has:** `dev`, `build-storybook`, `lint`, `check-types`
 - **No script named:** `storybook`
 - **Fix:** Either create `storybook` script, or run `pnpm dev` directly in apps/storybook
 
 ### 3. generate:exports Script Not Exists
+
 - **Root script:** `pnpm generate:exports`
 - **Calls:** `turbo run generate:exports`
 - **Issue:** Task không tồn tại, file `scripts/generate-package-exports.mjs` không có
@@ -611,6 +636,7 @@ registry (shadcn-style distribution model)
 - **Fix:** Remove script hoặc implement nó
 
 ### 4. TypeScript Config Path Alias Dead
+
 - **File:** `config/typescript-config/base.json`
 - **Alias:** `@tinita-internal/*` -> `packages/core/src/*`
 - **Issue:** `packages/core` không tồn tại
@@ -618,9 +644,10 @@ registry (shadcn-style distribution model)
 - **Fix:** Remove alias hoặc tạo packages/core
 
 ### 5. ESLint next Preset Named Export Sai
+
 - **File:** `config/eslint-config/next.js`
-- **Import:** `{ config as baseConfig } from './base.js'`
-- **Issue:** base.js only has default export (no named export `config`)
+- **ĐÃ VÁ 2026-09-25.** Import cũ: `{ config as baseConfig } from './base.js'`
+- **Issue:** base.js chỉ có default export. `config/ui/eslint.config.mjs` mắc cùng lỗi và làm lint gãy thật
 - **Impact:** Throw nếu preset next được dùng
 - **Status:** Không xác minh ai dùng preset next
 - **Fix:** Import default instead: `import baseConfig from './base.js'`
@@ -698,10 +725,12 @@ Package live on NPM
 ### Bundle Size
 
 **Per-file Builds:**
+
 - tinita: Each utility ~500 bytes gzipped
 - tinita-react: Components bundled (runtime deps require bundling)
 
 **Tree-shaking Effectiveness:**
+
 - Subpath import: `tinita/file/fileSize` -> only fileSize shipped
 - Barrel import: `tinita` -> all utilities shipped (tree-shake off if any used)
 

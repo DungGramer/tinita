@@ -51,6 +51,7 @@ packages/tinita/
 ### Package Structure: tinita-react
 
 **Hiện Trạng:**
+
 ```
 packages/tinita-react/
 ├── src/
@@ -92,6 +93,7 @@ packages/tinita-react/
 ```
 
 **⚠️ Mâu Thuẫn:**
+
 - `src/index.ts` CÓ barrel export (re-export useToggle, useIsomorphicLayoutEffect, ui/file-tree, ping, carousel-ticker, autoInjectStyles)
 - Quy tắc nói "NO barrel import cho tinita-react" nhưng code hiện tại vi phạm
 - Đây là **xung đột code-vs-rule đã biết, nên sửa**
@@ -102,26 +104,26 @@ packages/tinita-react/
 
 ### Files
 
-| Loại | Quy Tắc | Ví Dụ |
-|------|---------|-------|
-| Utilities (tinita) | camelCase.ts | `fileSize.ts`, `generateUUID.ts` |
-| Hooks | `use` + PascalCase.ts | `useToggle.ts`, `useIsomorphicLayoutEffect.ts` |
-| Components (Main) | PascalCase.tsx | `FileTree.tsx`, `Ping.tsx` |
-| Components (Private) | camelCase.tsx | `fileLabel.tsx`, `folderNode.tsx` |
-| CSS | Match component + .css | `FileTree.css`, `CarouselTicker.css` |
-| Types | types.ts hoặc ComponentName.types.ts | `types.ts`, `FileTree.types.ts` |
-| Utils (component-local) | camelCase.ts | `parser.ts`, `icons.ts` |
-| Tests | Match source + .test | `fileSize.test.ts`, `useToggle.test.tsx` |
-| Index (re-export) | index.ts (không .tsx nếu không JSX) | `src/hooks/index.ts`, `src/ui/FileTree/index.ts` |
+| Loại                    | Quy Tắc                              | Ví Dụ                                            |
+| ----------------------- | ------------------------------------ | ------------------------------------------------ |
+| Utilities (tinita)      | camelCase.ts                         | `fileSize.ts`, `generateUUID.ts`                 |
+| Hooks                   | `use` + PascalCase.ts                | `useToggle.ts`, `useIsomorphicLayoutEffect.ts`   |
+| Components (Main)       | PascalCase.tsx                       | `FileTree.tsx`, `Ping.tsx`                       |
+| Components (Private)    | camelCase.tsx                        | `fileLabel.tsx`, `folderNode.tsx`                |
+| CSS                     | Match component + .css               | `FileTree.css`, `CarouselTicker.css`             |
+| Types                   | types.ts hoặc ComponentName.types.ts | `types.ts`, `FileTree.types.ts`                  |
+| Utils (component-local) | camelCase.ts                         | `parser.ts`, `icons.ts`                          |
+| Tests                   | Match source + .test                 | `fileSize.test.ts`, `useToggle.test.tsx`         |
+| Index (re-export)       | index.ts (không .tsx nếu không JSX)  | `src/hooks/index.ts`, `src/ui/FileTree/index.ts` |
 
 ### Directories
 
-| Loại | Quy Tắc | Ví Dụ |
-|------|---------|-------|
-| Utility Categories | kebab-case | `src/file/`, `src/uuid/` |
-| Component Folders | kebab-case | `src/ui/file-tree/`, `src/ui/carousel-ticker/` |
-| Utilities | camelCase | `utils/`, `helpers/`, `constants/` |
-| Config | camelCase | `config/`, `.storybook/` |
+| Loại               | Quy Tắc    | Ví Dụ                                          |
+| ------------------ | ---------- | ---------------------------------------------- |
+| Utility Categories | kebab-case | `src/file/`, `src/uuid/`                       |
+| Component Folders  | kebab-case | `src/ui/file-tree/`, `src/ui/carousel-ticker/` |
+| Utilities          | camelCase  | `utils/`, `helpers/`, `constants/`             |
+| Config             | camelCase  | `config/`, `.storybook/`                       |
 
 ---
 
@@ -130,6 +132,7 @@ packages/tinita-react/
 **Quy Tắc:** Main component file riêng + index.ts chỉ re-export.
 
 **✅ Đúng (hiện trạng):**
+
 ```
 src/ui/FileTree/
   ├── FileTree.tsx              ← Main logic (PascalCase, tên file riêng)
@@ -146,6 +149,7 @@ src/ui/FileTree/
 ```
 
 **❌ Sai (don't do this):**
+
 ```
 src/ui/FileTree/
   ├── index.tsx                 ← Logic ở index (khó tìm)
@@ -154,6 +158,7 @@ src/ui/FileTree/
 ```
 
 **Lợi ích:**
+
 1. **Discoverability** - `FileTree.tsx` dễ tìm hơn logic trong index
 2. **Maintainability** - Rõ ràng main logic vs barrel export
 3. **Scalability** - Dễ thêm types, utils mà không cluttering
@@ -165,19 +170,20 @@ src/ui/FileTree/
 
 **File:** `config/typescript-config/base.json`
 
-| Compiler Option | Value | Ghi chú |
-|-----------------|-------|--------|
-| target | **ES2020** (KHÔNG ES2022) | Ground-truth: ES2020, không ES2022 |
-| module | ESNext | |
+| Compiler Option  | Value                     | Ghi chú                            |
+| ---------------- | ------------------------- | ---------------------------------- |
+| target           | **ES2020** (KHÔNG ES2022) | Ground-truth: ES2020, không ES2022 |
+| module           | ESNext                    |                                    |
 | moduleResolution | **Node** (KHÔNG NodeNext) | Ground-truth: Node, không NodeNext |
-| lib | [ES2020, DOM] | |
-| strict | true | |
-| esModuleInterop | true | |
-| declaration | true | |
-| sourceMap | true | |
-| skipLibCheck | true | |
+| lib              | [ES2020, DOM]             |                                    |
+| strict           | true                      |                                    |
+| esModuleInterop  | true                      |                                    |
+| declaration      | true                      |                                    |
+| sourceMap        | true                      |                                    |
+| skipLibCheck     | true                      |                                    |
 
 **Extends:**
+
 - `react-library.json` - base + `jsx: react-jsx`
 - `nextjs.json` - base + Bundler moduleResolution, allowJs, noEmit
 - `vue-library.json` - base + `jsx: preserve`
@@ -201,7 +207,8 @@ src/ui/FileTree/
   ],
   format: ['cjs', 'esm'],
   dts: true,
-  bundle: false,              // CRITICAL - no bundling for tree-shaking
+  bundle: true,               // bắt buộc: bundle:false sinh import ESM không đuôi
+  outExtension: ({ format }) => ({ js: format === 'cjs' ? '.cjs' : '.mjs' }),
   splitting: false,
   clean: true,
   minify: true,
@@ -239,7 +246,8 @@ src/ui/FileTree/
 ```
 
 **Khác biệt:**
-- tinita: `bundle: false` - tree-shaking perfect
+
+- tinita: `bundle: true` - buộc phải vậy (xem `system-architecture.md`); tree-shaking vẫn theo subpath vì mỗi utility là 1 entry
 - tinita-react: `bundle: true` - vì có runtime deps, dùng external để avoid bundling framework
 
 ---
@@ -249,20 +257,23 @@ src/ui/FileTree/
 ### Architecture (Hiện Trạng)
 
 **Tailwind v4 build-time approach:**
+
 - Developers write CSS với Tailwind utilities + CSS variables
 - Build compiles Tailwind -> Pure CSS via PostCSS
 - Users receive pre-compiled CSS (no Tailwind dependency)
 
 **CSS Files:**
+
 - `src/styles/globals.css` - Tailwind base + theme tokens (CSS variables)
 - `src/styles/animations.css` - @keyframes animations
 - Component CSS (`FileTree.css`, `CarouselTicker.css`) - CSS variables + vanilla CSS, KHÔNG @apply
 
 **Build** (script tự log: Step 1, 1.5, 2, 3, 4):
+
 1. Copy globals.css -> dist/styles/globals.css
-1.5. Copy animations.css -> dist/styles/animations.css
+   1.5. Copy animations.css -> dist/styles/animations.css
 2. PostCSS build-entry.css -> theme CSS
-3. PostCSS ui/**/*.css -> component CSS, minified -> dist/ui/
+3. PostCSS ui/\*_/_.css -> component CSS, minified -> dist/ui/
 4. Bundle stage: theme + components -> minify -> ghi đè dist/styles.css
 
 Watch mode (`--watch`) là chế độ riêng, không phải một step: debounce 300ms, chạy lại pipeline.
@@ -270,11 +281,13 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 ### Naming & Prefixing
 
 **Quy Tắc (Hiện Trạng ✓):**
+
 - Prefix tất cả class: `tinita-{component}__*`
 - BEM-like: `tinita-filetree__label--folder`
 - CSS variable: `tinita-primary`, `tinita-radius-md`, `tinita-ease-in-out`
 
 **Ví dụ:**
+
 ```css
 /* src/ui/FileTree/FileTree.css */
 .tinita-filetree {
@@ -294,6 +307,7 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 ### Customization
 
 **CSS Variables (Level 1):**
+
 ```css
 :root {
   --tinita-filetree-bg: #ffffff;
@@ -303,11 +317,13 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 ```
 
 **Variants + Props (Level 2):**
+
 ```typescript
 <Button variant="primary" size="lg" />
 ```
 
 **className Escape Hatch (Level 3):**
+
 ```typescript
 <FileTree className="my-custom-styles" />
 ```
@@ -317,6 +333,7 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 ## CSS Định Hướng (Target - Chưa Triển Khai Toàn Bộ)
 
 **6 Nguyên Tắc từ design-brief:**
+
 1. **Không ship Preflight** - Tránh global reset trên img, button, input
 2. **Prefix utilities** - Tất cả Tailwind utilities prefix `tinita-`
 3. **Namespace tokens** - CSS variables cho design tokens, không hard-code
@@ -325,6 +342,7 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 6. **Semantic variants** - `<Button variant="primary" />` thay vì raw Tailwind classes
 
 **Hiện Trạng:**
+
 - ✓ Prefix `tinita-` - đã áp dụng
 - ✓ CSS variables - đã áp dụng
 - ✓ className prop - đã có
@@ -339,36 +357,41 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 ### ESLint
 
 **Root:** `.eslintrc.cjs` (legacy)
+
 - base config: js.recommended + tseslint.recommended + turbo plugin
-- ignore: dist/**
+- ignore: dist/\*\*
 
 **Flat Configs (at packages):**
+
 - base.js (base config flat)
 - react-internal.js (base + react)
 - next.js (next/core-web-vitals + react-hooks)
 
-**Known Issue:** next.js preset import named export từ base.js mà không tồn tại.
+**Đã vá 2026-09-25:** next.js và config/ui từng import named `{ config }` từ preset chỉ có default export. Nay cả 3/3 consumer dùng default import.
 
 ### Prettier
 
 **File:** `prettier.config.js`
+
 - Uỷ quyền hoàn toàn cho preset ngoài: `{ ...require("@dunggramer/prettier") }`
 - Không override gì
 
 ---
 
-## Testing (0 Tests Currently)
+## Testing
 
 **Setup:**
+
 - vitest.config.ts (root) - environment: node, globals: true, coverage: v8
 - vitest.config.ts (tinita-react) - environment: jsdom, globals: true
 
 **Quy Tắc (chưa áp dụng):**
+
 - Location: `tests/` directory (parallel structure with src/)
 - Format: `*.test.ts` hoặc `*.test.tsx`
 - Coverage: > 80% (mục tiêu)
 
-**Current:** 0 test files.
+**Current:** `packages/tinita/tests/truncateFileName.test.ts` - 35 test (unit + bất biến trên mọi tổ hợp). `tinita-react`: chưa có test.
 
 ---
 
@@ -377,21 +400,25 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 **Quy Tắc (Hiện Trạng ✓):**
 
 **tinita:**
+
 - Mỗi utility = 1 file
 - `fileSize.ts` = `fileSize()` function
 - `generateUUID.ts` = `generateUUID()` function
 
 **tinita-react hooks:**
+
 - Mỗi hook = 1 file
 - `useToggle.ts` = `useToggle()` hook
 - `useIsomorphicLayoutEffect.ts` = `useIsomorphicLayoutEffect()` hook
 
 **tinita-react components:**
+
 - Mỗi component = 1 folder
 - Main logic ở `ComponentName.tsx`
 - Private components gom trong `components/` subfolder
 
 **Lợi ích:**
+
 - Perfect tree-shaking
 - Subpath imports work
 - Easy to locate, modify, test
@@ -404,6 +431,7 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 ### tinita
 
 **Hiện Trạng:** Barrel + subpath
+
 ```typescript
 // src/index.ts - barrel export (re-exports tất cả)
 export * from './file/fileSize';
@@ -412,13 +440,14 @@ export * from './file/truncateFileName';
 export * from './uuid/generateUUID';
 
 // Usage
-import { fileSize } from 'tinita';                    // Barrel
-import { fileSize } from 'tinita/file/fileSize';      // Subpath (optimal)
+import { fileSize } from 'tinita'; // Barrel
+import { fileSize } from 'tinita/file/fileSize'; // Subpath (optimal)
 ```
 
 ### tinita-react
 
 **⚠️ Hiện Trạng (vi phạm quy tắc):**
+
 ```typescript
 // src/index.ts - CÓ barrel export
 export { useToggle } from './hooks/useToggle';
@@ -429,11 +458,12 @@ export * from './ui/carousel-ticker';
 export { autoInjectStyles } from './utils/autoInjectStyles';
 
 // Usage
-import { useToggle } from 'tinita-react';             // Barrel (không nên)
-import { useToggle } from 'tinita-react/hooks/useToggle';  // Subpath (đúng)
+import { useToggle } from 'tinita-react'; // Barrel (không nên)
+import { useToggle } from 'tinita-react/hooks/useToggle'; // Subpath (đúng)
 ```
 
 **Quy Tắc (Mong Muốn):** NO barrel - chỉ subpath
+
 ```typescript
 // src/index.ts - EMPTY (đúng quy tắc)
 export {};
@@ -468,11 +498,11 @@ import { FileTree } from 'tinita-react/ui/file-tree';
 
 ### Bảng Component -> Runtime Dependency (Hiện Trạng)
 
-| Component | Runtime Dep | Status |
-|-----------|-------------|--------|
-| `Ping` | - | Zero-dep ✓ |
-| `CarouselTicker` | clsx, tailwind-merge | Bundled (inline) |
-| `FileTree` | @radix-ui/react-accordion, lucide-react | Externalized |
+| Component        | Runtime Dep                             | Status           |
+| ---------------- | --------------------------------------- | ---------------- |
+| `Ping`           | -                                       | Zero-dep ✓       |
+| `CarouselTicker` | clsx, tailwind-merge                    | Bundled (inline) |
+| `FileTree`       | @radix-ui/react-accordion, lucide-react | Externalized     |
 
 ---
 
@@ -489,7 +519,7 @@ import { FileTree } from 'tinita-react/ui/file-tree';
 
 2. **Prefix tất cả class Tailwind utility**
    - ❌ **Hiện trạng vi phạm:** 27 class không prefix ở `src/styles/animations.css:114-318`
-     - 18 class `.animate-*` (fade-in/out, slide-*, modal-*, etc.)
+     - 18 class `.animate-*` (fade-in/out, slide-_, modal-_, etc.)
      - 8 class `.transition-*` (smooth, spring, modal, fade, slide, etc.)
      - 1 class `.interactive`
    - Tên cực kỳ chung chung, `.animate-*` va đạo trực tiếp Tailwind utility của client
@@ -577,6 +607,7 @@ import { FileTree } from 'tinita-react/ui/file-tree';
 **Quy Tắc (Caveman):** Ngắn gọn, giữ mọi con số, date, mechanism.
 
 **✓ Tốt:**
+
 ```typescript
 // Split filename into name and extension.
 // Handles dots in names: "file.name.txt" -> ["file.name", "txt"]
@@ -586,6 +617,7 @@ function getFileNameParts(fileName: string) {
 ```
 
 **❌ Không:**
+
 ```typescript
 // This function is used to split filenames. It takes a filename string
 // as input and returns an object with the name and extension properties.
@@ -607,6 +639,7 @@ function getFileNameParts(fileName: string) {
 **Chạy:** `pnpm lint` (all packages)
 
 **Tools:**
+
 - ESLint 9.39.1
 - @typescript-eslint
 - eslint-config-prettier (no formatting rules)
