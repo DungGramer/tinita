@@ -479,30 +479,116 @@ import { FileTree } from 'tinita-react/ui/file-tree';
 
 ## Quy Tắc Dependency
 
-**Ràng Buộc (từ 2026-09-24):** tinita-react sẽ có foundation không đồng nhất (antd, Base UI, Radix v.v.), nên user chỉ dùng 1-2 component KHÔNG được phải cài toàn bộ dependency.
+**Ràng buộc (owner, 2026-09-24):** `tinita-react` sẽ có foundation không đồng nhất (antd, Base UI,
+Radix...), nên user chỉ dùng 1-2 component **không được** phải cài toàn bộ dependency của library.
 
-### Quy Tắc Cụ Thể
+**Đã triển khai 2026-09-25.** `tinita-react` không còn khối `dependencies` nào. Mọi lib mà chỉ một
+phần component cần đều là **optional peer dependency**.
 
-1. **Thêm component mới + dùng lib mới -> lib KHÔNG vào `dependencies` cứng**
-   - Hiện trạng: tất cả 5 lib (`@radix-ui/react-accordion`, `clsx`, `lucide-react`, `motion`, `tailwind-merge`) ở `dependencies`
-   - Tương lai: chuyển sang `peerDependencies` với `peerDependenciesMeta.optional: true` (xem chi tiết ở `docs/system-architecture.md`)
-   - Điều kiện: PHẢI cập nhật bảng component->dependency (xem dưới) để user biết component nào cần lib gì
+### Vì sao optional peer, chứ không phải `dependencies`
 
-2. **Component không cần lib ngoài -> giữ zero-dep**
-   - Ping hiện tại zero-dep, phải giữ nguyên
-   - Không được vô tình kéo `cn()` hay `clsx` vào component vốn không cần
+`dependencies` là khai báo ở **cấp package**. Package manager giải dependency tree lúc `install`,
+khi đó nó chưa biết user sẽ `import` subpath nào - nên nó cài hết. Trước khi sửa, một user chỉ dùng
+`Ping` (component không cần lib ngoài nào) vẫn tải khoảng 20 gói về `node_modules`.
 
-3. **Phải cập nhật bảng "Component -> Runtime Dependency" cùng lúc thêm component**
-   - Bảng ở `docs/codebase-summary.md`
-   - Mỗi component mới phải ghi rõ dep runtime mà nó cần (nếu có)
+Subpath export **không** giải quyết được việc này: nó tách được _import_ (giúp bundler tree-shake
+code), không tách được _install_. Tree-shaking cắt bytes gửi tới browser; nó không cắt thứ phải tải
+về khi cài.
 
-### Bảng Component -> Runtime Dependency (Hiện Trạng)
+`peerDependencies` + `peerDependenciesMeta.optional: true` là chỗ duy nhất trong manifest nói được
+"lib này chỉ cần khi bạn dùng một phần nhất định của package".
 
-| Component        | Runtime Dep                             | Status           |
-| ---------------- | --------------------------------------- | ---------------- |
-| `Ping`           | -                                       | Zero-dep ✓       |
-| `CarouselTicker` | clsx, tailwind-merge                    | Bundled (inline) |
-| `FileTree`       | @radix-ui/react-accordion, lucide-react | Externalized     |
+**Cái giá phải trả, và vì sao chấp nhận được:** thiếu lib thì lỗi xuất hiện lúc **runtime**, không
+phải lúc install. Đây là lý do bảng component -> peer dưới đây **bắt buộc** phải có và phải được
+cập nhật cùng lúc với việc thêm component. Không có bảng đó thì mô hình này có DX tệ.
+
+### Quy tắc khi thêm component mới
+
+1. **Lib mới mà chỉ component đó cần -> `peerDependencies` + `peerDependenciesMeta.optional: true`.**
+   Không bao giờ vào `dependencies`.
+2. **Thêm lib đó vào `devDependencies`** để workspace build/lint/typecheck và Storybook chạy được.
+3. **Cập nhật bảng component -> peer** ở đây, ở `README.md` và ở `docs/codebase-summary.md`, trong
+   cùng commit.
+4. **Component không cần lib ngoài thì phải giữ zero-peer.** Đừng vô tình kéo `cn()`/`clsx` vào một
+   component vốn không cần - `Ping` là ví dụ cần giữ nguyên.
+5. **Lib được tsup inline thì không phải peer, mà là `devDependencies`.** Cách kiểm: nếu lib KHÔNG
+   có trong mảng `external` của `tsup.config.ts` thì code của nó đã nằm trong `dist/`, consumer
+   không cần cài. `clsx` và `tailwind-merge` thuộc nhóm này.
+6. **Lib không được import ở đâu thì gỡ.** Cách kiểm:
+   `grep -rhoE "from '[^.][^']*'" --include='*.ts' --include='*.tsx' src | sort -u`.
+   `motion ^12.23.25` từng nằm trong `dependencies` suốt mà không file nào import, bắt mọi consumer
+   tải thêm ~4 gói.
+
+### Bảng component -> optional peer
+
+| Import                                | Optional peer cần cài                       |
+| ------------------------------------- | ------------------------------------------- |
+| `tinita-react/ui/ping`                | không cần gì                                |
+| `tinita-react/ui/carousel-ticker`     | không cần gì                                |
+| `tinita-react/hooks/*`                | không cần gì                                |
+| `tinita-react/utils/autoInjectStyles` | không cần gì                                |
+| `tinita-react/ui/file-tree`           | `@radix-ui/react-accordion`, `lucide-react` |
+
+`react >=18` là peer **bắt buộc** (không optional) cho mọi đường nhập.
+
+### Cách kiểm chứng (chạy được, đừng chỉ suy luận)
+
+Symlink vào `node_modules` **không dùng được** để kiểm việc này: Node resolve ngược lên monorepo và
+tìm thấy lib, nên mọi thứ trông như chạy. Phải đóng gói thật:
+
+```bash
+cd packages/tinita-react && npm pack --pack-destination /tmp
+mkdir /tmp/probe && cd /tmp/probe && npm init -y
+npm install react@19 /tmp/tinita-react-*.tgz
+node -e "require('tinita-react/ui/ping')"        # phải OK
+node -e "require('tinita-react/ui/file-tree')"   # phải báo Cannot find module 'lucide-react'
+```
+
+Kết quả đo 2026-09-25: `node_modules` chỉ có `react` và `tinita-react`; npm không cài optional peer
+và không cảnh báo. `Ping`, `CarouselTicker`, `useToggle`, `autoInjectStyles` load được; `FileTree`
+báo `Cannot find module 'lucide-react'`, và load được sau khi cài 2 peer.
+
+---
+
+## Quy Tắc API: Một Hàm, Một Kiểu Trả Về
+
+**Không dùng option làm đổi kiểu trả về.** Không `output: 'string' | 'parts'`, không `asArray: true`,
+không cờ chế độ nào buộc phải viết overload.
+
+Nếu cần hai hình dạng kết quả thì **xuất hai hàm**, mỗi hàm một file, mỗi hàm một subpath export.
+
+### Vì sao - đây là lỗi thật, không phải sở thích
+
+`truncateFileName` từng có `output: 'string' | 'parts'` với 2 overload. Chỗ nối giữa overload và
+return sớm sinh ra lỗi: khi tên file đã vừa `maxLength`, hàm return sớm chuỗi gốc **trước khi** xét
+`output`, nên `output: 'parts'` trả về **string** trong khi type khai là `TruncatedFileNameParts`.
+Consumer đọc `.prefix` nhận `undefined`, mà TypeScript không hề báo lỗi. Nhánh code đáng lẽ xử lý
+trường hợp đó có tồn tại nhưng là **dead code** - nó lặp lại y nguyên điều kiện của return sớm nên
+không bao giờ chạy tới.
+
+Đó là lớp lỗi mà cờ chế độ sinh ra: type nói một đằng, runtime làm một nẻo, và compiler không bắt
+được vì overload che mất.
+
+Tách thành `truncateFileName` (trả string) và `truncateFileNameParts` (trả parts) xoá cả lớp lỗi đó:
+mỗi hàm có đúng một kiểu trả về, không overload, không nhánh nào phải đoán xem caller muốn gì.
+
+### Lợi ích kèm theo
+
+- **Tree-shaking theo subpath.** Ai chỉ cần chuỗi thì `import from 'tinita/file/truncateFileName'`,
+  không kéo theo phần dựng object.
+- **Khớp quy tắc một-file-một-hàm** vốn đã áp dụng cho cả package.
+- **JSDoc gắn đúng hàm.** Với overload, doc phải đặt trên signature mà editor chọn; đặt sai chỗ là
+  hover không thấy gì (đã từng xảy ra: 120 dòng JSDoc nằm trước một `type` nên cả 2 overload không
+  có doc nào).
+
+### Chia sẻ logic giữa hai hàm
+
+Một hàm là **primitive**, hàm kia gọi lại nó - không nhân bản thuật toán.
+`truncateFileNameParts` giữ thuật toán và cả 2 type; `truncateFileName` gọi nó rồi ghép chuỗi.
+
+Đừng tạo file dùng chung kiểu `_shared.ts`: glob entry của tsup (`src/*/**/*.ts`) sẽ bắt nó thành
+một entry public trong `dist/` mà `exports` không khai - đúng cái đang xảy ra với `src/utils/cn.ts`
+trong `tinita-react` (build ra `dist/utils/cn.*` nhưng không import được qua entry chính thức).
 
 ---
 

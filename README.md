@@ -51,15 +51,28 @@ import { autoInjectStyles } from 'tinita-react/utils/autoInjectStyles';
 import 'tinita-react/styles.css';
 ```
 
-#### Component Dependencies
+#### Cài theo component
 
-| Component        | Runtime Dependencies                    | Notes                                 |
-| ---------------- | --------------------------------------- | ------------------------------------- |
-| `Ping`           | -                                       | Zero external dependencies            |
-| `CarouselTicker` | clsx, tailwind-merge                    | Bundled in output (no install needed) |
-| `FileTree`       | @radix-ui/react-accordion, lucide-react | Both externalized                     |
+`tinita-react` **không có `dependencies`**. Lib nào chỉ một phần component cần thì là **optional
+peer** - bạn chỉ cài cái mà component bạn dùng đòi.
 
-**⚠️ Current Issue:** `npm install tinita-react` kéo theo ~20 gói (bao gồm `motion` không được dùng). Chỉ dùng `Ping` vẫn phải cài cả `@radix-ui/react-accordion`, `lucide-react`, `motion`. Định hướng: chuyển sang optional peer dependencies (xem `docs/system-architecture.md`).
+| Import                                | Cần cài thêm                                 |
+| ------------------------------------- | -------------------------------------------- |
+| `tinita-react/ui/ping`                | không cần gì                                 |
+| `tinita-react/ui/carousel-ticker`     | không cần gì                                 |
+| `tinita-react/hooks/*`                | không cần gì                                 |
+| `tinita-react/utils/autoInjectStyles` | không cần gì                                 |
+| `tinita-react/ui/file-tree`           | `@radix-ui/react-accordion` + `lucide-react` |
+
+`react >=18` là peer bắt buộc cho mọi đường nhập.
+
+```bash
+npm install tinita-react                                          # Ping, CarouselTicker, hooks
+npm install tinita-react @radix-ui/react-accordion lucide-react   # thêm FileTree
+```
+
+Thiếu peer thì lỗi xuất hiện lúc chạy (`Cannot find module 'lucide-react'`), không phải lúc install -
+npm không cảnh báo về optional peer. Bảng trên là chỗ tra.
 
 ---
 
