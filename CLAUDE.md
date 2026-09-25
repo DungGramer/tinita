@@ -224,13 +224,33 @@ Critical rules for tree-shakeability:
 - ✅ Subpath imports encouraged: `import { fileSize } from 'tinita/file/fileSize'`
 
 #### `tinita-react` (React Package)
-- ❌ NO barrel imports: `import { useToggle } from 'tinita-react'` is **FORBIDDEN**
-- ✅ MUST use explicit subpaths:
-  - Hooks: `import { useToggle } from 'tinita-react/hooks'`
-  - UI: `import { FileTree } from 'tinita-react/ui'`
-  - Specific: `import { useToggle } from 'tinita-react/hooks/useToggle'`
 
-**Rationale:** Enforcing explicit imports improves tree-shaking and makes it clear whether you're importing hooks or UI components.
+**Sửa 2026-09-25:** hai đường nhập từng được ghi ở đây là BẮT BUỘC - `tinita-react/hooks` và
+`tinita-react/ui` - **không tồn tại**. Chúng không có trong `exports` của `package.json` lẫn trong
+`dist/`. Tài liệu này đã chỉ người dùng vào đường chết. Phát hiện bởi ca `05-contract-drift` của
+compatibility lab, sau khi thực thi thử từng specifier.
+
+Subpath có thật (9 key, xác minh bằng `node compatibility/run.mjs l1`):
+
+```
+tinita-react                              # barrel - xem cảnh báo dưới
+tinita-react/hooks/useToggle
+tinita-react/ui/ping
+tinita-react/ui/carousel-ticker
+tinita-react/ui/file-tree
+tinita-react/utils/autoInjectStyles
+tinita-react/styles.css
+tinita-react/styles/globals.css
+tinita-react/styles/animations.css
+```
+
+- ✅ **Dùng subpath cụ thể**, ví dụ `import { Ping } from 'tinita-react/ui/ping'`.
+- ⚠️ **Barrel `tinita-react` kéo theo cả optional peer.** Đo được: `src/index.ts` re-export
+  `./ui/file-tree`, nên `import { Ping } from 'tinita-react'` đòi `@radix-ui/react-accordion` và
+  `lucide-react` dù `Ping` không cần cái nào. Đây là lý do KỸ THUẬT để bỏ barrel, mạnh hơn lý do
+  quy ước. Hiện barrel vẫn tồn tại (nợ #7).
+
+**Rationale:** subpath cụ thể cho tree-shaking tốt hơn, và tránh kéo optional peer không cần thiết.
 
 ## TypeScript Configuration
 
@@ -430,7 +450,7 @@ src/ui/FileTree/
 The component will be available as:
 ```typescript
 // Barrel import from ui
-import { FileTree } from 'tinita-react/ui';
+import { FileTree } from 'tinita-react/ui/file-tree';
 
 // Direct import
 import { FileTree } from 'tinita-react/ui/FileTree';
@@ -668,14 +688,14 @@ import 'tinita-react/styles.css'; // All components
 import 'tinita-react/ui/FileTree/FileTree.css'; // Specific component
 
 // Then use component
-import { FileTree } from 'tinita-react/ui';
+import { FileTree } from 'tinita-react/ui/file-tree';
 <FileTree data={data} autoInjectStyles={false} />
 ```
 
 **Mode 2: Auto-Inject (Development/Prototyping)**
 
 ```typescript
-import { FileTree } from 'tinita-react/ui';
+import { FileTree } from 'tinita-react/ui/file-tree';
 <FileTree data={data} /> // autoInjectStyles defaults to true
 ```
 

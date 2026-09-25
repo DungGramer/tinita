@@ -254,7 +254,19 @@ text-foreground } }` tại `src/styles/globals.css:116-127`. `*` và `body` thu�
   `bg-green-500` còn hard-code màu dù `--tinita-ping` đã tồn tại.
 - Bọc `var(--radix-accordion-content-height)` (`FileTree.css:230,237`) sau token của tinita -
   biến nội bộ Radix không được nằm trong contract CSS công khai.
-  **Tiêu chí hoàn thành (kiểm được):**
+  **Thêm từ số đo của compatibility lab (2026-09-25):**
+- Tài liệu hoá cho người dùng rằng khai `@layer theme, base, components, utilities` ở phía consumer
+  là **tự bảo vệ được** - đã có trong `README.md`. Rẻ hơn mọi thay đổi phía library.
+- Thêm `'use client'` vào `FileTree` và `CarouselTicker`. Đo được: trong Server Component của Next
+  15 chúng throw `(0 , e.useState) is not a function` và `(0 , e.useRef) is not a function`; `Ping`
+  thì chạy được vì không dùng hook. Consumer tự bọc là đủ nhưng việc đó bị đẩy sang mọi consumer.
+- Scope khối reduced-motion `animations.css:530-539`. Đo được: element của **chủ nhà** bị ép
+  `animation-duration=1e-05s`. Sau khi sửa, ca `reduced-motion-scope` của L4 sẽ đỏ -> đảo assertion.
+- Khi bịt xong rò rỉ nào thì đảo `expected` trong `compatibility/cases/l2/lib/css-probe.mjs`
+  (`LEAK_SURFACES`) và trong ca L4, từ `leaks` sang `clean`. Không viết lại ca.
+
+**Tiêu chí hoàn thành (kiểm được):**
+
 - `dist/styles.css` không chứa selector nào ngoài class có prefix `tinita-` (không `*`, không
   `body`, không `html`, không element trần)
 - grep `dist/styles.css` tìm class không prefix -> 0 kết quả
@@ -268,8 +280,9 @@ text-foreground } }` tại `src/styles/globals.css:116-127`. `*` và `body` thu�
 **Đã làm:** chọn hướng A, chuyển `@radix-ui/react-accordion` và `lucide-react` sang optional peer
 (`dependencies` nay rỗng), viết bảng component -> peer vào `README.md`, `code-standards.md`,
 `codebase-summary.md`, và ghi quy tắc + lệnh kiểm để lần sau follow.
-**Còn lại:** dựng kiểm tự động trong CI xác minh `import 'tinita-react/ui/<x>'` không đòi lib mà
-`<x>` không dùng - hiện chỉ kiểm thủ công bằng `npm pack`. Phụ thuộc M4 (CI).
+**Đã xong phần còn lại:** kiểm tự động nay là ca `04b-optional-peer-matrix` của compatibility lab
+(6 đường nhập × 2 trạng thái peer, chạy trên tarball trong project cô lập).
+`node compatibility/run.mjs l1`. Không còn phụ thuộc M4 - M4 chỉ cần gọi lại lệnh đó.
 
 **Tiên quyết:** M0. Có thể song song M1.
 **Mục tiêu:** ràng buộc RB-1 - user dùng 1-2 component không phải cài toàn bộ dependency.
@@ -317,6 +330,15 @@ ra được, mọi export public có ít nhất 1 test.
 
 **Tiên quyết:** M0, M3 (CI phải chạy build/lint/test đã sạch và có ý nghĩa).
 **Mục tiêu:** xoá nợ #9 - có kiểm tra tự động trên mỗi PR.
+**Lab đã sẵn sàng, CI chỉ cần gọi lại:**
+
+```
+node compatibility/run.mjs all --tier=1   # mỗi PR   (~2.9 phút, đo thật)
+node compatibility/run.mjs all --tier=2   # pre-publish (~41 phút - cần tối ưu trước, xem compatibility/README.md)
+node compatibility/run.mjs all --tier=3   # nightly
+```
+
+Exit 0 pass · 1 package sai · 2 hạ tầng sai. Không cần viết lại gì.
 **Việc cụ thể:** GitHub Actions workflow chạy `pnpm build`, `pnpm lint`, `pnpm check-types`,
 `pnpm test` trên PR và trên push vào `main`.
 **Tiêu chí hoàn thành:** workflow xanh trên một PR thử nghiệm; badge/status hiển thị trong repo.
