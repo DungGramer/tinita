@@ -1,0 +1,30 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>host fixture</title>
+<style>
+  /* CSS của CHỦ NHÀ. Mọi giá trị đặt tường minh và đặc trưng dễ nhận, để biết cái nào bị đè. */
+  :root {
+    --color-primary: rgb(1, 2, 3);
+    --color-background: rgb(4, 5, 6);
+    --color-border: rgb(7, 8, 9);
+    --radius: 11px;
+    --font-sans: "HostFont";
+  }
+  body { background-color: rgb(10, 20, 30); color: rgb(40, 50, 60); margin: 0; }
+  div[data-host] { border-color: rgb(70, 80, 90); border-style: solid; border-width: 1px; }
+  .animate-fade-in { animation-name: hostFade; animation-duration: 7s; }
+  .transition-fast { transition-duration: 777ms; }
+  .interactive { opacity: 0.77; }
+  @keyframes hostFade { from { opacity: 0 } to { opacity: 1 } }
+  /* Override có chủ ý trong layer - consumer PHẢI thắng được nếu CSS library nằm trong layer */
+  @layer host {
+    .tinita-filetree { border-color: rgb(123, 123, 123); }
+  }
+</style>
+
+<div data-host id="host-box">host box</div>
+<div class="animate-fade-in" id="host-animate">host animate</div>
+<div class="transition-fast" id="host-transition">host transition</div>
+<div class="interactive" id="host-interactive">host interactive</div>
+<div class="tinita-filetree" id="host-filetree-override">filetree override probe</div>
+<div class="tinita-carousel-ticker" id="host-ticker"><span id="host-ticker-child" style="box-sizing: content-box">child</span></div>
