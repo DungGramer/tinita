@@ -42,8 +42,8 @@
       "levels": [
         "l1"
       ],
-      "tier": 2,
-      "why": "LTS cũ còn support"
+      "tier": 3,
+      "why": "LTS cũ còn support. Hạ xuống tier 3 2026-09-26: cell node22-npm đã trả lời câu hỏi LTS, Node 20 chỉ thêm một điểm dữ liệu. Giữ ở tier 3 để vẫn được kiểm trước release."
     },
     {
       "id": "node18-npm",

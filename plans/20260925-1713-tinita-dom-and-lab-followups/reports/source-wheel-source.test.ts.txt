@@ -1,0 +1,112 @@
+import { describe, expect, it } from 'vitest';
+import {
+  classifyWheelSource,
+  provisionalWheelSource,
+  WHEEL_SAMPLE_COUNT,
+  WHEEL_STEP_MIN_PIXELS,
+  type WheelSample,
+} from './wheel-source';
+
+/**
+ * Builds a stream from a magnitude list and a fixed cadence. Written this way so
+ * a case reads as the SHAPE it is describing — "eight detents, 60ms apart" —
+ * rather than as a table of numbers.
+ */
+function stream(magnitudes: number[], gapMs: number, startAt = 1000): WheelSample[] {
+  return magnitudes.map((delta, i) => ({ time: startAt + i * gapMs, delta }));
+}
+
+/** A per-frame generator ramping up and decaying. Never twice the same number. */
+const RAMP = [4.2, 9.7, 15.3, 18.1, 16.4, 11.2, 6.8, 3.1];
+
+/**
+ * A wheel spun hard: detent-sized, but the driver's acceleration means no single
+ * magnitude dominates. Chrome's 100px notch alongside the 133.33px some drivers
+ * report, rounded as the browser reports them.
+ */
+const ACCELERATED_DETENTS = [100, 133, 120, 100, 133, 120, 100, 133];
+
+describe('classifyWheelSource', () => {
+  it('refuses to answer before it has seen enough events', () => {
+    // The caller keeps doing whatever it was doing. Flipping the scroll
+    // behaviour on the second event of a gesture is worse than being late.
+    const thin = stream(RAMP.slice(0, WHEEL_SAMPLE_COUNT - 1), 8);
+    expect(classifyWheelSource(thin)).toBeNull();
+    expect(classifyWheelSource([])).toBeNull();
+  });
+
+  it('calls a frame-clocked ramp smoothed', () => {
+    expect(classifyWheelSource(stream(RAMP, 8))).toBe('smoothed');
+  });
+
+  it('calls a train of identical detents stepped', () => {
+    // Chrome's 100px notch, one per 60ms.
+    expect(classifyWheelSource(stream(Array(8).fill(100), 60))).toBe('stepped');
+  });
+
+  it('still calls it stepped when the wheel is spun fast enough to look continuous', () => {
+    // 18ms apart passes the density test, and the magnitudes VARY, so the
+    // repetition rule cannot answer this one either. Size is the only signal
+    // left. A first version of this case used eight identical detents and was
+    // therefore empty: it was being decided by the repetition rule, and
+    // loosening `continuous && fineGrained` to `continuous || fineGrained` left
+    // it green.
+    expect(classifyWheelSource(stream(ACCELERATED_DETENTS, 18))).toBe('stepped');
+  });
+
+  it('calls a small but perfectly repeated quantum stepped', () => {
+    // Dense AND small — both other signals say "smoothed". Only the fact that a
+    // physical detent emits the SAME number every time separates them. This is
+    // the case that exists to be caught: a fine encoder, or line-mode scaled to
+    // pixels, spun quickly.
+    expect(classifyWheelSource(stream(Array(8).fill(40), 10))).toBe('stepped');
+  });
+
+  it('reads a trackpad drift as smoothed', () => {
+    const drift = [2.4, 3.9, 5.1, 6.7, 6.2, 5.5, 4.1, 2.8];
+    expect(classifyWheelSource(stream(drift, 12))).toBe('smoothed');
+  });
+
+  it('reads magnitude, not signed delta, so scrolling up classifies the same', () => {
+    // Deliberately the detent shape and not the ramp. Negating the ramp proves
+    // nothing — small negative numbers are still below the size threshold, so
+    // dropping the `Math.abs` leaves that version of this test green. Negating
+    // detents is what exposes it: -120 also reads as "below 48" once the
+    // absolute value is gone, and the stream flips to smoothed.
+    expect(classifyWheelSource(stream(ACCELERATED_DETENTS.map((m) => -m), 18))).toBe('stepped');
+  });
+
+  it('judges the tail, so a source that changes mid-stream is followed', () => {
+    // A detent train, then the user lifts to a trackpad. The verdict must be
+    // about what is arriving now, not about the whole history.
+    const detents = stream(Array(8).fill(100), 60);
+    const lastDetent = detents[detents.length - 1];
+    const then = stream(RAMP, 8, lastDetent.time + 8);
+    expect(classifyWheelSource([...detents, ...then])).toBe('smoothed');
+  });
+
+  it.todo(
+    'decides what a sparse stream of small deltas is — a slow smoother throttled ' +
+      'by a background tab and a fine-encoder wheel nudged one notch at a time ' +
+      'produce the same shape, and nothing in the requirement says which wins'
+  );
+});
+
+describe('provisionalWheelSource', () => {
+  it('calls a detent-sized first event stepped, in both directions', () => {
+    expect(provisionalWheelSource(100)).toBe('stepped');
+    expect(provisionalWheelSource(-100)).toBe('stepped');
+  });
+
+  it('calls a frame-sized first event smoothed, in both directions', () => {
+    expect(provisionalWheelSource(4.2)).toBe('smoothed');
+    expect(provisionalWheelSource(-4.2)).toBe('smoothed');
+  });
+
+  it('puts the threshold itself on the stepped side', () => {
+    // Line mode's 3 lines × 16px lands exactly here, and it is a detent.
+    expect(provisionalWheelSource(WHEEL_STEP_MIN_PIXELS)).toBe('stepped');
+    expect(provisionalWheelSource(WHEEL_STEP_MIN_PIXELS - 0.01)).toBe('smoothed');
+  });
+
+});

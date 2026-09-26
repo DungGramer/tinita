@@ -14,12 +14,20 @@ if [ -e /lab/node_modules/tinita ] || [ -e /lab/node_modules/tinita-react ]; the
   exit 2
 fi
 
-mkdir -p /work
-cp -r /lab/. /work/lab
-# /lab/.artifacts bị copy theo -> PHẢI xoá trước, nếu không ln -s thất bại im lặng và
-# container đọc manifest bản copy còn trỏ đường dẫn của host.
-rm -rf /work/lab/.artifacts /work/lab/node_modules /work/lab/.reports
-rm -rf /work/lab/cases/*/*/.work
+mkdir -p /work/lab
+# ĐO 2026-09-26: `cp -r /lab/.` mất 195s vì nó copy 87.815 file (~3GB) qua bind mount
+# macOS<->Linux - gần hết là node_modules của lab (50M) và .work của consumer
+# (cases/ = 2.7G, mỗi project Next ~500M). Loại chúng ra còn 732 file.
+# Đây là chi phí thật của tier 2, KHÔNG phải `npm install` (đo được chỉ 5s).
+tar -C /lab -cf - \
+  --exclude='./node_modules' \
+  --exclude='./.npm-cache' \
+  --exclude='./.reports' \
+  --exclude='./.artifacts' \
+  --exclude='./.git' \
+  --exclude='*/.work' \
+  . | tar -C /work/lab -xf -
+
 cp -r /artifacts/. /work/artifacts
 ln -s /work/artifacts /work/lab/.artifacts
 

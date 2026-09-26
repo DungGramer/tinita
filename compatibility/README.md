@@ -98,33 +98,75 @@ Static tool là **cần nhưng không đủ**.
 
 ## Ngân sách thời gian - ĐO THẬT
 
-Đo 2026-09-25 trên macOS 15 (Darwin 24.6.0), Apple Silicon, Docker 29.7.2, Node 24.18.0.
-Số không có ngày và máy đo là số vô nghĩa.
+Đo 2026-09-26 trên macOS 15 (Darwin 24.6.0), Apple Silicon, Docker 29.7.2, Node 24.18.0.
 
-| Tier | Gồm                      | Mục tiêu  | **Đo thật**                      | Kết luận            |
-| ---- | ------------------------ | --------- | -------------------------------- | ------------------- |
-| 1    | L1 + L2 (local, Node 24) | < 4 phút  | **~2.9 phút** (L1 21s + L2 153s) | ĐẠT, nhưng sát trần |
-| 2    | Tier 1 + L3 cell tier<=2 | < 20 phút | **~41 phút** (L3 2284s)          | **VƯỢT GẤP ĐÔI**    |
-| 3    | Tier 2 + L3 tier 3 + L4  | < 45 phút | L4 329s; L3 tier 3 chưa đo xong  | chưa chốt           |
+| Tier | Gồm                      | Mục tiêu  | Trước               | **Sau**             |
+| ---- | ------------------------ | --------- | ------------------- | ------------------- |
+| 1    | L1 + L2 local            | < 4 phút  | 174s                | **63s**             |
+| 2    | Tier 1 + L3 cell tier<=2 | < 20 phút | **2284s (38 phút)** | **509s (8.5 phút)** |
+| 3    | Tier 2 + L3 tier 3 + L4  | < 45 phút | 5504s               | chưa đo lại         |
 
-### Tier 2 vượt ngân sách - nguyên nhân và cách cắt
+Giảm 78% ở tier 2. Nguyên nhân hoá ra **không phải** thứ mọi người đoán.
 
-Chi phí KHÔNG nằm ở ca test mà ở hạ tầng: mỗi cell `docker build` riêng rồi `npm install` lại bên
-trong container. 4 cell × (build + install + ca) = 2284s.
+### Chi phí nằm ở đâu - đo phân tách, không suy luận
 
-Thứ tự cắt, theo đúng nguyên tắc "không cắt L1 vì nó có tỷ lệ bắt bug cao nhất":
+Cả README này (bản trước) và báo cáo nghiên cứu đều kết luận chi phí ở `npm install` trong container.
+**Sai.** Đo tách từng bước trên một cell:
 
-1. **Chia sẻ layer giữa các cell.** Hiện mỗi cell build một image. Dùng một base image chung rồi chỉ
-   đổi PM ở layer cuối sẽ bỏ được phần lớn thời gian build.
-2. **Bỏ `npm install` trong container** bằng cách mount `node_modules` của lab đã cài sẵn - nhưng
-   CHỈ devDependency của lab, tuyệt đối không mount `tinita*`. Cần cẩn thận, vì đây đúng là thứ
-   `assert-isolation` tồn tại để chặn.
-3. **Hạ cell `node20-npm` xuống tier 3.** Cell `node22-npm` đã trả lời câu hỏi LTS; Node 20 chỉ
-   thêm một điểm dữ liệu.
-4. **Chuyển ca Next của L2 xuống tier 2.** Nó là phần chậm nhất của L2 (`next build` × 3 biến thể).
-   Làm vậy tier 1 xuống dưới 1 phút.
+| Bước                                     | Thời gian               |
+| ---------------------------------------- | ----------------------- |
+| `docker build`                           | **2s** (image đã cache) |
+| `cp -r /lab/. /work/lab` trong container | **195s**                |
+| `npm install` trong container            | **5s**                  |
+| Chạy 12 ca L1                            | 32s                     |
 
-Chưa áp cách nào - đây là lựa chọn cho lần tối ưu sau, ghi lại để không phải đo lại.
+`cp -r /lab` copy **87.815 file (~3GB)** qua bind mount macOS<->Linux mỗi lần `docker run`. Phần lớn
+là thứ container không cần:
+
+| Thư mục                                                         | Kích thước   |
+| --------------------------------------------------------------- | ------------ |
+| `cases/` (chủ yếu `.work` của consumer, mỗi project Next ~500M) | **2.7G**     |
+| `.npm-cache/`                                                   | 353M         |
+| `node_modules/`                                                 | 50M          |
+| Phần lab thật sự cần                                            | **732 file** |
+
+`entry.sh` nay dùng `tar` với `--exclude` cho `node_modules`, `.work`, `.npm-cache`, `.reports`,
+`.artifacts`. Một cell từ **501s xuống 36s**.
+
+### Bốn cách cắt: đã áp 3, cách thứ tư KHÔNG CẦN
+
+| Cách                                                  | Trạng thái                                                                                              |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Loại `node_modules`/`.work` khỏi copy trong container | **ĐÃ ÁP** - đây là cách cắt thật, và nó không nằm trong 4 cách ban đầu vì lúc viết chưa ai đo phân tách |
+| #3 hạ `node20-npm` xuống tier 3                       | **ĐÃ ÁP**                                                                                               |
+| #4 chuyển ca Next của L2 xuống tier 2                 | **ĐÃ ÁP** - tier 1 L2 từ 153s xuống 58s                                                                 |
+| #1 chia sẻ layer Docker giữa các cell                 | **KHÔNG CẦN** - `docker build` chỉ 2s, không có gì để cắt                                               |
+| #2 mount `node_modules` của host vào container        | **KHÔNG ÁP, và không nên áp**                                                                           |
+
+**Vì sao không áp #2.** Tier 2 đã 509s, dưới mục tiêu 1200s rất xa. `npm install` trong container chỉ
+5s nên mount tiết kiệm được tối đa 5s/cell = 15s tổng - khoảng 3%. Đổi lại nó là cách duy nhất đụng
+vào chính thứ `assert-isolation` tồn tại để bảo vệ: nếu mount lọt `tinita*` thì mọi ca vẫn xanh trong
+khi không còn kiểm gì. Nhận rủi ro đó cho 3% là không đáng.
+
+Điều kiện khiến #2 cần lại: nếu `npm install` trong container tăng lên hàng phút (thêm nhiều
+devDependency), hoặc nếu số cell tăng nhiều lần. Lúc đó cần **2 assertion** - mount không chứa
+`tinita*`, và mount platform-independent (`compatibility/node_modules` hiện có 0 file
+`.node`/`.dylib`/`.so` và 0 field `cpu`/`os`, nhưng điều đó sẽ đổi khi ai thêm dependency có native
+binary).
+
+### Đánh đổi của cách cắt #4
+
+Ba ca Next (`next:rsc-*`) chốt câu hỏi `'use client'` nay thuộc **tier 2**, không chạy mỗi PR nữa.
+Chúng vẫn chạy trước publish. Đổi lại tier 1 từ 174s xuống 63s nên người ta thực sự chạy nó.
+
+### Cách đo lại
+
+```bash
+time node compatibility/cases/l3/index.mjs --tier=2     # tier 2
+time node compatibility/run.mjs all --tier=1 --no-pack  # tier 1
+```
+
+Report JSON có `wallClockMs` để so giữa các lần.
 
 ## Kế hoạch
 

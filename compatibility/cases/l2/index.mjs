@@ -12,6 +12,12 @@ const cases = [];
 const findings = [];
 const add = (id, ok, detail, extra = {}) => cases.push({ id, ok, detail, ...extra });
 const t0 = Date.now();
+const flags = Object.fromEntries(
+  process.argv.slice(2).filter((a) => a.startsWith('--')).map((a) => {
+    const [k, v = 'true'] = a.replace(/^--/, '').split('=');
+    return [k, v];
+  }),
+);
 
 const REACT = ['react@19', 'react-dom@19'];
 const TGZ = ['tinita', 'tinita-react'].map(tarballFor);
@@ -221,7 +227,18 @@ createRoot(document.getElementById('root')).render(
 
 // ---------- Next App Router: câu hỏi 'use client' ----------
 // Chuỗi lỗi dưới đây ĐO THẬT 2026-09-25, không lấy từ tài liệu nghiên cứu (nguồn đó dự đoán sai).
-{
+//
+// TIER 2, không phải tier 1. `next build` × 3 biến thể là phần chậm nhất của L2 và tier 1 phải
+// chạy được mỗi PR. Đánh đổi đã ghi: ca chốt câu hỏi 'use client' không còn chạy mỗi PR, nhưng vẫn
+// chạy trước publish. Ghi trong compatibility/README.md.
+const tierFlag = flags.tier ? Number(flags.tier) : 3;
+if (tierFlag < 2) {
+  for (const id of ['next:rsc-ping-no-directive', 'next:rsc-filetree-no-directive', 'next:rsc-filetree-app-directive']) {
+    add(id, true, 'skip: ca Next thuộc tier 2 (next build chậm)', { skipped: true, reason: 'tier' });
+  }
+}
+
+if (tierFlag >= 2) {
   const base = {
     level: 'l2',
     deps: [...REACT, 'next@15', '@radix-ui/react-accordion', 'lucide-react'],
