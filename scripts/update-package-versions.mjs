@@ -4,7 +4,7 @@
  * Usage: node scripts/update-package-versions.mjs <version>
  */
 
-import { readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 const version = process.argv[2];
@@ -14,10 +14,12 @@ if (!version) {
   process.exit(1);
 }
 
-const PACKAGES = [
-  'packages/tinita',
-  'packages/tinita-react',
-];
+// ĐỌC ĐỘNG, không hardcode. Bản trước liệt kê 2 package và khi thêm `tinita-dom` nó bị bỏ quên
+// đúng lúc publish - loại lỗi không thu hồi được. Package thứ tư sau này không phải sửa file này.
+const PACKAGES = readdirSync('packages', { withFileTypes: true })
+  .filter((e) => e.isDirectory() && existsSync(join('packages', e.name, 'package.json')))
+  .map((e) => join('packages', e.name))
+  .sort();
 
 console.log(`\n🔄 Updating packages to version ${version}...\n`);
 

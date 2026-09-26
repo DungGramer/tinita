@@ -178,38 +178,66 @@ Report JSON có `wallClockMs` để so giữa các lần.
 
 Lab báo cáo, lab không quyết. Hai việc dưới đây cần owner chọn.
 
-### QĐ-1: hai bản đã publish trên npm đều gãy
+### QĐ-1: hai bản đã publish trên npm đều gãy - ĐÃ CHUẨN BỊ, CHỜ OWNER
 
-Đo được (ca `07-registry-vs-local`, tải tarball thật từ registry rồi đối chiếu từng đường dẫn):
+**Quyết định của owner (2026-09-25):** bump + publish bản vá + `npm deprecate` bản cũ.
+
+Mức độ, đo bằng cách tải tarball thật từ registry:
 
 ```
-tinita@0.0.1                6/18 đường dẫn trỏ file KHÔNG có trong tarball
+tinita@0.0.1                6/18 đường dẫn trỏ file KHÔNG có trong tarball (0 file .cjs, 5 file .js)
 tinita-react@0.0.2-alpha.1  7/25 tương tự
 ```
 
-Tarball `tinita@0.0.1` có **0 file `.cjs`** và 5 file `.js`, trong khi `main` và mọi
-`exports[...].require` đều trỏ `.cjs`. Mọi `require()` từ npm hiện đang lỗi.
+**Đã làm:**
 
-| Lựa chọn                                | Được                                                                                      | Mất                                  |
-| --------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------ |
-| **Bump + publish bản vá**               | người dùng mới nhận bản đúng; dù sao cũng phải bump vì `truncateFileName` đã đổi breaking | bản cũ vẫn gãy trên registry         |
-| **Thêm `npm deprecate` cho version cũ** | người cài bản cũ thấy cảnh báo                                                            | thêm một bước                        |
-| **Unpublish**                           | xoá hẳn                                                                                   | chỉ được trong 72 giờ - đã quá, loại |
+- 3 package bump lên `0.1.0` (`tinita`, `tinita-react`, `tinita-dom`). Bump là bắt buộc dù không có
+  bug này: `truncateFileName` đã đổi breaking và QĐ-2 thêm `typesVersions`.
+- `scripts/update-package-versions.mjs` và `scripts/publish.mjs` **đọc `packages/` động**, không còn
+  hardcode 2 package. Kiểm được: script thấy đủ 3.
+- `publish.mjs` có **cửa chặn L1**: sau build+pack, nó chạy `compatibility/run.mjs l1` và dừng nếu
+  fail, **trước** khi hỏi xác nhận. Hai bug đã publish lọt qua vì không có gì kiểm tarball trước
+  publish. Kiểm được: đặt `bundle: false` cho `tinita-dom` thì L1 EXIT 1 và publish bị chặn.
+- Ca 07 nay kiểm **cả** version local **và** các version đã publish mà biết là gãy
+  (`_knownBrokenPublished` trong `contract.json`). Nếu chỉ kiểm local thì sau khi bump ta mất khả
+  năng phát hiện bản cũ vẫn gãy trên registry.
 
-Nghiêng về bump + deprecate. Owner chốt.
+**CHỜ OWNER - publish và deprecate là hành động ra ngoài, không hoàn tác:**
 
-### QĐ-2: có cam kết support TypeScript cũ (`moduleResolution: node`)?
+```bash
+npm login                          # publish.mjs dừng ở npm whoami, hiện chưa login
 
-Đo được: `attw` báo `node10: Resolution failed` 5/6 subpath, và consumer `tsc-matrix` của L2 xác nhận
-`moduleResolution: node` fail **10 import**. `bundler` và `nodenext` thì sạch.
+pnpm publish:dry-run               # xem trước, không publish gì
 
-| Lựa chọn          | Được                                                                     | Mất                                                                           |
-| ----------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| **Không support** | không phải sửa gì; khai rõ trong README là cần `bundler` hoặc `nodenext` | người dùng TS cũ không compile được                                           |
-| **Support**       | phủ được TS cũ                                                           | phải thêm `typesVersions` hoặc đổi layout `dist`, làm `package.json` phức tạp |
+# Publish từng package một, KHÔNG dùng --all lần đầu: nếu package đầu có vấn đề thì
+# 2 package sau chưa bị publish.
+pnpm publish:tinita
+pnpm publish:tinita-react
+node scripts/publish.mjs tinita-dom
 
-Quyết định này đổi ca `tsc:node` từ `expectedFailure` thành failure thật, hoặc giữ nguyên.
-Hiện `NoResolution` đang nằm trong `contract.json` `accepted` kèm lý do trỏ về đây.
+# Sau khi publish xong, chạy lại L1: ca 07 phải chuyển từ XFAIL sang PASS.
+node compatibility/run.mjs l1
+
+# Rồi deprecate bản cũ:
+npm deprecate tinita@0.0.1 "Broken CJS: exports.require and main point at .cjs files absent from the tarball, so require() fails. Fixed in 0.1.0."
+npm deprecate tinita-react@0.0.2-alpha.1 "Broken CJS: exports.require and main point at .cjs files absent from the tarball, so require() fails. Fixed in 0.1.0."
+```
+
+Lưu ý `tinita-dom` là tên mới: kiểm `npm view tinita-dom` trước, nếu đã có chủ thì cần tên khác.
+
+### QĐ-2: support TypeScript cũ - ĐÃ LÀM
+
+**Quyết định của owner (2026-09-25):** support, thêm `typesVersions`.
+
+**Đã làm 2026-09-26.** `tsc:node` từ 12 lỗi xuống **14 specifier compile sạch**; `attw` hết báo
+`node10` trên cả 3 package; entry `NoResolution` đã xoá khỏi allowlist (`tinita` còn 0 entry).
+
+Hình dạng `typesVersions` quan trọng, và 3 trong 4 hình dạng là sai. Chi tiết + bảng đo ở
+`docs/code-standards.md` mục "Quy Tắc `typesVersions`". Tóm lại: **key tường minh từng subpath,
+KHÔNG wildcard**. Hình dạng có fallback `dist/index.d.ts` trông như đã sửa nhưng khiến
+`import x from 'tinita/file/doesNotExistAtAll'` typecheck sạch và nhận type của root.
+
+Cửa chặn cho việc đồng bộ `typesVersions` <-> `exports`: ca L1 `08-typesversions-sync`, hai chiều.
 
 ## Đã sửa nhờ lab (2026-09-25)
 

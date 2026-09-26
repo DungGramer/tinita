@@ -165,14 +165,21 @@ for (const { name } of TARGETS) {
     const { mkdtempSync } = await import('node:fs');
     const { tmpdir } = await import('node:os');
     const results = [];
+    // Kiểm version LOCAL, CỘNG các version đã publish mà biết là gãy. Chỉ kiểm local thì sau mỗi
+    // lần bump ta mất khả năng phát hiện bản cũ vẫn đang gãy trên registry.
+    const known = JSON.parse(readFileSync(resolve(LAB, 'contract.json'), 'utf8'))._knownBrokenPublished ?? {};
+    const targets = [];
     for (const { name, dir } of TARGETS) {
-      const version = JSON.parse(readFileSync(resolve(dir, 'package.json'), 'utf8')).version;
+      targets.push({ name, version: JSON.parse(readFileSync(resolve(dir, 'package.json'), 'utf8')).version });
+      for (const v of known[name] ?? []) targets.push({ name, version: v, knownBroken: true });
+    }
+    for (const { name, version, knownBroken } of targets) {
       const tmp = mkdtempSync(resolve(tmpdir(), `reg-${name}-`));
       let pulled;
       try {
         pulled = execFileSync('npm', ['pack', `${name}@${version}`, '--pack-destination', tmp], { encoding: 'utf8' }).trim().split('\n').pop();
       } catch {
-        results.push({ name, version, status: 'not-published' });
+        results.push({ name, version, knownBroken: knownBroken ?? false, status: 'not-published' });
         continue;
       }
       const tgz = resolve(tmp, pulled);
@@ -188,7 +195,7 @@ for (const { name } of TARGETS) {
         else for (const [cond, p] of Object.entries(val)) paths.push([`exports["${sub}"].${cond}`, p]);
       }
       const brokenPaths = paths.filter(([, p]) => !existsSync(resolve(root, p.replace(/^\.\//, ''))));
-      results.push({ name, version, status: 'published', total: paths.length, broken: brokenPaths.map(([k, p]) => `${k} -> ${p}`) });
+      results.push({ name, version, knownBroken: knownBroken ?? false, status: 'published', total: paths.length, broken: brokenPaths.map(([k, p]) => `${k} -> ${p}`) });
     }
 
     const anyBroken = results.filter((r) => r.status === 'published' && r.broken.length > 0);

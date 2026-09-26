@@ -10,14 +10,19 @@
  */
 
 import { execSync } from 'child_process';
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { createInterface } from 'readline';
 
-const PACKAGES = [
-  { name: 'tinita', path: 'packages/tinita' },
-  { name: 'tinita-react', path: 'packages/tinita-react' },
-];
+// ĐỌC ĐỘNG từ packages/, không hardcode. Bản trước liệt kê 2 package; thêm package thứ ba mà quên
+// sửa đây nghĩa là nó không bao giờ được publish, và phát hiện ra thì đã publish thiếu.
+const PACKAGES = readdirSync('packages', { withFileTypes: true })
+  .filter((e) => e.isDirectory() && existsSync(join('packages', e.name, 'package.json')))
+  .map((e) => ({
+    name: JSON.parse(readFileSync(join('packages', e.name, 'package.json'), 'utf8')).name,
+    path: join('packages', e.name),
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));
 
 const Colors = {
   reset: '\x1b[0m',
@@ -146,6 +151,22 @@ async function publishPackage(packageInfo, dryRun = false) {
   if (dryRun) {
     log('\n✅ Dry run completed successfully', Colors.green);
     return true;
+  }
+
+  // CỬA CHẶN: L1 phải xanh trên tarball trước khi được hỏi xác nhận.
+  // Hai bug đã publish (exports trỏ .cjs không tồn tại; import ESM thiếu đuôi) lọt qua vì KHÔNG có
+  // gì kiểm tarball trước publish. Publish không thu hồi được nên cửa này đứng trước câu hỏi, không
+  // phải sau.
+  log('\n🔒 Cửa chặn: chạy compatibility lab L1 trên tarball...', Colors.cyan);
+  const labRoot = join(process.cwd(), '..', '..');
+  try {
+    execSync('node compatibility/scripts/pack.mjs', { cwd: labRoot, stdio: 'inherit' });
+    execSync('node compatibility/run.mjs l1 --no-pack', { cwd: labRoot, stdio: 'inherit' });
+    log('✅ L1 xanh', Colors.green);
+  } catch {
+    log('\n❌ L1 FAIL - KHÔNG publish. Sửa package trước.', Colors.red);
+    log('   Chạy lại: node compatibility/run.mjs l1', Colors.yellow);
+    process.exit(1);
   }
 
   // Ask for confirmation
