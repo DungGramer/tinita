@@ -1,9 +1,0 @@
-/**
- * Build Entry Point for tinita-react CSS (internal use only)
- *
- * This file is used during build to process Tailwind CSS.
- * Users should import globals.css directly (which doesn't include @import "tailwindcss").
- */
-
-@import 'tailwindcss';
-@import './build-entry.css';

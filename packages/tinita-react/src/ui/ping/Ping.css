@@ -1,0 +1,76 @@
+/**
+ * Ping CSS
+ *
+ * Trước đây Ping KHÔNG có file CSS: nó viết class Tailwind thô trong JSX
+ * (`inline-flex`, `size-2`, `animate-ping`, `bg-green-500`...) mà bundle lại
+ * không ship utility nào - `build-entry.css` cố ý không `@import "tailwindcss"`.
+ * Đo được (ca L2 `no-tailwind-missing-utilities`): host không có Tailwind thì
+ * `.tnt-ping` nhận `display: block` thay vì `inline-flex`, tức component vỡ
+ * layout. Đó là phụ thuộc NGẦM vào Tailwind của host.
+ *
+ * Mọi giá trị giờ là CSS thật. `bg-green-500` từng hard-code, giờ là
+ * `--tnt-ping-dot`.
+ */
+
+.tnt-ping {
+  display: inline-flex;
+  align-items: center;
+}
+
+.tnt-ping__body {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tnt-ping-gap);
+  color: var(--tnt-ping);
+}
+
+.tnt-ping__body--offset {
+  margin-inline-start: var(--tnt-ping-prefix-gap);
+}
+
+.tnt-ping__dot-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.tnt-ping__pulse {
+  position: absolute;
+  inline-size: var(--tnt-ping-dot-size);
+  block-size: var(--tnt-ping-dot-size);
+  border-radius: 9999px;
+  background-color: var(--tnt-ping-dot);
+  opacity: 0.75;
+  animation: tnt-ping-pulse var(--tnt-duration-slow) cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.tnt-ping__dot {
+  position: relative;
+  display: inline-flex;
+  inline-size: var(--tnt-ping-dot-size);
+  block-size: var(--tnt-ping-dot-size);
+  border-radius: 9999px;
+  background-color: var(--tnt-ping-dot);
+}
+
+.tnt-ping__count {
+  min-inline-size: var(--tnt-ping-count-min-width);
+  font-size: var(--tnt-ping-count-font-size);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes tnt-ping-pulse {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Tắt hẳn khi user yêu cầu reduced-motion. Xem docs/code-standards.md mục
+   "Quy Tắc Reduced Motion" - KHÔNG dùng 0.01ms. */
+@media (prefers-reduced-motion: reduce) {
+  .tnt-ping__pulse {
+    animation: none !important;
+  }
+}

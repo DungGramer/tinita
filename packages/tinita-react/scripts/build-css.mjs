@@ -3,11 +3,17 @@
 /**
  * Build CSS files for tinita-react using PostCSS CLI
  *
- * This script orchestrates CSS building using PostCSS CLI:
- * 1. Compiles Tailwind CSS from index.css
- * 2. Copies globals.css and animations.css (raw files)
+ * 1. Copies globals.css and animations.css (raw files)
+ * 2. Compiles build-entry.css qua PostCSS (`@tailwindcss/postcss` xử `@theme
+ *    inline` rồi bỏ nó - bundle KHÔNG chứa utility Tailwind nào, cố ý)
  * 3. Copies and minifies component CSS files
- * 4. Creates bundled styles.css
+ * 4. Creates bundled styles.css  (KHÔNG layer)
+ * 5. Creates styles.layer.css    (cùng nội dung, bọc `@layer tnt`)
+ *
+ * Vì sao ship hai bản: bọc layer thì CSS KHÔNG layer của host luôn thắng, nên
+ * host sửa được component mà không cần đấu specificity. Nhưng nó cũng có nghĩa
+ * mọi CSS không layer của host đè lên component, kể cả vô tình. Mantine ship
+ * `styles.css` + `styles.layer.css` cho đúng lý do này và để consumer chọn.
  */
 
 import { execSync } from 'child_process';
@@ -26,7 +32,6 @@ const globalsSrcFile = join(srcDir, 'styles', 'globals.css');
 const globalsDistFile = join(distDir, 'styles', 'globals.css');
 const animationsSrcFile = join(srcDir, 'styles', 'animations.css');
 const animationsDistFile = join(distDir, 'styles', 'animations.css');
-const tailwindConfigFile = join(packageRoot, 'tailwind.config.cjs');
 
 /**
  * Recursively find all CSS files in src/ui
@@ -85,20 +90,20 @@ function copyCSSFile(srcPath, relativePath) {
 }
 
 /**
- * Compile Tailwind CSS using PostCSS CLI
+ * Compile theme CSS (globals + animations) qua PostCSS.
+ *
+ * KHÔNG phát utility Tailwind: `build-entry.css` cố ý không `@import
+ * "tailwindcss"`. Đó cũng chính là cách bỏ Preflight của Tailwind v4 - không
+ * import `tailwindcss/preflight.css` thì không có reset nào chạm vào trang khách.
+ * `@tailwindcss/postcss` vẫn cần để xử `@theme inline` trong globals.css.
  */
-function compileTailwindCSS() {
+function compileThemeCSS() {
   if (!existsSync(tailwindInputFile)) {
-    console.log('   ⚠️  Tailwind input file not found, skipping Tailwind compilation');
+    console.log('   ⚠️  build-entry.css not found, skipping theme compilation');
     return null;
   }
 
-  if (!existsSync(tailwindConfigFile)) {
-    console.error('   ❌ tailwind.config.cjs not found. Make sure it exists.');
-    throw new Error('tailwind.config.cjs not found');
-  }
-
-  console.log('   ⚙️  Compiling Tailwind CSS from index.css...');
+  console.log('   ⚙️  Compiling theme CSS from build-entry.css...');
 
   // Ensure dist directory exists
   if (!existsSync(distDir)) {
@@ -111,11 +116,11 @@ function compileTailwindCSS() {
       `npx postcss "${tailwindInputFile}" -o "${tailwindOutputFile}" --no-map`,
       { cwd: packageRoot, stdio: 'inherit' }
     );
-    console.log('   ✓ Compiled Tailwind CSS to dist/styles.css');
+    console.log('   ✓ Compiled theme CSS to dist/styles.css');
 
     return readFileSync(tailwindOutputFile, 'utf-8');
   } catch (error) {
-    console.error('   ❌ Failed to compile Tailwind CSS:', error.message);
+    console.error('   ❌ Failed to compile theme CSS:', error.message);
     throw error;
   }
 }
@@ -203,6 +208,32 @@ function createBundledCSS(componentCSSFiles, themeCSS) {
     writeFileSync(bundledPath, bundledCSS);
     console.log(`  ✓ Created bundled styles.css (unminified)`);
   }
+
+  writeLayeredCSS(bundledPath);
+}
+
+/**
+ * Sinh `dist/styles.layer.css`: cùng nội dung `styles.css`, bọc `@layer tnt`.
+ *
+ * Đọc lại từ file đã ghi để hai bản luôn cùng nội dung - nếu bọc bản chưa minify
+ * thì hai file sẽ lệch và không ai phát hiện.
+ *
+ * Consumer xếp thứ tự bằng cách khai layer trước khi import:
+ *   @layer tnt, base, components, utilities;
+ *   @import 'tinita-react/styles.layer.css';
+ */
+function writeLayeredCSS(bundledPath) {
+  const layeredPath = join(distDir, 'styles.layer.css');
+  const css = readFileSync(bundledPath, 'utf-8');
+  const header =
+    '/* tinita-react - cùng nội dung styles.css, bọc @layer tnt.\n' +
+    '   Dùng bản này khi CSS của bạn đang bị tinita đè: CSS không layer luôn\n' +
+    '   thắng CSS trong layer, nên style của bạn sẽ thắng mà không cần\n' +
+    '   !important. Đánh đổi: MỌI CSS không layer của bạn đè lên component,\n' +
+    '   kể cả vô tình. Xếp thứ tự bằng `@layer tnt, base, components, utilities;`\n' +
+    '   khai TRƯỚC khi import. */\n';
+  writeFileSync(layeredPath, `${header}@layer tnt {\n${css.trim()}\n}\n`);
+  console.log('  ✓ Created styles.layer.css (@layer tnt)');
 }
 
 /**
@@ -219,7 +250,7 @@ async function main() {
     copyAnimationsCSS();
 
     console.log('\n   🎨 Step 2: Compiling theme CSS (no Tailwind utilities)');
-    const themeCSS = compileTailwindCSS();
+    const themeCSS = compileThemeCSS();
 
     console.log('\n   🔍 Step 3: Scanning for component CSS files...');
     const uiDir = join(srcDir, 'ui');

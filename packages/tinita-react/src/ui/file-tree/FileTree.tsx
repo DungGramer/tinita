@@ -18,6 +18,8 @@
  * ```
  */
 
+'use client';
+
 import React, { forwardRef, useMemo } from 'react';
 import type { FileTreeProps } from './types';
 import { parseFileTreeUniversal } from './utils';

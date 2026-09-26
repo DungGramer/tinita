@@ -105,219 +105,216 @@
    2. Core Transition Utilities
    ============================================== */
 
-@layer utilities {
-  /* -------------------
-     Standard Transitions (GPU-Accelerated Only)
-     ------------------- */
+/* -------------------
+   Standard Transitions (GPU-Accelerated Only)
+   ------------------- */
 
-  /* Default smooth transition - Standard interactions */
-  .transition-smooth {
-    transition-property: transform, opacity;
-    transition-duration: var(--tnt-duration-base);
-    transition-timing-function: var(--tnt-ease-standard);
-  }
+/* Default smooth transition - Standard interactions */
+.tnt-transition-smooth {
+  transition-property: transform, opacity;
+  transition-duration: var(--tnt-duration-base);
+  transition-timing-function: var(--tnt-ease-standard);
+}
 
-  /* Spring transition - Bouncy, playful */
-  .transition-spring {
-    transition-property: transform, opacity;
-    transition-duration: var(--tnt-duration-medium);
-    transition-timing-function: var(--tnt-ease-spring);
-  }
+/* Spring transition - Bouncy, playful */
+.tnt-transition-spring {
+  transition-property: transform, opacity;
+  transition-duration: var(--tnt-duration-medium);
+  transition-timing-function: var(--tnt-ease-spring);
+}
 
-  /* Modal transition - Scale + opacity */
-  .transition-modal {
-    transition-property: transform, opacity;
-    transition-duration: var(--tnt-duration-base);
-    transition-timing-function: var(--tnt-ease-decelerate);
-  }
+/* Modal transition - Scale + opacity */
+.tnt-transition-modal {
+  transition-property: transform, opacity;
+  transition-duration: var(--tnt-duration-base);
+  transition-timing-function: var(--tnt-ease-decelerate);
+}
 
-  /* Fade transition - Opacity only */
-  .transition-fade {
-    transition-property: opacity;
-    transition-duration: var(--tnt-duration-base);
-    transition-timing-function: var(--tnt-ease-standard);
-  }
+/* Fade transition - Opacity only */
+.tnt-transition-fade {
+  transition-property: opacity;
+  transition-duration: var(--tnt-duration-base);
+  transition-timing-function: var(--tnt-ease-standard);
+}
 
-  /* Slide transition - Transform only */
-  .transition-slide {
-    transition-property: transform;
-    transition-duration: var(--tnt-duration-medium);
-    transition-timing-function: var(--tnt-ease-standard);
-  }
+/* Slide transition - Transform only */
+.tnt-transition-slide {
+  transition-property: transform;
+  transition-duration: var(--tnt-duration-medium);
+  transition-timing-function: var(--tnt-ease-standard);
+}
 
-  /* Instant - Button press */
-  .transition-instant {
-    transition-property: transform, opacity;
-    transition-duration: var(--tnt-duration-instant);
-    transition-timing-function: var(--tnt-ease-sharp);
-  }
+/* Instant - Button press */
+.tnt-transition-instant {
+  transition-property: transform, opacity;
+  transition-duration: var(--tnt-duration-instant);
+  transition-timing-function: var(--tnt-ease-sharp);
+}
 
-  /* Fast - Quick updates */
-  .transition-fast {
-    transition-property: transform, opacity;
-    transition-duration: var(--tnt-duration-fast);
-    transition-timing-function: var(--tnt-ease-sharp);
-  }
+/* Fast - Quick updates */
+.tnt-transition-fast {
+  transition-property: transform, opacity;
+  transition-duration: var(--tnt-duration-fast);
+  transition-timing-function: var(--tnt-ease-sharp);
+}
 
-  /* Slow - Page transitions */
-  .transition-slow {
-    transition-property: transform, opacity;
-    transition-duration: var(--tnt-duration-slow);
-    transition-timing-function: var(--tnt-ease-standard);
-  }
+/* Slow - Page transitions */
+.tnt-transition-slow {
+  transition-property: transform, opacity;
+  transition-duration: var(--tnt-duration-slow);
+  transition-timing-function: var(--tnt-ease-standard);
+}
 
-  /* -------------------
-     Component-Specific Transitions
-     ------------------- */
+/* -------------------
+   Component-Specific Transitions
+   ------------------- */
 
-  /* Button - Press effect */
-  .tnt-btn {
-    transition-property: transform, opacity;
-    transition-duration: var(--tnt-duration-instant);
-    transition-timing-function: var(--tnt-ease-sharp);
-  }
+/* Button - Press effect */
+.tnt-btn {
+  transition-property: transform, opacity;
+  transition-duration: var(--tnt-duration-instant);
+  transition-timing-function: var(--tnt-ease-sharp);
+}
 
-  .tnt-btn:active {
-    transform: scale(var(--tnt-scale-button-press));
-    opacity: var(--tnt-opacity-press);
-  }
+.tnt-btn:active {
+  transform: scale(var(--tnt-scale-button-press));
+  opacity: var(--tnt-opacity-press);
+}
 
-  /* Card - Hover lift */
-  .tnt-card {
-    transition-property: transform, box-shadow;
-    transition-duration: var(--tnt-duration-fast);
-    transition-timing-function: var(--tnt-ease-standard);
-  }
+/* Card - Hover lift */
+.tnt-card {
+  transition-property: transform, box-shadow;
+  transition-duration: var(--tnt-duration-fast);
+  transition-timing-function: var(--tnt-ease-standard);
+}
 
-  .tnt-card:hover {
-    transform: scale(var(--tnt-scale-card-lift)) translateY(-2px);
-  }
+.tnt-card:hover {
+  transform: scale(var(--tnt-scale-card-lift)) translateY(-2px);
+}
 
-  /* Interactive - Will-change optimization (hover only) */
-  .interactive:hover,
-  .interactive:focus-visible {
-    will-change: transform;
-  }
+/* Interactive - Will-change optimization (hover only) */
+.tnt-interactive:hover,
+.tnt-interactive:focus-visible {
+  will-change: transform;
+}
 
-  /* -------------------
-     Backdrop Effects (Frosted Glass)
-     ------------------- */
+/* -------------------
+   Backdrop Effects (Frosted Glass)
+   ------------------- */
 
-  /* Standard backdrop - Sheets, popovers */
-  .tnt-backdrop {
-    backdrop-filter: blur(var(--tnt-backdrop-blur-standard))
-      saturate(var(--tnt-backdrop-saturate-standard));
-    background-color: var(--tnt-backdrop-light-standard);
-  }
+/* Standard backdrop - Sheets, popovers */
+.tnt-backdrop {
+  backdrop-filter: blur(var(--tnt-backdrop-blur-standard))
+    saturate(var(--tnt-backdrop-saturate-standard));
+  background-color: var(--tnt-backdrop-light-standard);
+}
 
-  .dark .tnt-backdrop {
-    background-color: var(--tnt-backdrop-dark-standard);
-  }
+:where(.dark, [data-theme='dark']) .tnt-backdrop {
+  background-color: var(--tnt-backdrop-dark-standard);
+}
 
-  /* Heavy backdrop - Alerts */
-  .tnt-backdrop-heavy {
-    backdrop-filter: blur(var(--tnt-backdrop-blur-heavy))
-      saturate(var(--tnt-backdrop-saturate-heavy));
-    background-color: var(--tnt-backdrop-light-heavy);
-  }
+/* Heavy backdrop - Alerts */
+.tnt-backdrop-heavy {
+  backdrop-filter: blur(var(--tnt-backdrop-blur-heavy)) saturate(var(--tnt-backdrop-saturate-heavy));
+  background-color: var(--tnt-backdrop-light-heavy);
+}
 
-  .dark .tnt-backdrop-heavy {
-    background-color: var(--tnt-backdrop-dark-heavy);
-  }
+:where(.dark, [data-theme='dark']) .tnt-backdrop-heavy {
+  background-color: var(--tnt-backdrop-dark-heavy);
+}
 
-  /* Overlay backdrop - Modal backgrounds */
-  .tnt-backdrop-overlay {
-    backdrop-filter: blur(var(--tnt-backdrop-blur-overlay));
-    background-color: var(--tnt-backdrop-light-overlay);
-  }
+/* Overlay backdrop - Modal backgrounds */
+.tnt-backdrop-overlay {
+  backdrop-filter: blur(var(--tnt-backdrop-blur-overlay));
+  background-color: var(--tnt-backdrop-light-overlay);
+}
 
-  .dark .tnt-backdrop-overlay {
-    background-color: var(--tnt-backdrop-dark-overlay);
-  }
+:where(.dark, [data-theme='dark']) .tnt-backdrop-overlay {
+  background-color: var(--tnt-backdrop-dark-overlay);
+}
 
-  /* -------------------
-     Animation Classes
-     ------------------- */
+/* -------------------
+   Animation Classes
+   ------------------- */
 
-  /* Fade animations */
-  .animate-fade-in {
-    animation: tnt-fade-in var(--tnt-duration-base) var(--tnt-ease-decelerate);
-  }
+/* Fade animations */
+.tnt-animate-fade-in {
+  animation: tnt-fade-in var(--tnt-duration-base) var(--tnt-ease-decelerate);
+}
 
-  .animate-fade-out {
-    animation: tnt-fade-out var(--tnt-duration-base) var(--tnt-ease-accelerate);
-  }
+.tnt-animate-fade-out {
+  animation: tnt-fade-out var(--tnt-duration-base) var(--tnt-ease-accelerate);
+}
 
-  /* Sheet presentation (bottom to top) */
-  .animate-sheet-up {
-    animation: tnt-sheet-up var(--tnt-duration-medium) var(--tnt-ease-decelerate);
-  }
+/* Sheet presentation (bottom to top) */
+.tnt-animate-sheet-up {
+  animation: tnt-sheet-up var(--tnt-duration-medium) var(--tnt-ease-decelerate);
+}
 
-  .animate-sheet-down {
-    animation: tnt-sheet-down var(--tnt-duration-medium) var(--tnt-ease-accelerate);
-  }
+.tnt-animate-sheet-down {
+  animation: tnt-sheet-down var(--tnt-duration-medium) var(--tnt-ease-accelerate);
+}
 
-  /* Alert (bounce in) */
-  .animate-alert-in {
-    animation: tnt-alert-in var(--tnt-duration-slow) var(--tnt-ease-bounce);
-  }
+/* Alert (bounce in) */
+.tnt-animate-alert-in {
+  animation: tnt-alert-in var(--tnt-duration-slow) var(--tnt-ease-bounce);
+}
 
-  .animate-alert-out {
-    animation: tnt-alert-out var(--tnt-duration-base) var(--tnt-ease-accelerate);
-  }
+.tnt-animate-alert-out {
+  animation: tnt-alert-out var(--tnt-duration-base) var(--tnt-ease-accelerate);
+}
 
-  /* Modal (scale + fade) */
-  .animate-modal-in {
-    animation: tnt-modal-in var(--tnt-duration-base) var(--tnt-ease-spring);
-  }
+/* Modal (scale + fade) */
+.tnt-animate-modal-in {
+  animation: tnt-modal-in var(--tnt-duration-base) var(--tnt-ease-spring);
+}
 
-  .animate-modal-out {
-    animation: tnt-modal-out var(--tnt-duration-base) var(--tnt-ease-accelerate);
-  }
+.tnt-animate-modal-out {
+  animation: tnt-modal-out var(--tnt-duration-base) var(--tnt-ease-accelerate);
+}
 
-  /* Popover (snap in) */
-  .animate-popover-in {
-    animation: tnt-popover-in var(--tnt-duration-fast) var(--tnt-ease-sharp);
-  }
+/* Popover (snap in) */
+.tnt-animate-popover-in {
+  animation: tnt-popover-in var(--tnt-duration-fast) var(--tnt-ease-sharp);
+}
 
-  .animate-popover-out {
-    animation: tnt-popover-out var(--tnt-duration-fast) var(--tnt-ease-accelerate);
-  }
+.tnt-animate-popover-out {
+  animation: tnt-popover-out var(--tnt-duration-fast) var(--tnt-ease-accelerate);
+}
 
-  /* Navigation push (right to left) */
-  .animate-push-in {
-    animation: tnt-push-in var(--tnt-duration-medium) var(--tnt-ease-standard);
-  }
+/* Navigation push (right to left) */
+.tnt-animate-push-in {
+  animation: tnt-push-in var(--tnt-duration-medium) var(--tnt-ease-standard);
+}
 
-  .animate-push-out {
-    animation: tnt-push-out var(--tnt-duration-medium) var(--tnt-ease-standard);
-  }
+.tnt-animate-push-out {
+  animation: tnt-push-out var(--tnt-duration-medium) var(--tnt-ease-standard);
+}
 
-  /* Navigation pop (left to right) */
-  .animate-pop-in {
-    animation: tnt-pop-in var(--tnt-duration-base) var(--tnt-ease-standard);
-  }
+/* Navigation pop (left to right) */
+.tnt-animate-pop-in {
+  animation: tnt-pop-in var(--tnt-duration-base) var(--tnt-ease-standard);
+}
 
-  .animate-pop-out {
-    animation: tnt-pop-out var(--tnt-duration-base) var(--tnt-ease-accelerate);
-  }
+.tnt-animate-pop-out {
+  animation: tnt-pop-out var(--tnt-duration-base) var(--tnt-ease-accelerate);
+}
 
-  /* General slide animations */
-  .animate-slide-up {
-    animation: tnt-slide-up var(--tnt-duration-medium) var(--tnt-ease-decelerate);
-  }
+/* General slide animations */
+.tnt-animate-slide-up {
+  animation: tnt-slide-up var(--tnt-duration-medium) var(--tnt-ease-decelerate);
+}
 
-  .animate-slide-down {
-    animation: tnt-slide-down var(--tnt-duration-medium) var(--tnt-ease-accelerate);
-  }
+.tnt-animate-slide-down {
+  animation: tnt-slide-down var(--tnt-duration-medium) var(--tnt-ease-accelerate);
+}
 
-  .animate-slide-left {
-    animation: tnt-slide-left var(--tnt-duration-medium) var(--tnt-ease-standard);
-  }
+.tnt-animate-slide-left {
+  animation: tnt-slide-left var(--tnt-duration-medium) var(--tnt-ease-standard);
+}
 
-  .animate-slide-right {
-    animation: tnt-slide-right var(--tnt-duration-medium) var(--tnt-ease-standard);
-  }
+.tnt-animate-slide-right {
+  animation: tnt-slide-right var(--tnt-duration-medium) var(--tnt-ease-standard);
 }
 
 /* ==============================================
@@ -534,11 +531,18 @@
  *
  * `animation`/`transition` là shorthand nên reset luôn duration,
  * iteration-count, timing-function; không cần liệt kê riêng.
+ *
+ * SCOPE: `[class*='tnt-']`, không phải `*`. Bản trước dùng `*, *::before,
+ * *::after` và đo được trên host thật (ca L4 `reduced-motion-scope`): element
+ * của chủ nhà đặt `animation 5s/spin` nhận về `0s/none`. Tức library tắt luôn
+ * animation của trang khách. Dưới reduced-motion host có cách xử lý riêng của
+ * họ và đó là việc của họ. `[class*='tnt-']` không thể khớp element nào không
+ * mang class của tinita.
  */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  [class*='tnt-'],
+  [class*='tnt-']::before,
+  [class*='tnt-']::after {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;

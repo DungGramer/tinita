@@ -1,4 +1,7 @@
+'use client';
+
 import type { ReactNode } from 'react';
+import './Ping.css';
 
 export interface PingProps {
   /**
@@ -36,14 +39,12 @@ export const Ping = ({ count, prefix, onClick, theme, className = '' }: PingProp
       tabIndex={onClick ? 0 : undefined}
     >
       {prefix}
-      <div
-        className={`inline-flex items-center gap-1 text-[var(--tnt-ping)]${prefix ? ' ml-2' : ''}`}
-      >
-        <div className="relative inline-flex">
-          <span className="absolute size-2 animate-ping rounded-full bg-green-500 opacity-75" />
-          <span className="relative inline-flex size-2 rounded-full bg-green-500" />
+      <div className={`tnt-ping__body${prefix ? ' tnt-ping__body--offset' : ''}`}>
+        <div className="tnt-ping__dot-wrap">
+          <span className="tnt-ping__pulse" aria-hidden="true" />
+          <span className="tnt-ping__dot" aria-hidden="true" />
         </div>
-        {count && <span className="min-w-8 text-xs font-medium tabular-nums">{count}</span>}
+        {count !== undefined && <span className="tnt-ping__count">{count}</span>}
       </div>
     </Wrapper>
   );

@@ -166,7 +166,7 @@ export const NavigationAnimations: Story = {
             >
               <div
                 key={`push-in-${trigger}`}
-                className="animate-push-in"
+                className="tnt-animate-push-in"
                 style={{
                   background: '#2563eb',
                   color: 'white',
@@ -204,7 +204,7 @@ export const NavigationAnimations: Story = {
             >
               <div
                 key={`pop-in-${trigger}`}
-                className="animate-pop-in"
+                className="tnt-animate-pop-in"
                 style={{
                   background: '#10b981',
                   color: 'white',
@@ -401,7 +401,7 @@ export const AllAnimations: Story = {
         >
           <div
             key={`fade-${trigger}`}
-            className="animate-fade-in"
+            className="tnt-animate-fade-in"
             style={{
               padding: '1.5rem',
               background: '#2563eb',
@@ -416,7 +416,7 @@ export const AllAnimations: Story = {
 
           <div
             key={`sheet-${trigger}`}
-            className="animate-sheet-up"
+            className="tnt-animate-sheet-up"
             style={{
               padding: '1.5rem',
               background: '#10b981',
@@ -431,7 +431,7 @@ export const AllAnimations: Story = {
 
           <div
             key={`alert-${trigger}`}
-            className="animate-alert-in"
+            className="tnt-animate-alert-in"
             style={{
               padding: '1.5rem',
               background: '#f59e0b',
@@ -446,7 +446,7 @@ export const AllAnimations: Story = {
 
           <div
             key={`modal-${trigger}`}
-            className="animate-modal-in"
+            className="tnt-animate-modal-in"
             style={{
               padding: '1.5rem',
               background: '#8b5cf6',
@@ -461,7 +461,7 @@ export const AllAnimations: Story = {
 
           <div
             key={`popover-${trigger}`}
-            className="animate-popover-in"
+            className="tnt-animate-popover-in"
             style={{
               padding: '1.5rem',
               background: '#ec4899',
@@ -476,7 +476,7 @@ export const AllAnimations: Story = {
 
           <div
             key={`slide-up-${trigger}`}
-            className="animate-slide-up"
+            className="tnt-animate-slide-up"
             style={{
               padding: '1.5rem',
               background: '#ef4444',
@@ -491,7 +491,7 @@ export const AllAnimations: Story = {
 
           <div
             key={`slide-down-${trigger}`}
-            className="animate-slide-down"
+            className="tnt-animate-slide-down"
             style={{
               padding: '1.5rem',
               background: '#06b6d4',
@@ -506,7 +506,7 @@ export const AllAnimations: Story = {
 
           <div
             key={`slide-left-${trigger}`}
-            className="animate-slide-left"
+            className="tnt-animate-slide-left"
             style={{
               padding: '1.5rem',
               background: '#14b8a6',
@@ -521,7 +521,7 @@ export const AllAnimations: Story = {
 
           <div
             key={`slide-right-${trigger}`}
-            className="animate-slide-right"
+            className="tnt-animate-slide-right"
             style={{
               padding: '1.5rem',
               background: '#6366f1',

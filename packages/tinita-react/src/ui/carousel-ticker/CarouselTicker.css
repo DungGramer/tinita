@@ -1,19 +1,88 @@
 /**
  * CarouselTicker CSS
  *
- * Styles for the CarouselTicker component.
- * Dynamic styles (transform, willChange) are applied inline via JavaScript.
- * Static styles use Tailwind CSS classes where possible.
+ * Trước đây layout của component nằm trong class Tailwind thô viết trong JSX
+ * (`shrink-0 grow-0 flex will-change-transform`, `absolute inset-0`,
+ * `h-full min-h-[100px]`...) mà bundle không ship utility nào. Component chỉ
+ * hiển thị đúng nếu host có Tailwind, đúng version, đúng config - phụ thuộc
+ * NGẦM. Giờ toàn bộ là CSS thật; biến thể đi qua `data-orientation` và
+ * `data-overflow` thay vì đổi class.
+ *
+ * `box-sizing` KHÔNG còn đặt qua `.tnt-carousel-ticker *`: nó với tới cả
+ * children do người dùng truyền vào. Chỉ đặt trên element của chính component.
  */
 
-/* Root container */
-.tnt-carousel-ticker {
+.tnt-carousel-ticker,
+.tnt-carousel-ticker__content,
+.tnt-carousel-ticker__pattern,
+.tnt-carousel-ticker__item,
+.tnt-carousel-ticker__fade {
   box-sizing: border-box;
 }
 
-/* Ensure children don't interfere with flex layout */
-.tnt-carousel-ticker * {
-  box-sizing: border-box;
+.tnt-carousel-ticker {
+  position: relative;
+}
+
+.tnt-carousel-ticker[data-overflow='hidden'] {
+  overflow: hidden;
+}
+
+.tnt-carousel-ticker[data-overflow='visible'] {
+  overflow: visible;
+}
+
+.tnt-carousel-ticker[data-orientation='vertical'] {
+  block-size: 100%;
+  min-block-size: var(--tnt-carousel-min-block-size);
+}
+
+.tnt-carousel-ticker__content {
+  position: relative;
+  display: flex;
+  margin: 0;
+  padding: 0;
+  inline-size: 100%;
+  overflow: visible;
+  will-change: transform;
+}
+
+.tnt-carousel-ticker[data-orientation='horizontal'] .tnt-carousel-ticker__content {
+  flex-direction: row;
+  block-size: 100%;
+}
+
+.tnt-carousel-ticker[data-orientation='vertical'] .tnt-carousel-ticker__content {
+  flex-direction: column;
+  block-size: auto;
+  min-block-size: 100%;
+}
+
+.tnt-carousel-ticker__pattern {
+  display: flex;
+  flex: 0 0 auto;
+  will-change: transform;
+}
+
+.tnt-carousel-ticker[data-orientation='horizontal'] .tnt-carousel-ticker__pattern {
+  flex-direction: row;
+  block-size: 100%;
+}
+
+.tnt-carousel-ticker[data-orientation='vertical'] .tnt-carousel-ticker__pattern {
+  flex-direction: column;
+  inline-size: 100%;
+}
+
+.tnt-carousel-ticker__item {
+  flex: 0 0 auto;
+  will-change: transform;
+}
+
+.tnt-carousel-ticker__fade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 /* Accessibility: tắt hẳn khi user yêu cầu reduced-motion. KHÔNG dùng

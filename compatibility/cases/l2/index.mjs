@@ -115,7 +115,7 @@ const hasBrowser = await (async () => {
 })();
 
 if (!hasBrowser) {
-  for (const id of ['css-leak:unlayered', 'css-leak:layered', 'css-probe-proof', 'no-tailwind-missing-utilities', 'vite:render']) {
+  for (const id of ['css-leak:unlayered', 'css-leak:layered', 'css-probe-proof', 'no-tailwind-standalone-layout', 'vite:render']) {
     add(id, true, 'skip: không có chromium trong môi trường này', { skipped: true, reason: 'no-browser' });
   }
 }
@@ -168,14 +168,26 @@ process.stdout.write(renderToStaticMarkup(h(Ping, { count: 1 })));
   const cssPath = resolve(work, 'node_modules/tinita-react/dist/styles.css');
   const style = await probeMissingUtilities({ cssPath, html });
 
-  // bundle không ship utility Tailwind -> inline-flex/gap KHÔNG áp được.
-  const missing = style && style.display !== 'inline-flex';
-  add('no-tailwind-missing-utilities', missing === true, style ? `Ping root: display="${style.display}" gap="${style.gap}" (mong đợi KHÁC inline-flex vì bundle không ship utility)` : 'không đo được node Ping');
-  if (missing) {
+  // ĐẢO 2026-09-26. Trước: Ping viết class Tailwind thô trong JSX mà bundle không ship
+  // utility, nên host KHÔNG có Tailwind thì `display` là `block` - component vỡ layout.
+  // Ca cũ chốt lại đúng cái vỡ đó (`display !== 'inline-flex'`).
+  //
+  // Giờ Ping có Ping.css thật và JSX chỉ còn class `tnt-ping__*`. Yêu cầu đảo chiều:
+  // KHÔNG có Tailwind mà component vẫn phải đúng. `inline-flex` đến từ CSS của
+  // library, không từ utility của host - đó chính là điều cần chứng minh.
+  const standalone = style && style.display === 'inline-flex';
+  add(
+    'no-tailwind-standalone-layout',
+    standalone === true,
+    style
+      ? `host KHÔNG có Tailwind, Ping root display="${style.display}" (mong đợi inline-flex, đến từ Ping.css chứ không từ utility của host)`
+      : 'không đo được node Ping',
+  );
+  if (!standalone && style) {
     findings.push({
       id: 'implicit-tailwind-dependency',
-      detail: `Ping viết class Tailwind thô trong JSX (Ping.tsx:45-50) nhưng dist/styles.css không ship utility. Host không có Tailwind thì display="${style.display}" thay vì inline-flex -> component vỡ layout. Phụ thuộc ngầm vào Tailwind của host.`,
-      assignedTo: 'roadmap M1',
+      detail: `Ping root display="${style.display}" khi host không có Tailwind. Nghĩa là layout lại phụ thuộc utility mà bundle không ship - class Tailwind thô đã quay lại JSX.`,
+      assignedTo: 'regression',
     });
   }
 }
@@ -242,7 +254,7 @@ createRoot(document.getElementById('root')).render(
 // chạy trước publish. Ghi trong compatibility/README.md.
 const tierFlag = flags.tier ? Number(flags.tier) : 3;
 if (tierFlag < 2) {
-  for (const id of ['next:rsc-ping-no-directive', 'next:rsc-filetree-no-directive', 'next:rsc-filetree-app-directive']) {
+  for (const id of ['next:rsc-ping-no-directive', 'next:rsc-filetree-no-directive', 'next:rsc-ticker-no-directive', 'next:rsc-filetree-app-directive']) {
     add(id, true, 'skip: ca Next thuộc tier 2 (next build chậm)', { skipped: true, reason: 'tier' });
   }
 }
@@ -261,8 +273,13 @@ if (tierFlag >= 2) {
 
   const variants = [
     { id: 'rsc-ping-no-directive', directive: '', imp: 'Ping', jsx: '<Ping count={1} />', expectOk: true, why: 'Ping không dùng hook nên Server Component chịu được' },
-    { id: 'rsc-filetree-no-directive', directive: '', imp: 'FileTree', jsx: '<FileTree text={TREE} />', expectOk: false, why: 'FileTree dùng hook qua Radix -> cần use client' },
-    { id: 'rsc-filetree-app-directive', directive: "'use client';\n", imp: 'FileTree', jsx: '<FileTree text={TREE} />', expectOk: true, why: 'consumer bọc use client LÀ ĐỦ' },
+    // ĐẢO 2026-09-26. Trước: `expectOk: false` - FileTree trong Server Component throw
+    // `(0 , e.useState) is not a function` vì library không khai 'use client' ở đâu, và
+    // mọi consumer phải tự bọc. Giờ library tự khai (tsup `banner`, vì esbuild xoá
+    // directive trong source) nên consumer KHÔNG phải làm gì.
+    { id: 'rsc-filetree-no-directive', directive: '', imp: 'FileTree', jsx: '<FileTree text={TREE} />', expectOk: true, why: "library tự khai 'use client' -> Server Component dùng trực tiếp được" },
+    { id: 'rsc-ticker-no-directive', directive: '', imp: 'CarouselTicker', jsx: '<CarouselTicker><span>a</span></CarouselTicker>', expectOk: true, why: "CarouselTicker dùng useRef; library tự khai 'use client'" },
+    { id: 'rsc-filetree-app-directive', directive: "'use client';\n", imp: 'FileTree', jsx: '<FileTree text={TREE} />', expectOk: true, why: 'consumer bọc thêm use client vẫn phải chạy' },
   ];
 
   for (const v of variants) {
@@ -273,11 +290,6 @@ if (tierFlag >= 2) {
     add(`next:${v.id}`, ok, `${v.why}; exit=${r.code}${hookErr ? ` | ${hookErr}` : ''}`, { expectedFailure: !v.expectOk, hookError: hookErr });
   }
 
-  findings.push({
-    id: 'library-missing-use-client',
-    detail: "Source tinita-react không có directive 'use client' ở đâu. Đo được: FileTree trong Server Component -> `(0 , e.useState) is not a function`; CarouselTicker -> `(0 , e.useRef) is not a function`; Ping thì OK vì không dùng hook. Consumer tự bọc 'use client' LÀ ĐỦ để build xanh, nhưng việc đó bị đẩy sang mọi consumer. Nên thêm directive vào 2 component dùng hook.",
-    assignedTo: 'roadmap M1',
-  });
 }
 
 const payload = { level: 'l2', ranAt: new Date().toISOString(), wallClockMs: Date.now() - t0, cases, findings };
