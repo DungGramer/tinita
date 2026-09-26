@@ -73,7 +73,7 @@ Provide production-ready utility packages that:
 - **`tinita-react`** (v0.0.2-alpha.1): React hooks (2) + UI components (3) + CSS
   - Hooks: useToggle, useIsomorphicLayoutEffect
   - Components: FileTree, Ping, CarouselTicker
-  - CSS: Tailwind v4 + CSS variables + prefix `tinita-`
+  - CSS: Tailwind v4 + CSS variables + prefix `tnt-`
 - **`config/*`**: ESLint, TypeScript, UI (shared configs)
 - **`apps/storybook`** (private): Storybook 10.1.4 for component documentation
 
@@ -111,7 +111,7 @@ import { fileSize } from 'tinita/file/fileSize'; // Subpath import (optimal)
 
 - Core `tinita` has zero framework dependencies
 - React code only in `tinita-react` (peerDependencies)
-- Vue code only in `tinita-vue` (peerDependencies)
+- Vue code only in `tnt-vue` (peerDependencies)
 - Framework packages externalize their dependencies (never bundle React/Vue)
 
 ### 4. CSS Architecture for UI Components
@@ -122,7 +122,7 @@ import { fileSize } from 'tinita/file/fileSize'; // Subpath import (optimal)
 - **Auto-Inject** (development): Component-level style injection via `autoInjectStyles`
 - **SSR Compatible**: Safe checks for browser environment
 - **Customizable**: CSS variables for theming
-- **Prefixed Classes**: `tinita-{component}` naming convention
+- **Prefixed Classes**: `tnt-{component}` naming convention
 
 **Build Process**:
 
@@ -237,7 +237,7 @@ ComponentName/
 
 - Node.js >= 18.0.0
 - React >= 18.0.0 (`tinita-react`)
-- Vue >= 3.0.0 (`tinita-vue`, planned)
+- Vue >= 3.0.0 (`tnt-vue`, planned)
 - All modern browsers and edge runtimes
 
 **NFR5: Security**
@@ -396,7 +396,7 @@ ComponentName/
 **Goal**: Add Node.js utilities package
 **Flow**:
 
-1. Create `packages/tinita-node/`
+1. Create `packages/tnt-node/`
 2. Set up `package.json` with exports
 3. Create `tsup.config.ts` with `bundle: true` + `outExtension` (cjs -> `.cjs`, esm -> `.mjs`)
 4. Add to `pnpm-workspace.yaml`
@@ -547,7 +547,7 @@ API ở tầng đầu (Button/Input) sẽ lan ra toàn library - phải tốt ng
 ### CSS: 4 Lớp Bảo Vệ Chống Conflict
 
 1. Không ship Preflight (`@import "tailwindcss"` kéo theo global reset)
-2. Prefix toàn bộ utilities (tinita- prefix)
+2. Prefix toàn bộ utilities (tnt- prefix)
 3. Token là CSS variables, không hard-code
 4. CSS layers + scoped tokens nếu cần isolation mạnh
 
@@ -557,7 +557,7 @@ API ở tầng đầu (Button/Input) sẽ lan ra toàn library - phải tốt ng
 - ✅ tinita (4 utilities)
 - ✅ tinita-react (2 hooks + 3 components)
 - ✅ Storybook 10.1.4
-- ✓ CSS handling (Tailwind v4 + CSS variables + prefix `tinita-`)
+- ✓ CSS handling (Tailwind v4 + CSS variables + prefix `tnt-`)
 
 ### Phase 2 (v0.1.x - Next - Target)
 
@@ -590,7 +590,7 @@ API ở tầng đầu (Button/Input) sẽ lan ra toàn library - phải tốt ng
 ### Peer Dependencies (Per Package)
 
 - React >= 18.0.0 (`tinita-react`)
-- Vue >= 3.0.0 (`tinita-vue`, planned)
+- Vue >= 3.0.0 (`tnt-vue`, planned)
 
 ### Zero Runtime Dependencies
 
@@ -659,7 +659,7 @@ API ở tầng đầu (Button/Input) sẽ lan ra toàn library - phải tốt ng
 
 ## Unresolved Questions
 
-1. **Vue Package Timeline**: When should `tinita-vue` development begin?
+1. **Vue Package Timeline**: When should `tnt-vue` development begin?
 2. **Node Package Scope**: What Node.js-specific utilities are highest priority?
 3. **Documentation Site**: Should we use VitePress, Docusaurus, or custom solution?
 4. **Monorepo Scaling**: How to handle >10 packages in the monorepo?

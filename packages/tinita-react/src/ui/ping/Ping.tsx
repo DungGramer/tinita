@@ -30,14 +30,14 @@ export const Ping = ({ count, prefix, onClick, theme, className = '' }: PingProp
   return (
     <Wrapper
       onClick={onClick}
-      className={`tinita-ping ${className}`.trim()}
+      className={`tnt-ping ${className}`.trim()}
       data-theme={theme}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
     >
       {prefix}
       <div
-        className={`inline-flex items-center gap-1 text-[var(--tinita-ping)]${prefix ? ' ml-2' : ''}`}
+        className={`inline-flex items-center gap-1 text-[var(--tnt-ping)]${prefix ? ' ml-2' : ''}`}
       >
         <div className="relative inline-flex">
           <span className="absolute size-2 animate-ping rounded-full bg-green-500 opacity-75" />

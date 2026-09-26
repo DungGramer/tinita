@@ -51,7 +51,7 @@ export const FileTree = forwardRef<HTMLDivElement, FileTreeProps>(
     // Optionally hide root name
     const wrappedTree = hideRootName && tree.length === 1 ? tree[0].children : tree;
 
-    const containerClassName = ['tinita-filetree', className].filter(Boolean).join(' ');
+    const containerClassName = ['tnt-filetree', className].filter(Boolean).join(' ');
 
     return (
       <div

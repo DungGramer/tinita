@@ -7,12 +7,12 @@
  */
 
 /* Root container */
-.tinita-carousel-ticker {
+.tnt-carousel-ticker {
   box-sizing: border-box;
 }
 
 /* Ensure children don't interfere with flex layout */
-.tinita-carousel-ticker * {
+.tnt-carousel-ticker * {
   box-sizing: border-box;
 }
 
@@ -25,7 +25,7 @@
    `animation-*` KHÔNG điều khiển được nó - nó bị tắt ở JS trong
    CarouselTicker.tsx. Sửa một chỗ là chưa đủ. */
 @media (prefers-reduced-motion: reduce) {
-  .tinita-carousel-ticker * {
+  .tnt-carousel-ticker * {
     animation: none !important;
     transition: none !important;
   }

@@ -35,40 +35,40 @@ import 'tinita-react/styles/animations.css'; // chỉ motion
 
 ## 1. Design token **[ĐANG CÓ]**
 
-Toàn bộ token là CSS variable prefix `--tinita-`. Nguồn: `packages/tinita-react/src/styles/globals.css`
+Toàn bộ token là CSS variable prefix `--tnt-`. Nguồn: `packages/tinita-react/src/styles/globals.css`
 và `packages/tinita-react/src/styles/animations.css`.
 
 ### 1.1 Color - `globals.css`
 
 Khai báo ở `:root` (light) và override ở `.dark, [data-theme='dark']`.
 
-| Token                             | Light                 | Dark                        |
-| --------------------------------- | --------------------- | --------------------------- |
-| `--tinita-background`             | `#ffffff`             | `#0a0a0a`                   |
-| `--tinita-foreground`             | `#1a1a1a`             | `#e5e7eb`                   |
-| `--tinita-primary`                | `#2563eb`             | `#60a5fa`                   |
-| `--tinita-primary-foreground`     | `#ffffff`             | `#0a0a0a`                   |
-| `--tinita-secondary`              | `#f3f4f6`             | `#1f1f1f`                   |
-| `--tinita-secondary-foreground`   | `#1a1a1a`             | `#e5e7eb`                   |
-| `--tinita-muted`                  | `#6b7280`             | `#9ca3af`                   |
-| `--tinita-muted-foreground`       | `#ffffff`             | `#0a0a0a`                   |
-| `--tinita-accent`                 | `rgba(0, 0, 0, 0.06)` | `rgba(255, 255, 255, 0.06)` |
-| `--tinita-accent-foreground`      | `#1a1a1a`             | `#e5e7eb`                   |
-| `--tinita-destructive`            | `#dc2626`             | `#f87171`                   |
-| `--tinita-destructive-foreground` | `#ffffff`             | `#0a0a0a`                   |
-| `--tinita-border`                 | `#e5e7eb`             | `#374151`                   |
-| `--tinita-input`                  | `#ffffff`             | `#1f1f1f`                   |
-| `--tinita-ring`                   | `#2563eb`             | `#60a5fa`                   |
-| `--tinita-ping`                   | `oklch(55.6% 0 0)`    | `oklch(70.8% 0 0)`          |
+| Token                          | Light                 | Dark                        |
+| ------------------------------ | --------------------- | --------------------------- |
+| `--tnt-background`             | `#ffffff`             | `#0a0a0a`                   |
+| `--tnt-foreground`             | `#1a1a1a`             | `#e5e7eb`                   |
+| `--tnt-primary`                | `#2563eb`             | `#60a5fa`                   |
+| `--tnt-primary-foreground`     | `#ffffff`             | `#0a0a0a`                   |
+| `--tnt-secondary`              | `#f3f4f6`             | `#1f1f1f`                   |
+| `--tnt-secondary-foreground`   | `#1a1a1a`             | `#e5e7eb`                   |
+| `--tnt-muted`                  | `#6b7280`             | `#9ca3af`                   |
+| `--tnt-muted-foreground`       | `#ffffff`             | `#0a0a0a`                   |
+| `--tnt-accent`                 | `rgba(0, 0, 0, 0.06)` | `rgba(255, 255, 255, 0.06)` |
+| `--tnt-accent-foreground`      | `#1a1a1a`             | `#e5e7eb`                   |
+| `--tnt-destructive`            | `#dc2626`             | `#f87171`                   |
+| `--tnt-destructive-foreground` | `#ffffff`             | `#0a0a0a`                   |
+| `--tnt-border`                 | `#e5e7eb`             | `#374151`                   |
+| `--tnt-input`                  | `#ffffff`             | `#1f1f1f`                   |
+| `--tnt-ring`                   | `#2563eb`             | `#60a5fa`                   |
+| `--tnt-ping`                   | `oklch(55.6% 0 0)`    | `oklch(70.8% 0 0)`          |
 
 `color-scheme: light` / `color-scheme: dark` được set cùng block.
 
 ### 1.2 Radius, spacing, typography - `globals.css`
 
-- Radius: `--tinita-radius: 0.5rem`, `--tinita-radius-sm: 0.25rem`,
-  `--tinita-radius-md: 0.375rem`, `--tinita-radius-lg: 0.5rem`
-- Spacing: `--tinita-spacing-tree-indent: 16px`
-- Font: `--tinita-font-sans` (system-ui stack), `--tinita-font-mono`
+- Radius: `--tnt-radius: 0.5rem`, `--tnt-radius-sm: 0.25rem`,
+  `--tnt-radius-md: 0.375rem`, `--tnt-radius-lg: 0.5rem`
+- Spacing: `--tnt-spacing-tree-indent: 16px`
+- Font: `--tnt-font-sans` (system-ui stack), `--tnt-font-mono`
   (`'Consolas', 'Monaco', 'Courier New', monospace`)
 
 ### 1.3 Motion - `animations.css`
@@ -80,46 +80,46 @@ và timing thích ứng theo ngữ cảnh tương tác - đúng cấu trúc củ
 token dành cho JS animation engine đọc ra. Các easing cubic-bezier là xấp xỉ, không phải spring
 thật.
 
-| Duration                    | Giá trị | Ngữ cảnh (theo comment trong file) |
-| --------------------------- | ------- | ---------------------------------- |
-| `--tinita-duration-instant` | `100ms` | Button press, touch feedback       |
-| `--tinita-duration-fast`    | `200ms` | Quick UI updates, toggles          |
-| `--tinita-duration-base`    | `300ms` | Standard interactions              |
-| `--tinita-duration-medium`  | `350ms` | Sheet, navigation, modals          |
-| `--tinita-duration-slow`    | `400ms` | Page transitions, first-time       |
+| Duration                 | Giá trị | Ngữ cảnh (theo comment trong file) |
+| ------------------------ | ------- | ---------------------------------- |
+| `--tnt-duration-instant` | `100ms` | Button press, touch feedback       |
+| `--tnt-duration-fast`    | `200ms` | Quick UI updates, toggles          |
+| `--tnt-duration-base`    | `300ms` | Standard interactions              |
+| `--tnt-duration-medium`  | `350ms` | Sheet, navigation, modals          |
+| `--tnt-duration-slow`    | `400ms` | Page transitions, first-time       |
 
-Duration thích ứng theo ngữ cảnh: `--tinita-duration-first-time` (`400ms`),
-`--tinita-duration-repeated` (`200ms`), `--tinita-duration-destructive` (`400ms`),
-`--tinita-duration-feedback` (`100ms`).
+Duration thích ứng theo ngữ cảnh: `--tnt-duration-first-time` (`400ms`),
+`--tnt-duration-repeated` (`200ms`), `--tnt-duration-destructive` (`400ms`),
+`--tnt-duration-feedback` (`100ms`).
 
-| Easing                     | Giá trị                             |
-| -------------------------- | ----------------------------------- |
-| `--tinita-ease-standard`   | `cubic-bezier(0.4, 0.0, 0.2, 1)`    |
-| `--tinita-ease-decelerate` | `cubic-bezier(0.0, 0.0, 0.2, 1)`    |
-| `--tinita-ease-accelerate` | `cubic-bezier(0.4, 0.0, 1, 1)`      |
-| `--tinita-ease-sharp`      | `cubic-bezier(0.4, 0.0, 0.6, 1)`    |
-| `--tinita-ease-spring`     | `cubic-bezier(0.36, 0.66, 0.04, 1)` |
-| `--tinita-ease-bounce`     | `cubic-bezier(0.34, 1.56, 0.64, 1)` |
+| Easing                  | Giá trị                             |
+| ----------------------- | ----------------------------------- |
+| `--tnt-ease-standard`   | `cubic-bezier(0.4, 0.0, 0.2, 1)`    |
+| `--tnt-ease-decelerate` | `cubic-bezier(0.0, 0.0, 0.2, 1)`    |
+| `--tnt-ease-accelerate` | `cubic-bezier(0.4, 0.0, 1, 1)`      |
+| `--tnt-ease-sharp`      | `cubic-bezier(0.4, 0.0, 0.6, 1)`    |
+| `--tnt-ease-spring`     | `cubic-bezier(0.36, 0.66, 0.04, 1)` |
+| `--tnt-ease-bounce`     | `cubic-bezier(0.34, 1.56, 0.64, 1)` |
 
-Spring physics - 4 preset `--tinita-spring-{standard,interactive,smooth,bounce}-{damping,stiffness,mass}`,
+Spring physics - 4 preset `--tnt-spring-{standard,interactive,smooth,bounce}-{damping,stiffness,mass}`,
 lần lượt damping/stiffness/mass: standard `0.85` / `200` / `1.0`, interactive `0.7` / `170` / `1.0`,
 smooth `0.95` / `220` / `1.0`, bounce `0.6` / `180` / `1.0`.
 
-Scale `--tinita-scale-*`: `button-press` `0.96`, `button-release` `1.0`, `card-lift` `1.02`,
+Scale `--tnt-scale-*`: `button-press` `0.96`, `button-release` `1.0`, `card-lift` `1.02`,
 `modal-enter` `0.95`, `alert-enter` `1.15` (overshoot), `popover-enter` `0.9`, `sheet-drag` `0.98`.
 
-Opacity `--tinita-opacity-*`: `full` `1.0`, `press` `0.8`, `disabled` `0.4`,
+Opacity `--tnt-opacity-*`: `full` `1.0`, `press` `0.8`, `disabled` `0.4`,
 `placeholder` `0.5`, `hidden` `0`.
 
-Transform `--tinita-translate-*`: `parallax` `-30%`, `sheet` `100%`, `slide` `20px`.
+Transform `--tnt-translate-*`: `parallax` `-30%`, `sheet` `100%`, `slide` `20px`.
 
 Backdrop (frosted glass), 3 cấp - mỗi cấp có `blur` + màu nền `light` / `dark`:
 standard (`blur 20px`, `saturate 180%`), heavy (`blur 40px`, `saturate 200%`),
-overlay (`blur 4px`, không saturate). Biến: `--tinita-backdrop-{blur,saturate,light,dark}-{standard,heavy,overlay}`.
+overlay (`blur 4px`, không saturate). Biến: `--tnt-backdrop-{blur,saturate,light,dark}-{standard,heavy,overlay}`.
 
 ### 1.4 Cầu nối token sang Tailwind
 
-`globals.css` có block `@theme inline` map `--tinita-*` sang tên Tailwind semantic:
+`globals.css` có block `@theme inline` map `--tnt-*` sang tên Tailwind semantic:
 `--color-{background,foreground,primary,primary-foreground,secondary,secondary-foreground,muted,muted-foreground,accent,accent-foreground,destructive,destructive-foreground,border,input,ring}`,
 `--radius`, `--radius-{sm,md,lg}`, `--spacing-tree-indent`, `--font-sans`, `--font-mono`.
 Đây là lớp duy nhất trong package biết tới Tailwind; CSS component không biết.
@@ -128,18 +128,18 @@ overlay (`blur 4px`, không saturate). Biến: `--tinita-backdrop-{blur,saturate
 
 ## 2. Quy ước đặt tên class **[ĐANG CÓ]**
 
-Prefix `tinita-` cho mọi class, đặt tên theo BEM-like. Ví dụ thật từ
+Prefix `tnt-` cho mọi class, đặt tên theo BEM-like. Ví dụ thật từ
 `src/ui/file-tree/FileTree.css`:
 
 ```
-.tinita-filetree                                        /* block    */
-.tinita-filetree__{list,item,label,label-text,icon,arrow}          /* element  */
-.tinita-filetree__accordion-{item,trigger,content}
-.tinita-filetree__label--{folder,file}                             /* modifier */
+.tnt-filetree                                        /* block    */
+.tnt-filetree__{list,item,label,label-text,icon,arrow}          /* element  */
+.tnt-filetree__accordion-{item,trigger,content}
+.tnt-filetree__label--{folder,file}                             /* modifier */
 ```
 
-Block gốc của các component còn lại: `.tinita-ping`, `.tinita-carousel-ticker` (và
-`.tinita-carousel-ticker__fade` dùng trong JSX nhưng chưa có rule trong
+Block gốc của các component còn lại: `.tnt-ping`, `.tnt-carousel-ticker` (và
+`.tnt-carousel-ticker__fade` dùng trong JSX nhưng chưa có rule trong
 `CarouselTicker.css`). `ping/` không có file CSS - xem mục 4.
 
 **Variant không dùng class modifier mà dùng `data-*` attribute trên block gốc.** Đây là lựa
@@ -162,12 +162,12 @@ selector không cần đấu specificity với class dài.
 Class utility trong `animations.css` nằm ngoài quy ước BEM. **Chưa prefix:** 8 class
 `.transition-{smooth,spring,modal,fade,slide,instant,fast,slow}`, `.interactive`, và 16 class
 `.animate-{fade-in,fade-out,sheet-up,sheet-down,alert-in,alert-out,modal-in,modal-out,popover-in,popover-out,push-in,push-out,pop-in,pop-out,slide-up,slide-down,slide-left,slide-right}`.
-**Đã prefix:** `.tinita-btn`, `.tinita-card`, `.tinita-backdrop`, `.tinita-backdrop-heavy`,
-`.tinita-backdrop-overlay`. Tên keyframes đã prefix đủ (`tinita-fade-in`, `tinita-modal-in`, ...)
+**Đã prefix:** `.tnt-btn`, `.tnt-card`, `.tnt-backdrop`, `.tnt-backdrop-heavy`,
+`.tnt-backdrop-overlay`. Tên keyframes đã prefix đủ (`tnt-fade-in`, `tnt-modal-in`, ...)
 trừ `accordion-down` / `accordion-up` trong `FileTree.css`.
 
 **[KHOẢNG CÁCH]** `.transition-*`, `.animate-*`, `.interactive` là tên rất dễ đụng với app host.
-Cần đổi sang `tinita-transition-*` / `tinita-animate-*` trước khi lên bản stable.
+Cần đổi sang `tnt-transition-*` / `tnt-animate-*` trước khi lên bản stable.
 
 ---
 
@@ -180,22 +180,22 @@ Không chạm component, không chạm class. Ghi đè biến ở scope bạn mu
 ```css
 /* app.css của consumer */
 :root {
-  --tinita-primary: #7c3aed;
-  --tinita-radius: 0.75rem;
+  --tnt-primary: #7c3aed;
+  --tnt-radius: 0.75rem;
 }
 
 /* hoặc chỉ riêng một component */
-.tinita-filetree {
-  --tinita-filetree-bg: #fdf6e3;
-  --tinita-filetree-hover: rgba(0, 0, 0, 0.08);
-  --tinita-filetree-indent: 24px;
-  --tinita-filetree-icon-markdown: #b58900;
+.tnt-filetree {
+  --tnt-filetree-bg: #fdf6e3;
+  --tnt-filetree-hover: rgba(0, 0, 0, 0.08);
+  --tnt-filetree-indent: 24px;
+  --tnt-filetree-icon-markdown: #b58900;
 }
 ```
 
-`FileTree` phơi ra bộ biến riêng ngoài token toàn cục: `--tinita-filetree-{bg,text,text-dim,hover,active,spacing,indent}`,
-cộng 20 biến màu icon `--tinita-filetree-icon-{folder,file,readme,markdown,javascript,css,html,json,database,php,vue,git,text,code,font,image,video,audio,spreadsheet,archive}`.
-Mỗi biến icon dùng fallback `var(--tinita-filetree-icon-x, var(--tinita-filetree-text-dim))`,
+`FileTree` phơi ra bộ biến riêng ngoài token toàn cục: `--tnt-filetree-{bg,text,text-dim,hover,active,spacing,indent}`,
+cộng 20 biến màu icon `--tnt-filetree-icon-{folder,file,readme,markdown,javascript,css,html,json,database,php,vue,git,text,code,font,image,video,audio,spreadsheet,archive}`.
+Mỗi biến icon dùng fallback `var(--tnt-filetree-icon-x, var(--tnt-filetree-text-dim))`,
 nên bỏ trống vẫn ra màu hợp lý.
 
 ### Level 2 - variant prop + `className` **[ĐANG CÓ]**
@@ -224,18 +224,18 @@ thành một preset.
 Qua `className` + attribute selector của block gốc:
 
 ```css
-.my-tree.tinita-filetree {
+.my-tree.tnt-filetree {
   font-family: 'IBM Plex Mono', monospace;
 }
-.my-tree[data-size='lg'] .tinita-filetree__accordion-trigger {
+.my-tree[data-size='lg'] .tnt-filetree__accordion-trigger {
   padding-block: 12px;
 }
 ```
 
 ### Dấu hiệu architecture SAI
 
-Consumer phải leo thang specificity để override: `.my-app .tinita-button`, rồi
-`.tinita-button.tinita-button`, rồi `!important`. Nếu chuỗi đó xuất hiện trong codebase
+Consumer phải leo thang specificity để override: `.my-app .tnt-button`, rồi
+`.tnt-button.tnt-button`, rồi `!important`. Nếu chuỗi đó xuất hiện trong codebase
 consumer thì library đã hết customizable - đó là bug của library, không phải của consumer.
 Thang đo đúng: Level 1 phải giải quyết được đổi màu, bo góc, khoảng cách, font; chỉ khi cần đổi
 _cấu trúc_ mới phải xuống Level 3.
@@ -274,18 +274,18 @@ trước mọi thứ khác.
 | --------------------------------- | ----------------------------------------- | ----------------------------------------------- |
 | `body` background                 | `rgb(10,20,30)` -> `rgb(255,255,255)`     | `globals.css:121-126` -> dist `@layer base`     |
 | `body` color                      | `rgb(40,50,60)` -> `rgb(26,26,26)`        | `globals.css:121-126`                           |
-| `.animate-fade-in` bị **chiếm**   | `hostFade` -> `tinita-fade-in`            | `animations.css:243` -> dist `@layer utilities` |
+| `.animate-fade-in` bị **chiếm**   | `hostFade` -> `tnt-fade-in`               | `animations.css:243` -> dist `@layer utilities` |
 | `.transition-fast`                | `777ms` -> `200ms`                        | `animations.css:156` -> `dist:114`              |
 | `Ping` khi host không có Tailwind | `display: block`, đúng phải `inline-flex` | `Ping.tsx:45-50`                                |
 
 #### KHÔNG rò rỉ như từng nghĩ - kèm lý do đo được
 
-| Từng khẳng định                                          | Thực tế                                                                                                                                         |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| 22 token `@theme inline` đè token consumer               | **Không ship.** `grep -c -- '--color-primary' dist/styles.css` = 0. Khối `@theme inline` chỉ tồn tại trong source để map sang utility lúc build |
-| `* { border-color }` đè mọi element                      | Thua `div[data-host]` về specificity khi **cùng layer** (`*` = 0,0,0)                                                                           |
-| `.interactive` đè `opacity`                              | `dist:171` là `.interactive:hover, .interactive:focus-visible`, chỉ set `will-change` - không đụng `opacity` ở trạng thái tĩnh                  |
-| `.tinita-carousel-ticker *` ép `box-sizing` lên children | Inline style của consumer thắng mọi stylesheet                                                                                                  |
+| Từng khẳng định                                       | Thực tế                                                                                                                                         |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 22 token `@theme inline` đè token consumer            | **Không ship.** `grep -c -- '--color-primary' dist/styles.css` = 0. Khối `@theme inline` chỉ tồn tại trong source để map sang utility lúc build |
+| `* { border-color }` đè mọi element                   | Thua `div[data-host]` về specificity khi **cùng layer** (`*` = 0,0,0)                                                                           |
+| `.interactive` đè `opacity`                           | `dist:171` là `.interactive:hover, .interactive:focus-visible`, chỉ set `will-change` - không đụng `opacity` ở trạng thái tĩnh                  |
+| `.tnt-carousel-ticker *` ép `box-sizing` lên children | Inline style của consumer thắng mọi stylesheet                                                                                                  |
 
 #### Đã đo thêm 2026-09-26
 
@@ -310,10 +310,10 @@ Không phải tất cả đều là nợ. Bốn thứ sau đã đúng và phải
 - **Preflight chính chủ không ship.** `src/styles/build-entry.css` chỉ có hai dòng
   `@import "./globals.css"` và `@import "./animations.css"`; không mắt xích nào
   `@import "tailwindcss"`. Đây là nội dung commit 0a1dd88 ("build ignore import tailwildCSS").
-- **Token gốc của library đều prefix `--tinita-`** (mục 1), và `dist/styles.css` chứa 278 token
-  `--tinita-*`. Block `@theme inline` là lớp _ánh xạ_ sang tên Tailwind và **không được emit vào
+- **Token gốc của library đều prefix `--tnt-`** (mục 1), và `dist/styles.css` chứa 278 token
+  `--tnt-*`. Block `@theme inline` là lớp _ánh xạ_ sang tên Tailwind và **không được emit vào
   bundle** - đo được: 0 match cho `--color-primary` trong dist.
-- **Class CSS của component đều prefix `tinita-`** và theo BEM-like (mục 2). Keyframes cũng đã
+- **Class CSS của component đều prefix `tnt-`** và theo BEM-like (mục 2). Keyframes cũng đã
   prefix, trừ `accordion-down` / `accordion-up`.
 - **`globals.css` dùng `@layer base`, `animations.css` dùng `@layer utilities`.** Chỉ CSS
   component là còn ngoài layer.
@@ -331,13 +331,13 @@ thật thì phải xử hai khiếm khuyết ở bảng 4.1 trước (chèn cu�
 ### 4.5 `className` escape hatch - **ĐẠT**
 
 Cả ba component đều nhận `className` và merge lên block gốc: `FileTree`, `Ping`
-(`` `tinita-ping ${className}` ``), `CarouselTicker` (qua helper `cn()`).
+(`` `tnt-ping ${className}` ``), `CarouselTicker` (qua helper `cn()`).
 
 ### 4.6 Semantic variant - **ĐẠT MỘT PHẦN**
 
 `FileTree` đã có `size` / `borderRadius` / `theme` dưới dạng prop, biểu diễn bằng `data-*`.
 Nhưng chưa có trục `variant` semantic (primary / secondary / destructive) vì chưa có component
-nào cần tới - token màu semantic (`--tinita-primary`, `--tinita-destructive`, ...) đã sẵn sàng
+nào cần tới - token màu semantic (`--tnt-primary`, `--tnt-destructive`, ...) đã sẵn sàng
 nhưng **chưa component nào tiêu thụ**.
 
 ### Shadow DOM - quyết định: KHÔNG dùng **[ĐỊNH HƯỚNG]**
@@ -350,7 +350,7 @@ override.
 ### Tailwind là implementation detail **[ĐỊNH HƯỚNG]**
 
 Public API = variant props + token + `className`. Không bao giờ bắt consumer viết
-`className="tinita-bg-primary tinita-px-4"`. Tailwind không phải design-system contract.
+`className="tnt-bg-primary tnt-px-4"`. Tailwind không phải design-system contract.
 
 ---
 
@@ -410,7 +410,7 @@ Bắt buộc bọc sau **anti-corruption layer**: consumer viết
 React Aria sau này không được đổi public API.
 
 **[KHOẢNG CÁCH]** `FileTree` hiện `import` thẳng `@radix-ui/react-accordion`. CSS lộ rõ dấu
-vết: class `.tinita-filetree__accordion-trigger` / `__accordion-content`, selector
+vết: class `.tnt-filetree__accordion-trigger` / `__accordion-content`, selector
 `[data-state='open']` / `[data-state='closed']`, và keyframes dùng
 `var(--radix-accordion-content-height)`. Biến `--radix-*` là API nội bộ của Radix nằm lọt vào
 CSS của chúng ta - đổi vendor sẽ vỡ animation. Đây là món nợ kiến trúc cần trả trước khi thêm
@@ -431,9 +431,9 @@ hoạt động ngay, không cần chống chọi với media query.
 `FileTree` hỗ trợ thêm một bậc scope nữa, ba selector cùng lúc:
 
 ```css
-.dark .tinita-filetree,          /* theme toàn app  */
-.tinita-filetree[data-theme='dark'],  /* prop theme="dark" trên chính component */
-[data-theme='dark'] .tinita-filetree  /* theme trên ancestor bất kỳ */
+.dark .tnt-filetree,          /* theme toàn app  */
+.tnt-filetree[data-theme='dark'],  /* prop theme="dark" trên chính component */
+[data-theme='dark'] .tnt-filetree  /* theme trên ancestor bất kỳ */
 ```
 
 Nghĩa là `<FileTree theme="dark" />` để dark một cây riêng lẻ giữa app sáng vẫn hoạt động.
@@ -443,8 +443,8 @@ Cách consumer override theme:
 ```css
 /* đổi palette dark riêng, không đụng light */
 .dark {
-  --tinita-primary: #a78bfa;
-  --tinita-background: #111827;
+  --tnt-primary: #a78bfa;
+  --tnt-background: #111827;
 }
 ```
 
@@ -463,8 +463,8 @@ Kiến trúc & file:
 
 Token & class:
 
-- [ ] Mọi giá trị đổi được là CSS variable `--tinita-*`, không hard-code màu / radius / spacing.
-- [ ] Class prefix `tinita-`, BEM-like, block gốc `.tinita-<component>`.
+- [ ] Mọi giá trị đổi được là CSS variable `--tnt-*`, không hard-code màu / radius / spacing.
+- [ ] Class prefix `tnt-`, BEM-like, block gốc `.tnt-<component>`.
 - [ ] Variant biểu diễn bằng `data-*` trên block gốc, không nổ tổ hợp class.
 - [ ] Không thêm selector `*`, `body`, `html` hay tag selector trần.
 - [ ] Không thêm class utility chưa prefix vào `animations.css`.

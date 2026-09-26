@@ -315,14 +315,14 @@ nên mọi thứ trông như chạy): `node_modules` chỉ có `react` + `tinita
 
 ## Naming Convention
 
-| Loại             | Quy tắc                | Ví dụ                                                      |
-| ---------------- | ---------------------- | ---------------------------------------------------------- |
-| Directory        | kebab-case             | `src/ui/file-tree/`, `src/file/`                           |
-| File (utility)   | camelCase.ts           | `fileSize.ts`, `generateUUID.ts`                           |
-| File (component) | PascalCase.tsx         | `FileTree.tsx`, `Ping.tsx`                                 |
-| File (private)   | camelCase.ts           | `utils.ts`, `parser.ts`                                    |
-| CSS Class        | BEM + `tinita-` prefix | `tinita-filetree__label--folder`, `tinita-ping__pulse`     |
-| CSS Variable     | `tinita-*`             | `tinita-primary`, `tinita-radius-md`, `tinita-ease-in-out` |
+| Loại             | Quy tắc             | Ví dụ                                             |
+| ---------------- | ------------------- | ------------------------------------------------- |
+| Directory        | kebab-case          | `src/ui/file-tree/`, `src/file/`                  |
+| File (utility)   | camelCase.ts        | `fileSize.ts`, `generateUUID.ts`                  |
+| File (component) | PascalCase.tsx      | `FileTree.tsx`, `Ping.tsx`                        |
+| File (private)   | camelCase.ts        | `utils.ts`, `parser.ts`                           |
+| CSS Class        | BEM + `tnt-` prefix | `tnt-filetree__label--folder`, `tnt-ping__pulse`  |
+| CSS Variable     | `tnt-*`             | `tnt-primary`, `tnt-radius-md`, `tnt-ease-in-out` |
 
 ---
 
@@ -331,16 +331,16 @@ nên mọi thứ trông như chạy): `node_modules` chỉ có `react` + `tinita
 **Tailwind v4:**
 
 - `src/styles/globals.css` - `@theme inline`, `@apply border-border`
-- `src/styles/animations.css` - @keyframes (tinita-fade-in, tinita-slide-up, etc.)
+- `src/styles/animations.css` - @keyframes (tnt-fade-in, tnt-slide-up, etc.)
 - Component CSS (`CarouselTicker.css`, `FileTree.css`) - CSS variables, không @apply
 
-**Token Prefix:** `tinita-` xuyên suốt
+**Token Prefix:** `tnt-` xuyên suốt
 
-- Colors: `tinita-primary`, `tinita-background`, `tinita-border`
-- Spacing/Radius: `tinita-radius-sm`, `tinita-radius-md`, `tinita-radius-lg`
-- Animation: `tinita-ease-in`, `tinita-ease-out`, `tinita-duration-300`
-- Motion (spring): `tinita-spring-tight`, `tinita-spring-default` (damping, mass, stiffness)
-- Backdrop: `tinita-backdrop-*`
+- Colors: `tnt-primary`, `tnt-background`, `tnt-border`
+- Spacing/Radius: `tnt-radius-sm`, `tnt-radius-md`, `tnt-radius-lg`
+- Animation: `tnt-ease-in`, `tnt-ease-out`, `tnt-duration-300`
+- Motion (spring): `tnt-spring-tight`, `tnt-spring-default` (damping, mass, stiffness)
+- Backdrop: `tnt-backdrop-*`
 
 **Build Output:**
 

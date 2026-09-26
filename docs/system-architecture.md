@@ -587,7 +587,7 @@ suy từ source không ra được:
 ### 1. Token `@theme inline` KHÔNG được emit vào bundle
 
 `--color-primary`, `--radius`, `--font-sans` và bạn bè **không tồn tại** trong `dist/styles.css`
-(`grep -c -- '--color-primary' dist/styles.css` = 0; `--tinita-*` = 278). Khẳng định trước đây rằng
+(`grep -c -- '--color-primary' dist/styles.css` = 0; `--tnt-*` = 278). Khẳng định trước đây rằng
 "client dùng shadcn là va chạm chắc chắn" là **sai** - khối `@theme inline` không ship. Nó chỉ tồn
 tại trong source để map sang utility lúc build.
 
@@ -615,19 +615,19 @@ CSS component (`FileTree.css`, `CarouselTicker.css`) thì **layerless**.
 | --------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 | `body` background                             | `rgb(10,20,30)` -> `rgb(255,255,255)`                 | `globals.css:121-126` -> dist `@layer base`                                                                       |
 | `body` color                                  | `rgb(40,50,60)` -> `rgb(26,26,26)`                    | `globals.css:121-126`                                                                                             |
-| `.animate-fade-in` bị **chiếm**               | `hostFade` -> `tinita-fade-in`                        | `animations.css:243` -> dist `@layer utilities`                                                                   |
+| `.animate-fade-in` bị **chiếm**               | `hostFade` -> `tnt-fade-in`                           | `animations.css:243` -> dist `@layer utilities`                                                                   |
 | `.transition-fast`                            | `777ms` -> `200ms`                                    | `animations.css:156` -> `dist:114`                                                                                |
 | `Ping` khi host KHÔNG có Tailwind             | `display: block` (đúng phải `inline-flex`)            | `Ping.tsx:45-50` viết utility thô mà bundle không ship                                                            |
 | Element chủ nhà dưới `prefers-reduced-motion` | `animation 5s/spin + transition 5s` -> `0s/none + 0s` | `animations.css:538-546` `*, *::before, *::after { ... !important }`; ca L4 `reduced-motion-scope`, đo 2026-09-26 |
 
 ### Không rò rỉ như từng nghĩ - kèm lý do
 
-| Từng khẳng định                                          | Thực tế đo được                                                                                                                  |
-| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| 22 token không prefix đè token consumer                  | **Không ship** - xem mục 1                                                                                                       |
-| `* { border-color }` đè mọi element                      | Thua `div[data-host]` về specificity khi **cùng layer** (`*` = 0,0,0)                                                            |
-| `.interactive` đè `opacity` của consumer                 | `dist:171` là `.interactive:hover, .interactive:focus-visible` và chỉ set `will-change` - không đụng `opacity` ở trạng thái tĩnh |
-| `.tinita-carousel-ticker *` ép `box-sizing` lên children | Inline style của consumer thắng mọi stylesheet                                                                                   |
+| Từng khẳng định                                       | Thực tế đo được                                                                                                                  |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| 22 token không prefix đè token consumer               | **Không ship** - xem mục 1                                                                                                       |
+| `* { border-color }` đè mọi element                   | Thua `div[data-host]` về specificity khi **cùng layer** (`*` = 0,0,0)                                                            |
+| `.interactive` đè `opacity` của consumer              | `dist:171` là `.interactive:hover, .interactive:focus-visible` và chỉ set `will-change` - không đụng `opacity` ở trạng thái tĩnh |
+| `.tnt-carousel-ticker *` ép `box-sizing` lên children | Inline style của consumer thắng mọi stylesheet                                                                                   |
 
 ### Bề mặt chưa đo (vẫn là rủi ro, chưa xác nhận)
 
@@ -666,7 +666,7 @@ registry (shadcn-style distribution model)
 **6 Nguyên Tắc:**
 
 1. No Preflight - tránh global reset
-2. Prefix utilities - `tinita-` trên tất cả Tailwind classes
+2. Prefix utilities - `tnt-` trên tất cả Tailwind classes
 3. Namespace tokens - CSS variables, không hard-code
 4. CSS layers - organize into layers (resets, tokens, components, overrides)
 5. className escape hatch - allow consumer override
@@ -674,7 +674,7 @@ registry (shadcn-style distribution model)
 
 **Current Status:**
 
-- ✓ Prefix tinita- (done)
+- ✓ Prefix tnt- (done)
 - ✓ CSS variables (done)
 - ✓ className prop (done)
 - ❌ No Preflight (check needed)

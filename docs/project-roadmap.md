@@ -267,7 +267,7 @@ text-foreground } }` tại `src/styles/globals.css:116-127`. `*` và `body` thu�
   (`animations.css:538-546`) - hiện nó đè mọi xử lý reduced-motion của client trên toàn trang.
 - Gỡ Tailwind class thô khỏi JSX của `Ping.tsx:45-50` và `CarouselTicker.tsx:211-291`. Bundle
   không ship utility nên 2 component này đang ngầm bắt host phải có Tailwind đúng version/theme.
-  `bg-green-500` còn hard-code màu dù `--tinita-ping` đã tồn tại.
+  `bg-green-500` còn hard-code màu dù `--tnt-ping` đã tồn tại.
 - Bọc `var(--radix-accordion-content-height)` (`FileTree.css:230,237`) sau token của tinita -
   biến nội bộ Radix không được nằm trong contract CSS công khai.
   **Thêm từ số đo của compatibility lab (2026-09-25):**
@@ -285,10 +285,10 @@ text-foreground } }` tại `src/styles/globals.css:116-127`. `*` và `body` thu�
 
 **Tiêu chí hoàn thành (kiểm được):**
 
-- `dist/styles.css` không chứa selector nào ngoài class có prefix `tinita-` (không `*`, không
+- `dist/styles.css` không chứa selector nào ngoài class có prefix `tnt-` (không `*`, không
   `body`, không `html`, không element trần)
 - grep `dist/styles.css` tìm class không prefix -> 0 kết quả
-- grep tìm token không bắt đầu bằng `--tinita-` -> 0 kết quả
+- grep tìm token không bắt đầu bằng `--tnt-` -> 0 kết quả
 - Dựng một trang thử có sẵn Tailwind + shadcn, nhúng cả 3 component, xác nhận không có style nào
   của trang bị đổi
   **Quy mô:** M.
@@ -381,7 +381,7 @@ ngoài thư mục primitive nội bộ; `FileTree` build và test vẫn pass sau
 (không chỉ quy ước đặt tên thủ công như hiện tại); loại Preflight khỏi output build; scope token
 dưới `[data-ui]` thay vì `:root` trần; giữ nguyên các token CSS variable đã đúng.
 **Tiêu chí hoàn thành:** `dist/styles.css` không chứa reset global trên thẻ HTML chuẩn (img,
-button, input, h1...); mọi utility class trong output có prefix `tinita-`; token đọc được dưới
+button, input, h1...); mọi utility class trong output có prefix `tnt-`; token đọc được dưới
 `[data-ui]`, không leak ra `:root` của host app.
 **Quy mô:** M.
 

@@ -43,7 +43,7 @@ export const LEAK_SURFACES = [
   { id: 'unprefixed-animate', selector: '#host-animate', property: 'animation-name', expected: { unlayered: 'clean', layered: 'leaks' }, evidence: 'animations.css:243 -> dist @layer utilities. Library CHIẾM class .animate-fade-in cùng tên của host' },
   { id: 'unprefixed-transition', selector: '#host-transition', property: 'transition-duration', expected: { unlayered: 'clean', layered: 'leaks' }, evidence: 'animations.css:156 -> dist:114 @layer utilities' },
   { id: 'unprefixed-interactive', selector: '#host-interactive', property: 'opacity', expected: { unlayered: 'clean', layered: 'clean' }, evidence: 'dist:171 `.interactive:hover, .interactive:focus-visible` chỉ set will-change, KHÔNG set opacity - class trùng tên nhưng không đụng property này ở trạng thái tĩnh' },
-  { id: 'layered-base-beats-host-layer', selector: '#host-filetree-override', property: 'border-color', expected: { unlayered: 'leaks', layered: 'clean' }, evidence: '`*{border-color:var(--tinita-border)}` ở @layer base. Thắng/thua tuỳ thứ tự khai layer của host, KHÔNG phải do component CSS layerless' },
+  { id: 'layered-base-beats-host-layer', selector: '#host-filetree-override', property: 'border-color', expected: { unlayered: 'leaks', layered: 'clean' }, evidence: '`*{border-color:var(--tnt-border)}` ở @layer base. Thắng/thua tuỳ thứ tự khai layer của host, KHÔNG phải do component CSS layerless' },
   { id: 'component-star-boxsizing', selector: '#host-ticker-child', property: 'box-sizing', expected: { unlayered: 'clean', layered: 'clean' }, evidence: 'CarouselTicker.css:15-17; inline style của consumer thắng mọi stylesheet' },
 ];
 

@@ -42,10 +42,10 @@ export const ComponentTransitions: Story = {
                 fontWeight: 500,
               }}
             >
-              Button Press Effect (.tinita-btn)
+              Button Press Effect (.tnt-btn)
             </div>
             <button
-              className="tinita-btn"
+              className="tnt-btn"
               style={{
                 padding: '0.75rem 1.5rem',
                 background: '#2563eb',
@@ -70,10 +70,10 @@ export const ComponentTransitions: Story = {
                 fontWeight: 500,
               }}
             >
-              Card Hover Lift (.tinita-card)
+              Card Hover Lift (.tnt-card)
             </div>
             <div
-              className="tinita-card"
+              className="tnt-card"
               style={{
                 padding: '2rem',
                 background: 'white',
@@ -249,7 +249,7 @@ export const BackdropEffects: Story = {
                 fontWeight: 500,
               }}
             >
-              Standard Backdrop (.tinita-backdrop)
+              Standard Backdrop (.tnt-backdrop)
             </div>
             <div
               style={{
@@ -261,7 +261,7 @@ export const BackdropEffects: Story = {
               }}
             >
               <div
-                className="tinita-backdrop"
+                className="tnt-backdrop"
                 style={{
                   padding: '2rem',
                   height: '100%',
@@ -287,7 +287,7 @@ export const BackdropEffects: Story = {
                 fontWeight: 500,
               }}
             >
-              Heavy Backdrop (.tinita-backdrop-heavy)
+              Heavy Backdrop (.tnt-backdrop-heavy)
             </div>
             <div
               style={{
@@ -299,7 +299,7 @@ export const BackdropEffects: Story = {
               }}
             >
               <div
-                className="tinita-backdrop-heavy"
+                className="tnt-backdrop-heavy"
                 style={{
                   padding: '2rem',
                   height: '100%',
@@ -325,7 +325,7 @@ export const BackdropEffects: Story = {
                 fontWeight: 500,
               }}
             >
-              Overlay Backdrop (.tinita-backdrop-overlay)
+              Overlay Backdrop (.tnt-backdrop-overlay)
             </div>
             <div
               style={{
@@ -338,7 +338,7 @@ export const BackdropEffects: Story = {
               }}
             >
               <div
-                className="tinita-backdrop-overlay"
+                className="tnt-backdrop-overlay"
                 style={{
                   padding: '2rem',
                   height: '100%',

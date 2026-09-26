@@ -282,24 +282,24 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 
 **Quy Tắc (Hiện Trạng ✓):**
 
-- Prefix tất cả class: `tinita-{component}__*`
-- BEM-like: `tinita-filetree__label--folder`
-- CSS variable: `tinita-primary`, `tinita-radius-md`, `tinita-ease-in-out`
+- Prefix tất cả class: `tnt-{component}__*`
+- BEM-like: `tnt-filetree__label--folder`
+- CSS variable: `tnt-primary`, `tnt-radius-md`, `tnt-ease-in-out`
 
 **Ví dụ:**
 
 ```css
 /* src/ui/FileTree/FileTree.css */
-.tinita-filetree {
-  background-color: var(--tinita-filetree-bg);
-  color: var(--tinita-filetree-text);
+.tnt-filetree {
+  background-color: var(--tnt-filetree-bg);
+  color: var(--tnt-filetree-text);
 }
 
-.tinita-filetree__label {
-  padding: var(--tinita-spacing-2);
+.tnt-filetree__label {
+  padding: var(--tnt-spacing-2);
 }
 
-.tinita-filetree__label--folder {
+.tnt-filetree__label--folder {
   font-weight: 600;
 }
 ```
@@ -310,9 +310,9 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 
 ```css
 :root {
-  --tinita-filetree-bg: #ffffff;
-  --tinita-filetree-text: #000000;
-  --tinita-primary: #007bff;
+  --tnt-filetree-bg: #ffffff;
+  --tnt-filetree-text: #000000;
+  --tnt-primary: #007bff;
 }
 ```
 
@@ -335,7 +335,7 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 **6 Nguyên Tắc từ design-brief:**
 
 1. **Không ship Preflight** - Tránh global reset trên img, button, input
-2. **Prefix utilities** - Tất cả Tailwind utilities prefix `tinita-`
+2. **Prefix utilities** - Tất cả Tailwind utilities prefix `tnt-`
 3. **Namespace tokens** - CSS variables cho design tokens, không hard-code
 4. **CSS layers** - Tổ chức CSS vào layers (resets, tokens, components, overrides)
 5. **className escape hatch** - Cho phép consumer override via className
@@ -343,7 +343,7 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 
 **Hiện Trạng:**
 
-- ✓ Prefix `tinita-` - đã áp dụng
+- ✓ Prefix `tnt-` - đã áp dụng
 - ✓ CSS variables - đã áp dụng
 - ✓ className prop - đã có
 - ❌ No Preflight - chưa ép (cần check Tailwind config)
@@ -665,25 +665,25 @@ trong `tinita-react` (build ra `dist/utils/cn.*` nhưng không import được q
      - 8 class `.transition-*` (smooth, spring, modal, fade, slide, etc.)
      - 1 class `.interactive`
    - Tên cực kỳ chung chung, `.animate-*` va đạo trực tiếp Tailwind utility của client
-   - Fix: Prefix tất cả thành `.tinita-animate-*`, `.tinita-transition-*`, `.tinita-interactive`
+   - Fix: Prefix tất cả thành `.tnt-animate-*`, `.tnt-transition-*`, `.tnt-interactive`
 
 3. **Namespace + prefix CSS variable**
    - ✅ **Đo lại 2026-09-25: KHÔNG vi phạm.** 22 token trong `@theme inline`
      (`globals.css:81-111`) **không được emit vào `dist/styles.css`** - đo được 0 match cho
-     `--color-primary`, và 278 match cho `--tinita-*`. Khối `@theme inline` chỉ tồn tại trong source
+     `--color-primary`, và 278 match cho `--tnt-*`. Khối `@theme inline` chỉ tồn tại trong source
      để map sang utility lúc build.
    - Khẳng định cũ "trùng khít shadcn/ui -> va chạm chắc chắn" là **sai**, đã gỡ. Nó được suy từ
      source chứ không đo trên artifact.
-   - Quy tắc vẫn giữ: token mới phải prefix `--tinita-`. Nhưng đừng coi đây là nợ đang tồn tại.
-   - Fix: Prefix tất cả thành `--tinita-color-background`, `--tinita-radius-sm`, v.v.
+   - Quy tắc vẫn giữ: token mới phải prefix `--tnt-`. Nhưng đừng coi đây là nợ đang tồn tại.
+   - Fix: Prefix tất cả thành `--tnt-color-background`, `--tnt-radius-sm`, v.v.
 
-4. **Mọi selector CSS phải bắt đầu bằng class có prefix `tinita-`**
+4. **Mọi selector CSS phải bắt đầu bằng class có prefix `tnt-`**
    - ❌ **Hiện trạng vi phạm:**
      - `src/styles/globals.css:116-127`: selector `*` và `body` trần
      - `src/styles/animations.css:538-546`: `*, *::before, *::after` trong `@media (prefers-reduced-motion: reduce)` + `!important` - đè toàn trang
-     - `CarouselTicker.css:15-17`: `.tinita-carousel-ticker * { box-sizing: border-box; }` - ép children của client
+     - `CarouselTicker.css:15-17`: `.tnt-carousel-ticker * { box-sizing: border-box; }` - ép children của client
      - `FileTree.css`, `CarouselTicker.css`: selector `.dark` không prefix (Tailwind dark mode convention)
-   - Fix: Loại bỏ selector trần, scope mọi rule trong `.tinita-{component}` hoặc `[data-tinita]`
+   - Fix: Loại bỏ selector trần, scope mọi rule trong `.tnt-{component}` hoặc `[data-tinita]`
 
 5. **CSS component phải nằm trong `@layer`**
    - ❌ **Hiện trạng vi phạm:** `FileTree.css`, `CarouselTicker.css` KHÔNG có `@layer` block
@@ -696,14 +696,14 @@ trong `tinita-react` (build ra `dist/utils/cn.*` nhưng không import được q
      - `src/ui/Ping/Ping.tsx:45-50`: `inline-flex items-center gap-1`, `absolute size-2 animate-ping rounded-full bg-green-500 opacity-75`, `min-w-8 text-xs font-medium tabular-nums`
      - `src/ui/CarouselTicker/CarouselTicker.tsx:211-291`: `shrink-0 grow-0 flex will-change-transform`, `absolute inset-0 pointer-events-none`, `relative overflow-hidden h-full min-h-[100px]`, `m-0 p-0 relative flex w-full`...
    - Bundle KHÔNG ship các utility này (build-entry.css không import Tailwind) -> chỉ hiển thị đúng nếu client có Tailwind, đúng version/config
-   - Hard-code `bg-green-500` trong Ping dù `--tinita-ping` đã có
+   - Hard-code `bg-green-500` trong Ping dù `--tnt-ping` đã có
    - Fix: Loại bỏ Tailwind class khỏi JSX, chuyển tất cả style vào CSS file với CSS variables
 
 7. **Variable runtime từ third-party không lọt vào public CSS**
    - ❌ **Hiện trạng vi phạm:** `FileTree.css:230,237` - `height: var(--radix-accordion-content-height);` trong keyframes
    - Biến runtime nội bộ của Radix lọt vào CSS công khai -> rò rỉ chi tiết nội bộ
    - Đổi foundation sang Base UI sẽ vỡ keyframes
-   - Fix: Bọc lại sau token của tinita: `--tinita-accordion-content-height: var(--radix-accordion-content-height)` rồi dùng biến tinita
+   - Fix: Bọc lại sau token của tinita: `--tnt-accordion-content-height: var(--radix-accordion-content-height)` rồi dùng biến tinita
 
 ---
 
@@ -716,7 +716,7 @@ blog nào đó, nó là công thức được copy rộng nhất và nó sai.
 ```css
 /* ĐÚNG */
 @media (prefers-reduced-motion: reduce) {
-  .tinita-thing {
+  .tnt-thing {
     animation: none !important;
     transition: none !important;
   }
@@ -724,7 +724,7 @@ blog nào đó, nó là công thức được copy rộng nhất và nó sai.
 
 /* SAI - animation VẪN chạy */
 @media (prefers-reduced-motion: reduce) {
-  .tinita-thing {
+  .tnt-thing {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
