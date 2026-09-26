@@ -570,8 +570,10 @@ Cả 2 lib optional cũng nằm trong `devDependencies` để workspace build/ty
 - Giải quyết **triệt để** đúng bài toán này - không tồn tại khái niệm "cài cả lib".
 - Đổi lại: user sở hữu source, không nhận update qua `npm update`; phải dựng và duy trì registry.
 
-**Chưa có cơ chế nào trong số này được triển khai.** Không `optionalDependencies`, không
-`peerDependenciesMeta.optional`, không package con, không export condition.
+**Đã triển khai 2026-09-25:** `peerDependenciesMeta.optional` cho
+`@radix-ui/react-accordion` và `lucide-react`; `tinita-react` từ 5 hard dependency
+xuống **0**. Chưa dùng: `optionalDependencies`, package con, export condition theo
+dependency. Ca L1 `04b-optional-peer-matrix` kiểm 6 đường nhập x 2 trạng thái peer.
 
 ---
 
@@ -579,6 +581,10 @@ Cả 2 lib optional cũng nằm trong `devDependencies` để workspace build/ty
 
 **Ràng buộc từ owner (2026-09-24):** đã từng deploy library vào web của client và **CSS global +
 Tailwind của library xung đột với CSS của client**. Đây là **sự cố production đã xảy ra**.
+
+**TRẠNG THÁI 2026-09-26: ĐÃ BỊT HẾT.** Ca L2 `css-leak` đo 11 bề mặt, **0 rò rỉ ở CẢ HAI chế độ
+layer** (trước đó: 1 ở unlayered, 4 ở layered). Ca vẫn chạy như cửa chặn hồi quy, không phải bản báo
+cáo một lần. Danh sách cái gì rò rỉ và sửa thế nào ở mục "Đã bịt" dưới.
 
 **Cập nhật 2026-09-25 - bảng cũ SAI và đã được thay.** Bảng trước được suy từ source. Nay đo trực
 tiếp trên `dist/styles.css` trong Chromium thật (`compatibility/cases/l2`, ca `css-leak`). Ba điều
@@ -642,6 +648,86 @@ CSS component (`FileTree.css`, `CarouselTicker.css`) thì **layerless**.
 **Cách tái lập:** `node compatibility/run.mjs l2 --no-pack`, ca `css-leak:unlayered` và
 `css-leak:layered`. Probe được chứng minh bằng ca `css-probe-proof` (chèn rule có chủ ý phải đo
 được), nên bảng trống sẽ fail chứ không đọc thành "library sạch".
+
+### Đã bịt (2026-09-26)
+
+| Rò rỉ                                                                                      | Sửa                                                                   |
+| ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------- |
+| `@layer base { * { @apply border-border } body { @apply bg-background text-foreground } }` | XOÁ HẲN cả khối. Nguồn của 3 rò rỉ đo được.                           |
+| `color-scheme: light` trên `:root`, `dark` trên `.dark`                                    | XOÁ. Nó đổi scrollbar và form control của cả trang khách.             |
+| `.dark, [data-theme='dark']` ghi lên element của host                                      | `:where(...)` - specificity 0, host luôn đè lại được                  |
+| 27 class trần (18 `.animate-*`, 8 `.transition-*`, `.interactive`)                         | prefix `tnt-`. `.animate-fade-in` từng CHIẾM class cùng tên của host. |
+| `@keyframes accordion-down` / `accordion-up`                                               | `tnt-accordion-down/up`. Hai tên đó là keyframes của shadcn.          |
+| `@media (prefers-reduced-motion)` nhắm `*, *::before, *::after`                            | `[class*='tnt-']`                                                     |
+| `.tnt-carousel-ticker *` ép `box-sizing` lên children của người dùng                       | liệt kê element của chính component                                   |
+| `var(--radix-accordion-content-height)` trong keyframes public                             | bọc sau `--tnt-accordion-content-height`                              |
+| Tailwind thô trong JSX của `Ping` và `CarouselTicker`                                      | CSS thật + `data-*`. `Ping` chưa từng có file CSS.                    |
+| Thiếu `'use client'`                                                                       | tsup `banner` - esbuild xoá directive khỏi source                     |
+
+Guard sau khi bịt: 10 ca tĩnh trong `packages/tinita-react/tests/styles/no-global-leak.test.ts`
+(chạy trong `pnpm test`, đọc source) + ca `css-leak` của L2 (đo trong Chromium). Cả 10 guard tĩnh đã
+được chứng minh bằng mutation: 10 mutation, 10 bị bắt.
+
+---
+
+## Quyết Định Kiến Trúc Styling (2026-09-26)
+
+Chốt sau khi đọc cách các library lớn xử lý, và sau khi lab đo được cả 5 rò rỉ CSS
+đã bịt. Ghi lại để lần sau không phải bàn lại.
+
+### Bốn mô hình tham chiếu, và mô hình nào áp dụng được
+
+| Library           | Styling                | Variant              | Áp dụng cho tinita?                                                                                                                                                                          |
+| ----------------- | ---------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **shadcn/ui**     | Tailwind + `cva`       | class composition    | **KHÔNG.** shadcn copy code vào repo người dùng, nên `@layer base { body {...} }` của nó là CSS của chính app đó. tinita là npm package - cùng một dòng CSS đó là ghi đè lên web người khác. |
+| **GitHub Primer** | CSS Modules            | class + `data-*`     | Một phần. Họ bỏ CSS-in-JS runtime, đo được SSR nhanh hơn 55%. tinita chưa từng có CSS-in-JS nên không có gì để bỏ.                                                                           |
+| **Mantine**       | CSS / CSS Modules      | class + CSS variable | **Có.** Họ ship `styles.css` **và** `styles.layer.css` - đã copy nguyên.                                                                                                                     |
+| **Radix**         | unstyled, `data-state` | `data-*`             | **Có.** State expose qua `data-*`, styling là việc của CSS.                                                                                                                                  |
+| **Ant Design v5** | CSS-in-JS + token      | token                | Một phần: `:where()` để hạ specificity xuống 0 - đã copy cho selector dark mode.                                                                                                             |
+
+MUI (Emotion) và Ant Design (CSS-in-JS runtime) **không** dùng làm tham chiếu cho
+styling: cả hai đang tự đi ngược khỏi runtime CSS.
+
+### Cái đã chốt
+
+1. **CSS thật, build-time, zero runtime.** Không CSS-in-JS. Không `styled()`.
+2. **Không Tailwind bên trong package.** Không phải vì Tailwind kém - vì một npm
+   package không biết consumer dùng Tailwind hay không, v3 hay v4, có scan được
+   source của package hay không, và có xung đột Preflight hay không. Đo được:
+   `Ping` từng nhận `display: block` thay vì `inline-flex` khi host không có
+   Tailwind. Tailwind vẫn là lựa chọn tốt ở **application layer** của consumer.
+3. **Bỏ Preflight đúng cách của Tailwind v4:** không import
+   `tailwindcss/preflight.css`. `build-entry.css` không `@import "tailwindcss"`
+   chút nào, nên không có reset nào chạm trang khách.
+4. **Token = CSS variable, prefix `--tnt-`.** Theme qua
+   `:where(.dark, [data-theme='dark'])` - ĐỌC quy ước của host, không định nghĩa.
+5. **Variant = `data-*` attribute**, không phải chuỗi class.
+   `variant × size × state × orientation` nhân thành chuỗi class dài vô hạn; một
+   thuộc tính `data-` mỗi chiều thì không, và nó inspect được trong DevTools. Đã
+   áp cho `CarouselTicker`: `data-orientation`, `data-overflow`.
+6. **Ship hai artifact CSS.** `styles.css` không layer, `styles.layer.css` bọc
+   `@layer tnt`, sinh từ cùng một nguồn nên không lệch được. Bọc layer thì CSS
+   không layer của host luôn thắng - sửa component không cần `!important` - nhưng
+   đánh đổi là mọi CSS không layer của host đè lên component, kể cả vô ý. Đó là
+   quyết định của consumer, không phải của library.
+
+### Còn mở: CSS Modules cho internals
+
+Hiện tinita dùng **class global có prefix** (`.tnt-filetree__label`). Primer và
+Mantine dùng CSS Modules.
+
+- **Class global có prefix**: tên ổn định nên người dùng nhắm được
+  `.tnt-filetree__label` để sửa, và chỉ cần một lần `import 'tinita-react/styles.css'`.
+  Đổi lại, khả năng trùng tên không bao giờ về 0 tuyệt đối - nó chỉ về gần 0 nhờ
+  prefix cộng 10 guard tĩnh cộng ca `css-leak` của L2 (đo được 0 rò rỉ trên 11 bề
+  mặt, cả hai chế độ layer).
+- **CSS Modules**: hash tên nên trùng là bất khả về mặt cơ chế. Đổi lại người dùng
+  mất khả năng nhắm class để override, trừ khi cấu hình tên ổn định (Mantine làm
+  thế) - lúc đó lợi thế cơ chế biến mất và chỉ còn lại chi phí.
+
+**Chưa đổi.** Lý do: rò rỉ hiện đo được là 0, nên đây không phải bản vá cho một vấn
+đề đang tồn tại. Nếu số component tăng nhiều và bề mặt class trở nên khó theo, đây
+là bước tiếp theo đúng - và nó cần quyết định về tên ổn định trước.
 
 ---
 

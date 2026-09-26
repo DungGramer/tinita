@@ -240,7 +240,16 @@ hay script trỏ tới thứ không tồn tại.
   tại trong toàn bộ docs gốc.
   **Quy mô:** S.
 
-### M1 - Bịt rò rỉ CSS ra global scope **[SỰ CỐ PRODUCTION]**
+### M1 - Bịt rò rỉ CSS ra global scope **[XONG 2026-09-26]**
+
+**Kết quả đo:** ca L2 `css-leak` 11 bề mặt, **0 rò rỉ ở cả hai chế độ layer** (trước: 1 unlayered,
+4 layered). Ca L4 `reduced-motion-scope` đảo sang "host giữ nguyên giá trị đã đặt". Bảng "cái gì rò
+rỉ và sửa thế nào" ở `docs/system-architecture.md` mục "Đã bịt". Guard sau khi bịt: 10 ca tĩnh trong
+`tests/styles/no-global-leak.test.ts`, cả 10 chứng minh bằng mutation.
+
+Phần **chưa** làm và đã chuyển sang M6: đổi class global có prefix sang CSS Modules. Quyết định và
+đánh đổi ghi ở `docs/system-architecture.md` mục "Quyết Định Kiến Trúc Styling" - chưa đổi vì rò rỉ
+đo được đang là 0, nên nó không phải bản vá cho vấn đề đang tồn tại.
 
 **Tiên quyết:** M0.
 **Vì sao ưu tiên cao:** đây **không phải phòng xa**. Owner đã deploy library vào web của client và
@@ -334,7 +343,15 @@ gửi tới browser. C và D là quyết định lớn hơn, nên quyết sau kh
   thực sự vào `node_modules` - phải giảm rõ rệt so với ~20 gói hiện tại.
   **Quy mô:** M.
 
-### M3 - Test baseline
+### M3 - Test baseline **[XONG 2026-09-26]**
+
+**Kết quả:** `tinita-react` từ **0** lên **36 ca** / 6 file (script cũ là
+`vitest --passWithNoTests` nên `pnpm test` xanh vì rỗng). Cả 3 package giờ dùng `vitest run`.
+Trong đó 10 ca là guard tĩnh cho quy tắc CSS, chứng minh bằng mutation: 10 mutation, 10 bị bắt.
+Ca nhắm bug thật, không nhắm coverage - `count={0}` của Ping, reduced-motion hai chiều của
+CarouselTicker, ghim transform, không class Tailwind trong JSX.
+
+**Chưa làm:** coverage report v8. Không chặn gì, và coverage là số dễ tự lừa.
 
 **Tiên quyết:** M0 (tránh viết test cho code sắp đổi cấu hình).
 **Mục tiêu:** xoá nợ #1 - có test thật cho toàn bộ surface API hiện có.
@@ -344,10 +361,23 @@ gửi tới browser. C và D là quyết định lớn hơn, nên quyết sau kh
 ra được, mọi export public có ít nhất 1 test.
 **Quy mô:** M.
 
-### M4 - CI tối thiểu
+### M4 - Cổng tự động **[XONG 2026-09-26, dạng LOCAL]**
 
-**Tiên quyết:** M0, M3 (CI phải chạy build/lint/test đã sạch và có ý nghĩa).
-**Mục tiêu:** xoá nợ #9 - có kiểm tra tự động trên mỗi PR.
+**Owner chốt: không dựng CI.** Repo một người, chạy trên máy là đủ. `pnpm gate` =
+format-check, lint, types, build, test, check-stories, L1 - **đo được 84s**. `pnpm gate --full`
+thêm L2 và L4.
+
+Cổng dừng ở lỗi đầu tiên và in ra bước nào CHƯA chạy. Chạy hết rồi báo một đống lỗi là vô nghĩa khi
+`build` đã đỏ: mọi bước sau đó đo trên dist cũ. Thứ tự không tuỳ ý - `build` phải trước `test` và
+trước L1 vì L1 pack tarball từ dist.
+
+Kèm `scripts/check-stories.mjs`: mọi subpath trong `exports` của `tinita-react` và `tinita-dom` phải
+có story. Nó bắt được một lỗ thật ngay lần chạy đầu - `Ping.stories.tsx` import qua barrel.
+
+Nếu sau này có người thứ hai vào repo thì dựng GitHub Actions gọi đúng ba lệnh tier đã có bên dưới.
+
+**Tiên quyết:** M0, M3 (cổng phải chạy build/lint/test đã sạch và có ý nghĩa).
+**Mục tiêu (cũ):** xoá nợ #9 - có kiểm tra tự động trên mỗi PR.
 **Lab đã sẵn sàng, CI chỉ cần gọi lại:**
 
 ```

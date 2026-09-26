@@ -277,7 +277,7 @@ khoảng đó, và ca sẽ báo "không bị đè" trong lúc rò rỉ còn nguy
 Allowlist `contract.json` của `tinita` thu hẹp từ 3 entry xuống 1 - sửa xong thì **xoá** entry, không
 để allowlist phình thành thùng rác.
 
-## Tier 3 - kết quả đo 2026-09-25 và 3 vấn đề chưa xử
+## Tier 3 - kết quả đo 2026-09-25 và các vấn đề (1 còn treo, 2 đã xử)
 
 Chạy `--tier=3` (gồm cả cell tier 2). 5504s. Kết quả đáng giá nhất:
 
@@ -298,23 +298,51 @@ không làm đỏ tier - nhưng runner báo nó là **PASS** trong khi detail gh
 Advisory nghĩa là "fail không làm đỏ tier", KHÔNG phải "coi như pass". Nay báo là SKIP kèm lý do.
 Đây đúng loại xanh giả mà lab tồn tại để chặn, lần này trong runner của lab.
 
-### Cell `yarn-pnp` pass nhưng CHƯA kiểm PnP
+### Cell `yarn-pnp` - ĐÃ WIRE 2026-09-26
 
-Cell build và chạy được sau khi sửa corepack, và báo 19 ca 0 fail. **Đừng đọc nó thành coverage
-phantom-dependency** - nó chưa phải.
+**Trước đó nó xanh giả.** Cell báo 19 ca 0 fail nhưng chưa bao giờ đi qua resolver PnP: consumer của
+lab dựng bằng `npm install` trong `scripts/consumer.mjs`, nên chúng **luôn** có `node_modules` thật
+bất kể package manager ở ngoài container. `entry.sh` từng có `export LAB_NODE_RUNNER="yarn node"` mà
+không chỗ nào đọc - dead code, và nó khiến cell trông như đã đi qua PnP.
 
-Lý do: consumer của lab dựng bằng `npm install` trong `scripts/consumer.mjs`, nên chúng **luôn** có
-`node_modules` thật, bất kể package manager ở ngoài container là gì. `entry.sh` từng có dòng
-`export LAB_NODE_RUNNER="yarn node"` mà không chỗ nào dùng - dead code, và nó khiến cell trông như đã
-đi qua PnP.
+`consumer.mjs` giờ nhận `pm: 'yarn-pnp'` (hoặc env `LAB_CONSUMER_PM`, để `entry.sh` chọn theo cell).
+Bốn thứ phải đúng, và không tài liệu nào nói trước:
 
-Để wire thật: `consumer.mjs` phải dựng consumer bằng `yarn` với `nodeLinker: pnp` thay vì `npm`. Đó
-là thay đổi ở cổng dựng consumer, không phải một dòng trong `entry.sh`. Cell mang cờ
-`pnpNotWired: true` trong `matrix.json` cho tới khi xong.
+| Thứ                                       | Vì sao                                                                                                                                                                             |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.yarnrc.yml` `nodeLinker: pnp`           | không có nó thì yarn vẫn tạo `node_modules`                                                                                                                                        |
+| `pnpEnableEsmLoader: true` **tường minh** | yarn chỉ bật ESM loader khi nó TỰ phát hiện ESM lúc install; lab ghi `.mjs` SAU install nên mọi `import` cho ERR_MODULE_NOT_FOUND trong khi `require` vẫn chạy                     |
+| load bằng FILE, không `-e`                | PnP resolve ESM theo URL module cha; `--input-type=module -e` không có cha nào                                                                                                     |
+| `yarn.lock` rỗng trong thư mục consumer   | nó là thứ làm thư mục đó thành project root. Không có thì yarn đi ngược lên thấy monorepo: `Usage Error: The nearest package directory ... doesn't seem to be part of the project` |
 
-Đây là lần thứ ba trong dự án này một ca báo xanh mà không kiểm thứ nó nói đang kiểm. Hai lần trước:
-cell advisory `bun` báo PASS khi nó chưa chạy được, và bản đầu của ca `08-typesversions-sync` không
-thể fail vì fallback khớp mọi subpath. Lần thứ tư: ca `reduced-motion-scope` dò một hằng số thay vì
-so với giá trị đã set, nên nó sẽ báo "không bị đè" ngay khi cơ chế đè đổi. Mẫu lặp lại, và cách chặn
-duy nhất đã dùng được: **ca mới phải được chứng minh bằng cách phá thứ nó canh**, không phải bằng
-việc nó xanh.
+Ba ca mới trong L1, và ca thứ hai mang **negative control trong chính nó**:
+
+| Ca                       | Canh gì                                                                                                                                                                                                                                                                                                               |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `10-pnp-shape`           | KHÔNG có `node_modules`, CÓ `.pnp.cjs`                                                                                                                                                                                                                                                                                |
+| `10-pnp-resolution`      | `tinita` và `tinita-dom` load được qua `yarn node` cả CJS lẫn ESM, **và `node` thường phải GÃY trên đúng specifier đó**. Nếu cả hai chạy thì có `node_modules` ở đâu đó và PnP không phải thứ giải được.                                                                                                              |
+| `10-pnp-peer-strictness` | `tinita-react` khai `react` là peer; khi peer không được cung cấp, PnP phải TỪ CHỐI và nêu đúng tên peer. **Đây mới là phantom-dependency coverage.** Đo được: `tinita-react tried to access react (a peer dependency) but it isn't provided by your application; this makes the require call ambiguous and unsound.` |
+
+Chứng minh bằng cách phá: đổi `nodeLinker` sang `node-modules` -> cả 3 ca đỏ, kèm đúng lý do.
+
+**Phạm vi hẹp có chủ ý: ca không dùng mạng**, chỉ install tarball local. HTTP client của yarn không
+đi qua được TLS tới registry trên máy owner (`unable to get local issuer certificate`) dù npm thì
+được - cơ chế CA khác nhau. **Không tắt `strict-ssl` để lách:** hạ mức bảo mật trên máy owner không
+phải cái giá đáng trả cho một ca test. Vì vậy ca chỉ đo package không peer, và dùng chính việc
+`tinita-react` bị từ chối làm assertion.
+
+corepack không tới được `repo.yarnpkg.com` trên máy này; `COREPACK_NPM_REGISTRY` vá được - cùng cách
+đã dùng trong `docker/node.Dockerfile`.
+
+### Bốn lần một ca báo xanh mà không kiểm thứ nó nói đang kiểm
+
+1. Cell advisory `bun` báo PASS khi nó chưa chạy được (`Missing script to execute`). Nay là SKIP.
+2. Bản đầu của ca `08-typesversions-sync` không thể fail: fallback `dist/index.d.ts` khớp mọi
+   subpath, nên hai lần phá có chủ ý đều PASS.
+3. Ca `reduced-motion-scope` dò hằng số `seconds <= 0.0001` để bắt hack `0.01ms`, nên nó mù ngay khi
+   cơ chế đè đổi sang `animation: none` (`0s`). Nay so với **giá trị đã set** (`5s`/`spin`).
+4. Cell `yarn-pnp` pass 19 ca mà chưa từng đi qua PnP.
+
+Mẫu lặp lại, và cách chặn duy nhất đã dùng được: **ca mới phải được chứng minh bằng cách phá thứ nó
+canh**, không phải bằng việc nó xanh. Và khi bịt xong một rò rỉ thì **đảo `expected`**, đừng viết lại
+ca - ca là cửa chặn hồi quy, không phải bản báo cáo một lần.
