@@ -711,23 +711,36 @@ styling: cả hai đang tự đi ngược khỏi runtime CSS.
    đánh đổi là mọi CSS không layer của host đè lên component, kể cả vô ý. Đó là
    quyết định của consumer, không phải của library.
 
-### Còn mở: CSS Modules cho internals
+### 7. Class global có prefix, KHÔNG CSS Modules - owner chốt 2026-09-26
 
-Hiện tinita dùng **class global có prefix** (`.tnt-filetree__label`). Primer và
-Mantine dùng CSS Modules.
+Đã cân nhắc CSS Modules (cách của Primer và Mantine) và **quyết định không đổi**.
+Đây là câu đã hỏi và đã trả lời - đừng mở lại mà không có lý do mới.
 
-- **Class global có prefix**: tên ổn định nên người dùng nhắm được
-  `.tnt-filetree__label` để sửa, và chỉ cần một lần `import 'tinita-react/styles.css'`.
-  Đổi lại, khả năng trùng tên không bao giờ về 0 tuyệt đối - nó chỉ về gần 0 nhờ
-  prefix cộng 10 guard tĩnh cộng ca `css-leak` của L2 (đo được 0 rò rỉ trên 11 bề
-  mặt, cả hai chế độ layer).
-- **CSS Modules**: hash tên nên trùng là bất khả về mặt cơ chế. Đổi lại người dùng
-  mất khả năng nhắm class để override, trừ khi cấu hình tên ổn định (Mantine làm
-  thế) - lúc đó lợi thế cơ chế biến mất và chỉ còn lại chi phí.
+|                              | Class global prefix `tnt-` (đang dùng)     | CSS Modules hash tên                            | CSS Modules tên ổn định |
+| ---------------------------- | ------------------------------------------ | ----------------------------------------------- | ----------------------- |
+| Trùng tên với host           | gần 0, nhờ prefix + guard                  | bất khả về cơ chế                               | gần 0, như cột 1        |
+| Người dùng override bằng CSS | **được** - nhắm `.tnt-filetree__label`     | **không** - chỉ còn CSS variable và `className` | được                    |
+| Cài đặt cho người dùng       | một lần `import 'tinita-react/styles.css'` | như cột 1                                       | như cột 1               |
+| Chi phí đổi                  | 0                                          | đổi pipeline CSS, 3 component, contract của lab | như cột giữa            |
 
-**Chưa đổi.** Lý do: rò rỉ hiện đo được là 0, nên đây không phải bản vá cho một vấn
-đề đang tồn tại. Nếu số component tăng nhiều và bề mặt class trở nên khó theo, đây
-là bước tiếp theo đúng - và nó cần quyết định về tên ổn định trước.
+Ba lý do chốt cột 1:
+
+1. **Rò rỉ đo được đang là 0** trên 11 bề mặt, cả hai chế độ layer. CSS Modules
+   không sửa vấn đề nào đang tồn tại - nó đổi lớp bảo vệ từ "prefix + guard" sang
+   "cơ chế". Cái giá là một migration, và cái được là đóng một lớp rủi ro đã đo
+   bằng 0.
+2. **Hash tên thu hẹp bề mặt tuỳ biến của người dùng.** Một design system npm tồn
+   tại để nhiều project consume, và các project đó sẽ cần sửa thứ ta không lường
+   trước. `.tnt-filetree__label` là hợp đồng công khai; hash thì không có hợp đồng.
+3. **CSS Modules + tên ổn định** (cách Mantine làm) trả toàn bộ chi phí migration
+   để nhận lại đúng mức chống trùng của cột 1 - vì tên lại ổn định. Chỉ còn lợi thế
+   colocation, và colocation ta đã có: `FileTree.tsx` nằm cạnh `FileTree.css`.
+
+Cái **thay thế** CSS Modules ở đây là kỷ luật, và nó đã có răng: 10 guard tĩnh
+trong `tests/styles/no-global-leak.test.ts` (chạy mỗi `pnpm test`, cả 10 chứng minh
+bằng mutation) cộng ca `css-leak` của L2 đo thật trong Chromium. Nếu một ngày số
+component tăng đến mức guard không theo được, đó mới là lúc mở lại - và khi đó phải
+quyết tên ổn định trước, vì nó là thứ người dùng phụ thuộc.
 
 ---
 
