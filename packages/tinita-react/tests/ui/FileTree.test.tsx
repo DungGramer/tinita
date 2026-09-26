@@ -47,6 +47,6 @@ describe('FileTree', () => {
     const { container } = render(<FileTree text={INDENT} className="host-x" />);
     const root = container.firstElementChild;
     expect(root?.classList.contains('host-x')).toBe(true);
-    expect(root?.className).toContain('tnt-filetree');
+    expect(root?.className).toContain('tnt-file-tree-root');
   });
 });

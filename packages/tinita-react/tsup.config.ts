@@ -36,11 +36,15 @@ const isWatchMode = process.argv.includes('--watch');
 export default defineConfig({
   entry: entries,
   format: ['cjs', 'esm'],
-  dts: true,
+  // CHỈ SINH TYPES. JS và CSS do `vite.config.build.mts` lo, vì tsup không làm được
+  // CSS Modules - đo 2026-09-26, ba cách đều cho mapping rỗng và tên class không scope.
+  // Giữ tsup cho types vì đường `.d.ts` / `.d.mts` tách theo condition của nó đã được
+  // `attw` xác minh sạch `FalseCJS`; dựng lại bằng `tsc` là mời lớp bug đó quay lại.
+  dts: { only: true },
   bundle: true,
+  clean: false,
   external: ['react', 'react-dom', 'lucide-react', '@radix-ui/react-accordion'],
   splitting: false,
-  clean: !isWatchMode,
   minify: true,
   // Remove comments when minifying
   esbuildOptions(options) {

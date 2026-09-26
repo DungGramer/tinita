@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import './Ping.css';
+import styles from './Ping.module.css';
 
 export interface PingProps {
   /**
@@ -33,18 +33,18 @@ export const Ping = ({ count, prefix, onClick, theme, className = '' }: PingProp
   return (
     <Wrapper
       onClick={onClick}
-      className={`tnt-ping ${className}`.trim()}
+      className={`${styles.root} ${className}`.trim()}
       data-theme={theme}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
     >
       {prefix}
-      <div className={`tnt-ping__body${prefix ? ' tnt-ping__body--offset' : ''}`}>
-        <div className="tnt-ping__dot-wrap">
-          <span className="tnt-ping__pulse" aria-hidden="true" />
-          <span className="tnt-ping__dot" aria-hidden="true" />
+      <div className={`${styles.body}${prefix ? ` ${styles.bodyOffset}` : ''}`}>
+        <div className={styles.dotWrap}>
+          <span className={styles.pulse} aria-hidden="true" />
+          <span className={styles.dot} aria-hidden="true" />
         </div>
-        {count !== undefined && <span className="tnt-ping__count">{count}</span>}
+        {count !== undefined && <span className={styles.count}>{count}</span>}
       </div>
     </Wrapper>
   );

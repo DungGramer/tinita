@@ -1,5 +1,5 @@
 /**
- * CarouselTicker CSS
+ * CarouselTicker CSS Modules
  *
  * Trước đây layout của component nằm trong class Tailwind thô viết trong JSX
  * (`shrink-0 grow-0 flex will-change-transform`, `absolute inset-0`,
@@ -8,36 +8,39 @@
  * NGẦM. Giờ toàn bộ là CSS thật; biến thể đi qua `data-orientation` và
  * `data-overflow` thay vì đổi class.
  *
- * `box-sizing` KHÔNG còn đặt qua `.tnt-carousel-ticker *`: nó với tới cả
+ * `box-sizing` KHÔNG còn đặt qua `.root *`: nó với tới cả
  * children do người dùng truyền vào. Chỉ đặt trên element của chính component.
+ *
+ * CSS Modules: tên ở đây là LOCAL. Vite sinh `tnt-carousel-ticker-root`,
+ * `tnt-carousel-ticker-content`, ... theo `generateScopedName`.
  */
 
-.tnt-carousel-ticker,
-.tnt-carousel-ticker__content,
-.tnt-carousel-ticker__pattern,
-.tnt-carousel-ticker__item,
-.tnt-carousel-ticker__fade {
+.root,
+.content,
+.pattern,
+.item,
+.fade {
   box-sizing: border-box;
 }
 
-.tnt-carousel-ticker {
+.root {
   position: relative;
 }
 
-.tnt-carousel-ticker[data-overflow='hidden'] {
+.root[data-overflow='hidden'] {
   overflow: hidden;
 }
 
-.tnt-carousel-ticker[data-overflow='visible'] {
+.root[data-overflow='visible'] {
   overflow: visible;
 }
 
-.tnt-carousel-ticker[data-orientation='vertical'] {
+.root[data-orientation='vertical'] {
   block-size: 100%;
   min-block-size: var(--tnt-carousel-min-block-size);
 }
 
-.tnt-carousel-ticker__content {
+.content {
   position: relative;
   display: flex;
   margin: 0;
@@ -47,39 +50,39 @@
   will-change: transform;
 }
 
-.tnt-carousel-ticker[data-orientation='horizontal'] .tnt-carousel-ticker__content {
+.root[data-orientation='horizontal'] .content {
   flex-direction: row;
   block-size: 100%;
 }
 
-.tnt-carousel-ticker[data-orientation='vertical'] .tnt-carousel-ticker__content {
+.root[data-orientation='vertical'] .content {
   flex-direction: column;
   block-size: auto;
   min-block-size: 100%;
 }
 
-.tnt-carousel-ticker__pattern {
+.pattern {
   display: flex;
   flex: 0 0 auto;
   will-change: transform;
 }
 
-.tnt-carousel-ticker[data-orientation='horizontal'] .tnt-carousel-ticker__pattern {
+.root[data-orientation='horizontal'] .pattern {
   flex-direction: row;
   block-size: 100%;
 }
 
-.tnt-carousel-ticker[data-orientation='vertical'] .tnt-carousel-ticker__pattern {
+.root[data-orientation='vertical'] .pattern {
   flex-direction: column;
   inline-size: 100%;
 }
 
-.tnt-carousel-ticker__item {
+.item {
   flex: 0 0 auto;
   will-change: transform;
 }
 
-.tnt-carousel-ticker__fade {
+.fade {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -94,7 +97,7 @@
    `animation-*` KHÔNG điều khiển được nó - nó bị tắt ở JS trong
    CarouselTicker.tsx. Sửa một chỗ là chưa đủ. */
 @media (prefers-reduced-motion: reduce) {
-  .tnt-carousel-ticker * {
+  .root * {
     animation: none !important;
     transition: none !important;
   }

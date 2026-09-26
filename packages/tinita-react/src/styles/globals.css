@@ -61,6 +61,39 @@
   /* Typography */
   --tnt-font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --tnt-font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
+
+  /* FileTree - chuyển từ FileTree.css 2026-09-26. Token là hợp đồng công khai
+     nên nó thuộc file token; CSS Modules chỉ dành cho internals của component. */
+  /* Light theme (default) */
+  --tnt-filetree-bg: #ffffff;
+  --tnt-filetree-text: #1a1a1a;
+  --tnt-filetree-text-dim: #6b7280;
+  --tnt-filetree-hover: rgba(0, 0, 0, 0.06);
+  --tnt-filetree-active: rgba(0, 0, 0, 0.12);
+  --tnt-filetree-spacing: 4px;
+  --tnt-filetree-indent: 16px;
+
+  /* Icon colors - Light theme optimized */
+  --tnt-filetree-icon-folder: #4b5563;
+  --tnt-filetree-icon-file: #6b7280;
+  --tnt-filetree-icon-readme: #2563eb;
+  --tnt-filetree-icon-markdown: #2563eb;
+  --tnt-filetree-icon-javascript: #eab308;
+  --tnt-filetree-icon-css: #0ea5e9;
+  --tnt-filetree-icon-html: #dc2626;
+  --tnt-filetree-icon-json: #eab308;
+  --tnt-filetree-icon-database: #2563eb;
+  --tnt-filetree-icon-php: #6366f1;
+  --tnt-filetree-icon-vue: #10b981;
+  --tnt-filetree-icon-git: #dc2626;
+  --tnt-filetree-icon-text: #6b7280;
+  --tnt-filetree-icon-code: #eab308;
+  --tnt-filetree-icon-font: #6b7280;
+  --tnt-filetree-icon-image: #10b981;
+  --tnt-filetree-icon-video: #ef4444;
+  --tnt-filetree-icon-audio: #8b5cf6;
+  --tnt-filetree-icon-spreadsheet: #059669;
+  --tnt-filetree-icon-archive: #f59e0b;
 }
 
 /* ============================================
@@ -84,6 +117,38 @@
   --tnt-input: #1f1f1f;
   --tnt-ring: #60a5fa;
   --tnt-ping: oklch(70.8% 0 0);
+
+  /* FileTree - dark. Selector `:where(.dark, [data-theme='dark'])` khớp CẢ element
+     mang `data-theme` trực tiếp, nên prop `theme="dark"` của FileTree và Ping cũng
+     nhận đúng token ở đây. KHÔNG nhân bản khối này vào CSS Modules của component:
+     25 giá trị ở hai chỗ là nguồn lệch, và lệch kiểu này không ai thấy. */
+  --tnt-filetree-bg: #0a0a0a;
+  --tnt-filetree-text: #e5e7eb;
+  --tnt-filetree-text-dim: #9ca3af;
+  --tnt-filetree-hover: rgba(255, 255, 255, 0.06);
+  --tnt-filetree-active: rgba(255, 255, 255, 0.12);
+
+  /* Icon colors - Dark theme optimized */
+  --tnt-filetree-icon-folder: #9ca3af;
+  --tnt-filetree-icon-file: #6b7280;
+  --tnt-filetree-icon-readme: #60a5fa;
+  --tnt-filetree-icon-markdown: #60a5fa;
+  --tnt-filetree-icon-javascript: #fbbf24;
+  --tnt-filetree-icon-css: #38bdf8;
+  --tnt-filetree-icon-html: #f87171;
+  --tnt-filetree-icon-json: #fbbf24;
+  --tnt-filetree-icon-database: #60a5fa;
+  --tnt-filetree-icon-php: #818cf8;
+  --tnt-filetree-icon-vue: #34d399;
+  --tnt-filetree-icon-git: #f87171;
+  --tnt-filetree-icon-text: #6b7280;
+  --tnt-filetree-icon-code: #fbbf24;
+  --tnt-filetree-icon-font: #6b7280;
+  --tnt-filetree-icon-image: #34d399;
+  --tnt-filetree-icon-video: #f87171;
+  --tnt-filetree-icon-audio: #a78bfa;
+  --tnt-filetree-icon-spreadsheet: #10b981;
+  --tnt-filetree-icon-archive: #fbbf24;
 }
 
 /* ============================================

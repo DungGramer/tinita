@@ -24,7 +24,7 @@ import React, { forwardRef, useMemo } from 'react';
 import type { FileTreeProps } from './types';
 import { parseFileTreeUniversal } from './utils';
 import { renderTreeNodes } from './components';
-import './FileTree.css';
+import styles from './FileTree.module.css';
 
 /**
  * FileTree - A tree view component for displaying hierarchical file/folder structures
@@ -53,7 +53,7 @@ export const FileTree = forwardRef<HTMLDivElement, FileTreeProps>(
     // Optionally hide root name
     const wrappedTree = hideRootName && tree.length === 1 ? tree[0].children : tree;
 
-    const containerClassName = ['tnt-filetree', className].filter(Boolean).join(' ');
+    const containerClassName = [styles.root, className].filter(Boolean).join(' ');
 
     return (
       <div

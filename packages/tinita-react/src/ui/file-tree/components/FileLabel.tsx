@@ -24,6 +24,7 @@ import {
   ChevronRight,
   ChevronDown,
 } from 'lucide-react';
+import styles from '../FileTree.module.css';
 
 /**
  * FileLabel component props
@@ -56,7 +57,7 @@ export interface FileLabelProps {
  * Get the appropriate icon component based on file type
  */
 const getFileIcon = (iconType: string) => {
-  const iconProps = { className: 'tnt-filetree__icon', size: 16 };
+  const iconProps = { className: styles.icon, size: 16 };
 
   switch (iconType) {
     case 'javascript':
@@ -125,9 +126,9 @@ export const FileLabel: React.FC<FileLabelProps> = ({
   const renderIcon = () => {
     if (type === 'folder') {
       return isExpanded ? (
-        <FolderOpen className="tnt-filetree__icon" size={16} />
+        <FolderOpen className={styles.icon} size={16} />
       ) : (
-        <Folder className="tnt-filetree__icon" size={16} />
+        <Folder className={styles.icon} size={16} />
       );
     }
     return getFileIcon(iconType);
@@ -136,19 +137,19 @@ export const FileLabel: React.FC<FileLabelProps> = ({
   const renderArrow = () => {
     if (type === 'folder' && showArrow) {
       return isExpanded ? (
-        <ChevronDown className="tnt-filetree__arrow" size={14} />
+        <ChevronDown className={styles.arrow} size={14} />
       ) : (
-        <ChevronRight className="tnt-filetree__arrow" size={14} />
+        <ChevronRight className={styles.arrow} size={14} />
       );
     }
     return null;
   };
 
   return (
-    <span className={`tnt-filetree__label tnt-filetree__label--${type}`} data-icon={iconType}>
+    <span className={styles.label} data-type={type} data-icon={iconType}>
       {renderArrow()}
       {renderIcon()}
-      <span className="tnt-filetree__label-text">{name}</span>
+      <span className={styles.labelText}>{name}</span>
     </span>
   );
 };

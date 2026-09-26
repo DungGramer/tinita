@@ -10,6 +10,7 @@ import * as Accordion from '@radix-ui/react-accordion';
 import type { FileNode } from '../types';
 import { getIconType } from '../utils';
 import { FolderNode, FileLabel } from './';
+import styles from '../FileTree.module.css';
 
 export interface TreeNodesProps {
   /** Array of nodes to render */
@@ -44,7 +45,7 @@ export const renderTreeNodes = (
 
   return (
     <Accordion.Root type="multiple" defaultValue={folderValues} asChild>
-      <ul className="tnt-filetree__list" data-level={level}>
+      <ul className={styles.list} data-level={level}>
         {nodes.map((node, idx) => {
           const hasChildren = node.children.length > 0;
           const isFolder = hasChildren || node.name.endsWith('/');
@@ -55,7 +56,7 @@ export const renderTreeNodes = (
           const itemValue = `${level}-${idx}`;
 
           return (
-            <li key={key} className="tnt-filetree__item">
+            <li key={key} className={styles.item}>
               {isFolder && hasChildren ? (
                 <FolderNode
                   node={node}

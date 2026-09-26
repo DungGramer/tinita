@@ -1,49 +1,61 @@
 /**
- * Ping CSS
+ * Ping CSS Modules
+ *
+ * Tên class ở đây là LOCAL (`.root`, `.body`). Vite sinh ra
+ * `tnt-ping-root`, `tnt-ping-body` theo `generateScopedName` - vẫn có namespace
+ * `tnt-`, vẫn đọc được, và người dùng vẫn nhắm được để override.
+ *
+ * Không viết selector global ở đây. CSS Modules scope mọi class, nên một rule
+ * nhắm `body` hay `*` sẽ KHÔNG bị scope và lọt ra trang khách - guard
+ * `tests/styles/no-global-leak.test.ts` chặn việc đó.
  *
  * Trước đây Ping KHÔNG có file CSS: nó viết class Tailwind thô trong JSX
  * (`inline-flex`, `size-2`, `animate-ping`, `bg-green-500`...) mà bundle lại
  * không ship utility nào - `build-entry.css` cố ý không `@import "tailwindcss"`.
  * Đo được (ca L2 `no-tailwind-missing-utilities`): host không có Tailwind thì
- * `.tnt-ping` nhận `display: block` thay vì `inline-flex`, tức component vỡ
+ * `.root` nhận `display: block` thay vì `inline-flex`, tức component vỡ
  * layout. Đó là phụ thuộc NGẦM vào Tailwind của host.
  *
  * Mọi giá trị giờ là CSS thật. `bg-green-500` từng hard-code, giờ là
  * `--tnt-ping-dot`.
+ *
+ * `@keyframes pulse` cũng bị CSS Modules scope. Đặt tên local là `pulse` để nó ra
+ * `tnt-ping-pulse`; nếu đặt `tnt-ping-pulse` thì scope lần nữa thành
+ * `tnt-ping-tnt-ping-pulse`.
  */
 
-.tnt-ping {
+.root {
   display: inline-flex;
   align-items: center;
 }
 
-.tnt-ping__body {
+.body {
   display: inline-flex;
   align-items: center;
   gap: var(--tnt-ping-gap);
   color: var(--tnt-ping);
 }
 
-.tnt-ping__body--offset {
+.body-offset {
   margin-inline-start: var(--tnt-ping-prefix-gap);
 }
 
-.tnt-ping__dot-wrap {
+.dot-wrap {
   position: relative;
   display: inline-flex;
 }
 
-.tnt-ping__pulse {
+.pulse {
   position: absolute;
   inline-size: var(--tnt-ping-dot-size);
   block-size: var(--tnt-ping-dot-size);
   border-radius: 9999px;
   background-color: var(--tnt-ping-dot);
   opacity: 0.75;
-  animation: tnt-ping-pulse var(--tnt-duration-slow) cubic-bezier(0, 0, 0.2, 1) infinite;
+  animation: pulse var(--tnt-duration-slow) cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
-.tnt-ping__dot {
+.dot {
   position: relative;
   display: inline-flex;
   inline-size: var(--tnt-ping-dot-size);
@@ -52,14 +64,14 @@
   background-color: var(--tnt-ping-dot);
 }
 
-.tnt-ping__count {
+.count {
   min-inline-size: var(--tnt-ping-count-min-width);
   font-size: var(--tnt-ping-count-font-size);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
-@keyframes tnt-ping-pulse {
+@keyframes pulse {
   75%,
   100% {
     transform: scale(2);
@@ -70,7 +82,7 @@
 /* Tắt hẳn khi user yêu cầu reduced-motion. Xem docs/code-standards.md mục
    "Quy Tắc Reduced Motion" - KHÔNG dùng 0.01ms. */
 @media (prefers-reduced-motion: reduce) {
-  .tnt-ping__pulse {
+  .pulse {
     animation: none !important;
   }
 }

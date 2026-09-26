@@ -79,7 +79,18 @@ const files = collectCss(SRC).map((path) => ({
   path,
   rel: path.slice(SRC.length + 1),
   css: readFileSync(path, 'utf8'),
+  /**
+   * `.module.css` = CSS Modules: tên class là LOCAL và Vite scope thành
+   * `tnt-<folder>-<local>`. Tên ở source KHÔNG cần prefix, và đòi nó prefix là sai -
+   * sẽ ra `tnt-ping-tnt-ping-root`.
+   *
+   * File global (`src/styles/*.css`) thì ngược lại: tên ship nguyên văn nên PHẢI
+   * prefix. Hai loại file, hai quy tắc.
+   */
+  isModule: path.endsWith('.module.css'),
 }));
+const globalFiles = files.filter((f) => !f.isModule);
+const moduleFiles = files.filter((f) => f.isModule);
 
 describe('CSS không được rò rỉ ra trang khách', () => {
   it('có file CSS để kiểm - nếu không, mọi ca dưới đây xanh giả', () => {
@@ -117,12 +128,12 @@ describe('CSS không được rò rỉ ra trang khách', () => {
     expect(bad).toEqual([]);
   });
 
-  it('mọi class selector đều mang prefix `tnt-`', () => {
+  it('mọi class selector trong CSS GLOBAL đều mang prefix `tnt-`', () => {
     // Trừ `.dark` và `[data-theme]`: đó là quy ước của HOST mà ta ĐỌC, không định
     // nghĩa. Chúng luôn nằm trong `:where()` nên specificity 0.
     const allowed = /^(dark)$/;
     const bad: string[] = [];
-    for (const { rel, css } of files) {
+    for (const { rel, css } of globalFiles) {
       for (const s of selectors(css)) {
         for (const cls of s.matchAll(/\.([a-zA-Z_][\w-]*)/g)) {
           const name = cls[1] ?? '';
@@ -135,11 +146,11 @@ describe('CSS không được rò rỉ ra trang khách', () => {
     expect(bad).toEqual([]);
   });
 
-  it('mọi `@keyframes` đều mang prefix `tnt-`', () => {
+  it('mọi `@keyframes` trong CSS GLOBAL đều mang prefix `tnt-`', () => {
     // `accordion-down` / `accordion-up` là tên keyframes của shadcn: host dùng
     // shadcn thì trùng thẳng và một trong hai bên thắng tuỳ thứ tự.
     const bad: string[] = [];
-    for (const { rel, css } of files) {
+    for (const { rel, css } of globalFiles) {
       for (const m of stripComments(css).matchAll(/@keyframes\s+([\w-]+)/g)) {
         if (!(m[1] ?? '').startsWith('tnt-')) bad.push(`${rel}: @keyframes ${m[1]}`);
       }
@@ -187,6 +198,42 @@ describe('CSS không được rò rỉ ra trang khách', () => {
           const ms = t[2] === 's' ? Number(t[1]) * 1000 : Number(t[1]);
           if (ms > 0) bad.push(`${rel}: ${t[0]}`);
         }
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('có cả file module và file global - nếu thiếu loại nào, guard tương ứng xanh giả', () => {
+    expect(moduleFiles.length).toBeGreaterThanOrEqual(3);
+    expect(globalFiles.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('`:global` trong CSS Modules CHỈ dùng cho quy ước dark của host', () => {
+    // `:global` là cửa hậu duy nhất còn lại để một class thoát khỏi scope. Nó cần
+    // thiết cho `.dark` (không có nó, CSS Modules scope thành `tnt-file-tree-dark` và
+    // dark mode vỡ hẳn), nhưng mọi chỗ dùng khác là rò rỉ có chủ ý.
+    // So khớp chuỗi CHÍNH XÁC, không parse. `/:global\(([^)]*)\)/` dừng ở `)` của
+    // `:where` bên trong và cắt mất ngoặc đóng - đo được khi viết ca này.
+    const ALLOWED = ":global(:where(.dark, [data-theme='dark']))";
+    const bad: string[] = [];
+    for (const { rel, css } of moduleFiles) {
+      const body = stripComments(css);
+      const total = body.split(':global').length - 1;
+      const allowed = body.split(ALLOWED).length - 1;
+      if (total !== allowed) {
+        bad.push(`${rel}: ${total} lần :global, chỉ ${allowed} lần đúng dạng cho phép`);
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+
+  it('CSS Modules không khai token - token thuộc file global', () => {
+    // Trộn token vào file component thì người dùng không biết nhìn đâu để override, và
+    // `:root` trong `.module.css` KHÔNG bị scope nên nó là global thật.
+    const bad: string[] = [];
+    for (const { rel, css } of moduleFiles) {
+      for (const sel of selectors(css)) {
+        if (/(^|\s|,):root(\s|$|:|\[|,)/.test(sel)) bad.push(`${rel}: ${sel}`);
       }
     }
     expect(bad).toEqual([]);

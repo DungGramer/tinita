@@ -99,7 +99,7 @@ describe('CarouselTicker', () => {
         <span>alpha</span>
       </CarouselTicker>
     );
-    const content = container.querySelector<HTMLElement>('.tnt-carousel-ticker__content');
+    const content = container.querySelector<HTMLElement>('.tnt-carousel-ticker-content');
     await waitFor(() => {
       expect(content?.style.transform).toBe('translateX(-200px)');
     });
@@ -112,7 +112,7 @@ describe('CarouselTicker', () => {
         <span>alpha</span>
       </CarouselTicker>
     );
-    const root = container.querySelector('.tnt-carousel-ticker');
+    const root = container.querySelector('.tnt-carousel-ticker-root');
     expect(root?.getAttribute('data-orientation')).toBe('vertical');
     expect(root?.getAttribute('data-overflow')).toBe('visible');
     await waitFor(() => expect(animateSpy).toHaveBeenCalled());
@@ -140,7 +140,7 @@ describe('CarouselTicker', () => {
       </CarouselTicker>
     );
     await waitFor(() => {
-      const patterns = container.querySelectorAll('.tnt-carousel-ticker__pattern');
+      const patterns = container.querySelectorAll('.tnt-carousel-ticker-pattern');
       expect(patterns.length).toBeGreaterThan(1);
       const visible = Array.from(patterns).filter((p) => p.getAttribute('aria-hidden') !== 'true');
       expect(visible).toHaveLength(1);

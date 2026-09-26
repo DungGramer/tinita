@@ -172,7 +172,7 @@ process.stdout.write(renderToStaticMarkup(h(Ping, { count: 1 })));
   // utility, nên host KHÔNG có Tailwind thì `display` là `block` - component vỡ layout.
   // Ca cũ chốt lại đúng cái vỡ đó (`display !== 'inline-flex'`).
   //
-  // Giờ Ping có Ping.css thật và JSX chỉ còn class `tnt-ping__*`. Yêu cầu đảo chiều:
+  // Giờ Ping có Ping.module.css và JSX chỉ còn class `tnt-ping-*`. Yêu cầu đảo chiều:
   // KHÔNG có Tailwind mà component vẫn phải đúng. `inline-flex` đến từ CSS của
   // library, không từ utility của host - đó chính là điều cần chứng minh.
   const standalone = style && style.display === 'inline-flex';
@@ -232,7 +232,7 @@ createRoot(document.getElementById('root')).render(
       const page = await browser.newPage();
       await page.goto('http://127.0.0.1:4319/', { waitUntil: 'networkidle' });
       const seen = await page.evaluate(() => ({
-        filetree: document.querySelectorAll('.tnt-filetree').length,
+        filetree: document.querySelectorAll('.tnt-file-tree-root').length,
         ping: document.querySelectorAll('[class*="tnt-ping"]').length,
         tinitaRules: [...document.styleSheets].flatMap((sh) => { try { return [...sh.cssRules]; } catch { return []; } })
           .filter((r) => r.selectorText?.includes('tnt-')).length,
