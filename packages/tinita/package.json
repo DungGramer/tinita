@@ -50,9 +50,10 @@
     "clean": "rimraf dist",
     "build": "pnpm run clean && tsup",
     "lint": "eslint src --ext .ts",
-    "test": "vitest",
+    "test": "vitest run",
     "check-types": "tsc --noEmit",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "pnpm run build",
+    "test:watch": "vitest"
   },
   "exports": {
     ".": {
