@@ -80,12 +80,12 @@ chủ ý.
 
 ## Tầng test
 
-| Level | Kiểm gì                                             | Docker |
-| ----- | --------------------------------------------------- | ------ |
-| L1    | package artifact: `exports`, ESM/CJS, optional peer | không  |
-| L2    | consumer thật: Vite, Next, Node, `tsc`              | không  |
-| L3    | ecosystem: Node 18-24 × npm/pnpm/yarn/bun           | có     |
-| L4    | production: CSS leak, hydration, visual regression  | có     |
+| Level | Kiểm gì                                                            | Docker |
+| ----- | ------------------------------------------------------------------ | ------ |
+| L1    | package artifact: `exports`, ESM/CJS, optional peer                | không  |
+| L2    | consumer thật: Vite, Next, Node, `tsc`                             | không  |
+| L3    | ecosystem: Node 18-24 × npm/pnpm/yarn/bun                          | có     |
+| L4    | production: CSS leak, hydration, reduced-motion, visual regression | có     |
 
 L1 có **3 chân bổ sung nhau**, đã thực nghiệm để chốt:
 
@@ -239,6 +239,33 @@ KHÔNG wildcard**. Hình dạng có fallback `dist/index.d.ts` trông như đã 
 
 Cửa chặn cho việc đồng bộ `typesVersions` <-> `exports`: ca L1 `08-typesversions-sync`, hai chiều.
 
+## Reduced motion phải TẮT HẲN (2026-09-26)
+
+**Yêu cầu của owner:** `prefers-reduced-motion: reduce` thì tắt hẳn animation, không dùng
+`animation-duration: 0.01ms`. Owner đã gặp bug thật với cách 0.01ms. Lý do đầy đủ ở
+`docs/code-standards.md` mục "Quy Tắc Reduced Motion"; tóm lại với 0.01ms animation vẫn chạy nên
+`animationend`/`transitionend` vẫn fire.
+
+Hai ca canh việc này, ở hai tầng khác nhau vì một tầng là chưa đủ:
+
+| Ca                                         | Level | Canh gì                                                                                                                                                                       | Phá thế nào thì đỏ                                                                                                                    |
+| ------------------------------------------ | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `09-reduced-motion-off:<pkg>`              | L1    | Không thời lượng nào khác 0 trong mọi khối `prefers-reduced-motion` của CSS **đã ship** trong tarball. Bỏ comment trước khi quét, nên comment nhắc `0.01ms` không làm đỏ giả. | Nhét lại `0.01ms` **và** `150ms` -> 6 offender, exit 1                                                                                |
+| `react{18,19}:ticker-reduced-motion-stops` | L4    | Hành vi thật trong Chromium: `no-preference` transform của ticker đổi, `reduce` đứng yên và `getAnimations().length === 0`                                                    | Bỏ nhánh `if (prefersReducedMotion)` trong `CarouselTicker.tsx` -> đỏ cả react18 lẫn react19, transform vẫn dịch `-19.5px` -> `-41px` |
+
+Hai tầng vì **CSS không tắt được mọi animation.** `CarouselTicker` chạy marquee bằng Web Animations
+API (`element.animate()`), mà `@media (prefers-reduced-motion)` chỉ với tới CSS animation/transition.
+`CarouselTicker.css` có khối reduced-motion từ đầu và nó **chưa bao giờ** tắt được marquee - đo được
+khi phá ca L4. Ca L1 đọc declaration, ca L4 đo chuyển động; chỉ một trong hai là xanh giả.
+
+Ca L1 cố ý không phụ thuộc selector, nên nó vẫn đúng sau mốc M1 (scope lại khối `*`). Ca L4
+`reduced-motion-scope` thì phụ thuộc scope và sẽ phải đảo assertion ở M1.
+
+**Ca `reduced-motion-scope` của L4 từng đo sai.** Nó dò `seconds <= 0.0001` để bắt `0.01ms`
+(Chromium in ra `1e-05s`). Khi khối đổi sang `animation: none` giá trị thành `0s`, không rơi vào
+khoảng đó, và ca sẽ báo "không bị đè" trong lúc rò rỉ còn nguyên. Đã sửa: **so với giá trị đã set**
+(`5s`/`spin`) thay vì so với một hằng số - đúng cho cả hai cơ chế.
+
 ## Đã sửa nhờ lab (2026-09-25)
 
 | Khiếm khuyết                                                             | Cách sửa                                                                | Bằng chứng                             |
@@ -287,5 +314,7 @@ là thay đổi ở cổng dựng consumer, không phải một dòng trong `ent
 
 Đây là lần thứ ba trong dự án này một ca báo xanh mà không kiểm thứ nó nói đang kiểm. Hai lần trước:
 cell advisory `bun` báo PASS khi nó chưa chạy được, và bản đầu của ca `08-typesversions-sync` không
-thể fail vì fallback khớp mọi subpath. Mẫu lặp lại, và cách chặn duy nhất đã dùng được: **ca mới phải
-được chứng minh bằng cách phá thứ nó canh**, không phải bằng việc nó xanh.
+thể fail vì fallback khớp mọi subpath. Lần thứ tư: ca `reduced-motion-scope` dò một hằng số thay vì
+so với giá trị đã set, nên nó sẽ báo "không bị đè" ngay khi cơ chế đè đổi. Mẫu lặp lại, và cách chặn
+duy nhất đã dùng được: **ca mới phải được chứng minh bằng cách phá thứ nó canh**, không phải bằng
+việc nó xanh.

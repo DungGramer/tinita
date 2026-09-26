@@ -81,6 +81,45 @@ export function calculateLayout(
 }
 
 /**
+ * Transform của frame đầu marquee: đẩy content lùi qua hết các pattern dẫn đường
+ * để pattern thật (không `aria-hidden`) nằm trong viewport.
+ */
+function buildStartTransform(
+  layoutState: CarouselLayoutState,
+  isVertical: boolean
+): string {
+  const axis = isVertical ? 'Y' : 'X';
+  const startOffset = -layoutState.leadingRepeatCount * layoutState.stridePx;
+  return `translate${axis}(${startOffset}px)`;
+}
+
+/**
+ * Ghim content ở frame đầu, không tạo animation nào.
+ *
+ * Dùng cho reduced-motion. Marquee chạy bằng Web Animations API nên CSS
+ * `@media (prefers-reduced-motion: reduce)` KHÔNG với tới nó - phải tắt ở đây.
+ * Chỉ `cancel()` là chưa đủ: transform về 0 và các clone `aria-hidden` dẫn đường
+ * lọt vào viewport thay cho pattern thật.
+ */
+export function pinContentAtStart(config: CarouselAnimationConfig): void {
+  const { contentRef, layoutState, isVertical, animationRef } = config;
+
+  if (animationRef.current) {
+    animationRef.current.cancel();
+    animationRef.current = null;
+  }
+
+  if (!contentRef.current || !layoutState.stridePx) {
+    return;
+  }
+
+  contentRef.current.style.transform = buildStartTransform(
+    layoutState,
+    isVertical
+  );
+}
+
+/**
  * Initializes or updates the Web Animations API animation.
  * Creates a seamless infinite loop by animating from one pattern offset to the next.
  */
@@ -110,14 +149,17 @@ export function initializeOrUpdateAnimation(
     animationRef.current = null;
   }
 
+  // Xoá transform tĩnh mà `pinContentAtStart` có thể đã set, nếu không nó còn lại
+  // sau khi animation bị cancel.
+  contentElement.style.transform = '';
+
   // Calculate start and end offsets based on leadingRepeatCount for off-screen buffer
-  const startOffset = -layoutState.leadingRepeatCount * layoutState.stridePx;
   const endOffset = -(layoutState.leadingRepeatCount + 1) * layoutState.stridePx;
 
   const axis = isVertical ? 'Y' : 'X';
   const keyframes: Keyframe[] = [
     {
-      transform: `translate${axis}(${startOffset}px)`,
+      transform: buildStartTransform(layoutState, isVertical),
     },
     {
       transform: `translate${axis}(${endOffset}px)`,

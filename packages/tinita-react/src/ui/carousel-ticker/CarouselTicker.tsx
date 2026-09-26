@@ -3,6 +3,7 @@ import { cn } from '../../utils/cn';
 import {
   calculateLayout,
   initializeOrUpdateAnimation,
+  pinContentAtStart,
   setupIntersectionObserver,
   setupResizeObserver,
   setupHoverListeners,
@@ -15,6 +16,43 @@ import type {
   CarouselEventConfig,
 } from './CarouselTicker.types';
 import './CarouselTicker.css';
+
+/**
+ * Đọc `prefers-reduced-motion` và theo dõi khi user đổi setting hệ thống.
+ *
+ * Không export: thêm public export là phải thêm subpath `exports`, entry tsup và
+ * ca L1 - ngoài phạm vi. Nếu sau này cần dùng chỗ khác thì mới nâng lên
+ * `src/hooks/`.
+ *
+ * Khởi tạo `false` rồi mới set trong effect: server không có `matchMedia`, và
+ * render đầu ở client phải khớp HTML server trả về nếu không sẽ lệch hydration.
+ */
+function usePrefersReducedMotion(): boolean {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    if (
+      typeof window === 'undefined' ||
+      typeof window.matchMedia !== 'function'
+    ) {
+      return;
+    }
+
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(query.matches);
+
+    const handleChange = (event: MediaQueryListEvent): void => {
+      setPrefersReducedMotion(event.matches);
+    };
+
+    query.addEventListener('change', handleChange);
+    return () => {
+      query.removeEventListener('change', handleChange);
+    };
+  }, []);
+
+  return prefersReducedMotion;
+}
 
 /**
  * CarouselTicker - Infinite scrolling carousel component
@@ -50,6 +88,8 @@ export const CarouselTicker: React.FC<CarouselTickerProps> = ({
   const animationRef = useRef<Animation | null>(null);
   const intersectionObserverRef = useRef<IntersectionObserver | null>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
+
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   const [layoutState, setLayoutState] = useState<CarouselLayoutState>({
     stridePx: 0,
@@ -135,6 +175,15 @@ export const CarouselTicker: React.FC<CarouselTickerProps> = ({
       animationRef,
     };
 
+    // Reduced-motion: KHÔNG chạy animation nào. Marquee là chuyển động vô hạn và
+    // tự khởi động - đúng ca WCAG 2.2.2, và CSS không tắt được nó vì nó là Web
+    // Animations API. Ghim content ở frame đầu rồi thoát; đổi setting hệ thống
+    // là effect chạy lại nên marquee chạy/dừng ngay, không cần reload.
+    if (prefersReducedMotion) {
+      pinContentAtStart(animationConfig);
+      return;
+    }
+
     initializeOrUpdateAnimation(animationConfig);
 
     if (trigger === 'on-load') {
@@ -168,6 +217,7 @@ export const CarouselTicker: React.FC<CarouselTickerProps> = ({
     speedMs,
     trigger,
     direction,
+    prefersReducedMotion,
   ]);
 
   /**
