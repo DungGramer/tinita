@@ -18,7 +18,7 @@
   @keyframes hostFade { from { opacity: 0 } to { opacity: 1 } }
   /* Override có chủ ý trong layer - consumer PHẢI thắng được nếu CSS library nằm trong layer */
   @layer host {
-    .tnt-filetree { border-color: rgb(123, 123, 123); }
+    .tnt-file-tree-root { border-color: rgb(123, 123, 123); }
   }
 </style>
 
@@ -26,5 +26,5 @@
 <div class="animate-fade-in" id="host-animate">host animate</div>
 <div class="transition-fast" id="host-transition">host transition</div>
 <div class="interactive" id="host-interactive">host interactive</div>
-<div class="tnt-filetree" id="host-filetree-override">filetree override probe</div>
+<div class="tnt-file-tree-root" id="host-filetree-override">filetree override probe</div>
 <div class="tnt-carousel-ticker" id="host-ticker"><span id="host-ticker-child" style="box-sizing: content-box">child</span></div>

@@ -1,0 +1,480 @@
+/**
+ * FileTree CSS Modules
+ *
+ * Tên class ở đây là LOCAL (`.root`, `.label`, `.accordion-trigger`). Vite sinh
+ * `tnt-file-tree-root`, `tnt-file-tree-label`, ... theo `generateScopedName` - vẫn
+ * có namespace `tnt-`, vẫn đọc được, người dùng vẫn nhắm được để override.
+ *
+ * Token (`--tnt-filetree-*`) KHÔNG còn ở đây - đã chuyển sang `src/styles/globals.css`
+ * 2026-09-26. Token là hợp đồng công khai với người dùng; CSS Modules chỉ dành cho
+ * internals. Trộn hai thứ vào một file thì người dùng không biết nhìn đâu.
+ *
+ * Biến thể `--file` / `--folder` đổi sang `[data-type]`: mapping của CSS Modules chỉ
+ * có key tĩnh nên `label--${type}` không dựng được, và `data-*` là hướng đã chốt.
+ *
+ * `@keyframes` cũng bị scope - đặt tên local `accordion-down` để ra
+ * `tnt-file-tree-accordion-down`, không phải `tnt-file-tree-tnt-accordion-down`.
+ */
+
+/* Dark: ĐỌC quy ước của host. `:global` bắt buộc - không có nó CSS Modules scope
+   `.dark` thành `tnt-file-tree-dark` và dark mode vỡ hẳn. `:where` cho specificity 0. */
+/* Light theme scrollbar (default) */
+.root::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.root::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+}
+
+.root::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.root::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.root {
+  scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.04);
+  scrollbar-width: thin;
+  background-color: var(--tnt-filetree-bg);
+  color: var(--tnt-filetree-text);
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 1rem;
+  overflow: auto;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding-left: var(--tnt-filetree-indent);
+  position: relative;
+}
+
+.list:first-child {
+  padding-left: 0;
+}
+
+.item {
+  position: relative;
+}
+
+/* Indicator lines - vertical lines showing tree structure */
+.root[data-indicator='true'] .list:not([data-level='0'])::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--tnt-filetree-text-dim);
+  opacity: 0.2;
+}
+
+/* Horizontal indicator lines for nested items */
+.root[data-indicator='true'] .item:not(:first-child)::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--tnt-filetree-indent) * -1);
+  top: calc(50% + 1px);
+  width: var(--tnt-filetree-indent);
+  height: 1px;
+  background-color: var(--tnt-filetree-text-dim);
+  opacity: 0.2;
+  transform: translateY(-50%);
+}
+
+/* Hide horizontal indicator for first item in each list */
+.root[data-indicator='true'] .list:first-child .item::before,
+.root[data-indicator='true'] .item:first-child::before {
+  display: none;
+}
+
+/* Hide indicators when disabled */
+.root[data-indicator='false'] .list::before,
+.root[data-indicator='false'] .item::before {
+  display: none;
+}
+
+.item {
+  margin: 0;
+  padding: 2px 0;
+}
+
+/* Radix UI Accordion Item (replaces <details>) */
+.accordion-item {
+  margin: 0;
+}
+
+/* Radix UI Accordion Trigger (replaces <summary>) */
+.accordion-trigger {
+  all: unset;
+  display: block;
+  width: 100%;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+/* Radix UI Accordion Content */
+.accordion-content {
+  overflow: hidden;
+
+  /* Bọc biến runtime của Radix sau token của tinita. `--radix-*` là chi tiết nội
+     bộ của Radix và nó KHÔNG được nằm trong contract CSS công khai: đổi
+     foundation sang Base UI là vỡ keyframes, còn người dùng thì không có cách
+     nào biết họ đang phụ thuộc vào Radix. Keyframes chỉ đọc
+     `--tnt-accordion-content-height`. */
+  --tnt-accordion-content-height: var(--radix-accordion-content-height);
+}
+
+/* Ensure nested lists inside accordion content have proper padding */
+.accordion-content > .list {
+  padding-left: var(--tnt-filetree-indent);
+  position: relative;
+}
+
+/* Ensure indicator works with accordion structure - vertical lines for nested lists */
+.root[data-indicator='true'] .accordion-content > .list::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--tnt-filetree-text-dim);
+  opacity: 0.2;
+}
+
+/* Hide vertical indicator for root level (data-level='0') */
+.root[data-indicator='true'] .list[data-level='0']::before {
+  display: none;
+}
+
+/* Hide content when animation disabled and collapsed */
+.accordion-content[hidden] {
+  display: none;
+}
+
+/* Animation when enabled */
+.root[data-animation='true'] .accordion-content[data-state='open'] {
+  animation: accordion-down 250ms ease-out;
+}
+
+.root[data-animation='true'] .accordion-content[data-state='closed'] {
+  animation: accordion-up 250ms ease-out;
+}
+
+/* Keyframes for accordion animations */
+@keyframes accordion-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--tnt-accordion-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--tnt-accordion-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+/* Size variants - Density (padding only) */
+.root[data-size='sm'] .accordion-trigger {
+  padding: 0.8px 8px 0.8px 4px;
+  margin: 0 calc(-1 * 8px);
+}
+
+.root[data-size='md'] .accordion-trigger {
+  padding: 4px 8px 4px 4px;
+  margin: 0 calc(-1 * 8px);
+}
+
+.root[data-size='lg'] .accordion-trigger {
+  padding: 8px 8px 8px 4px;
+  margin: 0 calc(-1 * 8px);
+}
+
+/* Border radius variants - Separate from size */
+.root[data-border-radius='sm'] .accordion-trigger,
+.root[data-border-radius='sm'] .label {
+  border-radius: 1px;
+}
+
+.root[data-border-radius='md'] .accordion-trigger,
+.root[data-border-radius='md'] .label {
+  border-radius: 4px;
+}
+
+.root[data-border-radius='lg'] .accordion-trigger,
+.root[data-border-radius='lg'] .label {
+  border-radius: 30px;
+}
+
+.accordion-trigger:hover {
+  background-color: var(--tnt-filetree-hover);
+}
+
+.accordion-trigger:active {
+  background-color: var(--tnt-filetree-active);
+}
+
+/* Disabled state when enableAnimation=false */
+.accordion-trigger[data-disabled] {
+  cursor: default;
+}
+
+.accordion-trigger[data-disabled]:hover {
+  background-color: transparent;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+/* Size variants for label - Density only */
+.root[data-size='sm'] .label {
+  padding: 0.8px 8px 0.8px 4px;
+}
+
+.root[data-size='md'] .label {
+  padding: 4px 8px 4px 4px;
+}
+
+.root[data-size='lg'] .label {
+  padding: 8px 8px 8px 4px;
+}
+
+/* Hover only for standalone labels (files or empty folders, not inside accordion-trigger) */
+.item > .label:hover {
+  background-color: var(--tnt-filetree-hover);
+  transition: background-color 0.15s ease;
+}
+
+/* Fix conflict: label inside accordion-trigger should not have padding/hover when trigger handles it */
+.accordion-trigger .label {
+  padding: 0;
+  margin: 0;
+}
+
+.accordion-trigger .label:hover {
+  background-color: transparent;
+}
+
+/* Arrow icon for folders */
+.arrow {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--tnt-filetree-text-dim);
+  transition: transform 0.2s ease-out;
+  margin-right: 2px;
+  line-height: 1;
+  will-change: transform;
+}
+
+/* Rotate arrow when folder is expanded */
+.accordion-item[data-expanded='true'] .arrow {
+  transform: rotate(0deg);
+}
+
+/* No rotation when collapsed */
+.accordion-item[data-expanded='false'] .arrow {
+  transform: rotate(0deg);
+}
+
+/* Hide arrow when not needed */
+.root[data-show-arrow='false'] .arrow {
+  display: none;
+}
+
+.label-text {
+  white-space: nowrap;
+}
+
+/* Icon base - lucide-react icons are SVG */
+.icon {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--tnt-filetree-text-dim);
+  line-height: 1;
+}
+
+/* Icon color customization (for lucide-react SVG icons) */
+/* You can customize icon colors using CSS variables or direct color property */
+.icon {
+  /* Default icon color uses text-dim variable */
+  color: var(--tnt-filetree-text-dim);
+}
+
+/* Folder icon color */
+.label[data-type='folder'] .icon {
+  color: var(--tnt-filetree-icon-folder, var(--tnt-filetree-text-dim));
+}
+
+/* File icon colors based on type */
+.label[data-icon='readme'] .icon {
+  color: var(--tnt-filetree-icon-readme, var(--tnt-filetree-text-dim));
+}
+
+.label[data-icon='markdown'] .icon {
+  color: var(--tnt-filetree-icon-markdown, var(--tnt-filetree-text-dim));
+}
+
+.label[data-icon='javascript'] .icon {
+  color: var(--tnt-filetree-icon-javascript, var(--tnt-filetree-text-dim));
+}
+
+.label[data-icon='css'] .icon {
+  color: var(--tnt-filetree-icon-css, var(--tnt-filetree-text-dim));
+}
+
+.label[data-icon='html'] .icon {
+  color: var(--tnt-filetree-icon-html, var(--tnt-filetree-text-dim));
+}
+
+.label[data-icon='json'] .icon,
+.label[data-icon='code'] .icon {
+  color: var(--tnt-filetree-icon-json, var(--tnt-filetree-text-dim));
+}
+
+.label[data-icon='database'] .icon,
+.label[data-icon='yml'] .icon,
+.label[data-icon='yaml'] .icon {
+  color: var(--tnt-filetree-icon-database, var(--tnt-filetree-text-dim));
+}
+
+.label[data-icon='php'] .icon {
+  color: var(--tnt-filetree-icon-php, var(--tnt-filetree-text-dim));
+}
+
+.label[data-icon='vue'] .icon {
+  color: var(--tnt-filetree-icon-vue, var(--tnt-filetree-text-dim));
+}
+
+.label[data-icon='git'] .icon {
+  color: var(--tnt-filetree-icon-git, var(--tnt-filetree-text-dim));
+}
+
+.label[data-icon='text'] .icon {
+  color: var(--tnt-filetree-icon-text, var(--tnt-filetree-text-dim));
+}
+
+.label[data-icon='font'] .icon {
+  color: var(--tnt-filetree-icon-font, var(--tnt-filetree-text-dim));
+}
+
+.label[data-icon='image'] .icon,
+.label[data-icon='jpg'] .icon,
+.label[data-icon='jpeg'] .icon,
+.label[data-icon='png'] .icon,
+.label[data-icon='gif'] .icon,
+.label[data-icon='svg'] .icon,
+.label[data-icon='webp'] .icon {
+  color: var(--tnt-filetree-icon-image, var(--tnt-filetree-text-dim));
+}
+
+.label[data-icon='video'] .icon,
+.label[data-icon='mp4'] .icon,
+.label[data-icon='avi'] .icon,
+.label[data-icon='mov'] .icon,
+.label[data-icon='webm'] .icon {
+  color: var(--tnt-filetree-icon-video, var(--tnt-filetree-text-dim));
+}
+
+.label[data-icon='audio'] .icon,
+.label[data-icon='mp3'] .icon,
+.label[data-icon='wav'] .icon,
+.label[data-icon='ogg'] .icon {
+  color: var(--tnt-filetree-icon-audio, var(--tnt-filetree-text-dim));
+}
+
+.label[data-icon='spreadsheet'] .icon,
+.label[data-icon='xls'] .icon,
+.label[data-icon='xlsx'] .icon,
+.label[data-icon='csv'] .icon {
+  color: var(--tnt-filetree-icon-spreadsheet, var(--tnt-filetree-text-dim));
+}
+
+.label[data-icon='archive'] .icon,
+.label[data-icon='zip'] .icon,
+.label[data-icon='rar'] .icon,
+.label[data-icon='tar'] .icon,
+.label[data-icon='gz'] .icon {
+  color: var(--tnt-filetree-icon-archive, var(--tnt-filetree-text-dim));
+}
+
+/* Default file icon color (for files without specific type) */
+.label[data-type='file'] .icon {
+  color: var(--tnt-filetree-icon-file, var(--tnt-filetree-text-dim));
+}
+
+/* Dark scrollbar - xem ghi chú `:global` phía trên */
+:global(:where(.dark, [data-theme='dark'])) .root::-webkit-scrollbar-track,
+.root[data-theme='dark']::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+:global(:where(.dark, [data-theme='dark'])) .root::-webkit-scrollbar-thumb,
+.root[data-theme='dark']::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+:global(:where(.dark, [data-theme='dark'])) .root::-webkit-scrollbar-thumb:hover,
+.root[data-theme='dark']::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+:global(:where(.dark, [data-theme='dark'])) .root,
+.root[data-theme='dark'] {
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+}
+
+/* Respect user's reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .arrow {
+    transition: none;
+  }
+
+  .accordion-trigger {
+    transition: none;
+  }
+
+  .label {
+    transition: none;
+  }
+
+  /* Disable accordion animations */
+  .accordion-content[data-state='open'],
+  .accordion-content[data-state='closed'] {
+    animation: none !important;
+  }
+}

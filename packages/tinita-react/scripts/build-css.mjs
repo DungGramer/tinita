@@ -166,7 +166,7 @@ function copyAnimationsCSS() {
 /**
  * Create bundled styles.css with theme CSS + component styles (NO Tailwind utilities)
  */
-function createBundledCSS(componentCSSFiles, themeCSS) {
+function createBundledCSS(themeCSS) {
   let bundledCSS = '';
 
   // Include theme CSS (globals + animations, no Tailwind utilities)
@@ -175,11 +175,15 @@ function createBundledCSS(componentCSSFiles, themeCSS) {
     bundledCSS += '\n';
   }
 
-  // Include component CSS files
-  for (const { srcPath } of componentCSSFiles) {
-    const content = readFileSync(srcPath, 'utf-8');
-    bundledCSS += content;
+  // CSS component đến từ `dist/components.css` - output của Vite, tức bản đã qua CSS
+  // Modules và đã scope tên. ĐỪNG đọc `src/ui/**/*.css`: tên ở source là LOCAL
+  // (`.root`, `.label`) và ship nguyên nó ra là đè trực tiếp lên trang khách.
+  const componentsCSS = join(distDir, 'components.css');
+  if (existsSync(componentsCSS)) {
+    bundledCSS += readFileSync(componentsCSS, 'utf-8');
     bundledCSS += '\n';
+  } else {
+    throw new Error('thiếu dist/components.css - chạy build:js (vite) trước build:css');
   }
 
   // Minify bundled CSS using PostCSS CLI
@@ -210,6 +214,16 @@ function createBundledCSS(componentCSSFiles, themeCSS) {
   }
 
   writeLayeredCSS(bundledPath);
+
+  // `components.css` là TRUNG GIAN - output của Vite, đã được ghép vào styles.css.
+  // `files: ["dist"]` ship mọi thứ trong dist nên phải xoá, không thì người dùng thấy
+  // hai file CSS và không biết cái nào là thật.
+  try {
+    unlinkSync(componentsCSS);
+    console.log('  ✓ Removed intermediate components.css');
+  } catch {
+    // không có thì thôi
+  }
 }
 
 /**
@@ -252,23 +266,11 @@ async function main() {
     console.log('\n   🎨 Step 2: Compiling theme CSS (no Tailwind utilities)');
     const themeCSS = compileThemeCSS();
 
-    console.log('\n   🔍 Step 3: Scanning for component CSS files...');
-    const uiDir = join(srcDir, 'ui');
-    const componentCSSFiles = findComponentCSSFiles(uiDir, srcDir);
-
-    if (componentCSSFiles.length > 0) {
-      console.log(`   ✓ Found ${componentCSSFiles.length} component CSS file(s)`);
-
-      console.log('   📝 Processing component CSS files...');
-      for (const { srcPath, relativePath } of componentCSSFiles) {
-        copyCSSFile(srcPath, relativePath);
-      }
-    } else {
-      console.log('   ℹ️  No component CSS files found (only Tailwind)');
-    }
-
-    console.log('\n   📦 Step 4: Creating bundled styles.css...');
-    createBundledCSS(componentCSSFiles, themeCSS);
+    // KHÔNG còn copy `src/ui/**/*.css` sang dist. Từ 2026-09-26 CSS component là CSS
+    // Modules: tên ở source là local và chỉ có nghĩa sau khi Vite scope. Bản đã scope
+    // nằm ở `dist/components.css`.
+    console.log('\n   📦 Step 3: Creating bundled styles.css...');
+    createBundledCSS(themeCSS);
 
     console.log('\n   ✅ CSS build complete!\n');
   } catch (error) {

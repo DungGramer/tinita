@@ -20,23 +20,23 @@ describe('Ping', () => {
     // trả về số 0, và React RENDER số 0 - ra một "0" trần ngoài span, không có
     // class nào. Không phải "không render gì" như trực giác.
     const { container } = render(<Ping count={0} />);
-    const span = container.querySelector('.tnt-ping__count');
+    const span = container.querySelector('.tnt-ping-count');
     expect(span).not.toBeNull();
     expect(span?.textContent).toBe('0');
   });
 
   it('không truyền count thì không có node count nào', () => {
     const { container } = render(<Ping />);
-    expect(container.querySelector('.tnt-ping__count')).toBeNull();
+    expect(container.querySelector('.tnt-ping-count')).toBeNull();
   });
 
   it('chỉ thêm class offset khi có prefix', () => {
     const { container, unmount } = render(<Ping count={3} />);
-    expect(container.querySelector('.tnt-ping__body--offset')).toBeNull();
+    expect(container.querySelector('.tnt-ping-body-offset')).toBeNull();
     unmount();
 
     const withPrefix = render(<Ping count={3} prefix={<span>pre</span>} />);
-    expect(withPrefix.container.querySelector('.tnt-ping__body--offset')).not.toBeNull();
+    expect(withPrefix.container.querySelector('.tnt-ping-body-offset')).not.toBeNull();
   });
 
   it('KHÔNG dùng class Tailwind thô nào trong JSX', () => {

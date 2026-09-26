@@ -17,7 +17,7 @@ import type {
   CarouselAnimationConfig,
   CarouselEventConfig,
 } from './CarouselTicker.types';
-import './CarouselTicker.css';
+import styles from './CarouselTicker.module.css';
 
 /**
  * Đọc `prefers-reduced-motion` và theo dõi khi user đổi setting hệ thống.
@@ -256,7 +256,7 @@ export const CarouselTicker: React.FC<CarouselTickerProps> = ({
         <div
           key={`pattern-${index}`}
           ref={isReferencePattern ? patternRef : undefined}
-          className="tnt-carousel-ticker__pattern"
+          className={styles.pattern}
           aria-hidden={index !== layoutState.leadingRepeatCount}
         >
           {baseChildrenArray.map((child, childIndex) => {
@@ -268,16 +268,13 @@ export const CarouselTicker: React.FC<CarouselTickerProps> = ({
               };
               return React.cloneElement(child, {
                 key: `pattern-${index}-item-${childIndex}`,
-                className: cn('tnt-carousel-ticker__item', childProps?.className),
+                className: cn(styles.item, childProps?.className),
                 style: { ...(childProps?.style || {}) },
               } as Record<string, unknown>);
             }
             // Fallback for non-element children
             return (
-              <div
-                key={`pattern-${index}-item-${childIndex}`}
-                className="tnt-carousel-ticker__item"
-              >
+              <div key={`pattern-${index}-item-${childIndex}`} className={styles.item}>
                 {child}
               </div>
             );
@@ -306,17 +303,17 @@ export const CarouselTicker: React.FC<CarouselTickerProps> = ({
         : `linear-gradient(90deg, ${fadeColor}, ${fadeColor}00 20%, ${fadeColor}00 80%, ${fadeColor})`,
     };
 
-    return <div className="tnt-carousel-ticker__fade" style={fadeStyle} aria-hidden="true" />;
+    return <div className={styles.fade} style={fadeStyle} aria-hidden="true" />;
   };
 
   return (
     <div
       ref={containerRef}
-      className={cn('tnt-carousel-ticker', className)}
+      className={cn(styles.root, className)}
       data-orientation={isVertical ? 'vertical' : 'horizontal'}
       data-overflow={overflowVisible ? 'visible' : 'hidden'}
     >
-      <div ref={contentRef} className={cn('tnt-carousel-ticker__content', contentClassName)}>
+      <div ref={contentRef} className={cn(styles.content, contentClassName)}>
         {renderRepeatedPatterns()}
       </div>
       {renderFadeOverlay()}
