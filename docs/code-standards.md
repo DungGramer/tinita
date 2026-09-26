@@ -550,6 +550,62 @@ báo `Cannot find module 'lucide-react'`, và load được sau khi cài 2 peer.
 
 ---
 
+## Quy Tắc `typesVersions`: liệt kê từng subpath, KHÔNG wildcard
+
+**QĐ-2 (2026-09-26): repo support `moduleResolution: node` (TypeScript cũ).** TS cũ bỏ qua `exports`
+hoàn toàn, nên `typesVersions` là đường duy nhất để nó tìm được type của subpath.
+
+### Hình dạng đúng, và ba hình dạng sai
+
+Đo trên `tinita` với 3 probe riêng biệt (root trần, subpath thật, subpath KHÔNG tồn tại):
+
+| Hình dạng `typesVersions`                            | root     | subpath  | subpath SAI bị bắt |
+| ---------------------------------------------------- | -------- | -------- | ------------------ |
+| không có                                             | OK       | **FAIL** | có                 |
+| `{"*": {"*": ["dist/*.d.ts", "dist/*/index.d.ts"]}}` | **FAIL** | OK       | có                 |
+| thêm `"dist/index.d.ts"` làm fallback                | OK       | OK       | **KHÔNG**          |
+| **key tường minh từng subpath, không wildcard**      | OK       | OK       | **CÓ**             |
+
+Hình dạng thứ ba là cái bẫy: nó trông như đã sửa xong, nhưng fallback `dist/index.d.ts` khớp **mọi**
+subpath không match. Đo được: `import x from 'tinita/file/doesNotExistAtAll'` **typecheck sạch** và
+nhận type của root. Người dùng gõ sai tên subpath không nhận lỗi lúc compile, mà nhận crash lúc chạy.
+
+Hình dạng phải dùng - mỗi subpath một key, đích lấy từ chính `exports[sub].require.types`:
+
+```json
+"typesVersions": {
+  "*": {
+    "file/fileSize": ["dist/file/fileSize.d.ts"],
+    "uuid/generateUUID": ["dist/uuid/generateUUID.d.ts"]
+  }
+}
+```
+
+Không có `"*"` nào. Root trần tự resolve qua field `types` ở cấp trên - nó chỉ bị che khi có pattern
+`"*"` trong `typesVersions`.
+
+### Quy tắc khi thêm subpath
+
+**Thêm subpath vào `exports` thì phải thêm key tương ứng vào `typesVersions`, trong cùng commit.**
+
+Không có tool đồng bộ hai thứ này, nên lệch là âm thầm: consumer TS cũ mất type cho subpath mới mà
+không ai biết. Cửa chặn là ca `08-typesversions-sync` của compatibility lab, đối chiếu **hai chiều**:
+
+- subpath trong `exports` mà `typesVersions` không giải được -> fail, nêu tên subpath
+- pattern trong `typesVersions` không khớp subpath nào -> fail, nêu tên pattern
+
+Ca này **chỉ hoạt động được vì không có catch-all**. Thêm một fallback `"*"` vào là vô hiệu hoá nó,
+và nó sẽ báo xanh mãi mãi. Đã xảy ra: bản đầu của ca 08 dùng hình dạng có fallback và **cả hai ca tự
+phá đều PASS khi phải FAIL**.
+
+Export CSS (`./styles.css`...) không có type nên **không** được đưa vào `typesVersions`.
+
+```bash
+node compatibility/run.mjs l1 --no-pack   # ca 08
+```
+
+---
+
 ## Quy Tắc API: Một Hàm, Một Kiểu Trả Về
 
 **Không dùng option làm đổi kiểu trả về.** Không `output: 'string' | 'parts'`, không `asArray: true`,

@@ -21,6 +21,25 @@
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "hooks/useToggle": [
+        "dist/hooks/useToggle.d.ts"
+      ],
+      "ui/file-tree": [
+        "dist/ui/file-tree/index.d.ts"
+      ],
+      "ui/ping": [
+        "dist/ui/ping/index.d.ts"
+      ],
+      "ui/carousel-ticker": [
+        "dist/ui/carousel-ticker/index.d.ts"
+      ],
+      "utils/autoInjectStyles": [
+        "dist/utils/autoInjectStyles.d.ts"
+      ]
+    }
+  },
   "style": "dist/styles.css",
   "files": [
     "dist"

@@ -207,6 +207,53 @@ for (const { name } of TARGETS) {
   }
 }
 
+// ---------- 08 typesVersions <-> exports đồng bộ (hai chiều) ----------
+// QĐ-2 thêm `typesVersions`, và nó KHÔNG có tool đồng bộ với `exports`. Lệch là âm thầm: consumer
+// TS cũ mất type cho subpath mới mà không ai biết. Ca này là cửa chặn duy nhất.
+for (const { name, dir } of TARGETS) {
+  const pkg = JSON.parse(readFileSync(resolve(dir, 'package.json'), 'utf8'));
+  const tv = pkg.typesVersions;
+  if (!tv) {
+    add(`08-typesversions-sync:${name}`, false, 'thiếu typesVersions - QĐ-2 yêu cầu support moduleResolution:node');
+    continue;
+  }
+
+  // Giải theo đúng thuật toán TS: thử từng pattern theo thứ tự, thay '*', lấy file đầu tồn tại.
+  const patterns = Object.entries(tv['*'] ?? {});
+  const resolveSub = (sub) => {
+    const key = sub.replace(/^\.\//, '');
+    for (const [pat, targets] of patterns) {
+      if (pat !== '*' && pat !== key) continue;
+      for (const t of targets) {
+        const file = t.replace('*', key);
+        if (existsSync(resolve(dir, file))) return file;
+      }
+    }
+    return null;
+  };
+
+  const subpaths = Object.keys(pkg.exports ?? {}).filter((k) => k !== '.' && !k.endsWith('.css'));
+  const unresolved = subpaths.filter((sub) => !resolveSub(sub));
+  const rootResolved = resolveSub('index') || (pkg.types && existsSync(resolve(dir, pkg.types)));
+  // Chiều ngược: pattern không giải được cho subpath nào là rác, dấu hiệu exports đã đổi.
+  const deadPatterns = patterns
+    .filter(([, targets]) => !targets.some((t) => subpaths.some((sub) => existsSync(resolve(dir, t.replace('*', sub.replace(/^\.\//, '')))))
+      || existsSync(resolve(dir, t))))
+    .map(([pat]) => pat);
+
+  const ok = unresolved.length === 0 && rootResolved && deadPatterns.length === 0;
+  const parts = [];
+  if (unresolved.length) parts.push(`subpath KHÔNG giải được: ${unresolved.join(', ')}`);
+  if (!rootResolved) parts.push('import root trần không giải được');
+  if (deadPatterns.length) parts.push(`pattern không khớp subpath nào: ${deadPatterns.join(', ')}`);
+  add(
+    `08-typesversions-sync:${name}`,
+    ok,
+    ok ? `${subpaths.length} subpath + root đều giải được qua ${patterns.length} pattern` : parts.join(' | '),
+    { subpaths: subpaths.length, patterns: patterns.length },
+  );
+}
+
 const payload = { level: 'l1', ranAt: new Date().toISOString(), cases, findings };
 const file = writeReport('l1', payload);
 const failed = printSummary(payload);
