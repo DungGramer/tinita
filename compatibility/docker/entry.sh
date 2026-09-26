@@ -43,9 +43,16 @@ console.log('  manifest rewritten ->', m.packages.map(e=>e.tarball).join(' '));
 cd /work/lab
 npm install --no-audit --no-fund --silent >/dev/null 2>&1 || true
 
-# Yarn PnP không có node_modules: phải gọi qua `yarn node` để đi qua resolver PnP.
-if [ "$PM_MODE" = "pnp" ]; then
-  export LAB_NODE_RUNNER="yarn node"
-fi
+# CHƯA WIRE: cell yarn-pnp hiện KHÔNG đi qua resolver PnP.
+#
+# Ý định là gọi `yarn node` thay vì `node` để import đi qua PnP. Nhưng consumer của lab được dựng
+# bằng `npm install` trong scripts/consumer.mjs, nên chúng luôn có node_modules thật bất kể package
+# manager ở ngoài là gì. Đổi `node` thành `yarn node` ở đây KHÔNG làm consumer dùng PnP.
+#
+# Cell vẫn chạy và vẫn pass 19 ca, nhưng nó đang kiểm resolution của Node thường, KHÔNG phải PnP.
+# Nên nó CHƯA cho coverage phantom-dependency - đó là lý do duy nhất cell này tồn tại.
+#
+# Để wire thật: consumer.mjs phải dựng consumer bằng `yarn` với `nodeLinker: pnp` thay vì npm.
+# Đó là thay đổi thật ở cổng dựng consumer, không phải một dòng ở đây.
 
 node /work/lab/run.mjs "$LEVEL" --no-pack

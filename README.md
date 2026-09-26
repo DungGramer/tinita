@@ -2,7 +2,7 @@
 
 Monorepo với framework-agnostic utilities, React hooks + UI components, Storybook.
 
-**Packages:** `tinita` (v0.0.1, 4 utilities) · `tinita-react` (v0.0.2-alpha.1, 2 hooks + 3 components)
+**Packages:** `tinita` (v0.1.0, 5 utilities) · `tinita-react` (v0.1.0, 2 hooks + 3 components) · `tinita-dom` (v0.1.0, DOM utilities, browser-only)
 
 ---
 
@@ -19,7 +19,7 @@ pnpm storybook    # Chạy Storybook (xem note bên dưới)
 
 ## Packages
 
-### tinita (v0.0.1)
+### tinita (v0.1.0)
 
 4 framework-agnostic utilities:
 
@@ -30,7 +30,7 @@ import { truncateFileName } from 'tinita/file/truncateFileName';
 import { generateUUID } from 'tinita/uuid/generateUUID';
 ```
 
-### tinita-react (v0.0.2-alpha.1)
+### tinita-react (v0.1.0)
 
 2 hooks + 3 UI components (CSS included). **Import từng file, không dùng barrel:**
 
@@ -93,6 +93,38 @@ Không khai thì các thứ sau bị đè: `body` background/color, và class tr
 
 Còn `Ping` và `CarouselTicker` hiện viết class Tailwind thô trong JSX mà bundle không ship utility,
 nên chúng **cần app của bạn có Tailwind** mới hiển thị đúng. Đang được xử lý.
+
+---
+
+### tinita-dom (v0.1.0)
+
+Tiện ích DOM framework-agnostic. **Browser-only** - nó chạm `document`, `window.matchMedia`,
+`requestAnimationFrame`. Không có SSR guard, và đó là có chủ ý: `installSmoothScroll` cài listener
+trên `document`, trên server không có gì để cài.
+
+Zero dependency. Zero peer dependency. Không cần React.
+
+```ts
+import { installSmoothScroll } from 'tinita-dom/smooth-scroll';
+
+// Gọi MỘT LẦN, ngoài React - effect bị gọi hai lần của StrictMode sẽ cài nó hai lần.
+const uninstall = installSmoothScroll();
+uninstall(); // gỡ khi cần
+```
+
+Một listener `wheel` cho toàn app. Hai hành vi riêng biệt: wheel có detent được làm mượt trên đúng
+element browser vốn sẽ scroll; và wheel dọc trên element chỉ scroll ngang được thì scroll nó ngang
+(browser không làm việc này). Input vốn đã mượt (trackpad, Mos, Mac Mouse Fix) được để nguyên cho
+browser - làm mượt lần hai là thứ khiến trang có cảm giác trễ so với tay.
+
+Nó cố ý không đụng: wheel đã `defaultPrevented`, `Ctrl+wheel`, wheel đã có `deltaX`, subtree có
+`data-no-smooth-scroll`, và người đã bật `prefers-reduced-motion`.
+
+```ts
+import { classifyWheelSource } from 'tinita-dom/wheel-source';
+```
+
+Chi tiết: `packages/tinita-dom/README.md`.
 
 ---
 

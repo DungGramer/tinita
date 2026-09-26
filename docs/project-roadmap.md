@@ -53,6 +53,22 @@ CarouselTicker, Animations.
 `@repo/typescript-config` (base/react-library/nextjs/vue-library), `@repo/ui` (card/code/button
 mẫu cho nội bộ monorepo, không phải sản phẩm publish).
 
+## Đã vá (2026-09-26)
+
+| Việc                                                | Kết quả                                                                                                                                  | Bằng chứng                                                                    |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| **QĐ-2 support TS cũ** - ĐÓNG                       | `typesVersions` cho cả 3 package; `tsc:node` từ 12 lỗi xuống **14 specifier sạch**; `attw` hết báo `node10`; allowlist `tinita` về **0** | ca `tsc:node` của L2 bỏ `expectedFailure`; ca L1 `08-typesversions-sync`      |
+| **QĐ-1 bản publish gãy** - CHUẨN BỊ XONG, chờ owner | 3 package bump `0.1.0`; `publish.mjs` có cửa chặn L1; 2 script đọc `packages/` động                                                      | `publish.mjs` dừng ở `npm whoami`; lệnh cho owner ở `compatibility/README.md` |
+| **Tier 2 từ 38 phút xuống 8.5 phút**                | 2284s -> **509s**. Chi phí hoá ra ở `cp -r /lab` (195s, 87.815 file qua bind mount), KHÔNG ở `npm install` (5s)                          | `compatibility/README.md` mục "Ngân sách thời gian"                           |
+| **Package thứ ba `tinita-dom`**                     | `installSmoothScroll` + `wheel-source` port từ deepstream-v2, zero dep, 17 test                                                          | L1 19 ca, smoke 26 lần thực thi                                               |
+| Nợ lab #2 (yarn-classic fail do mạng)               | `run.mjs l3` phân loại build-fail thành 3 loại, exit 2 cho image sai và lỗi mạng                                                         | ca tự phá với tag không tồn tại                                               |
+
+**Cách cắt #2 (mount `node_modules`) KHÔNG áp.** `npm install` chỉ 5s nên nó tiết kiệm tối đa 3%, đổi
+lại là cách duy nhất đụng vào thứ `assert-isolation` bảo vệ. Điều kiện khiến nó cần lại ghi ở
+`compatibility/README.md`.
+
+---
+
 ## Đã vá (2026-09-25)
 
 Kiểm chứng bằng consumer thật + gate đầy đủ (`check-types`, `lint`, `build`, `test` đều EXIT 0).
