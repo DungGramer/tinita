@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node
 import { resolve } from 'node:path';
 
 import { ARTIFACTS, EXIT, LAB } from '../../scripts/paths.mjs';
-import { createConsumer, readManifest, tarballFor, tryLoad } from '../../scripts/consumer.mjs';
+import { assertPnpShape, createConsumer, readManifest, tarballFor, tryLoad } from '../../scripts/consumer.mjs';
 import { printSummary, writeReport } from '../../scripts/report.mjs';
 
 const contract = JSON.parse(readFileSync(resolve(LAB, 'contract.json'), 'utf8')).packages;
@@ -334,6 +334,101 @@ for (const { name, dir } of TARGETS) {
       : `${offenders.length} thời lượng khác 0 trong khối reduced-motion (phải tắt hẳn): ${offenders.slice(0, 5).join(' | ')}`,
     { blocks: blockCount, cssFiles: cssFiles.length, offenders: offenders.slice(0, 20) },
   );
+}
+
+// ---------- 10 Yarn PnP: resolution thật, không phải node_modules ----------
+// Lý do duy nhất cell yarn-pnp tồn tại: PnP không có node_modules, resolver kiểm từng import theo
+// khai báo, nên nó bắt phantom dependency mà npm và pnpm bỏ qua.
+//
+// Trước 2026-09-26 cell đó XANH GIẢ: consumer được dựng bằng `npm install` trong consumer.mjs nên
+// luôn có node_modules thật, và mọi specifier load qua resolver thường. Cell kiểm Node, không kiểm
+// PnP. Đây là lần thứ tư một ca báo xanh mà không kiểm thứ nó nói đang kiểm.
+//
+// KHÔNG DÙNG MẠNG. Chỉ install tarball local. Lý do: trên máy owner, HTTP client của yarn không đi
+// qua được TLS tới registry (`unable to get local issuer certificate`) dù npm thì được - cơ chế CA
+// khác nhau. Không tắt `strict-ssl` để lách: hạ mức bảo mật trên máy owner không phải cái giá đáng
+// trả cho một ca test. Phạm vi vì thế hẹp hơn nhưng nói thật được điều nó đo.
+{
+  const manifest = readManifest();
+  // Package KHÔNG có peer nào -> load được bằng tarball trần, không cần mạng.
+  const noPeerPackages = manifest
+    .map((e) => e.name)
+    .filter((name) => Object.keys(JSON.parse(readFileSync(resolve(extractedRoot(name), 'package.json'), 'utf8')).peerDependencies ?? {}).length === 0);
+
+  let work = null;
+  let setupError = null;
+  try {
+    work = createConsumer({
+      level: 'l1',
+      name: 'pnp',
+      tarballs: manifest.map((e) => e.tarball),
+      pm: 'yarn-pnp',
+    });
+  } catch (error) {
+    setupError = `${error.stdout ?? ''}${error.stderr ?? ''}` || String(error);
+  }
+
+  if (!work) {
+    // corepack cần mạng để LẤY yarn lần đầu. Không có là SKIP, không phải PASS.
+    add('10-pnp-resolution', true, `skip: không dựng được consumer PnP (${(setupError ?? '').split('\n')[0]?.slice(0, 120)})`, {
+      skipped: true,
+      reason: 'no-yarn',
+    });
+  } else {
+    const shape = assertPnpShape(work);
+    add('10-pnp-shape', shape.ok, shape.detail, { ...shape });
+
+    // Chiều thuận + NEGATIVE CONTROL trong cùng một ca: `node` thường phải GÃY trên đúng
+    // specifier mà `yarn node` chạy được. Nếu cả hai chạy thì có node_modules ở đâu đó và PnP
+    // không phải thứ làm nó chạy.
+    const rows = [];
+    for (const spec of noPeerPackages) {
+      for (const mode of ['require', 'import']) {
+        const viaPnp = tryLoad(work, spec, mode, 'yarn-pnp');
+        const viaPlainNode = tryLoad(work, spec, mode, 'npm');
+        rows.push({
+          spec,
+          mode,
+          pnpOk: viaPnp.ok,
+          plainNodeOk: viaPlainNode.ok,
+          err: viaPnp.ok ? null : viaPnp.stderr.split('\n').find((l) => /Error|Cannot/.test(l))?.trim(),
+        });
+      }
+    }
+
+    const broken = rows.filter((r) => !r.pnpOk);
+    const leaked = rows.filter((r) => r.plainNodeOk);
+    const ok = rows.length > 0 && broken.length === 0 && leaked.length === 0;
+    const parts = [];
+    if (rows.length === 0) parts.push('không có package nào không peer để đo');
+    if (broken.length) parts.push(`PnP KHÔNG load được: ${broken.map((r) => `${r.spec}/${r.mode}`).join(', ')} (${broken[0]?.err ?? ''})`);
+    if (leaked.length) parts.push(`node thường CŨNG load được, nên PnP không phải thứ giải được: ${leaked.map((r) => `${r.spec}/${r.mode}`).join(', ')}`);
+    add(
+      '10-pnp-resolution',
+      ok,
+      ok
+        ? `${noPeerPackages.join(', ')}: ${rows.length} lần load qua PnP đều chạy, và node thường gãy cả ${rows.length} - PnP là thứ giải được`
+        : parts.join(' | '),
+      { rows },
+    );
+
+    // ĐÂY mới là thứ cell yarn-pnp tồn tại để mua. `tinita-react` khai `react` là peer. Khi peer
+    // KHÔNG được cung cấp, PnP TỪ CHỐI và nói rõ tên peer. npm trong cùng tình huống chỉ báo
+    // `MODULE_NOT_FOUND` chung, và nếu react tình cờ có mặt do package khác kéo vào thì npm im
+    // lặng cho qua - đó chính là phantom dependency.
+    const strict = tryLoad(work, 'tinita-react', 'require', 'yarn-pnp');
+    const namesPeer = /peer dependency/i.test(strict.stderr) && /\breact\b/.test(strict.stderr);
+    add(
+      '10-pnp-peer-strictness',
+      strict.ok === false && namesPeer,
+      strict.ok
+        ? 'tinita-react load được dù KHÔNG có react - PnP không còn chặn phantom dependency'
+        : namesPeer
+          ? `PnP từ chối và nêu đúng peer thiếu: ${strict.stderr.split('\n').find((l) => /peer dependency/i.test(l))?.trim().slice(0, 160)}`
+          : `PnP từ chối nhưng KHÔNG nêu peer nào: ${strict.stderr.split('\n')[0]?.slice(0, 160)}`,
+      { stderr: strict.stderr.slice(0, 500) },
+    );
+  }
 }
 
 const payload = { level: 'l1', ranAt: new Date().toISOString(), cases, findings };

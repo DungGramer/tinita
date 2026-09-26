@@ -88,8 +88,7 @@
         "l1"
       ],
       "tier": 3,
-      "why": "Ý ĐỊNH: không node_modules, resolver kiểm từng import theo khai báo -> bắt phantom dependency mà npm và pnpm bỏ qua. TRẠNG THÁI 2026-09-26: build đã sửa được (COREPACK_NPM_REGISTRY) và cell chạy pass 19 ca, NHƯNG nó chưa đi qua resolver PnP - consumer của lab dựng bằng npm trong consumer.mjs nên luôn có node_modules thật. Cell hiện KHÔNG cho coverage phantom-dependency. Để wire thật: consumer.mjs phải dựng consumer bằng yarn với nodeLinker: pnp.",
-      "pnpNotWired": true
+      "why": "Không node_modules, resolver kiểm từng import theo khai báo -> bắt phantom dependency mà npm và pnpm bỏ qua. WIRE 2026-09-26: consumer dựng bằng corepack yarn add + nodeLinker: pnp; ca 10-pnp-* của L1 tự chứng minh (không node_modules, có .pnp.cjs, node thường GÃY trên đúng specifier mà yarn node chạy được). Đã đo bằng cách tắt PnP: cả 3 ca đỏ."
     },
     {
       "id": "bun-latest",
