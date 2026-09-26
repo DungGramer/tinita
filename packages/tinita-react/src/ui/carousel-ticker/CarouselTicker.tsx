@@ -31,10 +31,7 @@ function usePrefersReducedMotion(): boolean {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
-    if (
-      typeof window === 'undefined' ||
-      typeof window.matchMedia !== 'function'
-    ) {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
       return;
     }
 
@@ -273,10 +270,7 @@ export const CarouselTicker: React.FC<CarouselTickerProps> = ({
               };
               return React.cloneElement(child, {
                 key: `pattern-${index}-item-${childIndex}`,
-                className: cn(
-                  'shrink-0 grow-0 will-change-transform',
-                  childProps?.className
-                ),
+                className: cn('shrink-0 grow-0 will-change-transform', childProps?.className),
                 style: { ...(childProps?.style || {}) },
               } as Record<string, unknown>);
             }

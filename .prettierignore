@@ -1,0 +1,18 @@
+# Build output
+dist/
+.next/
+storybook-static/
+
+# Compatibility lab: consumer được dựng lại mỗi lần chạy, và artifact là tarball đã pack
+compatibility/**/.work/
+compatibility/.artifacts/
+compatibility/.reports/
+compatibility/cases/l4/__screenshots__/
+
+# Lockfile do package manager sinh
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Tarball đã pack
+*.tgz

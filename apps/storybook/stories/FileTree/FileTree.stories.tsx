@@ -192,4 +192,3 @@ export const AllFeatures: Story = {
     enableAnimation: true,
   },
 };
-

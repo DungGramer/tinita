@@ -74,22 +74,24 @@ type Story = StoryObj<typeof meta>;
 // Sample content components
 const BadgeItems = () => (
   <>
-    {['React', 'Vue', 'Angular', 'Svelte', 'Next.js', 'Nuxt', 'Remix'].map((tech) => (
-      <div
-        key={tech}
-        style={{
-          padding: '0.5rem 1.5rem',
-          margin: '0 0.5rem',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white',
-          borderRadius: '9999px',
-          whiteSpace: 'nowrap',
-          fontWeight: 600,
-        }}
-      >
-        {tech}
-      </div>
-    ))}
+    {['React', 'Vue', 'Angular', 'Svelte', 'Next.js', 'Nuxt', 'Remix'].map(
+      (tech) => (
+        <div
+          key={tech}
+          style={{
+            padding: '0.5rem 1.5rem',
+            margin: '0 0.5rem',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            borderRadius: '9999px',
+            whiteSpace: 'nowrap',
+            fontWeight: 600,
+          }}
+        >
+          {tech}
+        </div>
+      )
+    )}
   </>
 );
 
@@ -147,7 +149,15 @@ export const Default: Story = {
   },
   decorators: [
     (Story) => (
-      <div style={{ width: '100%', overflow: 'hidden', padding: '2rem 0', background: '#f9fafb', borderRadius: '8px' }}>
+      <div
+        style={{
+          width: '100%',
+          overflow: 'hidden',
+          padding: '2rem 0',
+          background: '#f9fafb',
+          borderRadius: '8px',
+        }}
+      >
         <Story />
       </div>
     ),
@@ -159,10 +169,25 @@ export const AllDirections: Story = {
     children: <></>,
   },
   render: () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem', padding: '2rem' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '3rem',
+        padding: '2rem',
+      }}
+    >
       <div>
         <h3 style={{ marginBottom: '1rem', color: '#374151' }}>Left</h3>
-        <div style={{ width: '100%', overflow: 'hidden', padding: '1rem 0', background: '#f9fafb', borderRadius: '8px' }}>
+        <div
+          style={{
+            width: '100%',
+            overflow: 'hidden',
+            padding: '1rem 0',
+            background: '#f9fafb',
+            borderRadius: '8px',
+          }}
+        >
           <CarouselTicker direction="left" speedMs={8000}>
             <BadgeItems />
           </CarouselTicker>
@@ -170,7 +195,15 @@ export const AllDirections: Story = {
       </div>
       <div>
         <h3 style={{ marginBottom: '1rem', color: '#374151' }}>Right</h3>
-        <div style={{ width: '100%', overflow: 'hidden', padding: '1rem 0', background: '#f9fafb', borderRadius: '8px' }}>
+        <div
+          style={{
+            width: '100%',
+            overflow: 'hidden',
+            padding: '1rem 0',
+            background: '#f9fafb',
+            borderRadius: '8px',
+          }}
+        >
           <CarouselTicker direction="right" speedMs={8000}>
             <BadgeItems />
           </CarouselTicker>
@@ -178,7 +211,15 @@ export const AllDirections: Story = {
       </div>
       <div>
         <h3 style={{ marginBottom: '1rem', color: '#374151' }}>Top</h3>
-        <div style={{ height: '200px', overflow: 'hidden', padding: '0 1rem', background: '#f9fafb', borderRadius: '8px' }}>
+        <div
+          style={{
+            height: '200px',
+            overflow: 'hidden',
+            padding: '0 1rem',
+            background: '#f9fafb',
+            borderRadius: '8px',
+          }}
+        >
           <CarouselTicker direction="top" speedMs={6000}>
             <LogoItems />
           </CarouselTicker>
@@ -186,7 +227,15 @@ export const AllDirections: Story = {
       </div>
       <div>
         <h3 style={{ marginBottom: '1rem', color: '#374151' }}>Bottom</h3>
-        <div style={{ height: '200px', overflow: 'hidden', padding: '0 1rem', background: '#f9fafb', borderRadius: '8px' }}>
+        <div
+          style={{
+            height: '200px',
+            overflow: 'hidden',
+            padding: '0 1rem',
+            background: '#f9fafb',
+            borderRadius: '8px',
+          }}
+        >
           <CarouselTicker direction="bottom" speedMs={6000}>
             <LogoItems />
           </CarouselTicker>
@@ -204,7 +253,14 @@ export const WithCards: Story = {
   },
   decorators: [
     (Story) => (
-      <div style={{ width: '100%', overflow: 'hidden', padding: '2rem 0', background: '#f9fafb' }}>
+      <div
+        style={{
+          width: '100%',
+          overflow: 'hidden',
+          padding: '2rem 0',
+          background: '#f9fafb',
+        }}
+      >
         <Story />
       </div>
     ),
@@ -216,10 +272,25 @@ export const AnimationSpeeds: Story = {
     children: <></>,
   },
   render: () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', padding: '2rem' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '2rem',
+        padding: '2rem',
+      }}
+    >
       <div>
         <h3 style={{ marginBottom: '1rem', color: '#374151' }}>Fast (3s)</h3>
-        <div style={{ width: '100%', overflow: 'hidden', padding: '1rem 0', background: '#f9fafb', borderRadius: '8px' }}>
+        <div
+          style={{
+            width: '100%',
+            overflow: 'hidden',
+            padding: '1rem 0',
+            background: '#f9fafb',
+            borderRadius: '8px',
+          }}
+        >
           <CarouselTicker direction="left" speedMs={3000}>
             <BadgeItems />
           </CarouselTicker>
@@ -227,7 +298,15 @@ export const AnimationSpeeds: Story = {
       </div>
       <div>
         <h3 style={{ marginBottom: '1rem', color: '#374151' }}>Normal (8s)</h3>
-        <div style={{ width: '100%', overflow: 'hidden', padding: '1rem 0', background: '#f9fafb', borderRadius: '8px' }}>
+        <div
+          style={{
+            width: '100%',
+            overflow: 'hidden',
+            padding: '1rem 0',
+            background: '#f9fafb',
+            borderRadius: '8px',
+          }}
+        >
           <CarouselTicker direction="left" speedMs={8000}>
             <BadgeItems />
           </CarouselTicker>
@@ -235,7 +314,15 @@ export const AnimationSpeeds: Story = {
       </div>
       <div>
         <h3 style={{ marginBottom: '1rem', color: '#374151' }}>Slow (20s)</h3>
-        <div style={{ width: '100%', overflow: 'hidden', padding: '1rem 0', background: '#f9fafb', borderRadius: '8px' }}>
+        <div
+          style={{
+            width: '100%',
+            overflow: 'hidden',
+            padding: '1rem 0',
+            background: '#f9fafb',
+            borderRadius: '8px',
+          }}
+        >
           <CarouselTicker direction="left" speedMs={20000}>
             <BadgeItems />
           </CarouselTicker>
@@ -254,7 +341,14 @@ export const WithDelay: Story = {
   },
   decorators: [
     (Story) => (
-      <div style={{ width: '100%', overflow: 'hidden', padding: '2rem 0', background: '#f9fafb' }}>
+      <div
+        style={{
+          width: '100%',
+          overflow: 'hidden',
+          padding: '2rem 0',
+          background: '#f9fafb',
+        }}
+      >
         <Story />
       </div>
     ),
@@ -270,8 +364,21 @@ export const PauseOnHover: Story = {
   },
   decorators: [
     (Story) => (
-      <div style={{ width: '100%', overflow: 'hidden', padding: '2rem 0', background: '#f9fafb' }}>
-        <div style={{ marginBottom: '1rem', color: '#6b7280', fontSize: '0.875rem' }}>
+      <div
+        style={{
+          width: '100%',
+          overflow: 'hidden',
+          padding: '2rem 0',
+          background: '#f9fafb',
+        }}
+      >
+        <div
+          style={{
+            marginBottom: '1rem',
+            color: '#6b7280',
+            fontSize: '0.875rem',
+          }}
+        >
           Hover over the ticker to pause the animation
         </div>
         <Story />
@@ -290,14 +397,37 @@ export const InViewTrigger: Story = {
   decorators: [
     (Story) => (
       <div style={{ width: '100%', padding: '4rem 0' }}>
-        <div style={{ marginBottom: '2rem', color: '#6b7280', fontSize: '0.875rem' }}>
+        <div
+          style={{
+            marginBottom: '2rem',
+            color: '#6b7280',
+            fontSize: '0.875rem',
+          }}
+        >
           Scroll down to see the ticker start when it enters the viewport
         </div>
-        <div style={{ height: '200vh', background: 'linear-gradient(to bottom, #f3f4f6, #e5e7eb)' }} />
-        <div style={{ width: '100%', overflow: 'hidden', padding: '2rem 0', background: '#f9fafb' }}>
+        <div
+          style={{
+            height: '200vh',
+            background: 'linear-gradient(to bottom, #f3f4f6, #e5e7eb)',
+          }}
+        />
+        <div
+          style={{
+            width: '100%',
+            overflow: 'hidden',
+            padding: '2rem 0',
+            background: '#f9fafb',
+          }}
+        >
           <Story />
         </div>
-        <div style={{ height: '200vh', background: 'linear-gradient(to top, #f3f4f6, #e5e7eb)' }} />
+        <div
+          style={{
+            height: '200vh',
+            background: 'linear-gradient(to top, #f3f4f6, #e5e7eb)',
+          }}
+        />
       </div>
     ),
   ],
@@ -347,7 +477,14 @@ export const LongContent: Story = {
   },
   decorators: [
     (Story) => (
-      <div style={{ width: '100%', overflow: 'hidden', padding: '2rem 0', background: '#f9fafb' }}>
+      <div
+        style={{
+          width: '100%',
+          overflow: 'hidden',
+          padding: '2rem 0',
+          background: '#f9fafb',
+        }}
+      >
         <Story />
       </div>
     ),

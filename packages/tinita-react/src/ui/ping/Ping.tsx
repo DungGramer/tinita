@@ -24,13 +24,7 @@ export interface PingProps {
   className?: string;
 }
 
-export const Ping = ({
-  count,
-  prefix,
-  onClick,
-  theme,
-  className = '',
-}: PingProps) => {
+export const Ping = ({ count, prefix, onClick, theme, className = '' }: PingProps) => {
   const Wrapper = onClick ? 'a' : 'div';
 
   return (
@@ -42,7 +36,9 @@ export const Ping = ({
       tabIndex={onClick ? 0 : undefined}
     >
       {prefix}
-      <div className={`inline-flex items-center gap-1 text-[var(--tinita-ping)]${prefix ? ' ml-2' : ''}`}>
+      <div
+        className={`inline-flex items-center gap-1 text-[var(--tinita-ping)]${prefix ? ' ml-2' : ''}`}
+      >
         <div className="relative inline-flex">
           <span className="absolute size-2 animate-ping rounded-full bg-green-500 opacity-75" />
           <span className="relative inline-flex size-2 rounded-full bg-green-500" />

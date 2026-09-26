@@ -68,13 +68,21 @@ const customViewports = {
 // Theme decorator
 const withTheme = (Story: React.ComponentType, context: StoryContext) => {
   const theme = context.globals?.theme || 'light';
-  return React.createElement('div', { 'data-theme': theme }, React.createElement(Story));
+  return React.createElement(
+    'div',
+    { 'data-theme': theme },
+    React.createElement(Story)
+  );
 };
 
 // RTL decorator
 const withRTL = (Story: React.ComponentType, context: StoryContext) => {
   const direction = context.globals?.direction || 'ltr';
-  return React.createElement('div', { dir: direction }, React.createElement(Story));
+  return React.createElement(
+    'div',
+    { dir: direction },
+    React.createElement(Story)
+  );
 };
 
 // No-JS decorator
@@ -84,11 +92,19 @@ const withNoJS = (Story: React.ComponentType, context: StoryContext) => {
     return React.createElement(
       'div',
       { 'data-no-js': 'true' },
-      React.createElement('noscript', null, React.createElement('style', null, `
+      React.createElement(
+        'noscript',
+        null,
+        React.createElement(
+          'style',
+          null,
+          `
             [data-no-js="true"] * {
               pointer-events: none !important;
             }
-          `)),
+          `
+        )
+      ),
       React.createElement(Story)
     );
   }
@@ -100,12 +116,16 @@ const withFocusManagement = (Story: React.ComponentType) => {
   return React.createElement(
     'div',
     null,
-    React.createElement('style', null, `
+    React.createElement(
+      'style',
+      null,
+      `
         *:focus {
           outline: 2px solid #2563eb !important;
           outline-offset: 2px !important;
         }
-      `),
+      `
+    ),
     React.createElement(Story)
   );
 };
@@ -119,7 +139,7 @@ const preview: Preview = {
       },
     },
     viewport: {
-      options: customViewports
+      options: customViewports,
     },
     backgrounds: {
       options: {
@@ -131,8 +151,8 @@ const preview: Preview = {
         dark: {
           name: 'dark',
           value: '#0a0a0a',
-        }
-      }
+        },
+      },
     },
     a11y: {
       config: {
@@ -191,12 +211,12 @@ const preview: Preview = {
 
     viewport: {
       value: 'desktop',
-      isRotated: false
+      isRotated: false,
     },
 
     backgrounds: {
-      value: 'light'
-    }
+      value: 'light',
+    },
   },
 };
 

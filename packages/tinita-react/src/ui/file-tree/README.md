@@ -61,24 +61,24 @@ D:\\PROJECT
     └───index.js
 `;
 
-<FileTree text={cliTreeText} hideRootName />
+<FileTree text={cliTreeText} hideRootName />;
 ```
 
 ## Props
 
 ### `FileTreeProps`
 
-| Prop | Type | Default | Description |
-|---|---|---|---|
-| `text` | `string` | **required** | Text tree input (indent or CLI format) |
-| `className` | `string` | `''` | Custom class name |
-| `hideRootName` | `boolean` | `false` | Hide root node when only 1 root exists |
-| `theme` | `'dark' \| 'light'` | `'light'` | Color theme |
-| `indicator` | `boolean` | `true` | Show tree indicator lines |
-| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | Size/density preset |
-| `borderRadius` | `'sm' \| 'md' \| 'lg'` | `'md'` | Border radius for hover state |
-| `showArrow` | `boolean` | `false` | Show collapse/expand arrow icons |
-| `enableAnimation` | `boolean` | `true` | Enable smooth collapse/expand animations |
+| Prop              | Type                   | Default      | Description                              |
+| ----------------- | ---------------------- | ------------ | ---------------------------------------- |
+| `text`            | `string`               | **required** | Text tree input (indent or CLI format)   |
+| `className`       | `string`               | `''`         | Custom class name                        |
+| `hideRootName`    | `boolean`              | `false`      | Hide root node when only 1 root exists   |
+| `theme`           | `'dark' \| 'light'`    | `'light'`    | Color theme                              |
+| `indicator`       | `boolean`              | `true`       | Show tree indicator lines                |
+| `size`            | `'sm' \| 'md' \| 'lg'` | `'md'`       | Size/density preset                      |
+| `borderRadius`    | `'sm' \| 'md' \| 'lg'` | `'md'`       | Border radius for hover state            |
+| `showArrow`       | `boolean`              | `false`      | Show collapse/expand arrow icons         |
+| `enableAnimation` | `boolean`              | `true`       | Enable smooth collapse/expand animations |
 
 ### `FileNode`
 
@@ -96,19 +96,13 @@ type FileNode = {
 ```tsx
 // Input has root path like "D:\PROJECT"
 // hideRootName will hide the root and show only children
-<FileTree
-  text={cliTreeText}
-  hideRootName={true}
-/>
+<FileTree text={cliTreeText} hideRootName={true} />
 ```
 
 ### Custom Class Name
 
 ```tsx
-<FileTree
-  text={treeText}
-  className="my-custom-tree"
-/>
+<FileTree text={treeText} className="my-custom-tree" />
 ```
 
 ### CSS Import (Required)
@@ -133,6 +127,7 @@ By default, folders animate smoothly using **Radix UI Accordion** with height + 
 ```
 
 **Animation Features:**
+
 - Height animation from 0 to auto (using `--radix-accordion-content-height`)
 - Opacity fade (0 to 1)
 - Arrow rotation (0° to 90°)
@@ -141,6 +136,7 @@ By default, folders animate smoothly using **Radix UI Accordion** with height + 
 - Smooth interruption handling
 
 **Technical Implementation:**
+
 - Uses `@radix-ui/react-accordion` for reliable animations
 - CSS keyframes with `data-state` attributes
 - No JavaScript timing hacks or complex state management
@@ -192,6 +188,7 @@ root/
 ```
 
 **Rules:**
+
 - Use 2 spaces for each level
 - Folders typically end with `/` (optional)
 - Files are leaf nodes
@@ -209,6 +206,7 @@ D:\PROJECT
 ```
 
 **Characters:**
+
 - `├───` Branch connector
 - `└───` Last branch
 - `│   ` Vertical line
@@ -225,6 +223,7 @@ D:\PROJECT
 ```
 
 **Characters:**
+
 - `├──` Branch connector
 - `└──` Last branch
 - `│  ` Vertical line
@@ -272,20 +271,20 @@ Customize the component by overriding CSS variables:
 
 Icons are colored borders based on file extensions:
 
-| Type | Extensions | Color |
-|---|---|---|
-| **Folder** | (directories) | Gray |
-| **README** | `README.*` | Blue |
-| **Markdown** | `.md` | Blue |
-| **JavaScript** | `.js` | Yellow |
-| **CSS** | `.css` | Cyan |
-| **HTML** | `.html`, `.htm` | Red |
-| **JSON** | `.json` | Yellow |
-| **PHP** | `.php` | Purple |
-| **Vue** | `.vue` | Green |
-| **Git** | `.git*` | Red |
-| **Database** | `.yml`, `.yaml` | Blue |
-| **Text** | `.txt` | Gray |
+| Type           | Extensions      | Color  |
+| -------------- | --------------- | ------ |
+| **Folder**     | (directories)   | Gray   |
+| **README**     | `README.*`      | Blue   |
+| **Markdown**   | `.md`           | Blue   |
+| **JavaScript** | `.js`           | Yellow |
+| **CSS**        | `.css`          | Cyan   |
+| **HTML**       | `.html`, `.htm` | Red    |
+| **JSON**       | `.json`         | Yellow |
+| **PHP**        | `.php`          | Purple |
+| **Vue**        | `.vue`          | Green  |
+| **Git**        | `.git*`         | Red    |
+| **Database**   | `.yml`, `.yaml` | Blue   |
+| **Text**       | `.txt`          | Gray   |
 
 ## Advanced Usage
 
@@ -301,8 +300,8 @@ function DynamicTree() {
   useEffect(() => {
     // Fetch tree from API or execute CLI command
     fetch('/api/file-structure')
-      .then(res => res.text())
-      .then(text => setTreeText(text));
+      .then((res) => res.text())
+      .then((text) => setTreeText(text));
   }, []);
 
   return treeText ? <FileTree text={treeText} /> : <div>Loading...</div>;

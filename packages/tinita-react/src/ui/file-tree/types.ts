@@ -21,8 +21,7 @@ export interface FileNode {
  *
  * @public
  */
-export interface FileTreeProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
+export interface FileTreeProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
   /**
    * Text tree input in one of the following formats:
    *
@@ -94,4 +93,4 @@ export interface FileTreeProps
    * @default true
    */
   enableAnimation?: boolean;
-};
+}

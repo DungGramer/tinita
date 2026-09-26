@@ -62,7 +62,8 @@ export const StaticTree: Story = {
     actions: { disable: true },
     docs: {
       description: {
-        story: 'Static tree view without any JavaScript interactions. Pure CSS rendering.',
+        story:
+          'Static tree view without any JavaScript interactions. Pure CSS rendering.',
       },
     },
   },
@@ -80,9 +81,9 @@ export const CSSOnlyStyling: Story = {
     actions: { disable: true },
     docs: {
       description: {
-        story: 'CSS-only styling should work without JavaScript. Theme, size, and border radius are applied via CSS.',
+        story:
+          'CSS-only styling should work without JavaScript. Theme, size, and border radius are applied via CSS.',
       },
     },
   },
 };
-

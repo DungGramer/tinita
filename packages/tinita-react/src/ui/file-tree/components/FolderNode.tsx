@@ -54,10 +54,7 @@ export const FolderNode: React.FC<FolderNodeProps> = ({
       className="tinita-filetree__accordion-item"
       data-expanded={isExpanded}
     >
-      <Accordion.Trigger
-        className="tinita-filetree__accordion-trigger"
-        onClick={handleToggle}
-      >
+      <Accordion.Trigger className="tinita-filetree__accordion-trigger" onClick={handleToggle}>
         <FileLabel
           name={displayName}
           type="folder"
