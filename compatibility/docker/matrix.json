@@ -88,7 +88,8 @@
         "l1"
       ],
       "tier": 3,
-      "why": "CELL ĐÁNG GIÁ NHẤT: không node_modules, resolver kiểm từng import theo khai báo -> bắt phantom dependency mà npm và pnpm đều bỏ qua"
+      "why": "Ý ĐỊNH: không node_modules, resolver kiểm từng import theo khai báo -> bắt phantom dependency mà npm và pnpm bỏ qua. TRẠNG THÁI 2026-09-26: build đã sửa được (COREPACK_NPM_REGISTRY) và cell chạy pass 19 ca, NHƯNG nó chưa đi qua resolver PnP - consumer của lab dựng bằng npm trong consumer.mjs nên luôn có node_modules thật. Cell hiện KHÔNG cho coverage phantom-dependency. Để wire thật: consumer.mjs phải dựng consumer bằng yarn với nodeLinker: pnp.",
+      "pnpNotWired": true
     },
     {
       "id": "bun-latest",

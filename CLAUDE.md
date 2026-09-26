@@ -252,6 +252,24 @@ tinita-react/styles/animations.css
 
 **Rationale:** subpath cụ thể cho tree-shaking tốt hơn, và tránh kéo optional peer không cần thiết.
 
+#### `tinita-dom` (DOM Package)
+
+**Browser-only, không có SSR guard - đó là quyết định có chủ ý.** Nó cài listener trên `document`;
+trên server không có gì để cài nên gọi nó ở đó là lỗi của người gọi. Xem
+`packages/tinita-dom/README.md`.
+
+Zero dependency, zero peer dependency. Không cần React.
+
+```
+tinita-dom                      # barrel, kéo cả 2 module
+tinita-dom/smooth-scroll        # installSmoothScroll
+tinita-dom/wheel-source         # classifyWheelSource + 6 hằng số đã đo
+```
+
+- ✅ Dùng subpath cụ thể: `import { installSmoothScroll } from 'tinita-dom/smooth-scroll'`
+- ⚠️ `installSmoothScroll()` gọi **một lần, ngoài React** - effect bị gọi hai lần của StrictMode sẽ
+  cài nó hai lần. Nó trả về hàm gỡ.
+
 ## TypeScript Configuration
 
 The monorepo uses shared TypeScript configurations from `config/typescript-config`:

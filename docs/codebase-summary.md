@@ -10,12 +10,36 @@ Tinita là monorepo với framework-agnostic utilities (tinita) + React hooks + 
 
 **Metrics:**
 
-- 6 workspace members
+- 7 workspace members
 - 4 utilities + 2 hooks + 3 UI components
 - 13 root scripts (1 hỏng, 1 không tồn tại)
 - 7 turbo tasks
 - tinita: 35 test (`packages/tinita/tests/`); tinita-react: 0 test (nợ M3)
 - 0 CI/CD (release thủ công)
+
+## `tinita-dom` (package thứ ba)
+
+Thêm 2026-09-26. Port `installSmoothScroll` (422 dòng) và `wheel-source` (168 dòng) từ
+`deepstream-v2/apps/iva-service/web/src/lib/`, kèm bộ test 112 dòng đã có sẵn ở nguồn.
+
+|            |                                                            |
+| ---------- | ---------------------------------------------------------- |
+| Version    | `0.1.0`                                                    |
+| Dependency | **không có** - zero dep, zero peer, không cần React        |
+| Subpath    | `.`, `./smooth-scroll`, `./wheel-source`                   |
+| Test       | 17 pass + 1 todo (`vitest` với `environment: jsdom`)       |
+| Đặc tính   | **browser-only, KHÔNG có SSR guard** - quyết định có chủ ý |
+
+`wheel-source` là subpath **công khai** chứ không phải nội bộ: nó zero-dep và các hằng số trong đó
+(`WHEEL_STEP_MIN_PIXELS = 48`...) là số đã đo, có ghi ngày trong comment. Giữ nội bộ sẽ lặp lại vấn
+đề `src/utils/cn.ts` của `tinita-react` - build ra `dist/` nhưng `exports` không khai nên không import
+được. Đánh đổi: đổi hằng số là breaking change.
+
+Browser-only không có guard vì `installSmoothScroll` cài listener trên `document`. Guard im lặng sẽ
+biến lỗi rõ ràng thành "sao smooth scroll không hoạt động" - đúng số phận `autoInjectStyles` của
+`tinita-react`. `contract.json` mang cờ `browserOnly: true` nên ca SSR của L2 bỏ qua nó **và in lý do**.
+
+---
 
 ## Compatibility Lab (`compatibility/`)
 
@@ -48,12 +72,13 @@ Xem `compatibility/README.md`.
 
 ---
 
-## Workspace Members (6)
+## Workspace Members (7)
 
 ```
 tinita/
-├── packages/tinita                v0.0.1 - 4 utilities
-├── packages/tinita-react          v0.0.2-alpha.1 - 2 hooks + 3 components + CSS
+├── packages/tinita                v0.1.0 - 5 utilities
+├── packages/tinita-react          v0.1.0 - 2 hooks + 3 components + CSS
+├── packages/tinita-dom            v0.1.0 - installSmoothScroll + wheel-source, browser-only
 ├── apps/storybook                 @tinita/storybook private - Storybook 10.1.4
 ├── config/eslint-config           @repo/eslint-config
 ├── config/typescript-config       @repo/typescript-config
@@ -64,7 +89,7 @@ tinita/
 
 ## Packages
 
-### tinita (v0.0.1)
+### tinita (v0.1.0)
 
 **4 Utilities** - Framework-agnostic, zero dependencies.
 
@@ -91,7 +116,7 @@ tinita/
 
 ---
 
-### tinita-react (v0.0.2-alpha.1)
+### tinita-react (v0.1.0)
 
 **2 Hooks + 3 Components** + CSS (Tailwind v4 + CSS variables).
 

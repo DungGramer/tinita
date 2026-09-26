@@ -451,6 +451,25 @@ import { useToggle } from 'tinita-react/hooks/useToggle'; // Subpath (đúng)
 
 ---
 
+## Package Thứ Ba: `tinita-dom`
+
+Thêm 2026-09-26. Zero dependency, zero peer dependency, **browser-only**.
+
+```
+tinita-dom
+├── smooth-scroll   installSmoothScroll - một listener wheel cho toàn app
+└── wheel-source    classifyWheelSource + 6 hằng số đã đo (public, không phải nội bộ)
+```
+
+`smooth-scroll` import `wheel-source`, nên nó rơi chính xác vào bẫy B2: với `bundle: false`, esbuild
+giữ specifier tương đối không đuôi và Node ESM báo `ERR_MODULE_NOT_FOUND`. `tsup.config.ts` của nó có
+`bundle: true` + `outExtension` từ dòng đầu, và có ca chứng minh: dựng bản `bundle: false` thì
+`publint` báo 4 đường dẫn gãy và `import()` throw.
+
+Dependency graph: không có cạnh nào. Nó không phụ thuộc `tinita`, `tinita-react`, hay React.
+
+---
+
 ## Chiến Lược Đóng Gói Dependency
 
 **Ràng buộc từ owner (2026-09-24):** component sẽ dùng lib không đồng nhất - có component dùng

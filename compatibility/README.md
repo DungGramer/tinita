@@ -259,14 +259,33 @@ Node 18.20.8. Trước đây không có gì xác nhận điều đó.
 
 Ba vấn đề:
 
-| #   | Vấn đề                                                                                           | Nguyên nhân                                                                                                                                                                                                                   | Trạng thái                                                                                                                                |
-| --- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `node24-npm:l2` fail `ENOENT /work/artifacts/manifest.json`, dù cùng cell PASS ở lần chạy tier 2 | **Tôi chạy `pack.mjs` trong lúc matrix đang đọc `.artifacts/`.** `pack.mjs` `rmSync(ARTIFACTS)` rồi tạo lại, nên có một khoảng thư mục không tồn tại và container `cp -r /artifacts/.` không thấy gì. Không phải lỗi package. | **ĐÃ SỬA:** `pack.mjs` nay ghi vào `.artifacts.staging-<pid>` rồi swap bằng `renameSync`, nên cửa sổ thư mục không tồn tại gần như bằng 0 |
-| 2   | `node22-yarn-classic:build` fail                                                                 | Docker Hub timeout khi pull `node:22-slim` - lỗi mạng tạm thời                                                                                                                                                                | Chạy lại là hết. Nhưng `run.mjs` nên phân biệt build-fail do mạng (hạ tầng, exit 2) với fail thật                                         |
-| 3   | `node22-yarn-pnp:build` fail                                                                     | `corepack prepare yarn@4.5.0 --activate` exit 1 trong image                                                                                                                                                                   | **CHƯA XỬ.** Đây là cell đáng giá nhất của matrix (bắt phantom dependency mà npm/pnpm bỏ qua) nên đáng làm cho chạy được                  |
+| #   | Vấn đề                                                                                           | Nguyên nhân                                                                                                                                                                                                                                     | Trạng thái                                                                                                                                                                       |
+| --- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `node24-npm:l2` fail `ENOENT /work/artifacts/manifest.json`, dù cùng cell PASS ở lần chạy tier 2 | **Tôi chạy `pack.mjs` trong lúc matrix đang đọc `.artifacts/`.** `pack.mjs` `rmSync(ARTIFACTS)` rồi tạo lại, nên có một khoảng thư mục không tồn tại và container `cp -r /artifacts/.` không thấy gì. Không phải lỗi package.                   | **ĐÃ SỬA:** `pack.mjs` nay ghi vào `.artifacts.staging-<pid>` rồi swap bằng `renameSync`, nên cửa sổ thư mục không tồn tại gần như bằng 0                                        |
+| 2   | `node22-yarn-classic:build` fail                                                                 | Docker Hub timeout khi pull `node:22-slim` - lỗi mạng tạm thời                                                                                                                                                                                  | Chạy lại là hết. Nhưng `run.mjs` nên phân biệt build-fail do mạng (hạ tầng, exit 2) với fail thật                                                                                |
+| 3   | `node22-yarn-pnp:build` fail                                                                     | Nguyên nhân gốc đo được: `corepack` tải yarn từ `repo.yarnpkg.com` và host đó không tới được từ container (`Internal Error: Error when performing the request to https://repo.yarnpkg.com/4.5.0/...`). **Không** phải version không tương thích | **BUILD ĐÃ SỬA** bằng `ENV COREPACK_NPM_REGISTRY=https://registry.npmjs.org`; `yarn --version` in `4.5.0`, cell pass 19 ca. **NHƯNG nó chưa đi qua resolver PnP** - xem mục dưới |
 
 Và một lỗi trong chính runner, đã sửa: cell `bun-latest` được đánh `advisory` nên fail của nó
 không làm đỏ tier - nhưng runner báo nó là **PASS** trong khi detail ghi
 `Missing script to execute` (image bun không có `node`, nên `node /work/lab/run.mjs` không chạy).
 Advisory nghĩa là "fail không làm đỏ tier", KHÔNG phải "coi như pass". Nay báo là SKIP kèm lý do.
 Đây đúng loại xanh giả mà lab tồn tại để chặn, lần này trong runner của lab.
+
+### Cell `yarn-pnp` pass nhưng CHƯA kiểm PnP
+
+Cell build và chạy được sau khi sửa corepack, và báo 19 ca 0 fail. **Đừng đọc nó thành coverage
+phantom-dependency** - nó chưa phải.
+
+Lý do: consumer của lab dựng bằng `npm install` trong `scripts/consumer.mjs`, nên chúng **luôn** có
+`node_modules` thật, bất kể package manager ở ngoài container là gì. `entry.sh` từng có dòng
+`export LAB_NODE_RUNNER="yarn node"` mà không chỗ nào dùng - dead code, và nó khiến cell trông như đã
+đi qua PnP.
+
+Để wire thật: `consumer.mjs` phải dựng consumer bằng `yarn` với `nodeLinker: pnp` thay vì `npm`. Đó
+là thay đổi ở cổng dựng consumer, không phải một dòng trong `entry.sh`. Cell mang cờ
+`pnpNotWired: true` trong `matrix.json` cho tới khi xong.
+
+Đây là lần thứ ba trong dự án này một ca báo xanh mà không kiểm thứ nó nói đang kiểm. Hai lần trước:
+cell advisory `bun` báo PASS khi nó chưa chạy được, và bản đầu của ca `08-typesversions-sync` không
+thể fail vì fallback khớp mọi subpath. Mẫu lặp lại, và cách chặn duy nhất đã dùng được: **ca mới phải
+được chứng minh bằng cách phá thứ nó canh**, không phải bằng việc nó xanh.

@@ -10,6 +10,10 @@ ENV PM=${PM}
 ENV PM_VERSION=${PM_VERSION}
 
 # corepack cài pnpm/yarn đúng version. npm đã có sẵn trong image.
+# corepack mặc định tải yarn từ repo.yarnpkg.com, và host đó không tới được từ container này
+# (đo 2026-09-26: `Internal Error: Error when performing the request to
+# https://repo.yarnpkg.com/4.5.0/...`). COREPACK_NPM_REGISTRY chuyển nó sang npm registry.
+ENV COREPACK_NPM_REGISTRY=https://registry.npmjs.org
 RUN if [ "$PM" != "npm" ]; then corepack enable && corepack prepare "${PM}@${PM_VERSION}" --activate; fi
 
 WORKDIR /lab
