@@ -173,7 +173,10 @@ function canScroll(el: Element, axis: Axis, delta: number): boolean {
  * only scroll SIDEWAYS answers a vertical wheel. That is the whole reason a
  * horizontal strip needed hand-written code before this existed.
  */
-function scrollTargetFor(start: Element | null, delta: number): { el: Element; axis: Axis } | null {
+function scrollTargetFor(
+  start: Element | null,
+  delta: number
+): { el: Element; axis: Axis } | null {
   // Whether anything nearer the pointer could already have taken this wheel
   // vertically. Once that is true the wheel keeps looking for VERTICAL room and
   // never falls sideways.
@@ -197,14 +200,21 @@ function scrollTargetFor(start: Element | null, delta: number): { el: Element; a
     // sideways reports a scrollable Y. Reading the property alone is what broke
     // the filmstrip: it looked vertically scrollable, took the vertical branch,
     // found nothing to scroll, and the sideways branch was never reached.
-    const scrollsY = SCROLLABLE_OVERFLOW.test(style.overflowY) && maxOffsetOf(node, 'y') > 0;
-    const scrollsX = SCROLLABLE_OVERFLOW.test(style.overflowX) && maxOffsetOf(node, 'x') > 0;
+    const scrollsY =
+      SCROLLABLE_OVERFLOW.test(style.overflowY) && maxOffsetOf(node, 'y') > 0;
+    const scrollsX =
+      SCROLLABLE_OVERFLOW.test(style.overflowX) && maxOffsetOf(node, 'x') > 0;
 
     if (scrollsY && canScroll(node, 'y', delta)) return { el: node, axis: 'y' };
     // Sideways ONLY when there is no vertical scrolling to compete with — not on
     // this element, and not on anything already passed. An element that scrolls
     // both ways keeps the conventional meaning of a wheel.
-    if (!scrollsY && !offeredVertically && scrollsX && canScroll(node, 'x', delta)) {
+    if (
+      !scrollsY &&
+      !offeredVertically &&
+      scrollsX &&
+      canScroll(node, 'x', delta)
+    ) {
       return { el: node, axis: 'x' };
     }
     if (scrollsY) offeredVertically = true;
@@ -231,7 +241,8 @@ function animate(el: Element, axis: Axis, to: number): void {
   const running = animations.get(el);
   if (running && running.axis === axis) {
     running.target = to;
-    if (!running.frame) running.frame = requestAnimationFrame((now) => tick(el, now));
+    if (!running.frame)
+      running.frame = requestAnimationFrame((now) => tick(el, now));
     return;
   }
   // A different axis, or nothing in flight: start from where the element
@@ -265,14 +276,17 @@ function tick(el: Element, now: number): void {
   //
   //   x(t) = target + (A + B·t)·e^(−λt),  A = x₀ − target,  B = v₀ + λ·A
   //   v(t) = (B − λ·(A + B·t))·e^(−λt)
-  const elapsed = running.lastFrameTime ? now - running.lastFrameTime : SMOOTH_FIRST_FRAME_MS;
+  const elapsed = running.lastFrameTime
+    ? now - running.lastFrameTime
+    : SMOOTH_FIRST_FRAME_MS;
   running.lastFrameTime = now;
   const dt = elapsed / 1000;
   const offset = running.position - running.target;
   const slope = running.velocity + SPRING_RATE_PER_SECOND * offset;
   const decay = Math.exp(-SPRING_RATE_PER_SECOND * dt);
   running.position = running.target + (offset + slope * dt) * decay;
-  running.velocity = (slope - SPRING_RATE_PER_SECOND * (offset + slope * dt)) * decay;
+  running.velocity =
+    (slope - SPRING_RATE_PER_SECOND * (offset + slope * dt)) * decay;
 
   // Under a pixel left is nothing a screen can render, so land on the target in
   // THIS frame rather than spending another one on it. Testing after the
@@ -289,7 +303,8 @@ function tick(el: Element, now: number): void {
   // No still frames. Once the spring's own step drops below a rendered pixel it
   // would paint the same offset repeatedly; carry it a whole pixel instead.
   if (Math.round(running.position) === running.rendered) {
-    running.position = running.rendered + Math.sign(remaining) * SPRING_MIN_RENDERED_STEP_PX;
+    running.position =
+      running.rendered + Math.sign(remaining) * SPRING_MIN_RENDERED_STEP_PX;
   }
 
   running.rendered = Math.round(running.position);
@@ -383,17 +398,24 @@ export function installSmoothScroll(): () => void {
     // taken up after a mouse. So an opening event decisive enough to contradict
     // it wins, and memory only speaks inside the band where one event genuinely
     // cannot tell a fine detent from a ramp.
-    gestureSource ??= decisiveWheelSource(delta) ?? settledSource ?? provisionalWheelSource(delta);
+    gestureSource ??=
+      decisiveWheelSource(delta) ??
+      settledSource ??
+      provisionalWheelSource(delta);
     const source = gestureSource;
 
     // Case 1 with an already-smooth input: hands off completely. Not
     // "preventDefault and assign" — letting the browser scroll it natively is
     // both cheaper and the only way overscroll, rubber-banding and scroll
     // anchoring keep working.
-    if (found.axis === 'y' && (source === 'smoothed' || reducedMotion.matches)) return;
+    if (found.axis === 'y' && (source === 'smoothed' || reducedMotion.matches))
+      return;
 
     const from = pendingOffsetOf(found.el, found.axis);
-    const next = Math.min(Math.max(from + delta, 0), maxOffsetOf(found.el, found.axis));
+    const next = Math.min(
+      Math.max(from + delta, 0),
+      maxOffsetOf(found.el, found.axis)
+    );
     if (next === from) return;
     e.preventDefault();
 
@@ -408,7 +430,11 @@ export function installSmoothScroll(): () => void {
   // A drag on a scrollbar, or any other scroll the reader drives directly,
   // outranks a target set by a wheel that has not landed yet.
   const onPointerDown = (e: PointerEvent) => {
-    for (let node = e.target instanceof Element ? e.target : null; node; node = node.parentElement) {
+    for (
+      let node = e.target instanceof Element ? e.target : null;
+      node;
+      node = node.parentElement
+    ) {
       stopAnimation(node);
     }
   };

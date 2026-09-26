@@ -5,9 +5,13 @@ import { globSync } from 'glob';
 const autoDiscoverEntries = () => {
   const entries = [
     'src/index.ts',
-    ...globSync('src/*.ts', { ignore: ['**/*.test.ts', '**/*.spec.ts', '**/index.ts'] }),
+    ...globSync('src/*.ts', {
+      ignore: ['**/*.test.ts', '**/*.spec.ts', '**/index.ts'],
+    }),
   ];
-  return [...new Set(entries)].map((e) => e.replace(/\\/g, '/')).filter(Boolean);
+  return [...new Set(entries)]
+    .map((e) => e.replace(/\\/g, '/'))
+    .filter(Boolean);
 };
 
 const entries = autoDiscoverEntries();

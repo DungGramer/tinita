@@ -12,7 +12,11 @@ import {
  * a case reads as the SHAPE it is describing — "eight detents, 60ms apart" —
  * rather than as a table of numbers.
  */
-function stream(magnitudes: number[], gapMs: number, startAt = 1000): WheelSample[] {
+function stream(
+  magnitudes: number[],
+  gapMs: number,
+  startAt = 1000
+): WheelSample[] {
   return magnitudes.map((delta, i) => ({ time: startAt + i * gapMs, delta }));
 }
 
@@ -51,7 +55,9 @@ describe('classifyWheelSource', () => {
     // therefore empty: it was being decided by the repetition rule, and
     // loosening `continuous && fineGrained` to `continuous || fineGrained` left
     // it green.
-    expect(classifyWheelSource(stream(ACCELERATED_DETENTS, 18))).toBe('stepped');
+    expect(classifyWheelSource(stream(ACCELERATED_DETENTS, 18))).toBe(
+      'stepped'
+    );
   });
 
   it('calls a small but perfectly repeated quantum stepped', () => {
@@ -73,7 +79,14 @@ describe('classifyWheelSource', () => {
     // dropping the `Math.abs` leaves that version of this test green. Negating
     // detents is what exposes it: -120 also reads as "below 48" once the
     // absolute value is gone, and the stream flips to smoothed.
-    expect(classifyWheelSource(stream(ACCELERATED_DETENTS.map((m) => -m), 18))).toBe('stepped');
+    expect(
+      classifyWheelSource(
+        stream(
+          ACCELERATED_DETENTS.map((m) => -m),
+          18
+        )
+      )
+    ).toBe('stepped');
   });
 
   it('judges the tail, so a source that changes mid-stream is followed', () => {
@@ -106,7 +119,8 @@ describe('provisionalWheelSource', () => {
   it('puts the threshold itself on the stepped side', () => {
     // Line mode's 3 lines × 16px lands exactly here, and it is a detent.
     expect(provisionalWheelSource(WHEEL_STEP_MIN_PIXELS)).toBe('stepped');
-    expect(provisionalWheelSource(WHEEL_STEP_MIN_PIXELS - 0.01)).toBe('smoothed');
+    expect(provisionalWheelSource(WHEEL_STEP_MIN_PIXELS - 0.01)).toBe(
+      'smoothed'
+    );
   });
-
 });

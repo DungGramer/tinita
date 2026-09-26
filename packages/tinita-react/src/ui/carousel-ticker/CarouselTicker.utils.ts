@@ -10,9 +10,7 @@ import type {
  * Measures the stride (length of one complete pattern) in pixels.
  * The stride is the total width (horizontal) or height (vertical) of all children combined.
  */
-export function measureStrideInPixels(
-  context: CarouselMeasurementContext
-): number {
+export function measureStrideInPixels(context: CarouselMeasurementContext): number {
   const { patternRef, isVertical } = context;
 
   if (!patternRef.current) {
@@ -26,9 +24,7 @@ export function measureStrideInPixels(
 /**
  * Measures the viewport size of the container along the scroll axis.
  */
-export function measureViewportSizeInPixels(
-  context: CarouselMeasurementContext
-): number {
+export function measureViewportSizeInPixels(context: CarouselMeasurementContext): number {
   const { containerRef, isVertical } = context;
 
   if (!containerRef.current) {
@@ -55,8 +51,7 @@ export function calculateLayout(
   }
 
   // Calculate leading buffer patterns based on overflow size
-  const leadingRepeatCount =
-    overflowBufferPx > 0 ? Math.ceil(overflowBufferPx / stridePx) : 0;
+  const leadingRepeatCount = overflowBufferPx > 0 ? Math.ceil(overflowBufferPx / stridePx) : 0;
 
   // Calculate visible patterns needed to fill viewport
   const visibleRepeatCount = Math.ceil(viewportSizePx / stridePx);
@@ -84,10 +79,7 @@ export function calculateLayout(
  * Transform của frame đầu marquee: đẩy content lùi qua hết các pattern dẫn đường
  * để pattern thật (không `aria-hidden`) nằm trong viewport.
  */
-function buildStartTransform(
-  layoutState: CarouselLayoutState,
-  isVertical: boolean
-): string {
+function buildStartTransform(layoutState: CarouselLayoutState, isVertical: boolean): string {
   const axis = isVertical ? 'Y' : 'X';
   const startOffset = -layoutState.leadingRepeatCount * layoutState.stridePx;
   return `translate${axis}(${startOffset}px)`;
@@ -113,19 +105,14 @@ export function pinContentAtStart(config: CarouselAnimationConfig): void {
     return;
   }
 
-  contentRef.current.style.transform = buildStartTransform(
-    layoutState,
-    isVertical
-  );
+  contentRef.current.style.transform = buildStartTransform(layoutState, isVertical);
 }
 
 /**
  * Initializes or updates the Web Animations API animation.
  * Creates a seamless infinite loop by animating from one pattern offset to the next.
  */
-export function initializeOrUpdateAnimation(
-  config: CarouselAnimationConfig
-): void {
+export function initializeOrUpdateAnimation(config: CarouselAnimationConfig): void {
   const {
     contentRef,
     layoutState,
@@ -187,16 +174,8 @@ export function initializeOrUpdateAnimation(
  * Sets up IntersectionObserver for 'in-view' trigger mode.
  * Starts animation when the container enters the viewport.
  */
-export function setupIntersectionObserver(
-  config: CarouselObserverConfig
-): void {
-  const {
-    containerRef,
-    trigger,
-    isVertical,
-    animationRef,
-    intersectionObserverRef,
-  } = config;
+export function setupIntersectionObserver(config: CarouselObserverConfig): void {
+  const { containerRef, trigger, isVertical, animationRef, intersectionObserverRef } = config;
 
   if (!containerRef.current || trigger !== 'in-view') {
     return;
@@ -269,9 +248,7 @@ export function setupResizeObserver(config: CarouselObserverConfig): void {
  * Sets up hover and touch event listeners to pause/resume animation.
  * Returns a cleanup function to remove event listeners.
  */
-export function setupHoverListeners(
-  config: CarouselEventConfig
-): (() => void) | undefined {
+export function setupHoverListeners(config: CarouselEventConfig): (() => void) | undefined {
   const { containerRef, pauseOnHover, animationRef } = config;
 
   const containerElement = containerRef.current;

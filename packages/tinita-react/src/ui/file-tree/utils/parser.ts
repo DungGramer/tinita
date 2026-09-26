@@ -37,7 +37,10 @@ function parseCliTree(text: string): FileNode[] {
   // Dòng đầu: path root (D:\..., C:\..., /home/...)
   const rootLine = lines[0].trim();
   const rootName =
-    rootLine.replace(/[\\/]$/, '').split(/[\\/]/).pop() || rootLine;
+    rootLine
+      .replace(/[\\/]$/, '')
+      .split(/[\\/]/)
+      .pop() || rootLine;
 
   const root: FileNode = { name: rootName, children: [] };
   const stack: { depth: number; node: FileNode }[] = [{ depth: 0, node: root }];
@@ -53,8 +56,7 @@ function parseCliTree(text: string): FileNode[] {
     const depth = Math.floor(leadingSpaces / 4) + 1;
 
     // Lấy tên sau connector (├───, └───, +---, \---, |---)
-    const nameMatch =
-      raw.match(/[├└+\\]─+\s*(.+)$/) || raw.match(/[|+]---\s*(.+)$/);
+    const nameMatch = raw.match(/[├└+\\]─+\s*(.+)$/) || raw.match(/[|+]---\s*(.+)$/);
 
     if (!nameMatch) continue;
     const name = nameMatch[1].trim();

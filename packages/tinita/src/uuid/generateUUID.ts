@@ -47,7 +47,10 @@ export function generateUUID(): string {
       ].join('-');
     } catch (error) {
       // Fall through to last resort fallback
-      console.warn('crypto.getRandomValues() failed, using last resort fallback:', error);
+      console.warn(
+        'crypto.getRandomValues() failed, using last resort fallback:',
+        error
+      );
     }
   }
 

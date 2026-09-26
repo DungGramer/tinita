@@ -144,7 +144,9 @@
 }
 
 /* Hide horizontal indicator for first item in each list */
-.tinita-filetree[data-indicator='true'] .tinita-filetree__list:first-child .tinita-filetree__item::before,
+.tinita-filetree[data-indicator='true']
+  .tinita-filetree__list:first-child
+  .tinita-filetree__item::before,
 .tinita-filetree[data-indicator='true'] .tinita-filetree__item:first-child::before {
   display: none;
 }
@@ -190,7 +192,9 @@
 }
 
 /* Ensure indicator works with accordion structure - vertical lines for nested lists */
-.tinita-filetree[data-indicator='true'] .tinita-filetree__accordion-content > .tinita-filetree__list::before {
+.tinita-filetree[data-indicator='true']
+  .tinita-filetree__accordion-content
+  > .tinita-filetree__list::before {
   content: '';
   position: absolute;
   left: 6px;

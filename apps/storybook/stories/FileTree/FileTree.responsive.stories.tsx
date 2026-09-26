@@ -8,7 +8,8 @@ const meta = {
     layout: 'fullscreen',
     docs: {
       description: {
-        component: 'FileTree component tested across different viewport sizes to ensure responsive behavior.',
+        component:
+          'FileTree component tested across different viewport sizes to ensure responsive behavior.',
       },
     },
   },
@@ -56,8 +57,8 @@ export const MobileSmall: Story = {
   globals: {
     viewport: {
       value: 'mobileSmall',
-      isRotated: false
-    }
+      isRotated: false,
+    },
   },
 };
 
@@ -68,8 +69,8 @@ export const Mobile: Story = {
   globals: {
     viewport: {
       value: 'mobile',
-      isRotated: false
-    }
+      isRotated: false,
+    },
   },
 };
 
@@ -80,8 +81,8 @@ export const MobileLarge: Story = {
   globals: {
     viewport: {
       value: 'mobileLarge',
-      isRotated: false
-    }
+      isRotated: false,
+    },
   },
 };
 
@@ -92,8 +93,8 @@ export const Tablet: Story = {
   globals: {
     viewport: {
       value: 'tablet',
-      isRotated: false
-    }
+      isRotated: false,
+    },
   },
 };
 
@@ -104,8 +105,8 @@ export const Laptop: Story = {
   globals: {
     viewport: {
       value: 'laptop',
-      isRotated: false
-    }
+      isRotated: false,
+    },
   },
 };
 
@@ -116,8 +117,8 @@ export const Desktop: Story = {
   globals: {
     viewport: {
       value: 'desktop',
-      isRotated: false
-    }
+      isRotated: false,
+    },
   },
 };
 
@@ -128,8 +129,8 @@ export const DesktopWide: Story = {
   globals: {
     viewport: {
       value: 'desktopWide',
-      isRotated: false
-    }
+      isRotated: false,
+    },
   },
 };
 
@@ -140,8 +141,7 @@ export const DesktopUltraWide: Story = {
   globals: {
     viewport: {
       value: 'desktopUltraWide',
-      isRotated: false
-    }
+      isRotated: false,
+    },
   },
 };
-

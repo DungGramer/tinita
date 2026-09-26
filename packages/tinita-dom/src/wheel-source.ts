@@ -101,7 +101,9 @@ export interface WheelSample {
 function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+  return sorted.length % 2 === 0
+    ? (sorted[mid - 1] + sorted[mid]) / 2
+    : sorted[mid];
 }
 
 /** Largest share any single value holds in the list. */
@@ -117,7 +119,9 @@ function topShare(values: number[]): number {
  * @returns `null` when there is not enough evidence yet — the caller keeps
  *          whatever it was already doing rather than flip-flopping on two events.
  */
-export function classifyWheelSource(samples: WheelSample[]): WheelSource | null {
+export function classifyWheelSource(
+  samples: WheelSample[]
+): WheelSource | null {
   if (samples.length < WHEEL_SAMPLE_COUNT) return null;
 
   const recent = samples.slice(-WHEEL_SAMPLE_COUNT);
@@ -127,7 +131,10 @@ export function classifyWheelSource(samples: WheelSample[]): WheelSource | null 
   // A fixed quantum repeated verbatim is a detent - PROVIDED the quantum is big
   // enough to be one. Ungated, this rule read the whole-pixel tail of every
   // macOS momentum scroll as a detent; see `WHEEL_REPEAT_MIN_PIXELS`.
-  if (topShare(magnitudes) >= WHEEL_REPEAT_SHARE && median(magnitudes) >= WHEEL_REPEAT_MIN_PIXELS) {
+  if (
+    topShare(magnitudes) >= WHEEL_REPEAT_SHARE &&
+    median(magnitudes) >= WHEEL_REPEAT_MIN_PIXELS
+  ) {
     return 'stepped';
   }
 

@@ -8,7 +8,8 @@ const meta = {
     layout: 'padded',
     docs: {
       description: {
-        component: 'FileTree component in Right-to-Left (RTL) layout for Arabic, Hebrew, and other RTL languages.',
+        component:
+          'FileTree component in Right-to-Left (RTL) layout for Arabic, Hebrew, and other RTL languages.',
       },
     },
   },
@@ -40,7 +41,8 @@ export const RTL: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'FileTree in RTL mode. Tree structure should be mirrored and text should flow right-to-left.',
+        story:
+          'FileTree in RTL mode. Tree structure should be mirrored and text should flow right-to-left.',
       },
     },
   },
@@ -109,7 +111,7 @@ export const RTLWithDarkTheme: Story = {
       description: {
         story: 'RTL layout with dark theme.',
       },
-    }
+    },
   },
 
   render: (args) => (
@@ -120,8 +122,7 @@ export const RTLWithDarkTheme: Story = {
 
   globals: {
     backgrounds: {
-      value: "dark"
-    }
-  }
+      value: 'dark',
+    },
+  },
 };
-

@@ -18,7 +18,6 @@ const meta: Meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-
 // ============================================
 // 2. Component-Specific Transitions
 // ============================================
@@ -27,13 +26,22 @@ export const ComponentTransitions: Story = {
   render: () => {
     return (
       <div style={{ padding: '2rem' }}>
-        <h2 style={{ marginBottom: '2rem', fontSize: '1.5rem', fontWeight: 600 }}>
+        <h2
+          style={{ marginBottom: '2rem', fontSize: '1.5rem', fontWeight: 600 }}
+        >
           Component-Specific Transitions
         </h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           <div>
-            <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: '#6b7280', fontWeight: 500 }}>
+            <div
+              style={{
+                marginBottom: '0.5rem',
+                fontSize: '0.875rem',
+                color: '#6b7280',
+                fontWeight: 500,
+              }}
+            >
               Button Press Effect (.tinita-btn)
             </div>
             <button
@@ -54,7 +62,14 @@ export const ComponentTransitions: Story = {
           </div>
 
           <div>
-            <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: '#6b7280', fontWeight: 500 }}>
+            <div
+              style={{
+                marginBottom: '0.5rem',
+                fontSize: '0.875rem',
+                color: '#6b7280',
+                fontWeight: 500,
+              }}
+            >
               Card Hover Lift (.tinita-card)
             </div>
             <div
@@ -68,8 +83,18 @@ export const ComponentTransitions: Story = {
                 maxWidth: '300px',
               }}
             >
-              <h3 style={{ marginBottom: '0.5rem', fontSize: '1.25rem', fontWeight: 600 }}>Card Title</h3>
-              <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Hover to see lift effect</p>
+              <h3
+                style={{
+                  marginBottom: '0.5rem',
+                  fontSize: '1.25rem',
+                  fontWeight: 600,
+                }}
+              >
+                Card Title
+              </h3>
+              <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                Hover to see lift effect
+              </p>
             </div>
           </div>
         </div>
@@ -88,7 +113,11 @@ export const NavigationAnimations: Story = {
 
     return (
       <div style={{ padding: '2rem' }}>
-        <h2 style={{ marginBottom: '2rem', fontSize: '1.5rem', fontWeight: 600 }}>Navigation Animations</h2>
+        <h2
+          style={{ marginBottom: '2rem', fontSize: '1.5rem', fontWeight: 600 }}
+        >
+          Navigation Animations
+        </h2>
 
         <div style={{ marginBottom: '2rem' }}>
           <button
@@ -108,12 +137,33 @@ export const NavigationAnimations: Story = {
           </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '2rem',
+          }}
+        >
           <div>
-            <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: '#6b7280', fontWeight: 500 }}>
+            <div
+              style={{
+                marginBottom: '0.5rem',
+                fontSize: '0.875rem',
+                color: '#6b7280',
+                fontWeight: 500,
+              }}
+            >
               Push In (Right to Left)
             </div>
-            <div style={{ position: 'relative', height: '200px', overflow: 'hidden', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+            <div
+              style={{
+                position: 'relative',
+                height: '200px',
+                overflow: 'hidden',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+              }}
+            >
               <div
                 key={`push-in-${trigger}`}
                 className="animate-push-in"
@@ -133,10 +183,25 @@ export const NavigationAnimations: Story = {
           </div>
 
           <div>
-            <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: '#6b7280', fontWeight: 500 }}>
+            <div
+              style={{
+                marginBottom: '0.5rem',
+                fontSize: '0.875rem',
+                color: '#6b7280',
+                fontWeight: 500,
+              }}
+            >
               Pop In (Left to Right)
             </div>
-            <div style={{ position: 'relative', height: '200px', overflow: 'hidden', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+            <div
+              style={{
+                position: 'relative',
+                height: '200px',
+                overflow: 'hidden',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+              }}
+            >
               <div
                 key={`pop-in-${trigger}`}
                 className="animate-pop-in"
@@ -168,11 +233,22 @@ export const BackdropEffects: Story = {
   render: () => {
     return (
       <div style={{ padding: '2rem' }}>
-        <h2 style={{ marginBottom: '2rem', fontSize: '1.5rem', fontWeight: 600 }}>Backdrop Effects (Frosted Glass)</h2>
+        <h2
+          style={{ marginBottom: '2rem', fontSize: '1.5rem', fontWeight: 600 }}
+        >
+          Backdrop Effects (Frosted Glass)
+        </h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           <div>
-            <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: '#6b7280', fontWeight: 500 }}>
+            <div
+              style={{
+                marginBottom: '0.5rem',
+                fontSize: '0.875rem',
+                color: '#6b7280',
+                fontWeight: 500,
+              }}
+            >
               Standard Backdrop (.tinita-backdrop)
             </div>
             <div
@@ -203,7 +279,14 @@ export const BackdropEffects: Story = {
           </div>
 
           <div>
-            <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: '#6b7280', fontWeight: 500 }}>
+            <div
+              style={{
+                marginBottom: '0.5rem',
+                fontSize: '0.875rem',
+                color: '#6b7280',
+                fontWeight: 500,
+              }}
+            >
               Heavy Backdrop (.tinita-backdrop-heavy)
             </div>
             <div
@@ -234,14 +317,22 @@ export const BackdropEffects: Story = {
           </div>
 
           <div>
-            <div style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: '#6b7280', fontWeight: 500 }}>
+            <div
+              style={{
+                marginBottom: '0.5rem',
+                fontSize: '0.875rem',
+                color: '#6b7280',
+                fontWeight: 500,
+              }}
+            >
               Overlay Backdrop (.tinita-backdrop-overlay)
             </div>
             <div
               style={{
                 position: 'relative',
                 height: '200px',
-                background: 'url("https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800") center/cover',
+                background:
+                  'url("https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800") center/cover',
                 borderRadius: '12px',
                 overflow: 'hidden',
               }}
@@ -279,7 +370,9 @@ export const AllAnimations: Story = {
 
     return (
       <div style={{ padding: '2rem' }}>
-        <h1 style={{ marginBottom: '2rem', fontSize: '2rem', fontWeight: 700 }}>All Animations Overview</h1>
+        <h1 style={{ marginBottom: '2rem', fontSize: '2rem', fontWeight: 700 }}>
+          All Animations Overview
+        </h1>
 
         <div style={{ marginBottom: '2rem' }}>
           <button
@@ -299,7 +392,13 @@ export const AllAnimations: Story = {
           </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '1.5rem',
+          }}
+        >
           <div
             key={`fade-${trigger}`}
             className="animate-fade-in"

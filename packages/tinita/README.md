@@ -39,6 +39,7 @@ Tinita provides a comprehensive collection of utilities organized by domain:
 - **Date utilities**: Formatting, parsing, and manipulation
 
 All utilities follow consistent patterns:
+
 - Type guards return `value is Type` for TypeScript narrowing
 - Pure functions with no side effects
 - Minimal API surface for each utility

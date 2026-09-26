@@ -9,7 +9,8 @@ const meta = {
     layout: 'padded',
     docs: {
       description: {
-        component: 'A ping indicator component with optional count and click handler.',
+        component:
+          'A ping indicator component with optional count and click handler.',
       },
     },
   },
@@ -80,8 +81,8 @@ export const LightTheme: Story = {
   },
   globals: {
     backgrounds: {
-      value: "light"
-    }
+      value: 'light',
+    },
   },
 };
 
@@ -92,8 +93,8 @@ export const DarkTheme: Story = {
   },
   globals: {
     backgrounds: {
-      value: "dark"
-    }
+      value: 'dark',
+    },
   },
 };
 

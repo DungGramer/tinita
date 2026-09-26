@@ -54,7 +54,11 @@ describe('installSmoothScroll', () => {
 
   it('bỏ qua wheel đã bị defaultPrevented', () => {
     const uninstall = installSmoothScroll();
-    const event = new WheelEvent('wheel', { deltaY: 100, cancelable: true, bubbles: true });
+    const event = new WheelEvent('wheel', {
+      deltaY: 100,
+      cancelable: true,
+      bubbles: true,
+    });
     event.preventDefault();
     // Không throw, và không claim event lần nữa.
     expect(() => document.dispatchEvent(event)).not.toThrow();
@@ -63,7 +67,12 @@ describe('installSmoothScroll', () => {
 
   it('bỏ qua ctrl+wheel - đó là zoom của browser', () => {
     const uninstall = installSmoothScroll();
-    const event = new WheelEvent('wheel', { deltaY: 100, ctrlKey: true, cancelable: true, bubbles: true });
+    const event = new WheelEvent('wheel', {
+      deltaY: 100,
+      ctrlKey: true,
+      cancelable: true,
+      bubbles: true,
+    });
     document.dispatchEvent(event);
     expect(event.defaultPrevented).toBe(false);
     uninstall();

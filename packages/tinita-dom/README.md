@@ -58,7 +58,10 @@ trường hợp 1 - làm mượt lần hai trên cái đã mượt chính là th
 Phân loại nguồn wheel từ chuỗi event, không phải từ việc dò xem có app nào đang cài.
 
 ```ts
-import { classifyWheelSource, WHEEL_SAMPLE_COUNT } from 'tinita-dom/wheel-source';
+import {
+  classifyWheelSource,
+  WHEEL_SAMPLE_COUNT,
+} from 'tinita-dom/wheel-source';
 ```
 
 Đây là subpath công khai chứ không phải chi tiết nội bộ: nó zero-dep, và các hằng số trong đó
@@ -68,9 +71,9 @@ là breaking change.
 ## Đường nhập
 
 ```ts
-import { installSmoothScroll } from 'tinita-dom/smooth-scroll';   // khuyến nghị
-import { classifyWheelSource } from 'tinita-dom/wheel-source';    // khuyến nghị
-import { installSmoothScroll } from 'tinita-dom';                 // barrel, kéo cả 2 module
+import { installSmoothScroll } from 'tinita-dom/smooth-scroll'; // khuyến nghị
+import { classifyWheelSource } from 'tinita-dom/wheel-source'; // khuyến nghị
+import { installSmoothScroll } from 'tinita-dom'; // barrel, kéo cả 2 module
 ```
 
 ## Nguồn gốc

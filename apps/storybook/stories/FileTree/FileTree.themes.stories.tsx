@@ -53,8 +53,8 @@ export const LightTheme: Story = {
   },
   globals: {
     backgrounds: {
-      value: "light"
-    }
+      value: 'light',
+    },
   },
 };
 
@@ -65,8 +65,8 @@ export const DarkTheme: Story = {
   },
   globals: {
     backgrounds: {
-      value: "dark"
-    }
+      value: 'dark',
+    },
   },
 };
 
@@ -80,13 +80,26 @@ export const ThemeComparison: Story = {
     <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
       <div>
         <h3 style={{ marginBottom: '1rem', color: '#1a1a1a' }}>Light Theme</h3>
-        <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '4px', border: '1px solid #e0e0e0' }}>
+        <div
+          style={{
+            background: '#ffffff',
+            padding: '1rem',
+            borderRadius: '4px',
+            border: '1px solid #e0e0e0',
+          }}
+        >
           <FileTree text={treeText} theme="light" />
         </div>
       </div>
       <div>
         <h3 style={{ marginBottom: '1rem', color: '#e5e7eb' }}>Dark Theme</h3>
-        <div style={{ background: '#0a0a0a', padding: '1rem', borderRadius: '4px' }}>
+        <div
+          style={{
+            background: '#0a0a0a',
+            padding: '1rem',
+            borderRadius: '4px',
+          }}
+        >
           <FileTree text={treeText} theme="dark" />
         </div>
       </div>
@@ -95,9 +108,9 @@ export const ThemeComparison: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Side-by-side comparison of light and dark themes. Both themes meet WCAG AA contrast requirements.',
+        story:
+          'Side-by-side comparison of light and dark themes. Both themes meet WCAG AA contrast requirements.',
       },
     },
   },
 };
-

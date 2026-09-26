@@ -145,10 +145,7 @@ export const FileLabel: React.FC<FileLabelProps> = ({
   };
 
   return (
-    <span
-      className={`tinita-filetree__label tinita-filetree__label--${type}`}
-      data-icon={iconType}
-    >
+    <span className={`tinita-filetree__label tinita-filetree__label--${type}`} data-icon={iconType}>
       {renderArrow()}
       {renderIcon()}
       <span className="tinita-filetree__label-text">{name}</span>

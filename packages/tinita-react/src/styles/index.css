@@ -5,5 +5,5 @@
  * Users should import globals.css directly (which doesn't include @import "tailwindcss").
  */
 
-@import "tailwindcss";
-@import "./build-entry.css";
+@import 'tailwindcss';
+@import './build-entry.css';
