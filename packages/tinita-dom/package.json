@@ -17,6 +17,16 @@
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "smooth-scroll": [
+        "dist/smooth-scroll.d.ts"
+      ],
+      "wheel-source": [
+        "dist/wheel-source.d.ts"
+      ]
+    }
+  },
   "files": [
     "dist"
   ],

@@ -81,19 +81,21 @@ findings.push({
     );
     const r = run('npx', ['tsc', '--noEmit'], work, 180_000);
     const errs = r.out.split('\n').filter((l) => /error TS/.test(l));
-    // moduleResolution:node không resolve subpath exports - đã biết trước qua attw (node10 failed 5/6).
-    const expectedFailure = moduleResolution === 'node';
+    // QĐ-2 (2026-09-26): owner chốt SUPPORT TS cũ. `typesVersions` đã được thêm cho cả 3 package
+    // và đo được `moduleResolution: node` compile sạch. Nên đây KHÔNG còn là expectedFailure -
+    // fail ở đây từ nay là hồi quy thật.
+    const expectedFailure = false;
     add(
       `tsc:${moduleResolution}`,
       r.ok || expectedFailure,
       r.ok ? `${specs.length} specifier compile sạch` : `${errs.length} lỗi TS, đầu tiên: ${errs[0]?.trim().slice(0, 120)}`,
       { expectedFailure: !r.ok && expectedFailure, errorCount: errs.length },
     );
-    if (!r.ok && expectedFailure) {
+    if (!r.ok && moduleResolution === 'node') {
       findings.push({
-        id: 'ts-legacy-moduleResolution-node-fails',
-        detail: `moduleResolution:node không resolve được ${errs.length} import - khớp attw báo node10 failed. Có cam kết support TS cũ hay không là QĐ-2 của owner.`,
-        assignedTo: 'pha 06 QĐ-2',
+        id: 'ts-legacy-regression',
+        detail: `moduleResolution:node fail ${errs.length} import. QĐ-2 đã chốt support TS cũ và typesVersions đã làm nó sạch - đây là HỒI QUY, không phải hiện trạng đã biết. Kiểm typesVersions của 3 package có còn đồng bộ exports.`,
+        assignedTo: 'sửa ngay',
       });
     }
   }

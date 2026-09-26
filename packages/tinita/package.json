@@ -20,6 +20,25 @@
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "file/fileSize": [
+        "dist/file/fileSize.d.ts"
+      ],
+      "file/getFileNameParts": [
+        "dist/file/getFileNameParts.d.ts"
+      ],
+      "file/truncateFileName": [
+        "dist/file/truncateFileName.d.ts"
+      ],
+      "file/truncateFileNameParts": [
+        "dist/file/truncateFileNameParts.d.ts"
+      ],
+      "uuid/generateUUID": [
+        "dist/uuid/generateUUID.d.ts"
+      ]
+    }
+  },
   "files": [
     "dist"
   ],
