@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, within } from 'storybook/test';
-import { Ping } from 'tinita-react';
+import { Ping } from 'tinita-react/ui/ping';
 
 const meta = {
   title: 'Tinita/Ping',

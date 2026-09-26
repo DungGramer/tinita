@@ -77,6 +77,9 @@ importers:
       react-dom:
         specifier: ^19.2.0
         version: 19.2.0(react@19.2.0)
+      tinita-dom:
+        specifier: workspace:*
+        version: link:../../packages/tinita-dom
       tinita-react:
         specifier: workspace:*
         version: link:../../packages/tinita-react
