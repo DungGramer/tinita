@@ -96,9 +96,10 @@
     "build:css": "node scripts/build-css.mjs",
     "build": "pnpm run build:js && pnpm run build:css",
     "lint": "eslint src --ext .ts,.tsx",
-    "test": "vitest --passWithNoTests",
+    "test": "vitest run",
     "check-types": "tsc --noEmit",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "pnpm run build",
+    "test:watch": "vitest"
   },
   "peerDependencies": {
     "@radix-ui/react-accordion": ">=1.2.0",
@@ -118,6 +119,7 @@
     "@tailwindcss/postcss": "^4.1.17",
     "@testing-library/react": "^16.3.0",
     "@testing-library/react-hooks": "^8.0.1",
+    "@types/node": "^22.15.3",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.22",
