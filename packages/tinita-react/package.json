@@ -58,6 +58,7 @@
     "./styles/globals.css": "./dist/styles/globals.css",
     "./styles/animations.css": "./dist/styles/animations.css",
     "./styles.css": "./dist/styles.css",
+    "./styles.layer.css": "./dist/styles.layer.css",
     "./ui/file-tree": {
       "types": "./dist/ui/file-tree/index.d.ts",
       "import": "./dist/ui/file-tree/index.mjs",
@@ -130,7 +131,6 @@
     "postcss-import": "^16.1.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.17",
     "vite": "^7.2.6"
   },

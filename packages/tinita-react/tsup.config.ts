@@ -46,6 +46,14 @@ export default defineConfig({
   esbuildOptions(options) {
     options.legalComments = 'none';
   },
+  // esbuild XOÁ directive `'use client'` khỏi output - đặt nó trong source là không
+  // đủ, đo được 2026-09-26: dist/ui/file-tree/index.mjs bắt đầu bằng `import{...}`.
+  // Banner là cách duy nhất giữ được nó qua tsup.
+  //
+  // Áp cho CẢ package, không phải từng entry: tsup không cho banner theo entry, và
+  // toàn bộ tinita-react là client - hooks, autoInjectStyles chạm `document`, cả 3
+  // component đều có hook hoặc handler. Khai đúng thực tế, không phải khai rộng.
+  banner: { js: "'use client';" },
   // exports trong package.json trỏ require -> .cjs; không có outExtension thì tsup emit .js
   // và mọi require() gãy.
   outExtension: ({ format }) => ({ js: format === 'cjs' ? '.cjs' : '.mjs' }),

@@ -32,19 +32,23 @@ const FIXTURES = {
  *    hiện chưa nêu.
  *
  * Sau mốc M1 chỉ cần đổi `expected`, không viết lại ca.
+ *
+ * M1 XONG 2026-09-26. Cả 11 bề mặt `clean` ở CẢ HAI chế độ. Ca vẫn giữ nguyên và
+ * vẫn chạy: nó là cửa chặn hồi quy, không phải bản báo cáo một lần. Bất kỳ rule
+ * nào chạm `body`, `*`, hay một class không prefix quay lại sẽ làm ca đỏ.
  */
 export const LEAK_SURFACES = [
-  { id: 'reset-body-bg', selector: 'body', property: 'background-color', expected: { unlayered: 'clean', layered: 'leaks' }, evidence: 'globals.css:121-126 -> dist @layer base; host body cũng ở layer base nhưng library khai sau' },
-  { id: 'reset-body-color', selector: 'body', property: 'color', expected: { unlayered: 'clean', layered: 'leaks' }, evidence: 'globals.css:121-126 -> dist @layer base' },
-  { id: 'reset-star-border', selector: '#host-box', property: 'border-color', expected: { unlayered: 'clean', layered: 'clean' }, evidence: 'globals.css:117-119 -> dist:47-50. `*` (0,0,0) thua `div[data-host]` (0,1,1) khi CÙNG layer' },
+  { id: 'reset-body-bg', selector: 'body', property: 'background-color', expected: { unlayered: 'clean', layered: 'clean' }, evidence: 'ĐÃ BỊT 2026-09-26: xoá cả khối `@layer base` khỏi globals.css. Library không chạm `body` của ai' },
+  { id: 'reset-body-color', selector: 'body', property: 'color', expected: { unlayered: 'clean', layered: 'clean' }, evidence: 'ĐÃ BỊT 2026-09-26: xoá khối `@layer base`' },
+  { id: 'reset-star-border', selector: '#host-box', property: 'border-color', expected: { unlayered: 'clean', layered: 'clean' }, evidence: 'ĐÃ BỊT 2026-09-26: rule `* { @apply border-border }` không còn tồn tại. Trước đó vẫn clean vì `*` (0,0,0) thua `div[data-host]` (0,1,1)' },
   { id: 'token-color-primary', selector: ':root', property: '--color-primary', expected: { unlayered: 'clean', layered: 'clean' }, evidence: '@theme inline KHÔNG được emit vào dist - rò rỉ này không tồn tại' },
   { id: 'token-radius', selector: ':root', property: '--radius', expected: { unlayered: 'clean', layered: 'clean' }, evidence: '@theme inline KHÔNG được emit vào dist' },
   { id: 'token-font-sans', selector: ':root', property: '--font-sans', expected: { unlayered: 'clean', layered: 'clean' }, evidence: '@theme inline KHÔNG được emit vào dist' },
-  { id: 'unprefixed-animate', selector: '#host-animate', property: 'animation-name', expected: { unlayered: 'clean', layered: 'leaks' }, evidence: 'animations.css:243 -> dist @layer utilities. Library CHIẾM class .animate-fade-in cùng tên của host' },
-  { id: 'unprefixed-transition', selector: '#host-transition', property: 'transition-duration', expected: { unlayered: 'clean', layered: 'leaks' }, evidence: 'animations.css:156 -> dist:114 @layer utilities' },
-  { id: 'unprefixed-interactive', selector: '#host-interactive', property: 'opacity', expected: { unlayered: 'clean', layered: 'clean' }, evidence: 'dist:171 `.interactive:hover, .interactive:focus-visible` chỉ set will-change, KHÔNG set opacity - class trùng tên nhưng không đụng property này ở trạng thái tĩnh' },
-  { id: 'layered-base-beats-host-layer', selector: '#host-filetree-override', property: 'border-color', expected: { unlayered: 'leaks', layered: 'clean' }, evidence: '`*{border-color:var(--tnt-border)}` ở @layer base. Thắng/thua tuỳ thứ tự khai layer của host, KHÔNG phải do component CSS layerless' },
-  { id: 'component-star-boxsizing', selector: '#host-ticker-child', property: 'box-sizing', expected: { unlayered: 'clean', layered: 'clean' }, evidence: 'CarouselTicker.css:15-17; inline style của consumer thắng mọi stylesheet' },
+  { id: 'unprefixed-animate', selector: '#host-animate', property: 'animation-name', expected: { unlayered: 'clean', layered: 'clean' }, evidence: 'ĐÃ BỊT 2026-09-26: 27 class trần được prefix (.animate-fade-in -> .tnt-animate-fade-in), không còn trùng tên với host' },
+  { id: 'unprefixed-transition', selector: '#host-transition', property: 'transition-duration', expected: { unlayered: 'clean', layered: 'clean' }, evidence: 'ĐÃ BỊT 2026-09-26: .transition-fast -> .tnt-transition-fast' },
+  { id: 'unprefixed-interactive', selector: '#host-interactive', property: 'opacity', expected: { unlayered: 'clean', layered: 'clean' }, evidence: 'ĐÃ BỊT 2026-09-26: .interactive -> .tnt-interactive. Trước đó vẫn clean vì rule chỉ set will-change ở :hover' },
+  { id: 'layered-base-beats-host-layer', selector: '#host-filetree-override', property: 'border-color', expected: { unlayered: 'clean', layered: 'clean' }, evidence: 'ĐÃ BỊT 2026-09-26: `*{border-color}` không còn tồn tại nên không còn phụ thuộc thứ tự khai layer của host' },
+  { id: 'component-star-boxsizing', selector: '#host-ticker-child', property: 'box-sizing', expected: { unlayered: 'clean', layered: 'clean' }, evidence: 'ĐÃ BỊT 2026-09-26: `.tnt-carousel-ticker *` bỏ hẳn, box-sizing chỉ đặt trên element của chính component. Trước đó vẫn clean vì inline style của consumer thắng' },
 ];
 
 /** Chạy trong trang: đọc computed style của từng bề mặt. Function thật, không phải chuỗi. */

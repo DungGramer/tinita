@@ -60,7 +60,8 @@
       "cssSpecifiers": [
         "./styles.css",
         "./styles/globals.css",
-        "./styles/animations.css"
+        "./styles/animations.css",
+        "./styles.layer.css"
       ],
       "namedExports": {
         "./hooks/useToggle": [
@@ -103,7 +104,8 @@
         "dist/styles/globals.css",
         "dist/styles/animations.css",
         "dist/ui/file-tree/index.mjs",
-        "dist/ui/file-tree/index.cjs"
+        "dist/ui/file-tree/index.cjs",
+        "dist/styles.layer.css"
       ],
       "forbiddenFiles": [
         "src",

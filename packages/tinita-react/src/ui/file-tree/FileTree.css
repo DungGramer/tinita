@@ -181,6 +181,13 @@
 /* Radix UI Accordion Content */
 .tnt-filetree__accordion-content {
   overflow: hidden;
+
+  /* Bọc biến runtime của Radix sau token của tinita. `--radix-*` là chi tiết nội
+     bộ của Radix và nó KHÔNG được nằm trong contract CSS công khai: đổi
+     foundation sang Base UI là vỡ keyframes, còn người dùng thì không có cách
+     nào biết họ đang phụ thuộc vào Radix. Keyframes chỉ đọc
+     `--tnt-accordion-content-height`. */
+  --tnt-accordion-content-height: var(--radix-accordion-content-height);
 }
 
 /* Ensure nested lists inside accordion content have proper padding */
@@ -215,28 +222,28 @@
 
 /* Animation when enabled */
 .tnt-filetree[data-animation='true'] .tnt-filetree__accordion-content[data-state='open'] {
-  animation: accordion-down 250ms ease-out;
+  animation: tnt-accordion-down 250ms ease-out;
 }
 
 .tnt-filetree[data-animation='true'] .tnt-filetree__accordion-content[data-state='closed'] {
-  animation: accordion-up 250ms ease-out;
+  animation: tnt-accordion-up 250ms ease-out;
 }
 
 /* Keyframes for accordion animations */
-@keyframes accordion-down {
+@keyframes tnt-accordion-down {
   from {
     height: 0;
     opacity: 0;
   }
   to {
-    height: var(--radix-accordion-content-height);
+    height: var(--tnt-accordion-content-height);
     opacity: 1;
   }
 }
 
-@keyframes accordion-up {
+@keyframes tnt-accordion-up {
   from {
-    height: var(--radix-accordion-content-height);
+    height: var(--tnt-accordion-content-height);
     opacity: 1;
   }
   to {

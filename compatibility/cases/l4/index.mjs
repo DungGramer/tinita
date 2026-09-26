@@ -136,18 +136,38 @@ for (const reactVersion of REACT_VERSIONS) {
       rm.animationDuration !== '5s' ||
       rm.animationName !== 'spin' ||
       rm.transitionDuration !== '5s';
-    // Đây là hành vi HIỆN TẠI được chốt lại, không phải điều mong muốn. Sau mốc M1 (scope khối
-    // reduced-motion) thì overridden phải thành false và ca này sẽ đỏ -> lúc đó đảo assertion.
-    add(`react${reactVersion}:reduced-motion-scope`, overridden === true,
-      `element chủ nhà: đặt ${asked}, đo được ${got}${overridden ? ' -> khối !important của library ĐÈ lên element KHÔNG thuộc library' : ' -> không bị đè'}`,
+    // ĐẢO 2026-09-26. Trước đây khối này là `*, *::before, *::after { ... !important }` và ca
+    // chốt lại đúng cái rò rỉ đó (`overridden === true`). Giờ selector là `[class*='tnt-']`, nên
+    // element của chủ nhà PHẢI giữ nguyên giá trị nó đặt. Dưới reduced-motion host có cách xử lý
+    // riêng và đó là việc của họ.
+    add(`react${reactVersion}:reduced-motion-scope`, overridden === false,
+      `element chủ nhà: đặt ${asked}, đo được ${got}${overridden ? ' -> RÒ RỈ: khối !important của library ĐÈ lên element KHÔNG thuộc library' : ' -> giữ nguyên, không bị đè'}`,
       { leaks: overridden, measured: rm });
     if (overridden) {
       findings.push({
         id: 'reduced-motion-unscoped',
-        detail: `animations.css khối \`@media (prefers-reduced-motion: reduce)\` dùng \`*, *::before, *::after { ... !important }\` không scope. Đo được: element của chủ nhà đặt ${asked} nhưng nhận ${got}.`,
-        assignedTo: 'roadmap M1',
+        detail: `Khối \`@media (prefers-reduced-motion: reduce)\` của animations.css lại với tới element chủ nhà. Đo được: đặt ${asked} nhưng nhận ${got}. Selector phải là \`[class*='tnt-']\`, không phải \`*\`.`,
+        assignedTo: 'regression',
       });
     }
+
+    // Chieu con lai: element CUA LIBRARY phai bi tat that. Neu chi kiem "host khong bi
+    // dè" thi mot khoi reduced-motion bi xoa han cung cho xanh.
+    const own = await page.evaluate(() => {
+      const probe = document.createElement('div');
+      probe.className = 'tnt-animate-fade-in';
+      probe.style.animation = 'spin 5s linear infinite';
+      document.body.appendChild(probe);
+      const style = getComputedStyle(probe);
+      const measured = { duration: style.animationDuration, name: style.animationName };
+      probe.remove();
+      return measured;
+    });
+    const ownDisabled = own.duration === '0s' && own.name === 'none';
+    add(`react${reactVersion}:reduced-motion-own-elements`, ownDisabled,
+      `element mang class tnt-: đặt animation 5s/spin, đo được ${own.duration}/${own.name}` +
+        (ownDisabled ? ' -> đã tắt hẳn' : ' -> KHÔNG tắt, khối reduced-motion không với tới element của chính library'),
+      { measured: own });
 
     // CarouselTicker: HÀNH VI thật dưới reduced-motion, không phải declaration.
     //
