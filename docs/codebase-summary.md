@@ -14,8 +14,8 @@ Tinita là monorepo với framework-agnostic utilities (tinita) + React hooks + 
 - 4 utilities + 2 hooks + 3 UI components
 - 13 root scripts (1 hỏng, 1 không tồn tại)
 - 7 turbo tasks
-- tinita: 35 test (`packages/tinita/tests/`); tinita-react: 0 test (nợ M3)
-- 0 CI/CD (release thủ công)
+- tinita: 35 test; tinita-dom: 2 file test; tinita-react: **36 ca / 6 file** (M3 xong 2026-09-26, trước đó 0)
+- 0 CI/CD có chủ ý - owner chốt cổng LOCAL: `pnpm gate` (~84s) và `pnpm gate --full`. Release thủ công.
 
 ## `tinita-dom` (package thứ ba)
 
@@ -211,7 +211,7 @@ nên mọi thứ trông như chạy): `node_modules` chỉ có `react` + `tinita
 
 1. Copy `src/styles/globals.css` -> `dist/styles/globals.css`
    1.5. Copy `src/styles/animations.css` -> `dist/styles/animations.css`
-2. PostCSS compile `src/styles/build-entry.css` -> theme CSS (dùng `tailwind.config.cjs`)
+2. PostCSS compile `src/styles/build-entry.css` -> theme CSS. `@tailwindcss/postcss` chỉ để xử `@theme inline`; `build-entry.css` KHÔNG `@import "tailwindcss"` nên không có utility và không có Preflight nào được ship. `tailwind.config.cjs` đã xoá 2026-09-26 - `content` của nó chưa bao giờ được dùng.
 3. PostCSS compile `src/ui/**/*.css` -> component CSS, minified (fallback copy thô nếu lỗi)
 4. Bundle stage: nối theme + components -> `dist/styles.temp.css` -> minify -> ghi đè `dist/styles.css` (bundle cuối)
 
@@ -226,7 +226,7 @@ nên mọi thứ trông như chạy): `node_modules` chỉ có `react` + `tinita
 - `dist/styles/animations.css` - Keyframes only
 - `dist/ui/<component>/<component>.css` - Component-specific CSS, minified
 
-**Tailwind v4:** CSS-only (no @apply bundling), `@theme inline` trong `globals.css`, cần `tailwind.config.cjs` (chỉ dùng content globs).
+**Tailwind v4:** chỉ là tool build-time để xử `@theme inline`. Bundle ship 0 utility, 0 Preflight. Không có `tailwind.config.cjs`, không có prefix Tailwind - cả hai đã xoá vì chưa bao giờ có tác dụng. JSX của component KHÔNG chứa class Tailwind nào (guard: ca test trong cả 3 component).
 
 #### Storybook
 
@@ -353,7 +353,7 @@ nên mọi thứ trông như chạy): `node_modules` chỉ có `react` + `tinita
 
 ## Testing Status
 
-**Current:** tinita 35 test; tinita-react 0 test
+**Current:** tinita 35 test; tinita-dom 2 file; tinita-react 36 ca / 6 file
 
 **Setup:** Vitest configs tồn tại (`vitest.config.ts` root, `vitest.config.ts` tinita-react)
 
@@ -382,7 +382,7 @@ nên mọi thứ trông như chạy): `node_modules` chỉ có `react` + `tinita
 
 8. **Ping Storybook dùng barrel** - `apps/storybook/stories/Ping/Ping.stories.tsx:3` dùng `import { Ping } from 'tinita-react'` (barrel), nhưng 7 story khác dùng subpath. Vi phạm quy ước NO barrel.
 
-9. **`src/styles/index.css` là file mồ côi** - File có `@import "tailwindcss"` nhưng KHÔNG trong build pipeline (build-css.mjs:23 chỉ compile `build-entry.css`), không có trong exports. Không file nào reference nó. Nên gỡ hoặc nêu rõ mục đích.
+9. ~~`src/styles/index.css` mồ côi~~ - **ĐÃ XOÁ 2026-09-26**, cùng `tailwind.config.cjs` và `postcss.config.mjs` (trùng `postcss.config.js`, một cái có cssnano một cái không - cosmiconfig chọn cái nào là ngầm).
 
 10. **`autoInjectStyles` không component nào gọi** - Util tồn tại (`src/utils/autoInjectStyles.ts`), có SSR guard + chống trùng, nhưng grep chỉ ra 2 hit: định nghĩa + `src/index.ts:11` re-export. Docs cũ mô tả nó như cơ chế đang hoạt động - SAI, nó chết về runtime.
 
@@ -427,11 +427,19 @@ config/eslint-config, config/typescript-config
 
 ---
 
-## CI/CD
+## Cổng tự động
 
-**Không có.**
+**Không có CI, có chủ ý.** Owner chốt 2026-09-26: repo một người, chạy trên máy là đủ.
 
-- Không `.github/workflows/`
-- Không `.changeset/`
-- Release: thủ công qua `scripts/publish.mjs`
+```bash
+pnpm gate        # format-check, lint, types, build, test, check-stories, L1   - đo 84s
+pnpm gate --full # + L2 và L4 (cần chromium)                                   - trước publish
+```
+
+`scripts/gate.mjs` dừng ở lỗi đầu tiên và in ra bước nào CHƯA chạy. Thứ tự không tuỳ ý: `build`
+trước `test`, và trước L1 vì L1 pack tarball từ dist.
+
+- Không `.github/workflows/`, không `.changeset/`
+- Release: thủ công qua `scripts/publish.mjs`, dừng ở `npm whoami` - cổng của owner
 - Version update: thủ công qua `scripts/update-package-versions.mjs`
+- Nếu có người thứ hai vào repo: GitHub Actions chỉ cần gọi `pnpm gate` và ba lệnh tier của lab

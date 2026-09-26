@@ -652,58 +652,140 @@ trong `tinita-react` (build ra `dist/utils/cn.*` nhưng không import được q
 
 **Ràng Buộc (từ 2026-09-24, từ sự cố production):** CSS của library KHÔNG được xung đột global scope của app client.
 
-### Quy Tắc & Hiện Trạng Vi Phạm
+### Quy Tắc & Trạng Thái
 
-1. **Không ship Preflight hay global reset**
-   - ❌ **Hiện trạng vi phạm:** `src/styles/globals.css:116-127` có `@layer base { * { @apply border-border; } body { @apply bg-background text-foreground; } }`
-   - Đây là global reset tự viết, tương đương Preflight -> đè lên `body`, `*` của client
-   - Fix: Bỏ block này hoặc scope nó trong `[data-tinita]`
+**TẤT CẢ ĐÃ BỊT 2026-09-26.** Ca L2 `css-leak` đo 11 bề mặt, 0 rò rỉ ở cả hai chế độ layer. Giữ
+nguyên danh sách vì mỗi dòng là một lỗi đã trả giá, và cột guard cho biết ai đang canh nó.
 
-2. **Prefix tất cả class Tailwind utility**
-   - ❌ **Hiện trạng vi phạm:** 27 class không prefix ở `src/styles/animations.css:114-318`
-     - 18 class `.animate-*` (fade-in/out, slide-_, modal-_, etc.)
-     - 8 class `.transition-*` (smooth, spring, modal, fade, slide, etc.)
-     - 1 class `.interactive`
-   - Tên cực kỳ chung chung, `.animate-*` va đạo trực tiếp Tailwind utility của client
-   - Fix: Prefix tất cả thành `.tnt-animate-*`, `.tnt-transition-*`, `.tnt-interactive`
+Guard tĩnh: `packages/tinita-react/tests/styles/no-global-leak.test.ts`, 10 ca, chạy trong
+`pnpm test`. Cả 10 đã chứng minh bằng mutation (10 mutation, 10 bị bắt). Guard đo thật: ca `css-leak`
+của L2 trong Chromium - mạnh hơn nhưng cần chromium nên không chạy trong vòng lặp sửa code.
 
-3. **Namespace + prefix CSS variable**
-   - ✅ **Đo lại 2026-09-25: KHÔNG vi phạm.** 22 token trong `@theme inline`
-     (`globals.css:81-111`) **không được emit vào `dist/styles.css`** - đo được 0 match cho
-     `--color-primary`, và 278 match cho `--tnt-*`. Khối `@theme inline` chỉ tồn tại trong source
-     để map sang utility lúc build.
-   - Khẳng định cũ "trùng khít shadcn/ui -> va chạm chắc chắn" là **sai**, đã gỡ. Nó được suy từ
-     source chứ không đo trên artifact.
-   - Quy tắc vẫn giữ: token mới phải prefix `--tnt-`. Nhưng đừng coi đây là nợ đang tồn tại.
-   - Fix: Prefix tất cả thành `--tnt-color-background`, `--tnt-radius-sm`, v.v.
+1. **Không ship Preflight hay global reset** - ✅ đã bịt
+   - Từng có `@layer base { * { @apply border-border } body { @apply bg-background text-foreground } }`
+   - Đo được trên host thật: `body` background `rgb(10,20,30)` -> `rgb(255,255,255)`, `body` color
+     `rgb(40,50,60)` -> `rgb(26,26,26)`, `*{border-color}` đè `#host-filetree-override`
+     `rgb(123,123,123)` -> `rgb(229,231,235)`
+   - Sửa: **XOÁ HẲN** cả khối. Không scope lại - một component library không có việc gì reset `*`
+     hay `body` của người khác.
+   - Bỏ luôn `color-scheme` (`light` trên `:root`, `dark` trên `.dark`): nó đổi scrollbar và form
+     control của cả trang khách.
+   - Guard: ca "không rule nào nhắm `body` hoặc `html`", "không selector nào bắt đầu bằng `*`",
+     "không rule nào set `color-scheme`"
 
-4. **Mọi selector CSS phải bắt đầu bằng class có prefix `tnt-`**
-   - ❌ **Hiện trạng vi phạm:**
-     - `src/styles/globals.css:116-127`: selector `*` và `body` trần
-     - `src/styles/animations.css:538-546`: `*, *::before, *::after` trong `@media (prefers-reduced-motion: reduce)` + `!important` - đè toàn trang
-     - `CarouselTicker.css:15-17`: `.tnt-carousel-ticker * { box-sizing: border-box; }` - ép children của client
-     - `FileTree.css`, `CarouselTicker.css`: selector `.dark` không prefix (Tailwind dark mode convention)
-   - Fix: Loại bỏ selector trần, scope mọi rule trong `.tnt-{component}` hoặc `[data-tinita]`
+2. **Prefix mọi class** - ✅ đã bịt
+   - 27 class trần: 18 `.animate-*`, 8 `.transition-*`, `.interactive`. `.animate-fade-in` CHIẾM
+     class cùng tên của host - đo được `hostFade` -> `tnt-fade-in`.
+   - Sửa: `.tnt-animate-*`, `.tnt-transition-*`, `.tnt-interactive`
+   - Guard: ca "mọi class selector đều mang prefix `tnt-`"
 
-5. **CSS component phải nằm trong `@layer`**
-   - ❌ **Hiện trạng vi phạm:** `FileTree.css`, `CarouselTicker.css` KHÔNG có `@layer` block
-   - Css không nằm trong layer luôn thắng CSS trong layer của client (Cascade Layers spec)
-   - Hệ quả: client không override được mà không đấu specificity
-   - Fix: Wrap tất cả component CSS vào `@layer components { ... }`
+3. **Prefix mọi `@keyframes`** - ✅ đã bịt
+   - `@keyframes accordion-down` và `accordion-up` không prefix. Đây là **đúng tên keyframes của
+     shadcn**: host dùng shadcn thì trùng thẳng và một trong hai bên thắng tuỳ thứ tự.
+   - Sửa: `tnt-accordion-down` / `tnt-accordion-up`
+   - Guard: ca "mọi `@keyframes` đều mang prefix `tnt-`"
 
-6. **Không Tailwind class thô trong JSX**
-   - ❌ **Hiện trạng vi phạm:**
-     - `src/ui/Ping/Ping.tsx:45-50`: `inline-flex items-center gap-1`, `absolute size-2 animate-ping rounded-full bg-green-500 opacity-75`, `min-w-8 text-xs font-medium tabular-nums`
-     - `src/ui/CarouselTicker/CarouselTicker.tsx:211-291`: `shrink-0 grow-0 flex will-change-transform`, `absolute inset-0 pointer-events-none`, `relative overflow-hidden h-full min-h-[100px]`, `m-0 p-0 relative flex w-full`...
-   - Bundle KHÔNG ship các utility này (build-entry.css không import Tailwind) -> chỉ hiển thị đúng nếu client có Tailwind, đúng version/config
-   - Hard-code `bg-green-500` trong Ping dù `--tnt-ping` đã có
-   - Fix: Loại bỏ Tailwind class khỏi JSX, chuyển tất cả style vào CSS file với CSS variables
+4. **Namespace + prefix CSS variable** - ✅ không vi phạm, đo lại 2026-09-25
+   - 22 token trong `@theme inline` **không được emit vào `dist/styles.css`**: 0 match cho
+     `--color-primary`, 278 match cho `--tnt-*`. Khối `@theme inline` chỉ tồn tại trong source.
+   - Khẳng định cũ "trùng khít shadcn/ui -> va chạm chắc chắn" là **sai**, suy từ source chứ không
+     đo trên artifact. Đã gỡ.
+   - Quy tắc vẫn giữ: token mới phải prefix `--tnt-`.
+   - Guard: ca "mọi custom property khai ra đều mang prefix `--tnt-`", trừ khối `@theme`. Ca này
+     từng HỎNG: nó dùng `/^\s*--/` nên chỉ thấy declaration nằm riêng một dòng, và
+     `:root { --x: 1px; }` viết một dòng lọt qua. Sửa sang cắt khối theo đếm ngoặc.
 
-7. **Variable runtime từ third-party không lọt vào public CSS**
-   - ❌ **Hiện trạng vi phạm:** `FileTree.css:230,237` - `height: var(--radix-accordion-content-height);` trong keyframes
-   - Biến runtime nội bộ của Radix lọt vào CSS công khai -> rò rỉ chi tiết nội bộ
-   - Đổi foundation sang Base UI sẽ vỡ keyframes
-   - Fix: Bọc lại sau token của tinita: `--tnt-accordion-content-height: var(--radix-accordion-content-height)` rồi dùng biến tinita
+5. **Selector `.dark` là quy ước của HOST, ta ĐỌC chứ không ghi** - ✅ đã bịt
+   - `.dark, [data-theme='dark'] { --tnt-*; color-scheme: dark }` ghi lên element của host.
+   - Sửa: `:where(.dark, [data-theme='dark'])`. `:where()` cho specificity 0 nên host luôn đè lại
+     được - cách Ant Design v5 dùng để không ai phải viết `!important`.
+   - Scope `.dark` xuống `.tnt-dark` thì **sai**: dark mode sẽ không còn theo toggle của host.
+
+6. **CSS component KHÔNG tự bọc `@layer`; build sinh bản layer** - ✅ đã làm
+   - CSS ngoài mọi layer luôn thắng CSS trong layer của host, nên host phải đấu specificity.
+   - Nhưng bọc layer thì mọi CSS **không layer** của host đè lên component, kể cả vô ý.
+   - Sửa: ship hai artifact từ cùng một nguồn - `dist/styles.css` không layer và
+     `dist/styles.layer.css` bọc `@layer tnt`. Consumer chọn. Đây là cách Mantine làm
+     (`styles.css` + `styles.layer.css`).
+   - Consumer xếp thứ tự: `@layer tnt, base, components, utilities;` khai TRƯỚC khi import.
+   - Guard: ca "CSS source KHÔNG tự bọc `@layer`" - nếu source tự bọc thì bản không layer không còn
+     tồn tại.
+
+7. **Không Tailwind class thô trong JSX** - ✅ đã bịt
+   - `Ping` chưa từng có file CSS: toàn `inline-flex items-center gap-1`, `size-2 animate-ping`,
+     `bg-green-500`. `CarouselTicker` thì `shrink-0 grow-0 flex will-change-transform`,
+     `h-full min-h-[100px]`, v.v.
+   - Bundle cố ý KHÔNG ship utility nào (`build-entry.css` không `@import "tailwindcss"` - đó cũng
+     chính là cách bỏ Preflight của Tailwind v4). Nên một class Tailwind trong JSX là phụ thuộc
+     NGẦM vào Tailwind của host: đúng version, đúng config.
+   - Đo được: host không có Tailwind thì `.tnt-ping` nhận `display: block` thay vì `inline-flex`.
+   - Sửa: `Ping.css` mới; biến thể của `CarouselTicker` chuyển sang `data-*`. `bg-green-500`
+     hard-code thành `--tnt-ping-dot`.
+   - Kéo theo: bỏ `tailwind-merge`. `twMerge` chỉ có nghĩa khi có class Tailwind cần dedupe.
+     `dist/ui/carousel-ticker/index.mjs` **31084 -> 5759 bytes (-81%)**.
+   - Guard: ca "KHÔNG dùng class Tailwind thô nào trong JSX" trong test của cả 3 component - so
+     `classList` với prefix `tnt-`. `lucide*` được loại trừ: `lucide-react` tự gắn class lên `<svg>`
+     của nó, đó là class third-party và ta không kiểm soát.
+
+8. **Variable runtime từ third-party không lọt vào public CSS** - ✅ đã bịt
+   - `FileTree.css` dùng `var(--radix-accordion-content-height)` trực tiếp trong keyframes public.
+   - Biến nội bộ của Radix nằm trong contract CSS công khai: đổi foundation sang Base UI là vỡ
+     keyframes, và người dùng không có cách nào biết họ đang phụ thuộc Radix.
+   - Sửa: `--tnt-accordion-content-height: var(--radix-accordion-content-height)` đặt trên
+     `.tnt-filetree__accordion-content`; keyframes chỉ đọc biến của tinita.
+   - Guard: ca "không dùng biến runtime của third-party trực tiếp" - đòi đúng **một** lần xuất hiện
+     `var(--radix-*)`, ở chỗ bọc lại.
+
+9. **`'use client'` khai ở library, không đẩy sang consumer** - ✅ đã làm
+   - Đo được: `FileTree` trong Server Component của Next 15 throw
+     `(0 , e.useState) is not a function`; `CarouselTicker` throw `useRef`. Consumer tự bọc
+     `'use client'` là đủ để build xanh, nhưng việc đó bị đẩy sang **mọi** consumer.
+   - esbuild **XOÁ** directive khỏi output, nên đặt trong source là không đủ - đo được dist bắt đầu
+     bằng `import{...}`. Phải dùng tsup `banner: { js: "'use client';" }`.
+   - Áp cho cả package: tsup không cho banner theo entry, và toàn bộ `tinita-react` là client.
+   - Guard: ca L2 `next:rsc-filetree-no-directive` và `next:rsc-ticker-no-directive`, `expectOk`
+     đã đảo sang `true`.
+
+### Biến thể đi qua `data-*`, không qua chuỗi class
+
+```tsx
+<div
+  className="tnt-carousel-ticker"
+  data-orientation={isVertical ? 'vertical' : 'horizontal'}
+  data-overflow={overflowVisible ? 'visible' : 'hidden'}
+/>
+```
+
+```css
+.tnt-carousel-ticker[data-orientation='vertical']
+  .tnt-carousel-ticker__content {
+  flex-direction: column;
+}
+```
+
+Vì sao, chứ không phải `cn('tnt-x', isVertical && 'tnt-x--vertical')`:
+
+- `variant × size × state × orientation × intent` nhân thành chuỗi class dài vô hạn; một thuộc tính
+  `data-` cho mỗi chiều thì không.
+- State đọc được ngay trong DevTools mà không phải giải mã chuỗi class.
+- Đây là hướng của Radix (`data-state`) và Primer, và nó là cách duy nhất để CSS phản ứng với state
+  mà JS không phải tính class.
+
+Token đi qua CSS variable, không phải class. Chi tiết và các mô hình tham chiếu ở
+`docs/system-architecture.md` mục "Quyết Định Kiến Trúc Styling".
+
+### Component mới phải có story
+
+Mọi subpath trong `exports` của `tinita-react` và `tinita-dom` phải có story trong
+`apps/storybook/stories/<Tên>/<Tên>.stories.tsx`. `pnpm check-stories` đọc `exports` và làm đỏ nếu
+thiếu; nó nằm trong `pnpm gate`.
+
+Story phải import bằng **subpath cụ thể**, không qua barrel. Guard bắt được đúng lỗi này lần chạy
+đầu: `Ping.stories.tsx` import `from 'tinita-react'`, và barrel re-export `./ui/file-tree` nên nó
+kéo theo `@radix-ui/react-accordion` và `lucide-react` dù Ping không cần.
+
+Miễn trừ phải khai tường minh trong `EXEMPT` của `scripts/check-stories.mjs` kèm lý do. Hiện miễn
+trừ: barrel của cả hai package, `hooks/useToggle`, `utils/autoInjectStyles` - không có mặt nhìn được.
 
 ---
 

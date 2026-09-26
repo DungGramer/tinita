@@ -74,25 +74,36 @@ npm install tinita-react @radix-ui/react-accordion lucide-react   # thêm FileTr
 Thiếu peer thì lỗi xuất hiện lúc chạy (`Cannot find module 'lucide-react'`), không phải lúc install -
 npm không cảnh báo về optional peer. Bảng trên là chỗ tra.
 
-#### Tránh CSS của library đè CSS của bạn
+#### CSS của library không chạm vào CSS của bạn
 
-Đo được 2026-09-25: nếu app của bạn **khai thứ tự layer** thì CSS của bạn thắng. Một dòng:
+Đo được 2026-09-26 trong Chromium trên một app thật (`compatibility/cases/l2`, ca `css-leak`):
+**11 bề mặt, 0 rò rỉ**. Cụ thể là:
+
+- Không rule nào nhắm `body`, `html`, hay `*`. Không set `color-scheme`.
+- Mọi class, custom property và `@keyframes` đều mang prefix `tnt-`. Kể cả keyframes: tên
+  `accordion-down` / `accordion-up` trùng với shadcn nên đã đổi.
+- Dark mode **đọc** quy ước của bạn (`.dark` hoặc `[data-theme='dark']`) qua `:where()`, nên
+  specificity là 0 và bạn luôn đè lại được mà không cần `!important`.
+- JSX không chứa class Tailwind nào. Component hiển thị đúng dù app của bạn **không** có Tailwind.
+
+Bạn không phải làm gì cả. Nếu vẫn muốn chắc chắn CSS của bạn thắng trong mọi tình huống, dùng bản
+bọc layer:
 
 ```css
-/* trước khi import tinita-react/styles.css */
-@layer theme, base, components, utilities;
-@import 'tinita-react/styles.css';
+@layer tnt, theme, base, components, utilities; /* khai TRƯỚC khi import */
+@import 'tinita-react/styles.layer.css';
 ```
 
-Cơ chế: reset và utility của library nằm trong `@layer base` / `@layer utilities`. Nếu bạn không khai
-thứ tự layer, layer của library được khai sau layer của bạn và thắng. Khai trước thì layer của
-library map vào layer đã khai và sort đúng chỗ - CSS của bạn thắng.
+CSS **không** nằm trong layer luôn thắng CSS trong layer, nên với bản `.layer.css` thì mọi CSS
+thường của bạn đè lên component - sửa gì cũng được, không cần `!important`. Đánh đổi: nó đè cả khi
+bạn không cố ý. Vì vậy hai bản cùng được ship và bạn chọn:
 
-Không khai thì các thứ sau bị đè: `body` background/color, và class trùng tên như `.animate-fade-in`,
-`.transition-fast`, `.interactive`.
+| File                            | Khi nào dùng                                                  |
+| ------------------------------- | ------------------------------------------------------------- |
+| `tinita-react/styles.css`       | mặc định                                                      |
+| `tinita-react/styles.layer.css` | khi CSS của bạn đang bị đè, hoặc bạn muốn toàn quyền override |
 
-Còn `Ping` và `CarouselTicker` hiện viết class Tailwind thô trong JSX mà bundle không ship utility,
-nên chúng **cần app của bạn có Tailwind** mới hiển thị đúng. Đang được xử lý.
+Hai file có nội dung giống nhau, sinh từ cùng một nguồn lúc build.
 
 ---
 

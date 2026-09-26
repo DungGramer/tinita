@@ -1,850 +1,182 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Hướng dẫn cho Claude Code khi làm việc trong repo này.
 
-## Important Documentation
+Chi tiết và số đo nằm ở `docs/`. File này chỉ giữ thứ cần biết ngay và không suy
+ra được từ code.
 
-**Before making any changes, read [ARCHITECTURE.md](./ARCHITECTURE.md)** - This document contains critical architectural principles, compliance rules, and design patterns that MUST be followed.
+## Đọc trước
 
-## Project Overview
+- `docs/code-standards.md` - quy tắc dependency, `typesVersions`, API một kiểu trả
+  về, CSS chống rò rỉ global, reduced-motion. Mỗi quy tắc đi kèm số đo.
+- `docs/system-architecture.md` - chiến lược đóng gói, bảng rò rỉ CSS đã đo.
+- `compatibility/README.md` - lab, quy tắc cô lập, những gì còn treo.
+- `ARCHITECTURE.md`, `CONTRIBUTING.md` - nguyên tắc kiến trúc và quy trình.
 
-**Tinita** is a multi-package monorepo designed to provide framework-agnostic utilities, React hooks, Vue composables, Node utilities, and shared tooling. The project emphasizes modularity, tree-shakeability, and independent package publishing under the `tinita` scope (not `@tinita/`).
-
-## Monorepo Architecture
-
-This is a **Turborepo** monorepo managed with **pnpm** workspaces:
-
-- **Package manager**: pnpm (v9.0.0)
-- **Build orchestration**: Turborepo
-- **Node version**: >=18
-
-### Directory Structure
+## Ba package
 
 ```
-tinita/
-  ├── packages/          # Main publishable packages
-  │   ├── tinita/        # Framework-agnostic utilities
-  │   └── tinita-react/  # React hooks and UI components
-  │       ├── src/
-  │       │   ├── hooks/      # React hooks (single-file)
-  │       │   └── ui/         # UI components (folder-based)
-  ├── config/            # Shared configuration packages
-  │   ├── eslint-config/ # ESLint configurations (@repo/eslint-config)
-  │   ├── typescript-config/ # TypeScript configurations (@repo/typescript-config)
-  │   └── ui/            # Shared React components (@repo/ui)
-  ├── scripts/           # Build automation scripts
-  ├── turbo.json         # Turborepo task configuration
-  └── pnpm-workspace.yaml
+packages/tinita/       utility framework-agnostic, 0 dependency, 0 peer
+packages/tinita-react/ hook + UI component, 0 dependency, peer: react (bắt buộc)
+                       + @radix-ui/react-accordion và lucide-react (optional)
+packages/tinita-dom/   utility DOM thuần, 0 dependency, 0 peer, browser-only
 ```
 
-## Development Commands
+`config/` giữ eslint/typescript/ui dùng chung. `apps/storybook` là nơi xem
+component. `compatibility/` là lab kiểm package từ góc nhìn người dùng - **không**
+nằm trong pnpm workspace, và có ca L2 chặn việc thêm nó vào.
 
-### Build
+pnpm + Turborepo. Node >= 18.
+
+## Lệnh
+
 ```bash
-# Build all packages
-pnpm build
-# or
-turbo build
+pnpm gate           # CỔNG: format, lint, types, build, test, stories, L1 (~84s)
+pnpm gate:full      # thêm L2 và L4 (cần chromium, vài phút) - chạy trước publish
 
-# Build specific package
-turbo build --filter=tinita
-```
-
-### Development
-```bash
-# Run dev mode for all packages
-pnpm dev
-# or
-turbo dev
-
-# Dev mode for specific package
-turbo dev --filter=tinita
-```
-
-### Linting & Type Checking
-```bash
-# Lint all packages
+pnpm build          # turbo run build
+pnpm test           # vitest run, cả 3 package
 pnpm lint
-# or
-turbo lint
-
-# Type check all packages
 pnpm check-types
-# or
-turbo check-types
+pnpm format         # prettier --write
+pnpm format:check   # dùng cái này làm cổng, đừng --write rồi xem diff
+pnpm check-stories  # mọi subpath publish ra đều phải có story
+pnpm storybook
 ```
 
-### Testing
-```bash
-# Run all tests
-pnpm test
-# or
-turbo test
+**Không có CI.** Owner chốt: repo một người, `pnpm gate` trên máy là đủ.
 
-# Run tests in watch mode
-cd packages/tinita && pnpm test --watch
+`npm publish` và `npm deprecate` là **hành động của owner**. `scripts/publish.mjs`
+dừng ở `npm whoami` - đừng bypass.
 
-# Run tests with coverage
-cd packages/tinita && pnpm test --coverage
-```
+## Không tồn tại - đừng thêm lại từ ký ức
 
-### Formatting
-```bash
-# Format all TypeScript, TSX, and Markdown files
-pnpm format
-```
+- **`generate:exports`**: không có `scripts/generate-package-exports.mjs`, không có
+  task trong `turbo.json`. `exports`, entry tsup và barrel đều sửa TAY.
+  `tinita-react/tsup.config.ts` có tự quét entry bằng glob, nhưng `exports` thì
+  không. Thêm subpath = sửa `package.json` + `typesVersions` + `contract.json`.
+- **`tailwind.config.cjs`**: đã xoá. `build-entry.css` cố ý không
+  `@import "tailwindcss"` nên `content` của nó chưa bao giờ được dùng.
+- **`src/styles/index.css`**: đã xoá, mồ côi.
+- **Tailwind `--prefix`**: chưa từng tồn tại. Đừng viết tài liệu như thể có.
+- **`CSS_GUIDE.md`**: không tồn tại.
 
-### Publishing
-```bash
-# Publish specific package (dry run)
-pnpm publish:dry-run
+## Build: bốn bất biến, mỗi cái từ một bug thật
 
-# Publish specific package
-pnpm publish:tinita
-pnpm publish:tinita-react
+`tsup` cho cả 3 package. Đừng đổi những thứ sau mà không đọc lý do:
 
-# Publish all packages
-pnpm publish:all
-```
+1. **`bundle: true`** - bắt buộc, KHÔNG phải `false`. Với `bundle: false` esbuild
+   giữ nguyên specifier tương đối không đuôi trong `.mjs`, và Node ESM đòi đuôi:
+   `ERR_MODULE_NOT_FOUND` ở mọi import nội bộ. Đây là bug B2 của lab.
+2. **`outExtension: cjs -> .cjs, esm -> .mjs`** - `exports.require` trỏ `.cjs`;
+   không có nó tsup emit `.js` và mọi `require()` gãy. Bug B1.
+3. **`types` tách theo condition** - `import` -> `.d.mts`, `require` -> `.d.ts`.
+   Không tách thì `attw` báo `FalseCJS` toàn bộ subpath.
+4. **`banner: { js: "'use client';" }` cho tinita-react** - esbuild XOÁ directive
+   khỏi output, nên đặt `'use client'` trong source là không đủ. Đo được: dist bắt
+   đầu bằng `import{...}`. Cả package là client nên áp toàn bộ là khai đúng.
 
-## Package Architecture & Build System
+`typesVersions` phải đồng bộ với `exports` cho cả 3 package (QĐ-2 của owner:
+support `moduleResolution: node`). Nó không có tool đồng bộ - ca L1
+`08-typesversions-sync` là cửa chặn duy nhất. Hình dạng đúng là **key tường minh
+từng subpath, KHÔNG wildcard**; xem `docs/code-standards.md`.
 
-### Build Tool: tsup
-All utility packages use **tsup** with the following requirements:
+## Đường nhập
 
-- **Output formats**: ESM (`.mjs`) + CJS (`.cjs`)
-- **Type definitions**: Required (`.d.ts`)
-- **No bundling**: Use `bundle: false` to preserve module boundaries for tree-shaking
-- **Output directory**: `dist/`
+`tinita` - barrel hoặc subpath đều được.
 
-Example tsup configuration pattern:
-```typescript
-import { defineConfig } from 'tsup';
-
-export default defineConfig({
-  entry: ['src/index.ts', 'src/file/fileSize.ts', ...],
-  format: ['cjs', 'esm'],
-  dts: true,
-  bundle: false,
-  splitting: false,
-  clean: true,
-  outDir: 'dist'
-});
-```
-
-### Package.json Structure
-Every package must include:
-
-```json
-{
-  "name": "tinita",
-  "version": "0.0.1",
-  "main": "dist/index.cjs",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
-  "files": ["dist"],
-  "scripts": {
-    "build": "pnpm run clean && tsup",
-    "lint": "eslint src --ext .ts",
-    "test": "vitest",
-    "prepublishOnly": "pnpm run generate:exports && pnpm run build"
-  }
-}
-```
-
-### Subpath Exports
-All packages MUST define subpath exports for tree-shakeability:
-
-```json
-{
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
-    },
-    "./file/fileSize": {
-      "types": "./dist/file/fileSize.d.ts",
-      "import": "./dist/file/fileSize.mjs",
-      "require": "./dist/file/fileSize.cjs"
-    }
-  }
-}
-```
-
-This enables users to import specific utilities:
-```typescript
-import { fileSize } from 'tinita/file/fileSize';
-```
-
-## Automated Export Generation
-
-**IMPORTANT**: Tinita uses an automated script to generate exports, tsup entries, and barrel exports. This script should be run after adding new utilities.
-
-### Auto-Generate Exports Command
-```bash
-# From package directory
-cd packages/tinita
-pnpm run generate:exports
-
-# From root directory
-node scripts/generate-package-exports.mjs packages/tinita
-```
-
-This script:
-1. Scans `src/` directory for all `.ts` files (excluding `index.ts` and test files)
-2. Generates `package.json` exports field
-3. Updates `tsup.config.ts` entry array
-4. Updates `src/index.ts` barrel exports
-
-### Turbo Pipeline Integration
-The `generate:exports` task runs automatically before `build` in the Turborepo pipeline:
-
-```json
-{
-  "build": {
-    "dependsOn": ["^build", "generate:exports"]
-  }
-}
-```
-
-## Tree-Shaking & Module Design
-
-Critical rules for tree-shakeability:
-
-1. **One file = one function/hook/composable** - Each utility must be in its own file
-2. **No deep re-exporting** unless explicitly documented
-3. **Preserve module boundaries** - Use `bundle: false` in tsup
-4. **Subpath imports must always work** - Define explicit exports for every utility
-
-### Package-Specific Import Rules
-
-#### `tinita` (Core Package)
-- ✅ Barrel imports allowed: `import { fileSize } from 'tinita'`
-- ✅ Subpath imports encouraged: `import { fileSize } from 'tinita/file/fileSize'`
-
-#### `tinita-react` (React Package)
-
-**Sửa 2026-09-25:** hai đường nhập từng được ghi ở đây là BẮT BUỘC - `tinita-react/hooks` và
-`tinita-react/ui` - **không tồn tại**. Chúng không có trong `exports` của `package.json` lẫn trong
-`dist/`. Tài liệu này đã chỉ người dùng vào đường chết. Phát hiện bởi ca `05-contract-drift` của
-compatibility lab, sau khi thực thi thử từng specifier.
-
-Subpath có thật (9 key, xác minh bằng `node compatibility/run.mjs l1`):
+`tinita-react` - dùng **subpath cụ thể**. 9 key thật:
 
 ```
-tinita-react                              # barrel - xem cảnh báo dưới
-tinita-react/hooks/useToggle
-tinita-react/ui/ping
-tinita-react/ui/carousel-ticker
-tinita-react/ui/file-tree
+tinita-react/hooks/useToggle   tinita-react/ui/ping
+tinita-react/ui/file-tree      tinita-react/ui/carousel-ticker
 tinita-react/utils/autoInjectStyles
-tinita-react/styles.css
-tinita-react/styles/globals.css
-tinita-react/styles/animations.css
+tinita-react/styles.css        tinita-react/styles.layer.css
+tinita-react/styles/globals.css  tinita-react/styles/animations.css
 ```
 
-- ✅ **Dùng subpath cụ thể**, ví dụ `import { Ping } from 'tinita-react/ui/ping'`.
-- ⚠️ **Barrel `tinita-react` kéo theo cả optional peer.** Đo được: `src/index.ts` re-export
-  `./ui/file-tree`, nên `import { Ping } from 'tinita-react'` đòi `@radix-ui/react-accordion` và
-  `lucide-react` dù `Ping` không cần cái nào. Đây là lý do KỸ THUẬT để bỏ barrel, mạnh hơn lý do
-  quy ước. Hiện barrel vẫn tồn tại (nợ #7).
-
-**Rationale:** subpath cụ thể cho tree-shaking tốt hơn, và tránh kéo optional peer không cần thiết.
-
-#### `tinita-dom` (DOM Package)
-
-**Browser-only, không có SSR guard - đó là quyết định có chủ ý.** Nó cài listener trên `document`;
-trên server không có gì để cài nên gọi nó ở đó là lỗi của người gọi. Xem
-`packages/tinita-dom/README.md`.
-
-Zero dependency, zero peer dependency. Không cần React.
-
-```
-tinita-dom                      # barrel, kéo cả 2 module
-tinita-dom/smooth-scroll        # installSmoothScroll
-tinita-dom/wheel-source         # classifyWheelSource + 6 hằng số đã đo
-```
-
-- ✅ Dùng subpath cụ thể: `import { installSmoothScroll } from 'tinita-dom/smooth-scroll'`
-- ⚠️ `installSmoothScroll()` gọi **một lần, ngoài React** - effect bị gọi hai lần của StrictMode sẽ
-  cài nó hai lần. Nó trả về hàm gỡ.
-
-## TypeScript Configuration
-
-The monorepo uses shared TypeScript configurations from `config/typescript-config`:
-
-- **base.json**: Base configuration with strict mode, ES2022 target, NodeNext module resolution
-- **nextjs.json**: Next.js specific configuration
-- **react-library.json**: React library configuration
-
-Key compiler options enforced:
-- `strict: true`
-- `noUncheckedIndexedAccess: true`
-- `isolatedModules: true`
-- `declaration: true` (for all packages)
-
-## ESLint Configuration
-
-Shared ESLint configs are in `config/eslint-config` with three presets:
-
-- **base.js**: Base ESLint configuration
-- **next.js**: Next.js specific rules
-- **react-internal.js**: React component rules
-
-## Testing
-
-- **Framework**: Vitest
-- **Test location**: `<package>/tests/*.test.ts`
-- **Root config**: `vitest.config.ts`
-
-## Turborepo Tasks
-
-Tasks are configured in `turbo.json`:
-
-- **generate:exports**: Generates package.json exports, tsup entries, and barrel exports
-- **build**: Builds with dependency order (`dependsOn: ["^build", "generate:exports"]`)
-- **lint**: Lints with dependency order
-- **check-types**: Type checks with dependency order
-- **test**: Runs after build
-- **dev**: Development mode (not cached, persistent)
-
-## Adding a New Utility Workflow
-
-### For Framework-Agnostic Utilities (tinita)
-
-When adding a new utility to `tinita`:
-
-1. **Create the utility file** in appropriate directory (e.g., `src/string/isEmpty.ts`)
-2. **Run the export generator**:
-   ```bash
-   cd packages/tinita
-   pnpm run generate:exports
-   ```
-3. **Write tests** in `tests/` directory
-4. **Build and verify**:
-   ```bash
-   pnpm build
-   pnpm test
-   ```
-5. **Update package README** with usage examples
-
-### For React Hooks (tinita-react)
-
-When adding a new React hook:
-
-1. **Create the hook file** in `src/hooks/` (e.g., `src/hooks/useDebounce.ts`)
-   ```typescript
-   // src/hooks/useDebounce.ts
-   import { useState, useEffect } from 'react';
-
-   export function useDebounce<T>(value: T, delay: number): T {
-     // Hook implementation
-   }
-   ```
-
-2. **Run the export generator**:
-   ```bash
-   cd packages/tinita-react
-   pnpm run generate:exports
-   ```
-
-3. **Write tests** in `tests/hooks/`
-4. **Build and verify**
-
-The hook will be available as:
-```typescript
-import { useDebounce } from 'tinita-react';
-// or
-import { useDebounce } from 'tinita-react/hooks/useDebounce';
-```
-
-### For React UI Components (tinita-react)
-
-**CRITICAL:** All UI components MUST follow the Component Colocation pattern.
-
-#### Component Colocation Pattern (MANDATORY)
-
-**Rule:**
-- Main component MUST be in a separate file (e.g., `FileTree.tsx`), NOT in `index.tsx`
-- `index.tsx` ONLY re-exports
-- Private components MUST be grouped with their parent
-
-**Why separate file + index.tsx?**
-- **Discoverability**: Easy to find `FileTree.tsx` in file tree
-- **Maintainability**: Clear separation between logic and barrel exports
-- **Scalability**: Easy to add types, hooks, utils without cluttering index
-- **Big Tech Standard**: Follows "1 file = 1 unit" convention (Meta, Google, Microsoft)
-
-#### ❌ BAD - Logic in index.tsx:
-```
-src/ui/FileTree/
-  ├── index.tsx           ← Component logic here (hard to search)
-  ├── FileTreeNode.tsx
-  └── FileTreeItem.tsx
-```
-
-#### ✅ GOOD - Separate main file + index re-export:
-```
-src/ui/FileTree/
-  ├── FileTree.tsx        ← Main component logic (easy to find)
-  ├── FileTreeNode.tsx    ← Private component
-  ├── FileTreeItem.tsx    ← Private component
-  └── index.tsx           ← Re-export only
-```
-
-#### Workflow:
-
-1. **Create component folder** in `src/ui/`:
-   ```
-   src/ui/FileTree/
-     ├── FileTree.tsx         # Main component (REQUIRED)
-     ├── FileTreeNode.tsx     # Private components (optional)
-     ├── FileTree.types.ts    # Type definitions (optional)
-     └── index.tsx            # Re-exports (REQUIRED)
-   ```
-
-2. **Write main component**:
-   ```typescript
-   // src/ui/FileTree/FileTree.tsx
-   export interface FileTreeProps {
-     data: any[];
-   }
-
-   export function FileTree({ data }: FileTreeProps) {
-     // Component implementation
-   }
-   ```
-
-3. **Create re-export index**:
-   ```typescript
-   // src/ui/FileTree/index.tsx
-   export { FileTree } from './FileTree';
-   export type { FileTreeProps } from './FileTree';
-   ```
-
-4. **Update `src/ui/index.ts`** (barrel export for ui folder):
-   ```typescript
-   // src/ui/index.ts
-   export * from './FileTree';
-   export * from './Button';
-   // ... other components
-   ```
-
-5. **Update `package.json` exports**:
-   ```json
-   {
-     "exports": {
-       "./ui": {
-         "types": "./dist/ui/index.d.ts",
-         "import": "./dist/ui/index.mjs",
-         "require": "./dist/ui/index.cjs"
-       },
-       "./ui/FileTree": {
-         "types": "./dist/ui/FileTree/index.d.ts",
-         "import": "./dist/ui/FileTree/index.mjs",
-         "require": "./dist/ui/FileTree/index.cjs"
-       }
-     }
-   }
-   ```
-
-6. **Update `tsup.config.ts`**:
-   ```typescript
-   export default defineConfig({
-     entry: [
-       'src/index.ts',
-       'src/ui/index.ts',
-       'src/ui/FileTree/index.tsx',
-       // ... other entries
-     ],
-     // ...
-   });
-   ```
-
-7. **Write tests** in `tests/ui/FileTree.test.tsx`
-8. **Build and verify**
-
-The component will be available as:
-```typescript
-// Barrel import from ui
-import { FileTree } from 'tinita-react/ui/file-tree';
-
-// Direct import
-import { FileTree } from 'tinita-react/ui/FileTree';
-```
-
-## CSS Handling for UI Components (CRITICAL)
-
-All UI components MUST follow the **plug-and-play CSS approach** used by production libraries (Radix UI, HeadlessUI, MUI, Ant Design).
-
-### CSS Architecture Principles
-
-1. **CSS files are separate** - Never bundle CSS with JS
-2. **Manual import supported** - Works in all environments
-3. **Auto-inject available** - Optional convenience feature
-4. **CSS variables for theming** - Easy customization
-5. **SSR-compatible** - Works with Next.js, Remix, etc.
-6. **No-JS fallback** - Graceful degradation
-7. **Prefix all classes** - `tnt-{component}` convention
-
-### Tailwind CSS v4 Build-Time Approach (NEW)
-
-**tinita-react** uses **Tailwind CSS v4 as a BUILD-TIME tool** only:
-
-- **Developers write:** CSS with Tailwind utilities (`@apply`, etc.) + CSS variables
-- **Build compiles:** Tailwind → Pure CSS via PostCSS
-- **Users receive:** Pre-compiled CSS (NO Tailwind dependency required)
-- **Configuration:** Done in CSS using `@theme` directive (not `tailwind.config.ts`)
-
-#### Key Benefits
-
-1. **Developer Experience**: Use Tailwind utilities when writing styles
-2. **User Experience**: Ship pure CSS that works everywhere (Next.js, Vite, Remix, etc.)
-3. **Zero Dependencies**: Users don't need Tailwind installed
-4. **Ecosystem Agnostic**: Works in ANY JavaScript framework
-5. **Customization**: Users override via CSS variables or `@theme`
-
-#### Tailwind v4 Configuration (src/styles/tailwind.css)
-
-```css
-@import "tailwindcss";
-
-@theme {
-  /* Prefix ALL utilities with tnt- to avoid conflicts */
-  --prefix: tnt-;
-
-  /* Design tokens */
-  --color-tnt-bg: #ffffff;
-  --color-tnt-text: #1a1a1a;
-  --spacing-tree-indent: 16px;
-  --radius-sm: 4px;
-}
-
-/* Component CSS variables for user customization */
-:root {
-  --tnt-filetree-bg: var(--color-tnt-bg);
-  --tnt-filetree-text: var(--color-tnt-text);
-}
-```
-
-#### Writing Component CSS (with Tailwind)
-
-You can now use Tailwind utilities in component CSS:
-
-```css
-/* src/ui/Button/Button.css */
-@import "../../styles/tailwind.css";
-
-.tnt-button {
-  /* Option 1: Use Tailwind @apply */
-  @apply flex items-center gap-2 px-4 py-2 rounded-md;
-
-  /* Option 2: Use CSS variables */
-  background-color: var(--tnt-button-bg);
-
-  /* Option 3: Write vanilla CSS */
-  transition: background-color 0.15s ease;
-}
-```
-
-**Important:**
-- All Tailwind utilities are prefixed: `tnt-flex`, `tnt-items-center`, etc.
-- Users receive pure CSS - no Tailwind runtime
-- Use `@apply` for convenience, CSS variables for customization
-
-#### User Customization (Two Methods)
-
-**Method 1: CSS Variables (Simple)**
-```css
-/* User's app.css */
-:root {
-  --tnt-button-bg: #ff0000;
-  --tnt-button-text: #ffffff;
-}
-```
-
-**Method 2: Override @theme (Advanced - requires Tailwind)**
-```css
-/* User's styles.css */
-@import "tailwindcss";
-@import "tinita-react/styles.css";
-
-@theme {
-  /* Override tinita theme tokens */
-  --color-tnt-bg: #f5f5f5;
-  --color-tnt-text: #333333;
-}
-```
-
-#### Build Process
-
-CSS compilation happens automatically:
-
-```bash
-pnpm build:css  # Compiles Tailwind → Pure CSS
-pnpm build      # Builds both JS and CSS
-```
-
-Build script (`scripts/build-css.mjs`):
-1. Compiles `src/styles/tailwind.css` → `dist/tailwind.css` (Tailwind v4 → Pure CSS)
-2. Copies component CSS files: `src/ui/**/*.css` → `dist/ui/**/*.css`
-3. Bundles all CSS into `dist/styles.css` (Tailwind + components)
-
-**Output:**
-- `dist/styles.css` - All styles (Tailwind base + components)
-- `dist/ui/FileTree/FileTree.css` - Individual component styles
-- Pure CSS, no JavaScript runtime, works everywhere
-
-#### Important Notes
-
-**For Developers (Writing Components):**
-- ✅ Can use `@apply` for Tailwind utilities
-- ✅ Can use vanilla CSS directly
-- ✅ Must use CSS variables for customizable values
-- ✅ All classes prefixed with `tnt-{component}__*`
-- ❌ Do NOT use Tailwind classes in JSX (e.g., `className="flex"`)
-- ❌ Only use Tailwind in CSS files via `@apply`
-
-**For Users (Consuming Library):**
-- ✅ Import CSS: `import 'tinita-react/styles.css'`
-- ✅ Works without Tailwind installed
-- ✅ Customize via CSS variables
-- ✅ Override styles with CSS
-- ❌ No Tailwind dependency required
-
-### CSS File Structure
-
-Every UI component with styles MUST have:
-
-```
-src/ui/ComponentName/
-  ├── ComponentName.tsx       # Component logic
-  ├── ComponentName.css       # Component styles (REQUIRED if styled)
-  ├── index.tsx               # Re-export
-  └── README.md               # Usage docs (optional)
-```
-
-### CSS Naming Convention (BEM-like)
-
-```css
-/* Block */
-.tnt-filetree { }
-
-/* Element */
-.tnt-filetree__item { }
-
-/* Modifier */
-.tnt-filetree__item--selected { }
-```
-
-### CSS Variables for Customization
-
-All components MUST use CSS variables:
-
-```css
-:root {
-  --tnt-componentname-bg: #ffffff;
-  --tnt-componentname-text: #000000;
-  --tnt-componentname-border: #e0e0e0;
-  --tnt-componentname-hover: #f5f5f5;
-}
-
-.tnt-componentname {
-  background-color: var(--tnt-componentname-bg);
-  color: var(--tnt-componentname-text);
-  /* ... */
-}
-```
-
-### Component Implementation Pattern
-
-```typescript
-// ComponentName.tsx
-import { useEffect } from 'react';
-import { autoInjectStyles } from '../../utils/autoInjectStyles';
-
-export interface ComponentNameProps {
-  // ... props
-  /**
-   * Automatically inject CSS styles.
-   * Set to false if you're manually importing CSS.
-   * @default true
-   */
-  autoInjectStyles?: boolean;
-}
-
-// Import CSS as string for auto-injection
-const CSS_CONTENT = `/* Will be injected by bundler */`;
-
-export function ComponentName({
-  autoInjectStyles: shouldAutoInject = true,
-  ...props
-}: ComponentNameProps) {
-  useEffect(() => {
-    if (shouldAutoInject && CSS_CONTENT) {
-      autoInjectStyles('tnt-componentname-styles', CSS_CONTENT);
-    }
-  }, [shouldAutoInject]);
-
-  return (
-    <div className="tnt-componentname">
-      {/* Component implementation */}
-    </div>
-  );
-}
-```
-
-### Usage Modes
-
-**Mode 1: Manual Import (Recommended for Production)**
-
-```typescript
-// app.tsx or _app.tsx
-import 'tinita-react/styles.css'; // All components
-// or
-import 'tinita-react/ui/FileTree/FileTree.css'; // Specific component
-
-// Then use component
-import { FileTree } from 'tinita-react/ui/file-tree';
-<FileTree data={data} autoInjectStyles={false} />
-```
-
-**Mode 2: Auto-Inject (Development/Prototyping)**
-
-```typescript
-import { FileTree } from 'tinita-react/ui/file-tree';
-<FileTree data={data} /> // autoInjectStyles defaults to true
-```
-
-### Build Process
-
-CSS build is automatic when running `pnpm build`:
-
-```bash
-pnpm build:js   # Build JavaScript/TypeScript
-pnpm build:css  # Build CSS files
-pnpm build      # Build both
-```
-
-CSS files are:
-1. Copied from `src/` to `dist/` maintaining structure
-2. Bundled into `dist/styles.css` (all components)
-3. Exported via `package.json`:
-
-```json
-{
-  "exports": {
-    "./styles.css": "./dist/styles.css",
-    "./ui/ComponentName/ComponentName.css": "./dist/ui/ComponentName/ComponentName.css"
-  }
-}
-```
-
-### SSR Compatibility Requirements
-
-**CRITICAL:** All CSS handling MUST be SSR-safe:
-
-```typescript
-// ✅ GOOD - Check for browser environment
-if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-  // Inject styles
-}
-
-// ❌ BAD - Assumes browser environment
-document.head.appendChild(styleTag);
-```
-
-The `autoInjectStyles` utility handles this automatically.
-
-### Edge Cases to Handle
-
-1. **SSR (Next.js, Remix)** - Check for `window` before DOM manipulation
-2. **No-JS mode** - CSS must work without JavaScript
-3. **Old bundlers** - Separate CSS files work everywhere
-4. **Hot reload** - Prevent style duplication on HMR
-5. **Multiple instances** - Use unique style IDs
-
-### CSS Best Practices
-
-**✅ DO:**
-- Use CSS variables for all customizable values
-- Prefix all classes with `tnt-{component}`
-- Follow BEM-like naming convention
-- Test in SSR environments
-- Provide manual import option
-- Keep CSS separate from JS bundles
-- Document all CSS variables
-
-**❌ DON'T:**
-- Bundle CSS with JavaScript
-- Use CSS-in-JS for library components
-- Use inline styles (prefer classes)
-- Assume browser-only environment
-- Forget to test without JavaScript
-- Use unprefixed class names
-
-### Complete Example
-
-See `packages/tinita-react/CSS_GUIDE.md` for comprehensive examples including:
-- Dark mode theming
-- Custom styling
-- SSR setup
-- All usage patterns
-
-### What the Export Generator Does
-
-The export generator (`generate-package-exports.mjs`) automatically handles:
-- Detecting single-file utilities (hooks) vs folder-based components (ui)
-- Adding to `tsup.config.ts` entry array
-- Creating subpath exports in `package.json`
-- Updating barrel exports
-- Adding `external: ['react', 'react-dom']` for React packages
-
-**IMPORTANT for `tinita-react`:**
-
-The export generator is primarily designed for `tinita` (core package). For `tinita-react`, you need to **manually update** `package.json` exports and `tsup.config.ts` due to the special structure:
-
-1. Manual exports for `./hooks` and `./ui` category imports
-2. Manual entries for `src/hooks/index.ts` and `src/ui/index.ts`
-3. Keep `src/index.ts` empty (no barrel export)
-
-See the workflow sections above for detailed steps.
-
-## Package Requirements
-
-Every package MUST contain:
-1. `package.json` with proper exports
-2. `src/index.ts`
-3. `tsup.config.ts`
-4. `README.md` with usage, API docs, and import examples
-5. Build script
-6. Lint script
-7. Test script
-
-## Workspace Dependencies
-
-Use workspace protocol for internal dependencies:
-```json
-{
-  "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*"
-  }
-}
-```
-
-## Publishing
-
-- Packages published as `tinita`, `tinita-react`, etc. (not scoped under `@`)
-- Each package is independently publishable
-- Use `prepublishOnly` script to ensure build before publish
-- Version management: manual via `scripts/update-package-versions.mjs`
-
-## Important Project Files
-
-- **ARCHITECTURE.md**: Comprehensive architectural principles and compliance rules
-- **CONTRIBUTING.md**: Detailed contribution guidelines
-- **pnpm-workspace.yaml**: Workspace configuration (`packages/*`)
-- **turbo.json**: Turborepo task pipeline configuration
-- **scripts/generate-package-exports.mjs**: Automated export generation script
+`tinita-react/hooks` và `tinita-react/ui` **không tồn tại** - CLAUDE.md từng ghi
+chúng là bắt buộc và chỉ người dùng vào đường chết.
+
+Barrel `tinita-react` tồn tại nhưng nó re-export `./ui/file-tree`, nên
+`import { Ping } from 'tinita-react'` đòi `@radix-ui/react-accordion` và
+`lucide-react` dù Ping không cần. Đây là lý do KỸ THUẬT để tránh barrel.
+
+`tinita-dom` - `tinita-dom/smooth-scroll`, `tinita-dom/wheel-source`.
+Browser-only, không có SSR guard, có chủ ý. `installSmoothScroll()` gọi một lần
+ngoài React và trả về hàm gỡ.
+
+## Dependency: optional peer, không phải dependencies
+
+Component có phụ thuộc khác nhau - có cái dùng `motion`, có cái dùng `antd`, có
+cái dùng Base UI. Người dùng 1-2 component **không được** bị buộc cài hết. Vì vậy
+mọi thư viện của component là `peerDependencies` + `peerDependenciesMeta.optional`.
+
+npm **không cảnh báo** khi optional peer thiếu, nên bảng component -> peer trong
+README là bắt buộc, không phải trang trí. Quy tắc đầy đủ ở
+`docs/code-standards.md` mục "Quy Tắc Dependency".
+
+## CSS: không được chạm vào trang khách
+
+Owner đã dính production: Tailwind và CSS global của library xung đột với web của
+client. Mọi quy tắc dưới đây có số đo và có guard.
+
+- **Prefix `tnt-`** cho mọi class, custom property, và `@keyframes`. Không chỉ
+  class: `@keyframes accordion-down` trùng thẳng tên keyframes của shadcn.
+- **Không** rule nào nhắm `body`, `html`, hay `*`. Không `color-scheme`.
+- **Dark mode ĐỌC quy ước của host**, không định nghĩa nó:
+  `:where(.dark, [data-theme='dark'])`. `:where()` cho specificity 0 nên host luôn
+  đè lại được - cách antd v5 dùng.
+- **Biến runtime của third-party** (`--radix-*`) không được nằm trong CSS công
+  khai. Bọc lại sau token của tinita.
+- **Không class Tailwind trong JSX.** Bundle cố ý không ship utility nào, nên một
+  class Tailwind là phụ thuộc NGẦM vào Tailwind của host. Đo được: `Ping` từng
+  nhận `display: block` thay vì `inline-flex` khi host không có Tailwind.
+- **Biến thể đi qua `data-*`**, không qua chuỗi class:
+  `data-orientation`, `data-overflow`, `data-state`. Hướng của Radix và Primer;
+  state inspect được ngay trong DevTools và không nổ combinatorial.
+- **Source CSS KHÔNG tự bọc `@layer`.** Build sinh hai bản: `styles.css` không
+  layer và `styles.layer.css` bọc `@layer tnt`, từ cùng một nguồn. Consumer chọn.
+  Đây là cách Mantine làm.
+
+Guard: `packages/tinita-react/tests/styles/no-global-leak.test.ts` (10 ca, chạy
+trong `pnpm test`) và ca `css-leak` của L2 (đo thật trong Chromium). Hai cái không
+thay thế nhau - ca L2 mạnh hơn nhưng cần chromium nên không chạy trong vòng lặp.
+
+## Reduced motion: tắt hẳn
+
+`@media (prefers-reduced-motion: reduce)` phải `animation: none` /
+`transition: none`. **KHÔNG** `0.01ms`: với 0.01ms animation VẪN chạy nên
+`animationend`/`transitionend` vẫn fire, sinh lỗi thứ tự chỉ xuất hiện trên máy
+người bật reduced-motion. Owner đã gặp thật.
+
+CSS không tắt được Web Animations API, `requestAnimationFrame`, hay smooth scroll
+tự viết. Những cái đó phải tự tắt ở JS qua `matchMedia` + listener `change`. Mẫu ở
+`CarouselTicker.tsx` (`usePrefersReducedMotion` + `pinContentAtStart`) và
+`smooth-scroll.ts`. `CarouselTicker.css` có khối reduced-motion từ đầu và nó
+**chưa bao giờ** tắt được marquee.
+
+## Thêm component mới
+
+1. Folder trong `src/ui/<tên>/`: `<Tên>.tsx` (logic), `<Tên>.css` nếu có style,
+   `index.tsx` chỉ re-export. Logic KHÔNG nằm trong `index.tsx`.
+2. CSS thật, prefix `tnt-`, BEM, biến thể qua `data-*`. Không Tailwind trong JSX.
+3. Thêm subpath vào `package.json` `exports` **và** `typesVersions`, thêm
+   specifier vào `compatibility/contract.json`.
+4. **Story trong `apps/storybook/stories/<Tên>/<Tên>.stories.tsx`** - bắt buộc,
+   cho cả `tinita-react` và `tinita-dom`. `pnpm check-stories` đọc `exports` và
+   làm đỏ nếu thiếu. Story import bằng subpath cụ thể, không qua barrel.
+5. Test trong `packages/<pkg>/tests/`.
+6. `pnpm gate`.
+
+## Quy tắc làm việc trong repo này
+
+**Guard mới phải được chứng minh bằng cách phá đúng thứ nó canh**, không phải bằng
+việc nó xanh. Đã có bốn lần một ca báo xanh mà không kiểm thứ nó nói đang kiểm:
+cell `bun` advisory PASS khi chưa chạy được; ca `08-typesversions-sync` bản đầu
+không thể fail; ca `reduced-motion-scope` dò một hằng số nên mù khi cơ chế đổi;
+cell `yarn-pnp` pass 19 ca mà chưa từng đi qua PnP. Mẫu lặp lại, và đây là cách
+chặn duy nhất đã dùng được.
+
+Khi bịt xong một rò rỉ thì **đảo `expected`** trong ca của lab, đừng viết lại ca -
+ca là cửa chặn hồi quy, không phải bản báo cáo một lần.
