@@ -123,6 +123,10 @@ client. Mọi quy tắc dưới đây có số đo và có guard.
 
 - **Prefix `tnt-`** cho mọi class, custom property, và `@keyframes`. Không chỉ
   class: `@keyframes accordion-down` trùng thẳng tên keyframes của shadcn.
+  CSS Modules đã cân nhắc và **owner chốt không dùng** (2026-09-26): hash tên thì
+  người dùng mất khả năng override bằng CSS, còn CSS Modules tên ổn định thì trả
+  hết chi phí migration mà nhận lại đúng mức chống trùng đang có. Lý do đầy đủ ở
+  `docs/system-architecture.md`. Đừng mở lại mà không có lý do mới.
 - **Không** rule nào nhắm `body`, `html`, hay `*`. Không `color-scheme`.
 - **Dark mode ĐỌC quy ước của host**, không định nghĩa nó:
   `:where(.dark, [data-theme='dark'])`. `:where()` cho specificity 0 nên host luôn
