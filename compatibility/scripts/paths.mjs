@@ -16,6 +16,7 @@ export const MANIFEST = resolve(ARTIFACTS, 'manifest.json');
 export const PACKAGES = [
   { name: 'tinita', dir: resolve(REPO, 'packages/tinita') },
   { name: 'tinita-react', dir: resolve(REPO, 'packages/tinita-react') },
+  { name: 'tinita-dom', dir: resolve(REPO, 'packages/tinita-dom') },
 ];
 
 /** Exit code hợp đồng - CI xử lý "package sai" khác "runner sai". */

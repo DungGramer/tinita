@@ -15,6 +15,7 @@ function run(cmd, args, cwd) {
 /** File phải tồn tại trong dist sau build, nếu thiếu thì build im lặng không đủ. */
 const REQUIRED_DIST = {
   tinita: ['dist/index.mjs', 'dist/index.cjs', 'dist/index.d.ts'],
+  'tinita-dom': ['dist/index.mjs', 'dist/index.cjs', 'dist/smooth-scroll.mjs', 'dist/smooth-scroll.cjs', 'dist/wheel-source.mjs', 'dist/wheel-source.cjs'],
   'tinita-react': [
     'dist/index.mjs',
     'dist/index.cjs',

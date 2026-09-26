@@ -210,6 +210,12 @@ importers:
 
   packages/tinita: {}
 
+  packages/tinita-dom:
+    devDependencies:
+      jsdom:
+        specifier: ^27.0.0
+        version: 27.2.0
+
   packages/tinita-react:
     devDependencies:
       '@radix-ui/react-accordion':

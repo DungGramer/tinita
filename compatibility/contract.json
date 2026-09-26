@@ -134,6 +134,46 @@
       ],
       "accepted": [],
       "_barrelNote": "Barrel '.' đòi CẢ HAI optional peer vì src/index.ts re-export ./ui/file-tree. Nghĩa là `import { Ping } from 'tinita-react'` vẫn kéo radix + lucide dù Ping không cần. Đây là bằng chứng consumer cho việc bỏ barrel (nợ #7, hướng B của M2)."
+    },
+    "tinita-dom": {
+      "_browserOnly": "Chạm document/window/requestAnimationFrame/getComputedStyle. KHÔNG có SSR guard - quyết định có chủ ý, xem packages/tinita-dom/README.md. Ca SSR của L2 phải BỎ QUA package này.",
+      "browserOnly": true,
+      "specifiers": [
+        ".",
+        "./smooth-scroll",
+        "./wheel-source"
+      ],
+      "namedExports": {
+        ".": [
+          "installSmoothScroll",
+          "classifyWheelSource"
+        ],
+        "./smooth-scroll": [
+          "installSmoothScroll"
+        ],
+        "./wheel-source": [
+          "classifyWheelSource",
+          "decisiveWheelSource",
+          "provisionalWheelSource",
+          "WHEEL_SAMPLE_COUNT"
+        ]
+      },
+      "requiredFiles": [
+        "dist/index.mjs",
+        "dist/index.cjs",
+        "dist/smooth-scroll.mjs",
+        "dist/smooth-scroll.cjs",
+        "dist/wheel-source.mjs",
+        "dist/wheel-source.cjs"
+      ],
+      "forbiddenFiles": [
+        "src",
+        "tests",
+        "node_modules",
+        "tsconfig.json",
+        "tsup.config.ts"
+      ],
+      "accepted": []
     }
   }
 }
