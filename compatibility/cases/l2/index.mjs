@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { EXIT, LAB } from '../../scripts/paths.mjs';
-import { createConsumer, tarballFor } from '../../scripts/consumer.mjs';
+import { createConsumer, readManifest, tarballFor } from '../../scripts/consumer.mjs';
 import { printSummary, writeReport } from '../../scripts/report.mjs';
 import { SSR_CJS, SSR_ESM, tsProbe } from './lib/fixtures.mjs';
 
@@ -20,7 +20,9 @@ const flags = Object.fromEntries(
 );
 
 const REACT = ['react@19', 'react-dom@19'];
-const TGZ = ['tinita', 'tinita-react'].map(tarballFor);
+// Đọc ĐỘNG từ manifest, không hardcode: thêm package thứ tư mà quên sửa đây thì ca `tsc` sẽ
+// fail với 'Cannot find module' và trông như lỗi package, không phải lỗi consumer của lab.
+const TGZ = readManifest().map((e) => e.tarball);
 
 function run(cmd, args, cwd, timeout = 300_000) {
   try {
@@ -40,6 +42,11 @@ for (const [name, source, file, pkgJson] of [
   const hasPing = r.out.includes('tinita-ping');
   const ok = r.ok && hasPing;
   add(`ssr:${name}`, ok, ok ? `renderToString không throw, output có tinita-ping` : `exit=${r.code} ${r.out.split('\n').find((l) => /Error/.test(l))?.trim() ?? ''}`, { raw: r.out.slice(0, 400) });
+}
+
+for (const [name, def] of Object.entries(contract)) {
+  if (!def.browserOnly) continue;
+  add(`ssr:skip-browser-only:${name}`, true, `bỏ qua ${name} trong ca SSR: browserOnly=true, không có SSR guard theo thiết kế (xem packages/${name}/README.md)`, { skipped: true, reason: 'browserOnly' });
 }
 
 findings.push({

@@ -1,0 +1,67 @@
+{
+  "name": "tinita-dom",
+  "version": "0.0.1",
+  "description": "Framework-agnostic DOM utilities. Browser-only - see README.",
+  "keywords": [
+    "dom",
+    "smooth-scroll",
+    "wheel",
+    "scroll"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dunggramer/tinita.git",
+    "directory": "packages/tinita"
+  },
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./smooth-scroll": {
+      "import": {
+        "types": "./dist/smooth-scroll.d.mts",
+        "default": "./dist/smooth-scroll.mjs"
+      },
+      "require": {
+        "types": "./dist/smooth-scroll.d.ts",
+        "default": "./dist/smooth-scroll.cjs"
+      }
+    },
+    "./wheel-source": {
+      "import": {
+        "types": "./dist/wheel-source.d.mts",
+        "default": "./dist/wheel-source.mjs"
+      },
+      "require": {
+        "types": "./dist/wheel-source.d.ts",
+        "default": "./dist/wheel-source.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "pnpm run clean && tsup",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest run",
+    "check-types": "tsc --noEmit",
+    "prepublishOnly": "pnpm run build"
+  },
+  "devDependencies": {
+    "jsdom": "^27.0.0"
+  }
+}
