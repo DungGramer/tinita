@@ -680,7 +680,7 @@ trong `tinita-react` (build ra `dist/utils/cn.*` nhưng không import được q
 4. **Mọi selector CSS phải bắt đầu bằng class có prefix `tinita-`**
    - ❌ **Hiện trạng vi phạm:**
      - `src/styles/globals.css:116-127`: selector `*` và `body` trần
-     - `src/styles/animations.css:530-539`: `*, *::before, *::after` trong `@media (prefers-reduced-motion: reduce)` + `!important` - đè toàn trang
+     - `src/styles/animations.css:538-546`: `*, *::before, *::after` trong `@media (prefers-reduced-motion: reduce)` + `!important` - đè toàn trang
      - `CarouselTicker.css:15-17`: `.tinita-carousel-ticker * { box-sizing: border-box; }` - ép children của client
      - `FileTree.css`, `CarouselTicker.css`: selector `.dark` không prefix (Tailwind dark mode convention)
    - Fix: Loại bỏ selector trần, scope mọi rule trong `.tinita-{component}` hoặc `[data-tinita]`
@@ -704,6 +704,77 @@ trong `tinita-react` (build ra `dist/utils/cn.*` nhưng không import được q
    - Biến runtime nội bộ của Radix lọt vào CSS công khai -> rò rỉ chi tiết nội bộ
    - Đổi foundation sang Base UI sẽ vỡ keyframes
    - Fix: Bọc lại sau token của tinita: `--tinita-accordion-content-height: var(--radix-accordion-content-height)` rồi dùng biến tinita
+
+---
+
+## Quy Tắc Reduced Motion: TẮT HẲN, không phải thời lượng gần-0
+
+`@media (prefers-reduced-motion: reduce)` phải tắt hẳn animation và transition. **KHÔNG** dùng
+`animation-duration: 0.01ms` / `transition-duration: 0.01ms` - kể cả khi bạn thấy nó trong bài
+blog nào đó, nó là công thức được copy rộng nhất và nó sai.
+
+```css
+/* ĐÚNG */
+@media (prefers-reduced-motion: reduce) {
+  .tinita-thing {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* SAI - animation VẪN chạy */
+@media (prefers-reduced-motion: reduce) {
+  .tinita-thing {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+```
+
+### Vì sao - đây là lỗi thật, owner đã gặp
+
+Với `0.01ms` animation **vẫn chạy**, chỉ là chạy xong gần như tức thì. Hệ quả:
+
+- `animationend` / `transitionend` **vẫn fire**. Code chờ event đó để dọn dẹp, để unmount, để
+  chạy bước tiếp theo sẽ chạy ở một thời điểm hoàn toàn khác so với khi không có reduced-motion -
+  sinh lỗi thứ tự chỉ xuất hiện trên máy của người bật reduced-motion, tức gần như không bao giờ
+  reproduce được trên máy dev.
+- Frame đầu của keyframes vẫn được vẽ -> nháy 1 frame.
+- `animation-iteration-count: 1` phải khai thêm, nếu quên thì animation `infinite` chạy vô hạn ở
+  tốc độ 0.01ms/vòng - tốn CPU liên tục mà mắt không thấy gì.
+
+`animation: none` không fire event nào, không vẽ frame nào. Shorthand reset luôn `duration`,
+`iteration-count`, `timing-function` nên không cần liệt kê riêng.
+
+Cũng không "giữ lại fade 150ms cho đỡ giật cục". `prefers-reduced-motion: reduce` là người dùng
+nói họ không muốn chuyển động, không phải muốn chuyển động ngắn hơn.
+
+### Animation không do CSS điều khiển thì CSS không tắt được nó
+
+`@media (prefers-reduced-motion)` chỉ với tới CSS animation/transition. Nó **không** với tới:
+
+- Web Animations API (`element.animate()`) - `CarouselTicker` chạy bằng cái này
+- animation vẽ bằng `requestAnimationFrame`
+- `scrollTo({ behavior: 'smooth' })` và easing tự viết - `tinita-dom/smooth-scroll`
+
+Các trường hợp này phải tắt ở JS: đọc `window.matchMedia('(prefers-reduced-motion: reduce)')` và
+nghe event `change` để đổi setting hệ thống có hiệu lực ngay, không cần reload. Mẫu có sẵn ở
+`CarouselTicker.tsx` (hook `usePrefersReducedMotion`) và `smooth-scroll.ts:312`.
+
+Đã trả giá cho bài học này: `CarouselTicker.css` có khối reduced-motion từ đầu và nó **chưa bao
+giờ** tắt được marquee, vì marquee là WAAPI. Đo được 2026-09-26: bỏ nhánh JS đi thì dưới
+`reducedMotion: 'reduce'` content vẫn dịch từ `-19.5px` sang `-41px` trong 700ms.
+
+### Hai cửa chặn trong lab
+
+| Ca                                         | Ở đâu | Canh gì                                                                                                                                                                                            |
+| ------------------------------------------ | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `09-reduced-motion-off:<pkg>`              | L1    | Không thời lượng nào khác 0 trong mọi khối `prefers-reduced-motion` của **CSS đã ship** trong tarball. Không phụ thuộc selector nên vẫn đúng sau khi M1 scope lại khối.                            |
+| `react{18,19}:ticker-reduced-motion-stops` | L4    | Hành vi thật trong Chromium: `no-preference` thì transform của ticker đổi, `reduce` thì đứng yên và `getAnimations().length === 0`. Kiểm hai chiều để ticker chưa bao giờ chạy không cho xanh giả. |
+
+Cả hai đã được chứng minh bằng cách phá đúng thứ chúng canh (2026-09-26): nhét `0.01ms` và
+`150ms` trở lại -> ca 09 FAIL, exit 1; bỏ nhánh `if (prefersReducedMotion)` -> ca L4 FAIL cả
+react18 lẫn react19.
 
 ---
 

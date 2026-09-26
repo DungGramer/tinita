@@ -526,32 +526,21 @@
 /**
  * WCAG 2.1 Level AA Compliance
  * Respects user's motion sensitivity preferences
+ *
+ * TẮT HẲN, KHÔNG dùng `animation-duration: 0.01ms`.
+ * Với 0.01ms animation VẪN chạy, nên `animationend`/`transitionend` vẫn fire
+ * (gần như tức thì) - sinh bug thứ tự và nháy 1 frame rất khó truy. Owner đã
+ * gặp thật. `animation: none` không fire event nào.
+ *
+ * `animation`/`transition` là shorthand nên reset luôn duration,
+ * iteration-count, timing-function; không cần liệt kê riêng.
  */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    /* Disable all animations */
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    animation: none !important;
+    transition: none !important;
     scroll-behavior: auto !important;
-  }
-
-  /* Disable spring/bounce effects */
-  .transition-spring,
-  .animate-alert-in,
-  .animate-modal-in,
-  .animate-popover-in {
-    transition-timing-function: ease !important;
-    animation-timing-function: ease !important;
-  }
-
-  /* Preserve essential fade transitions */
-  .transition-fade,
-  .animate-fade-in,
-  .animate-fade-out {
-    transition-duration: 150ms !important;
-    animation-duration: 150ms !important;
   }
 }

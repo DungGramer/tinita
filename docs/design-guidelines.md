@@ -287,10 +287,15 @@ trước mọi thứ khác.
 | `.interactive` đè `opacity`                              | `dist:171` là `.interactive:hover, .interactive:focus-visible`, chỉ set `will-change` - không đụng `opacity` ở trạng thái tĩnh                  |
 | `.tinita-carousel-ticker *` ép `box-sizing` lên children | Inline style của consumer thắng mọi stylesheet                                                                                                  |
 
+#### Đã đo thêm 2026-09-26
+
+`*, *::before, *::after { animation: none; transition: none; !important }` trong
+`animations.css:538-546` **có** đè element của chủ nhà: đặt `animation 5s/spin + transition 5s`,
+nhận về `0s/none + 0s`. Ca L4 `reduced-motion-scope` đo liên tục, giao cho M1 scope lại.
+
 #### Chưa đo - vẫn là rủi ro
 
-`.dark` không prefix · `*, *::before, *::after { ... !important }` reduced-motion
-(`animations.css:530-539`) · `var(--radix-accordion-content-height)` trong keyframes public
+`.dark` không prefix · `var(--radix-accordion-content-height)` trong keyframes public
 (`FileTree.css:230,237`) · `tailwind.config.cjs` thiếu `prefix`/`important`/`corePlugins.preflight`
 · `src/styles/index.css` mồ côi có `@import "tailwindcss"` · `autoInjectStyles` append cuối
 `document.head`. Pha 05 của plan phủ nhóm này.
@@ -375,14 +380,24 @@ assertion tự động. Chúng đặt ra bar, chưa gác được bar.
 
 ### 5.2 Reduced motion **[ĐANG CÓ]**
 
-Ba lớp, tất cả đều tồn tại trong source:
+Quy tắc: **tắt hẳn**. Không `0.01ms`, không giữ lại fade ngắn. Lý do đầy đủ và hai cửa chặn trong
+lab ở `docs/code-standards.md` mục "Quy Tắc Reduced Motion". Tóm lại: với `0.01ms` animation vẫn
+chạy nên `animationend`/`transitionend` vẫn fire, sinh lỗi thứ tự chỉ xuất hiện trên máy người bật
+reduced-motion. Owner đã gặp thật.
 
-1. `animations.css` có `@media (prefers-reduced-motion: reduce)` tắt animation/transition toàn
-   cục về `0.01ms !important`, ép `.transition-spring` và các `.animate-*-in` về `ease`, nhưng
-   **giữ lại** fade ở `150ms` để chuyển cảnh không bị giật cục.
-2. `FileTree.css` tắt riêng transition của `__arrow`, `__accordion-trigger`, `__label` và
+Bốn lớp, tất cả đều tồn tại trong source:
+
+1. `animations.css:538-546` - `@media (prefers-reduced-motion: reduce)` đặt `animation: none`,
+   `transition: none`, `scroll-behavior: auto`, tất cả `!important`. Selector vẫn là
+   `*, *::before, *::after` nên nó đè cả element của chủ nhà - rò rỉ đã đo được, giao cho M1.
+2. `FileTree.css:511-531` - `transition: none` cho `__arrow`, `__accordion-trigger`, `__label` và
    `animation: none !important` cho accordion content.
-3. `CarouselTicker.css` tắt animation của mọi con trong block.
+3. `CarouselTicker.css:19-32` - `animation: none` / `transition: none` cho mọi con trong block.
+   Khối này chỉ với tới CSS animation của children do người dùng truyền vào.
+4. `CarouselTicker.tsx` - hook `usePrefersReducedMotion` + `pinContentAtStart`. **Đây mới là chỗ
+   tắt được marquee.** Marquee chạy bằng Web Animations API nên lớp 3 không với tới nó; ghim
+   content ở frame đầu để pattern thật (không `aria-hidden`) nằm trong viewport thay vì các clone
+   dẫn đường. Nghe event `change` nên đổi setting hệ thống là dừng/chạy lại ngay, không cần reload.
 
 ### 5.3 Định hướng primitive **[ĐỊNH HƯỚNG]**
 
@@ -466,7 +481,9 @@ A11y & interaction:
 - [ ] Focus ring nhìn thấy được; focus restoration khi đóng overlay.
 - [ ] Role và accessible name đúng, test được bằng `getByRole`.
 - [ ] Có block `@media (prefers-reduced-motion: reduce)` riêng của component, không phó mặc
-      reset toàn cục trong `animations.css`.
+      reset toàn cục trong `animations.css`. Tắt hẳn (`animation: none`), KHÔNG `0.01ms`.
+- [ ] Animation không do CSS điều khiển (Web Animations API, `requestAnimationFrame`, smooth
+      scroll tự viết) phải tự tắt ở JS qua `matchMedia` - CSS không với tới nó.
 - [ ] RTL không vỡ: dùng logical property (`padding-inline-start`) thay `left` / `right`.
 - [ ] No-JS: nội dung vẫn đọc được, không phải màn trắng.
 - [ ] Contrast light + dark đạt WCAG 2.1 AA (4.5:1 text thường, 3:1 text lớn).

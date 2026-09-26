@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { ARTIFACTS, EXIT, LAB } from '../../scripts/paths.mjs';
@@ -258,6 +258,81 @@ for (const { name, dir } of TARGETS) {
     ok,
     ok ? `${subpaths.length} subpath + root đều giải được qua ${patterns.length} pattern` : parts.join(' | '),
     { subpaths: subpaths.length, patterns: patterns.length },
+  );
+}
+
+// ---------- 09 reduced-motion phải TẮT HẲN, không phải thời lượng gần-0 ----------
+// Owner đã gặp bug thật với `animation-duration: 0.01ms`: với 0.01ms animation VẪN chạy, nên
+// `animationend`/`transitionend` vẫn fire (gần như tức thì) - sinh lỗi thứ tự và nháy 1 frame rất
+// khó truy. `animation: none` không fire event nào.
+//
+// Ca này kiểm CSS ĐÃ SHIP trong tarball, không kiểm source, và không phụ thuộc selector - nên nó
+// vẫn đúng sau mốc M1 (scope lại khối), khác với ca `reduced-motion-scope` của L4 vốn đo qua một
+// element chủ nhà.
+function collectCssFiles(root) {
+  const found = [];
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir)) {
+      const full = resolve(dir, entry);
+      if (statSync(full).isDirectory()) walk(full);
+      else if (entry.endsWith('.css')) found.push(full);
+    }
+  };
+  walk(root);
+  return found;
+}
+
+/** Thân của từng khối `@media ... prefers-reduced-motion ...`, cắt bằng đếm ngoặc. */
+function reducedMotionBlocks(css) {
+  const stripped = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const blocks = [];
+  const re = /@media[^{]*prefers-reduced-motion[^{]*\{/g;
+  let match;
+  while ((match = re.exec(stripped))) {
+    let depth = 1;
+    let i = match.index + match[0].length;
+    const start = i;
+    while (i < stripped.length && depth > 0) {
+      if (stripped[i] === '{') depth += 1;
+      else if (stripped[i] === '}') depth -= 1;
+      i += 1;
+    }
+    blocks.push(stripped.slice(start, i - 1));
+    re.lastIndex = i;
+  }
+  return blocks;
+}
+
+for (const { name, dir } of TARGETS) {
+  const cssFiles = collectCssFiles(dir);
+  if (cssFiles.length === 0) {
+    add(`09-reduced-motion-off:${name}`, true, 'skip: package không ship file .css', { skipped: true, reason: 'no-css' });
+    continue;
+  }
+
+  const offenders = [];
+  let blockCount = 0;
+  for (const file of cssFiles) {
+    const rel = file.slice(dir.length + 1);
+    for (const body of reducedMotionBlocks(readFileSync(file, 'utf8'))) {
+      blockCount += 1;
+      // Bất kỳ thời lượng khác 0 trong khối reduced-motion đều là "chạy nhanh", không phải "tắt".
+      // Bắt cả shorthand (`animation: spin 0.01ms`) lẫn longhand (`animation-duration: 0.01ms`).
+      for (const [token, value, unit] of body.matchAll(/(?<![\w-])(\d*\.?\d+)(ms|s)(?![\w-])/g)) {
+        const ms = unit === 's' ? Number(value) * 1000 : Number(value);
+        if (ms > 0) offenders.push(`${rel}: ${token.trim()}`);
+      }
+    }
+  }
+
+  const ok = offenders.length === 0;
+  add(
+    `09-reduced-motion-off:${name}`,
+    ok,
+    ok
+      ? `${blockCount} khối prefers-reduced-motion trong ${cssFiles.length} file CSS, không thời lượng nào khác 0`
+      : `${offenders.length} thời lượng khác 0 trong khối reduced-motion (phải tắt hẳn): ${offenders.slice(0, 5).join(' | ')}`,
+    { blocks: blockCount, cssFiles: cssFiles.length, offenders: offenders.slice(0, 20) },
   );
 }
 

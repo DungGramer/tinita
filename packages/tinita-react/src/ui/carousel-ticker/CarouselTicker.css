@@ -16,11 +16,17 @@
   box-sizing: border-box;
 }
 
-/* Accessibility: Reduce motion for users who prefer it */
+/* Accessibility: tắt hẳn khi user yêu cầu reduced-motion. KHÔNG dùng
+   `animation-duration: 0.01ms` - với 0.01ms animation vẫn chạy và vẫn fire
+   `animationend`, sinh bug thứ tự khó truy.
+
+   Block này chỉ với tới CSS animation của children do user truyền vào. Marquee
+   của ticker chạy bằng Web Animations API (`element.animate()`), CSS
+   `animation-*` KHÔNG điều khiển được nó - nó bị tắt ở JS trong
+   CarouselTicker.tsx. Sửa một chỗ là chưa đủ. */
 @media (prefers-reduced-motion: reduce) {
   .tinita-carousel-ticker * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    animation: none !important;
+    transition: none !important;
   }
 }

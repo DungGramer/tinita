@@ -264,7 +264,7 @@ text-foreground } }` tại `src/styles/globals.css:116-127`. `*` và `body` thu�
   thắng** CSS trong layer của client, buộc client phải đấu specificity.
 - Scope selector `.dark` dưới prefix của tinita, không để nó bắt dark-mode toggle của client.
 - Scope khối reduced-motion `*, *::before, *::after { ... !important }`
-  (`animations.css:530-539`) - hiện nó đè mọi xử lý reduced-motion của client trên toàn trang.
+  (`animations.css:538-546`) - hiện nó đè mọi xử lý reduced-motion của client trên toàn trang.
 - Gỡ Tailwind class thô khỏi JSX của `Ping.tsx:45-50` và `CarouselTicker.tsx:211-291`. Bundle
   không ship utility nên 2 component này đang ngầm bắt host phải có Tailwind đúng version/theme.
   `bg-green-500` còn hard-code màu dù `--tinita-ping` đã tồn tại.
@@ -276,8 +276,10 @@ text-foreground } }` tại `src/styles/globals.css:116-127`. `*` và `body` thu�
 - Thêm `'use client'` vào `FileTree` và `CarouselTicker`. Đo được: trong Server Component của Next
   15 chúng throw `(0 , e.useState) is not a function` và `(0 , e.useRef) is not a function`; `Ping`
   thì chạy được vì không dùng hook. Consumer tự bọc là đủ nhưng việc đó bị đẩy sang mọi consumer.
-- Scope khối reduced-motion `animations.css:530-539`. Đo được: element của **chủ nhà** bị ép
-  `animation-duration=1e-05s`. Sau khi sửa, ca `reduced-motion-scope` của L4 sẽ đỏ -> đảo assertion.
+- Scope khối reduced-motion `animations.css:538-546`. Đo lại 2026-09-26 sau khi đổi sang tắt hẳn:
+  element của **chủ nhà** đặt `animation 5s/spin + transition 5s` nhận về `0s/none + 0s`. Rò rỉ
+  KHÔNG đổi, chỉ đổi giá trị đo. Sau khi scope, ca `reduced-motion-scope` của L4 sẽ đỏ -> đảo
+  assertion. Ca `09-reduced-motion-off` của L1 không liên quan tới scope nên giữ nguyên.
 - Khi bịt xong rò rỉ nào thì đảo `expected` trong `compatibility/cases/l2/lib/css-probe.mjs`
   (`LEAK_SURFACES`) và trong ca L4, từ `leaks` sang `clean`. Không viết lại ca.
 

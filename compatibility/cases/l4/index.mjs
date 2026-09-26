@@ -109,31 +109,89 @@ for (const reactVersion of REACT_VERSIONS) {
         : `${hydrationErrors.length} lỗi hydration: ${hydrationErrors[0].slice(0, 200)}`,
       { consoleErrors: consoleErrors.slice(0, 5) });
 
-    // reduced-motion: khối `*, *::before, *::after { !important }` có đè element CHỦ NHÀ không
+    // reduced-motion: khối `*, *::before, *::after { !important }` có đè element CHỦ NHÀ không.
+    //
+    // Đo bằng cách SO VỚI GIÁ TRỊ ĐÃ SET, không so với một hằng số. Bản trước dò
+    // `seconds <= 0.0001` để bắt hack `0.01ms` (Chromium in ra `1e-05s`); khi khối đổi sang
+    // `animation: none` thì giá trị là `0s`, không rơi vào khoảng đó, và ca sẽ báo "không bị đè"
+    // trong lúc rò rỉ vẫn còn nguyên. So với `5s`/`spin` đã set thì đúng cho cả hai cơ chế.
     await page.emulateMedia({ reducedMotion: 'reduce' });
     const rm = await page.evaluate(() => {
       const probe = document.createElement('div');
       probe.style.animation = 'spin 5s linear infinite';
+      probe.style.transition = 'opacity 5s linear';
       document.body.appendChild(probe);
-      const d = getComputedStyle(probe).animationDuration;
+      const style = getComputedStyle(probe);
+      const measured = {
+        animationDuration: style.animationDuration,
+        animationName: style.animationName,
+        transitionDuration: style.transitionDuration,
+      };
       probe.remove();
-      return d;
+      return measured;
     });
-    // Chromium in `0.01ms` thành `1e-05s`. So chuỗi sẽ bỏ sót - phải parse ra số giây.
-    const seconds = Number.parseFloat(rm);
-    const overridden = Number.isFinite(seconds) && seconds > 0 && seconds <= 0.0001;
+    const asked = 'animation 5s/spin + transition 5s';
+    const got = `${rm.animationDuration}/${rm.animationName} + ${rm.transitionDuration}`;
+    const overridden =
+      rm.animationDuration !== '5s' ||
+      rm.animationName !== 'spin' ||
+      rm.transitionDuration !== '5s';
     // Đây là hành vi HIỆN TẠI được chốt lại, không phải điều mong muốn. Sau mốc M1 (scope khối
     // reduced-motion) thì overridden phải thành false và ca này sẽ đỏ -> lúc đó đảo assertion.
     add(`react${reactVersion}:reduced-motion-scope`, overridden === true,
-      `element chủ nhà animation-duration=${rm} (${seconds}s)${overridden ? ' -> khối !important của library ĐÈ lên element KHÔNG thuộc library' : ' -> không bị đè'}`,
-      { leaks: overridden });
+      `element chủ nhà: đặt ${asked}, đo được ${got}${overridden ? ' -> khối !important của library ĐÈ lên element KHÔNG thuộc library' : ' -> không bị đè'}`,
+      { leaks: overridden, measured: rm });
     if (overridden) {
       findings.push({
         id: 'reduced-motion-unscoped',
-        detail: `animations.css:530-539 dùng \`*, *::before, *::after { ... !important }\` không scope. Đo được: element của chủ nhà bị ép animation-duration=${rm} khi bật prefers-reduced-motion.`,
+        detail: `animations.css khối \`@media (prefers-reduced-motion: reduce)\` dùng \`*, *::before, *::after { ... !important }\` không scope. Đo được: element của chủ nhà đặt ${asked} nhưng nhận ${got}.`,
         assignedTo: 'roadmap M1',
       });
     }
+
+    // CarouselTicker: HÀNH VI thật dưới reduced-motion, không phải declaration.
+    //
+    // Marquee chạy bằng Web Animations API (`element.animate()`) nên CSS `animation-*` KHÔNG điều
+    // khiển được nó: khối `@media (prefers-reduced-motion)` trong CarouselTicker.css không tắt
+    // được marquee, việc tắt nằm ở JS trong CarouselTicker.tsx. Chỉ có đo chuyển động mới thấy.
+    //
+    // Kiểm CẢ HAI chiều. Nếu chỉ kiểm "đứng yên khi reduce" thì một ticker chưa bao giờ chạy, hoặc
+    // một selector viết sai, cũng cho xanh. Chiều `no-preference` chứng minh phép đo thấy được
+    // chuyển động, và nó cũng kiểm luôn listener `change` của matchMedia theo chiều ngược.
+    const sampleTicker = () => page.evaluate(() => {
+      const el = document.querySelector('.tinita-carousel-ticker__content');
+      if (!el) return null;
+      return { transform: getComputedStyle(el).transform, running: el.getAnimations().length };
+    });
+
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.waitForTimeout(700);
+    const movingA = await sampleTicker();
+    await page.waitForTimeout(700);
+    const movingB = await sampleTicker();
+    const doesMove = Boolean(movingA && movingB && movingA.transform !== movingB.transform);
+
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.waitForTimeout(700);
+    const stoppedA = await sampleTicker();
+    await page.waitForTimeout(700);
+    const stoppedB = await sampleTicker();
+    const isStopped = Boolean(
+      stoppedA && stoppedB && stoppedA.transform === stoppedB.transform && stoppedA.running === 0
+    );
+
+    const tickerParts = [];
+    if (!movingA) tickerParts.push('không tìm thấy .tinita-carousel-ticker__content');
+    if (movingA && !doesMove) tickerParts.push(`no-preference: KHÔNG chuyển động (${movingA.transform}, ${movingA.running} animation)`);
+    if (stoppedA && !isStopped) tickerParts.push(`reduce: vẫn chạy (${stoppedA.transform} -> ${stoppedB.transform}, ${stoppedA.running} animation)`);
+    add(`react${reactVersion}:ticker-reduced-motion-stops`, doesMove && isStopped,
+      doesMove && isStopped
+        ? `no-preference: transform đổi (${movingA.transform} -> ${movingB.transform}); reduce: đứng yên tại ${stoppedA.transform} và 0 animation đang chạy`
+        : tickerParts.join(' | '),
+      { doesMove, isStopped });
+
+    // Đưa media về `reduce` cho phần chụp ảnh phía dưới giữ nguyên điều kiện cũ.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
 
     // Visual regression: baseline chỉ so khi đã có, và chỉ sinh trong container.
     mkdirSync(SHOTS, { recursive: true });

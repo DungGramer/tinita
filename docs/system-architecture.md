@@ -611,13 +611,14 @@ CSS component (`FileTree.css`, `CarouselTicker.css`) thì **layerless**.
 
 ### Rò rỉ THẬT, đo được (consumer có khai layer order)
 
-| Bề mặt                            | Trước -> Sau                               | Nguồn                                                  |
-| --------------------------------- | ------------------------------------------ | ------------------------------------------------------ |
-| `body` background                 | `rgb(10,20,30)` -> `rgb(255,255,255)`      | `globals.css:121-126` -> dist `@layer base`            |
-| `body` color                      | `rgb(40,50,60)` -> `rgb(26,26,26)`         | `globals.css:121-126`                                  |
-| `.animate-fade-in` bị **chiếm**   | `hostFade` -> `tinita-fade-in`             | `animations.css:243` -> dist `@layer utilities`        |
-| `.transition-fast`                | `777ms` -> `200ms`                         | `animations.css:156` -> `dist:114`                     |
-| `Ping` khi host KHÔNG có Tailwind | `display: block` (đúng phải `inline-flex`) | `Ping.tsx:45-50` viết utility thô mà bundle không ship |
+| Bề mặt                                        | Trước -> Sau                                          | Nguồn                                                                                                             |
+| --------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `body` background                             | `rgb(10,20,30)` -> `rgb(255,255,255)`                 | `globals.css:121-126` -> dist `@layer base`                                                                       |
+| `body` color                                  | `rgb(40,50,60)` -> `rgb(26,26,26)`                    | `globals.css:121-126`                                                                                             |
+| `.animate-fade-in` bị **chiếm**               | `hostFade` -> `tinita-fade-in`                        | `animations.css:243` -> dist `@layer utilities`                                                                   |
+| `.transition-fast`                            | `777ms` -> `200ms`                                    | `animations.css:156` -> `dist:114`                                                                                |
+| `Ping` khi host KHÔNG có Tailwind             | `display: block` (đúng phải `inline-flex`)            | `Ping.tsx:45-50` viết utility thô mà bundle không ship                                                            |
+| Element chủ nhà dưới `prefers-reduced-motion` | `animation 5s/spin + transition 5s` -> `0s/none + 0s` | `animations.css:538-546` `*, *::before, *::after { ... !important }`; ca L4 `reduced-motion-scope`, đo 2026-09-26 |
 
 ### Không rò rỉ như từng nghĩ - kèm lý do
 
@@ -630,8 +631,7 @@ CSS component (`FileTree.css`, `CarouselTicker.css`) thì **layerless**.
 
 ### Bề mặt chưa đo (vẫn là rủi ro, chưa xác nhận)
 
-`.dark` không prefix; `*, *::before, *::after { ... !important }` trong reduced-motion
-(`animations.css:530-539`); `--radix-accordion-content-height` trong keyframes public
+`.dark` không prefix; `--radix-accordion-content-height` trong keyframes public
 (`FileTree.css:230,237`); `tailwind.config.cjs` thiếu `prefix`/`important`/`corePlugins.preflight`;
 `src/styles/index.css` mồ côi có `@import "tailwindcss"`; `autoInjectStyles` append cuối
 `document.head` (không component nào gọi nó). Pha 05 của plan phủ nhóm này.
