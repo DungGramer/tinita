@@ -27,7 +27,18 @@ const config = [
     },
   },
   {
-    ignores: ["dist/**"],
+    // `storybook-static/**`: output của `storybook build`. eslint lint nó thì bundle
+    // minify sinh ra hàng loạt warning `no-unused-expressions` và `pnpm lint` exit 1.
+    // Đo được 2026-09-26: lint xanh trước khi build storybook, đỏ ngay sau. Mìn thật,
+    // không phải giả thuyết.
+    // `coverage/**`, `.next/**`, `.turbo/**`: cùng loại - artifact, không phải source.
+    ignores: [
+      "dist/**",
+      "storybook-static/**",
+      "coverage/**",
+      ".next/**",
+      ".turbo/**",
+    ],
   },
 ];
 
