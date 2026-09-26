@@ -1,6 +1,6 @@
 {
   "name": "tinita-dom",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Framework-agnostic DOM utilities. Browser-only - see README.",
   "keywords": [
     "dom",

@@ -167,5 +167,14 @@
       ],
       "accepted": []
     }
+  },
+  "_knownBrokenPublished": {
+    "_why": "Ca 07 so version LOCAL với registry. Sau khi bump lên 0.1.0, bản cũ gãy không còn được kiểm - mất một lớp coverage. Liệt kê tường minh ở đây để ca 07 vẫn kiểm chúng cho tới khi deprecate xong.",
+    "tinita": [
+      "0.0.1"
+    ],
+    "tinita-react": [
+      "0.0.2-alpha.1"
+    ]
   }
 }

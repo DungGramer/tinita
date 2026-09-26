@@ -1,6 +1,6 @@
 {
   "name": "tinita",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Modern TypeScript utility library with tree-shaking support - zero dependencies, type-safe, framework-agnostic",
   "author": {
     "name": "DungGramer",
