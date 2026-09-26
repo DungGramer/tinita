@@ -255,7 +255,7 @@ export const CarouselTicker: React.FC<CarouselTickerProps> = ({
           key={`pattern-${index}`}
           ref={isReferencePattern ? patternRef : undefined}
           className={cn(
-            'tinita-carousel-ticker__pattern shrink-0 grow-0 flex will-change-transform',
+            'tnt-carousel-ticker__pattern shrink-0 grow-0 flex will-change-transform',
             isVertical ? 'flex-col' : 'flex-row'
           )}
           style={{ ...(isVertical ? { width: '100%' } : { height: '100%' }) }}
@@ -310,7 +310,7 @@ export const CarouselTicker: React.FC<CarouselTickerProps> = ({
 
     return (
       <div
-        className="tinita-carousel-ticker__fade absolute inset-0 pointer-events-none"
+        className="tnt-carousel-ticker__fade absolute inset-0 pointer-events-none"
         style={fadeStyle}
         aria-hidden="true"
       />
@@ -321,7 +321,7 @@ export const CarouselTicker: React.FC<CarouselTickerProps> = ({
     <div
       ref={containerRef}
       className={cn(
-        'tinita-carousel-ticker',
+        'tnt-carousel-ticker',
         'relative',
         overflowVisible ? 'overflow-visible' : 'overflow-hidden',
         isVertical && 'h-full min-h-[100px]',
@@ -331,7 +331,7 @@ export const CarouselTicker: React.FC<CarouselTickerProps> = ({
       <div
         ref={contentRef}
         className={cn(
-          'tinita-carousel-ticker__content m-0 p-0 relative flex w-full overflow-visible will-change-transform',
+          'tnt-carousel-ticker__content m-0 p-0 relative flex w-full overflow-visible will-change-transform',
           isVertical ? 'flex-col h-auto min-h-full' : 'flex-row h-full min-h-auto',
           contentClassName
         )}

@@ -39,9 +39,9 @@ for (const [name, source, file, pkgJson] of [
 ]) {
   const work = createConsumer({ level: 'l2', name, deps: REACT, tarballs: TGZ, files: { [file]: source }, pkgJson });
   const r = run('node', [file], work, 60_000);
-  const hasPing = r.out.includes('tinita-ping');
+  const hasPing = r.out.includes('tnt-ping');
   const ok = r.ok && hasPing;
-  add(`ssr:${name}`, ok, ok ? `renderToString không throw, output có tinita-ping` : `exit=${r.code} ${r.out.split('\n').find((l) => /Error/.test(l))?.trim() ?? ''}`, { raw: r.out.slice(0, 400) });
+  add(`ssr:${name}`, ok, ok ? `renderToString không throw, output có tnt-ping` : `exit=${r.code} ${r.out.split('\n').find((l) => /Error/.test(l))?.trim() ?? ''}`, { raw: r.out.slice(0, 400) });
 }
 
 for (const [name, def] of Object.entries(contract)) {
@@ -220,14 +220,14 @@ createRoot(document.getElementById('root')).render(
       const page = await browser.newPage();
       await page.goto('http://127.0.0.1:4319/', { waitUntil: 'networkidle' });
       const seen = await page.evaluate(() => ({
-        filetree: document.querySelectorAll('.tinita-filetree').length,
-        ping: document.querySelectorAll('[class*="tinita-ping"]').length,
+        filetree: document.querySelectorAll('.tnt-filetree').length,
+        ping: document.querySelectorAll('[class*="tnt-ping"]').length,
         tinitaRules: [...document.styleSheets].flatMap((sh) => { try { return [...sh.cssRules]; } catch { return []; } })
-          .filter((r) => r.selectorText?.includes('tinita-')).length,
+          .filter((r) => r.selectorText?.includes('tnt-')).length,
       }));
       await browser.close();
       const ok = seen.filetree >= 1 && seen.tinitaRules > 0;
-      add('vite:render', ok, `FileTree=${seen.filetree} Ping=${seen.ping} rule .tinita-*=${seen.tinitaRules}`);
+      add('vite:render', ok, `FileTree=${seen.filetree} Ping=${seen.ping} rule .tnt-*=${seen.tinitaRules}`);
     } finally {
       proc.kill('SIGTERM');
     }

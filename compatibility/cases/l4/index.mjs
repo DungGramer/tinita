@@ -159,7 +159,7 @@ for (const reactVersion of REACT_VERSIONS) {
     // một selector viết sai, cũng cho xanh. Chiều `no-preference` chứng minh phép đo thấy được
     // chuyển động, và nó cũng kiểm luôn listener `change` của matchMedia theo chiều ngược.
     const sampleTicker = () => page.evaluate(() => {
-      const el = document.querySelector('.tinita-carousel-ticker__content');
+      const el = document.querySelector('.tnt-carousel-ticker__content');
       if (!el) return null;
       return { transform: getComputedStyle(el).transform, running: el.getAnimations().length };
     });
@@ -181,7 +181,7 @@ for (const reactVersion of REACT_VERSIONS) {
     );
 
     const tickerParts = [];
-    if (!movingA) tickerParts.push('không tìm thấy .tinita-carousel-ticker__content');
+    if (!movingA) tickerParts.push('không tìm thấy .tnt-carousel-ticker__content');
     if (movingA && !doesMove) tickerParts.push(`no-preference: KHÔNG chuyển động (${movingA.transform}, ${movingA.running} animation)`);
     if (stoppedA && !isStopped) tickerParts.push(`reduce: vẫn chạy (${stoppedA.transform} -> ${stoppedB.transform}, ${stoppedA.running} animation)`);
     add(`react${reactVersion}:ticker-reduced-motion-stops`, doesMove && isStopped,

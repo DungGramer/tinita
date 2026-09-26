@@ -157,7 +157,7 @@ The component automatically respects the user's `prefers-reduced-motion` prefere
 ```css
 /* Animations are automatically disabled when user prefers reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .tinita-filetree__accordion-content {
+  .tnt-filetree__accordion-content {
     animation: none !important;
   }
 }
@@ -237,16 +237,16 @@ Customize the component by overriding CSS variables:
 ```css
 :root {
   /* Dark theme (default) */
-  --tinita-filetree-bg: #0a0a0a;
-  --tinita-filetree-text: #e0e0e0;
-  --tinita-filetree-hover: rgba(255, 255, 255, 0.05);
-  --tinita-filetree-indent: 16px;
+  --tnt-filetree-bg: #0a0a0a;
+  --tnt-filetree-text: #e0e0e0;
+  --tnt-filetree-hover: rgba(255, 255, 255, 0.05);
+  --tnt-filetree-indent: 16px;
 
   /* Icon colors */
-  --tinita-filetree-icon-folder: #666;
-  --tinita-filetree-icon-javascript: #facc15;
-  --tinita-filetree-icon-markdown: #4b8bea;
-  --tinita-filetree-icon-css: #61dafb;
+  --tnt-filetree-icon-folder: #666;
+  --tnt-filetree-icon-javascript: #facc15;
+  --tnt-filetree-icon-markdown: #4b8bea;
+  --tnt-filetree-icon-css: #61dafb;
   /* ... more icon colors */
 }
 ```
@@ -255,9 +255,9 @@ Customize the component by overriding CSS variables:
 
 ```css
 [data-theme='light'] {
-  --tinita-filetree-bg: #ffffff;
-  --tinita-filetree-text: #1a1a1a;
-  --tinita-filetree-hover: rgba(0, 0, 0, 0.05);
+  --tnt-filetree-bg: #ffffff;
+  --tnt-filetree-text: #1a1a1a;
+  --tnt-filetree-hover: rgba(0, 0, 0, 0.05);
 }
 ```
 

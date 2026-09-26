@@ -44,7 +44,7 @@ export const renderTreeNodes = (
 
   return (
     <Accordion.Root type="multiple" defaultValue={folderValues} asChild>
-      <ul className="tinita-filetree__list" data-level={level}>
+      <ul className="tnt-filetree__list" data-level={level}>
         {nodes.map((node, idx) => {
           const hasChildren = node.children.length > 0;
           const isFolder = hasChildren || node.name.endsWith('/');
@@ -55,7 +55,7 @@ export const renderTreeNodes = (
           const itemValue = `${level}-${idx}`;
 
           return (
-            <li key={key} className="tinita-filetree__item">
+            <li key={key} className="tnt-filetree__item">
               {isFolder && hasChildren ? (
                 <FolderNode
                   node={node}

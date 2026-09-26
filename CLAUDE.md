@@ -486,7 +486,7 @@ All UI components MUST follow the **plug-and-play CSS approach** used by product
 4. **CSS variables for theming** - Easy customization
 5. **SSR-compatible** - Works with Next.js, Remix, etc.
 6. **No-JS fallback** - Graceful degradation
-7. **Prefix all classes** - `tinita-{component}` convention
+7. **Prefix all classes** - `tnt-{component}` convention
 
 ### Tailwind CSS v4 Build-Time Approach (NEW)
 
@@ -511,20 +511,20 @@ All UI components MUST follow the **plug-and-play CSS approach** used by product
 @import "tailwindcss";
 
 @theme {
-  /* Prefix ALL utilities with tinita- to avoid conflicts */
-  --prefix: tinita-;
+  /* Prefix ALL utilities with tnt- to avoid conflicts */
+  --prefix: tnt-;
 
   /* Design tokens */
-  --color-tinita-bg: #ffffff;
-  --color-tinita-text: #1a1a1a;
+  --color-tnt-bg: #ffffff;
+  --color-tnt-text: #1a1a1a;
   --spacing-tree-indent: 16px;
   --radius-sm: 4px;
 }
 
 /* Component CSS variables for user customization */
 :root {
-  --tinita-filetree-bg: var(--color-tinita-bg);
-  --tinita-filetree-text: var(--color-tinita-text);
+  --tnt-filetree-bg: var(--color-tnt-bg);
+  --tnt-filetree-text: var(--color-tnt-text);
 }
 ```
 
@@ -536,12 +536,12 @@ You can now use Tailwind utilities in component CSS:
 /* src/ui/Button/Button.css */
 @import "../../styles/tailwind.css";
 
-.tinita-button {
+.tnt-button {
   /* Option 1: Use Tailwind @apply */
   @apply flex items-center gap-2 px-4 py-2 rounded-md;
 
   /* Option 2: Use CSS variables */
-  background-color: var(--tinita-button-bg);
+  background-color: var(--tnt-button-bg);
 
   /* Option 3: Write vanilla CSS */
   transition: background-color 0.15s ease;
@@ -549,7 +549,7 @@ You can now use Tailwind utilities in component CSS:
 ```
 
 **Important:**
-- All Tailwind utilities are prefixed: `tinita-flex`, `tinita-items-center`, etc.
+- All Tailwind utilities are prefixed: `tnt-flex`, `tnt-items-center`, etc.
 - Users receive pure CSS - no Tailwind runtime
 - Use `@apply` for convenience, CSS variables for customization
 
@@ -559,8 +559,8 @@ You can now use Tailwind utilities in component CSS:
 ```css
 /* User's app.css */
 :root {
-  --tinita-button-bg: #ff0000;
-  --tinita-button-text: #ffffff;
+  --tnt-button-bg: #ff0000;
+  --tnt-button-text: #ffffff;
 }
 ```
 
@@ -572,8 +572,8 @@ You can now use Tailwind utilities in component CSS:
 
 @theme {
   /* Override tinita theme tokens */
-  --color-tinita-bg: #f5f5f5;
-  --color-tinita-text: #333333;
+  --color-tnt-bg: #f5f5f5;
+  --color-tnt-text: #333333;
 }
 ```
 
@@ -602,7 +602,7 @@ Build script (`scripts/build-css.mjs`):
 - ✅ Can use `@apply` for Tailwind utilities
 - ✅ Can use vanilla CSS directly
 - ✅ Must use CSS variables for customizable values
-- ✅ All classes prefixed with `tinita-{component}__*`
+- ✅ All classes prefixed with `tnt-{component}__*`
 - ❌ Do NOT use Tailwind classes in JSX (e.g., `className="flex"`)
 - ❌ Only use Tailwind in CSS files via `@apply`
 
@@ -629,13 +629,13 @@ src/ui/ComponentName/
 
 ```css
 /* Block */
-.tinita-filetree { }
+.tnt-filetree { }
 
 /* Element */
-.tinita-filetree__item { }
+.tnt-filetree__item { }
 
 /* Modifier */
-.tinita-filetree__item--selected { }
+.tnt-filetree__item--selected { }
 ```
 
 ### CSS Variables for Customization
@@ -644,15 +644,15 @@ All components MUST use CSS variables:
 
 ```css
 :root {
-  --tinita-componentname-bg: #ffffff;
-  --tinita-componentname-text: #000000;
-  --tinita-componentname-border: #e0e0e0;
-  --tinita-componentname-hover: #f5f5f5;
+  --tnt-componentname-bg: #ffffff;
+  --tnt-componentname-text: #000000;
+  --tnt-componentname-border: #e0e0e0;
+  --tnt-componentname-hover: #f5f5f5;
 }
 
-.tinita-componentname {
-  background-color: var(--tinita-componentname-bg);
-  color: var(--tinita-componentname-text);
+.tnt-componentname {
+  background-color: var(--tnt-componentname-bg);
+  color: var(--tnt-componentname-text);
   /* ... */
 }
 ```
@@ -683,12 +683,12 @@ export function ComponentName({
 }: ComponentNameProps) {
   useEffect(() => {
     if (shouldAutoInject && CSS_CONTENT) {
-      autoInjectStyles('tinita-componentname-styles', CSS_CONTENT);
+      autoInjectStyles('tnt-componentname-styles', CSS_CONTENT);
     }
   }, [shouldAutoInject]);
 
   return (
-    <div className="tinita-componentname">
+    <div className="tnt-componentname">
       {/* Component implementation */}
     </div>
   );
@@ -769,7 +769,7 @@ The `autoInjectStyles` utility handles this automatically.
 
 **✅ DO:**
 - Use CSS variables for all customizable values
-- Prefix all classes with `tinita-{component}`
+- Prefix all classes with `tnt-{component}`
 - Follow BEM-like naming convention
 - Test in SSR environments
 - Provide manual import option

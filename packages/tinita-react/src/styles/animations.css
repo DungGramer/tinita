@@ -6,99 +6,99 @@
   /* -------------------
      Duration
      ------------------- */
-  --tinita-duration-instant: 100ms; /* Button press, touch feedback */
-  --tinita-duration-fast: 200ms; /* Quick UI updates, toggles */
-  --tinita-duration-base: 300ms; /* Standard interactions */
-  --tinita-duration-medium: 350ms; /* Sheet, navigation, modals */
-  --tinita-duration-slow: 400ms; /* Page transitions, first-time */
+  --tnt-duration-instant: 100ms; /* Button press, touch feedback */
+  --tnt-duration-fast: 200ms; /* Quick UI updates, toggles */
+  --tnt-duration-base: 300ms; /* Standard interactions */
+  --tnt-duration-medium: 350ms; /* Sheet, navigation, modals */
+  --tnt-duration-slow: 400ms; /* Page transitions, first-time */
 
   /* -------------------
      Spring Physics Parameters
      ------------------- */
   /* Standard spring - Balanced, no overshoot */
-  --tinita-spring-standard-damping: 0.85;
-  --tinita-spring-standard-stiffness: 200;
-  --tinita-spring-standard-mass: 1;
+  --tnt-spring-standard-damping: 0.85;
+  --tnt-spring-standard-stiffness: 200;
+  --tnt-spring-standard-mass: 1;
 
   /* Interactive spring - More bounce, gesture-driven */
-  --tinita-spring-interactive-damping: 0.7;
-  --tinita-spring-interactive-stiffness: 170;
-  --tinita-spring-interactive-mass: 1;
+  --tnt-spring-interactive-damping: 0.7;
+  --tnt-spring-interactive-stiffness: 170;
+  --tnt-spring-interactive-mass: 1;
 
   /* Smooth spring - Critically damped, subtle */
-  --tinita-spring-smooth-damping: 0.95;
-  --tinita-spring-smooth-stiffness: 220;
-  --tinita-spring-smooth-mass: 1;
+  --tnt-spring-smooth-damping: 0.95;
+  --tnt-spring-smooth-stiffness: 220;
+  --tnt-spring-smooth-mass: 1;
 
   /* Bounce spring - Playful overshoot */
-  --tinita-spring-bounce-damping: 0.6;
-  --tinita-spring-bounce-stiffness: 180;
-  --tinita-spring-bounce-mass: 1;
+  --tnt-spring-bounce-damping: 0.6;
+  --tnt-spring-bounce-stiffness: 180;
+  --tnt-spring-bounce-mass: 1;
 
   /* -------------------
      Easing Curves (cubic-bezier approximations)
      ------------------- */
-  --tinita-ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* Defaultcurve */
-  --tinita-ease-decelerate: cubic-bezier(0, 0, 0.2, 1); /* Elements entering */
-  --tinita-ease-accelerate: cubic-bezier(0.4, 0, 1, 1); /* Elements exiting */
-  --tinita-ease-sharp: cubic-bezier(0.4, 0, 0.6, 1); /* Attention-grabbing */
-  --tinita-ease-spring: cubic-bezier(0.36, 0.66, 0.04, 1); /* Spring approximation */
-  --tinita-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1); /* Bounce approximation */
+  --tnt-ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* Defaultcurve */
+  --tnt-ease-decelerate: cubic-bezier(0, 0, 0.2, 1); /* Elements entering */
+  --tnt-ease-accelerate: cubic-bezier(0.4, 0, 1, 1); /* Elements exiting */
+  --tnt-ease-sharp: cubic-bezier(0.4, 0, 0.6, 1); /* Attention-grabbing */
+  --tnt-ease-spring: cubic-bezier(0.36, 0.66, 0.04, 1); /* Spring approximation */
+  --tnt-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1); /* Bounce approximation */
 
   /* -------------------
      Scale Values by Context
      ------------------- */
-  --tinita-scale-button-press: 0.96; /* Button active state */
-  --tinita-scale-button-release: 1; /* Button idle */
-  --tinita-scale-card-lift: 1.02; /* Card hover lift */
-  --tinita-scale-modal-enter: 0.95; /* Modal presentation start */
-  --tinita-scale-alert-enter: 1.15; /* Alert bounce in (overshoot) */
-  --tinita-scale-popover-enter: 0.9; /* Popover snap in */
-  --tinita-scale-sheet-drag: 0.98; /* Sheet while dragging */
+  --tnt-scale-button-press: 0.96; /* Button active state */
+  --tnt-scale-button-release: 1; /* Button idle */
+  --tnt-scale-card-lift: 1.02; /* Card hover lift */
+  --tnt-scale-modal-enter: 0.95; /* Modal presentation start */
+  --tnt-scale-alert-enter: 1.15; /* Alert bounce in (overshoot) */
+  --tnt-scale-popover-enter: 0.9; /* Popover snap in */
+  --tnt-scale-sheet-drag: 0.98; /* Sheet while dragging */
 
   /* -------------------
      Opacity Values
      ------------------- */
-  --tinita-opacity-full: 1; /* Active elements */
-  --tinita-opacity-press: 0.8; /* Button press feedback */
-  --tinita-opacity-disabled: 0.4; /* Disabled state */
-  --tinita-opacity-placeholder: 0.5; /* Placeholder text */
-  --tinita-opacity-hidden: 0; /* Hidden elements */
+  --tnt-opacity-full: 1; /* Active elements */
+  --tnt-opacity-press: 0.8; /* Button press feedback */
+  --tnt-opacity-disabled: 0.4; /* Disabled state */
+  --tnt-opacity-placeholder: 0.5; /* Placeholder text */
+  --tnt-opacity-hidden: 0; /* Hidden elements */
 
   /* -------------------
      Backdrop Blur Effects (Frosted Glass)
      ------------------- */
   /* Standard blur - Sheets, popovers */
-  --tinita-backdrop-blur-standard: 20px;
-  --tinita-backdrop-saturate-standard: 180%;
-  --tinita-backdrop-light-standard: rgba(255, 255, 255, 0.72);
-  --tinita-backdrop-dark-standard: rgba(30, 30, 30, 0.72);
+  --tnt-backdrop-blur-standard: 20px;
+  --tnt-backdrop-saturate-standard: 180%;
+  --tnt-backdrop-light-standard: rgba(255, 255, 255, 0.72);
+  --tnt-backdrop-dark-standard: rgba(30, 30, 30, 0.72);
 
   /* Heavy blur - Alerts, important modals */
-  --tinita-backdrop-blur-heavy: 40px;
-  --tinita-backdrop-saturate-heavy: 200%;
-  --tinita-backdrop-light-heavy: rgba(255, 255, 255, 0.9);
-  --tinita-backdrop-dark-heavy: rgba(20, 20, 20, 0.9);
+  --tnt-backdrop-blur-heavy: 40px;
+  --tnt-backdrop-saturate-heavy: 200%;
+  --tnt-backdrop-light-heavy: rgba(255, 255, 255, 0.9);
+  --tnt-backdrop-dark-heavy: rgba(20, 20, 20, 0.9);
 
   /* Overlay - Modal backgrounds */
-  --tinita-backdrop-blur-overlay: 4px;
-  --tinita-backdrop-light-overlay: rgba(0, 0, 0, 0.4);
-  --tinita-backdrop-dark-overlay: rgba(0, 0, 0, 0.6);
+  --tnt-backdrop-blur-overlay: 4px;
+  --tnt-backdrop-light-overlay: rgba(0, 0, 0, 0.4);
+  --tnt-backdrop-dark-overlay: rgba(0, 0, 0, 0.6);
 
   /* -------------------
      Context-Aware Timing (Adaptive UX)
      ------------------- */
-  --tinita-duration-first-time: 400ms; /* First interaction (educational) */
-  --tinita-duration-repeated: 200ms; /* Repeated action (efficient) */
-  --tinita-duration-destructive: 400ms; /* Destructive action (warning) */
-  --tinita-duration-feedback: 100ms; /* Instant feedback */
+  --tnt-duration-first-time: 400ms; /* First interaction (educational) */
+  --tnt-duration-repeated: 200ms; /* Repeated action (efficient) */
+  --tnt-duration-destructive: 400ms; /* Destructive action (warning) */
+  --tnt-duration-feedback: 100ms; /* Instant feedback */
 
   /* -------------------
      Transform Values
      ------------------- */
-  --tinita-translate-parallax: -30%; /* Navigation parallax effect */
-  --tinita-translate-sheet: 100%; /* Sheet full height */
-  --tinita-translate-slide: 20px; /* General slide distance */
+  --tnt-translate-parallax: -30%; /* Navigation parallax effect */
+  --tnt-translate-sheet: 100%; /* Sheet full height */
+  --tnt-translate-slide: 20px; /* General slide distance */
 }
 
 /* ==============================================
@@ -113,57 +113,57 @@
   /* Default smooth transition - Standard interactions */
   .transition-smooth {
     transition-property: transform, opacity;
-    transition-duration: var(--tinita-duration-base);
-    transition-timing-function: var(--tinita-ease-standard);
+    transition-duration: var(--tnt-duration-base);
+    transition-timing-function: var(--tnt-ease-standard);
   }
 
   /* Spring transition - Bouncy, playful */
   .transition-spring {
     transition-property: transform, opacity;
-    transition-duration: var(--tinita-duration-medium);
-    transition-timing-function: var(--tinita-ease-spring);
+    transition-duration: var(--tnt-duration-medium);
+    transition-timing-function: var(--tnt-ease-spring);
   }
 
   /* Modal transition - Scale + opacity */
   .transition-modal {
     transition-property: transform, opacity;
-    transition-duration: var(--tinita-duration-base);
-    transition-timing-function: var(--tinita-ease-decelerate);
+    transition-duration: var(--tnt-duration-base);
+    transition-timing-function: var(--tnt-ease-decelerate);
   }
 
   /* Fade transition - Opacity only */
   .transition-fade {
     transition-property: opacity;
-    transition-duration: var(--tinita-duration-base);
-    transition-timing-function: var(--tinita-ease-standard);
+    transition-duration: var(--tnt-duration-base);
+    transition-timing-function: var(--tnt-ease-standard);
   }
 
   /* Slide transition - Transform only */
   .transition-slide {
     transition-property: transform;
-    transition-duration: var(--tinita-duration-medium);
-    transition-timing-function: var(--tinita-ease-standard);
+    transition-duration: var(--tnt-duration-medium);
+    transition-timing-function: var(--tnt-ease-standard);
   }
 
   /* Instant - Button press */
   .transition-instant {
     transition-property: transform, opacity;
-    transition-duration: var(--tinita-duration-instant);
-    transition-timing-function: var(--tinita-ease-sharp);
+    transition-duration: var(--tnt-duration-instant);
+    transition-timing-function: var(--tnt-ease-sharp);
   }
 
   /* Fast - Quick updates */
   .transition-fast {
     transition-property: transform, opacity;
-    transition-duration: var(--tinita-duration-fast);
-    transition-timing-function: var(--tinita-ease-sharp);
+    transition-duration: var(--tnt-duration-fast);
+    transition-timing-function: var(--tnt-ease-sharp);
   }
 
   /* Slow - Page transitions */
   .transition-slow {
     transition-property: transform, opacity;
-    transition-duration: var(--tinita-duration-slow);
-    transition-timing-function: var(--tinita-ease-standard);
+    transition-duration: var(--tnt-duration-slow);
+    transition-timing-function: var(--tnt-ease-standard);
   }
 
   /* -------------------
@@ -171,26 +171,26 @@
      ------------------- */
 
   /* Button - Press effect */
-  .tinita-btn {
+  .tnt-btn {
     transition-property: transform, opacity;
-    transition-duration: var(--tinita-duration-instant);
-    transition-timing-function: var(--tinita-ease-sharp);
+    transition-duration: var(--tnt-duration-instant);
+    transition-timing-function: var(--tnt-ease-sharp);
   }
 
-  .tinita-btn:active {
-    transform: scale(var(--tinita-scale-button-press));
-    opacity: var(--tinita-opacity-press);
+  .tnt-btn:active {
+    transform: scale(var(--tnt-scale-button-press));
+    opacity: var(--tnt-opacity-press);
   }
 
   /* Card - Hover lift */
-  .tinita-card {
+  .tnt-card {
     transition-property: transform, box-shadow;
-    transition-duration: var(--tinita-duration-fast);
-    transition-timing-function: var(--tinita-ease-standard);
+    transition-duration: var(--tnt-duration-fast);
+    transition-timing-function: var(--tnt-ease-standard);
   }
 
-  .tinita-card:hover {
-    transform: scale(var(--tinita-scale-card-lift)) translateY(-2px);
+  .tnt-card:hover {
+    transform: scale(var(--tnt-scale-card-lift)) translateY(-2px);
   }
 
   /* Interactive - Will-change optimization (hover only) */
@@ -204,35 +204,35 @@
      ------------------- */
 
   /* Standard backdrop - Sheets, popovers */
-  .tinita-backdrop {
-    backdrop-filter: blur(var(--tinita-backdrop-blur-standard))
-      saturate(var(--tinita-backdrop-saturate-standard));
-    background-color: var(--tinita-backdrop-light-standard);
+  .tnt-backdrop {
+    backdrop-filter: blur(var(--tnt-backdrop-blur-standard))
+      saturate(var(--tnt-backdrop-saturate-standard));
+    background-color: var(--tnt-backdrop-light-standard);
   }
 
-  .dark .tinita-backdrop {
-    background-color: var(--tinita-backdrop-dark-standard);
+  .dark .tnt-backdrop {
+    background-color: var(--tnt-backdrop-dark-standard);
   }
 
   /* Heavy backdrop - Alerts */
-  .tinita-backdrop-heavy {
-    backdrop-filter: blur(var(--tinita-backdrop-blur-heavy))
-      saturate(var(--tinita-backdrop-saturate-heavy));
-    background-color: var(--tinita-backdrop-light-heavy);
+  .tnt-backdrop-heavy {
+    backdrop-filter: blur(var(--tnt-backdrop-blur-heavy))
+      saturate(var(--tnt-backdrop-saturate-heavy));
+    background-color: var(--tnt-backdrop-light-heavy);
   }
 
-  .dark .tinita-backdrop-heavy {
-    background-color: var(--tinita-backdrop-dark-heavy);
+  .dark .tnt-backdrop-heavy {
+    background-color: var(--tnt-backdrop-dark-heavy);
   }
 
   /* Overlay backdrop - Modal backgrounds */
-  .tinita-backdrop-overlay {
-    backdrop-filter: blur(var(--tinita-backdrop-blur-overlay));
-    background-color: var(--tinita-backdrop-light-overlay);
+  .tnt-backdrop-overlay {
+    backdrop-filter: blur(var(--tnt-backdrop-blur-overlay));
+    background-color: var(--tnt-backdrop-light-overlay);
   }
 
-  .dark .tinita-backdrop-overlay {
-    background-color: var(--tinita-backdrop-dark-overlay);
+  .dark .tnt-backdrop-overlay {
+    background-color: var(--tnt-backdrop-dark-overlay);
   }
 
   /* -------------------
@@ -241,82 +241,82 @@
 
   /* Fade animations */
   .animate-fade-in {
-    animation: tinita-fade-in var(--tinita-duration-base) var(--tinita-ease-decelerate);
+    animation: tnt-fade-in var(--tnt-duration-base) var(--tnt-ease-decelerate);
   }
 
   .animate-fade-out {
-    animation: tinita-fade-out var(--tinita-duration-base) var(--tinita-ease-accelerate);
+    animation: tnt-fade-out var(--tnt-duration-base) var(--tnt-ease-accelerate);
   }
 
   /* Sheet presentation (bottom to top) */
   .animate-sheet-up {
-    animation: tinita-sheet-up var(--tinita-duration-medium) var(--tinita-ease-decelerate);
+    animation: tnt-sheet-up var(--tnt-duration-medium) var(--tnt-ease-decelerate);
   }
 
   .animate-sheet-down {
-    animation: tinita-sheet-down var(--tinita-duration-medium) var(--tinita-ease-accelerate);
+    animation: tnt-sheet-down var(--tnt-duration-medium) var(--tnt-ease-accelerate);
   }
 
   /* Alert (bounce in) */
   .animate-alert-in {
-    animation: tinita-alert-in var(--tinita-duration-slow) var(--tinita-ease-bounce);
+    animation: tnt-alert-in var(--tnt-duration-slow) var(--tnt-ease-bounce);
   }
 
   .animate-alert-out {
-    animation: tinita-alert-out var(--tinita-duration-base) var(--tinita-ease-accelerate);
+    animation: tnt-alert-out var(--tnt-duration-base) var(--tnt-ease-accelerate);
   }
 
   /* Modal (scale + fade) */
   .animate-modal-in {
-    animation: tinita-modal-in var(--tinita-duration-base) var(--tinita-ease-spring);
+    animation: tnt-modal-in var(--tnt-duration-base) var(--tnt-ease-spring);
   }
 
   .animate-modal-out {
-    animation: tinita-modal-out var(--tinita-duration-base) var(--tinita-ease-accelerate);
+    animation: tnt-modal-out var(--tnt-duration-base) var(--tnt-ease-accelerate);
   }
 
   /* Popover (snap in) */
   .animate-popover-in {
-    animation: tinita-popover-in var(--tinita-duration-fast) var(--tinita-ease-sharp);
+    animation: tnt-popover-in var(--tnt-duration-fast) var(--tnt-ease-sharp);
   }
 
   .animate-popover-out {
-    animation: tinita-popover-out var(--tinita-duration-fast) var(--tinita-ease-accelerate);
+    animation: tnt-popover-out var(--tnt-duration-fast) var(--tnt-ease-accelerate);
   }
 
   /* Navigation push (right to left) */
   .animate-push-in {
-    animation: tinita-push-in var(--tinita-duration-medium) var(--tinita-ease-standard);
+    animation: tnt-push-in var(--tnt-duration-medium) var(--tnt-ease-standard);
   }
 
   .animate-push-out {
-    animation: tinita-push-out var(--tinita-duration-medium) var(--tinita-ease-standard);
+    animation: tnt-push-out var(--tnt-duration-medium) var(--tnt-ease-standard);
   }
 
   /* Navigation pop (left to right) */
   .animate-pop-in {
-    animation: tinita-pop-in var(--tinita-duration-base) var(--tinita-ease-standard);
+    animation: tnt-pop-in var(--tnt-duration-base) var(--tnt-ease-standard);
   }
 
   .animate-pop-out {
-    animation: tinita-pop-out var(--tinita-duration-base) var(--tinita-ease-accelerate);
+    animation: tnt-pop-out var(--tnt-duration-base) var(--tnt-ease-accelerate);
   }
 
   /* General slide animations */
   .animate-slide-up {
-    animation: tinita-slide-up var(--tinita-duration-medium) var(--tinita-ease-decelerate);
+    animation: tnt-slide-up var(--tnt-duration-medium) var(--tnt-ease-decelerate);
   }
 
   .animate-slide-down {
-    animation: tinita-slide-down var(--tinita-duration-medium) var(--tinita-ease-accelerate);
+    animation: tnt-slide-down var(--tnt-duration-medium) var(--tnt-ease-accelerate);
   }
 
   .animate-slide-left {
-    animation: tinita-slide-left var(--tinita-duration-medium) var(--tinita-ease-standard);
+    animation: tnt-slide-left var(--tnt-duration-medium) var(--tnt-ease-standard);
   }
 
   .animate-slide-right {
-    animation: tinita-slide-right var(--tinita-duration-medium) var(--tinita-ease-standard);
+    animation: tnt-slide-right var(--tnt-duration-medium) var(--tnt-ease-standard);
   }
 }
 
@@ -325,114 +325,114 @@
    ============================================== */
 
 /* Fade animations */
-@keyframes tinita-fade-in {
+@keyframes tnt-fade-in {
   from {
-    opacity: var(--tinita-opacity-hidden);
+    opacity: var(--tnt-opacity-hidden);
   }
   to {
-    opacity: var(--tinita-opacity-full);
+    opacity: var(--tnt-opacity-full);
   }
 }
 
-@keyframes tinita-fade-out {
+@keyframes tnt-fade-out {
   from {
-    opacity: var(--tinita-opacity-full);
+    opacity: var(--tnt-opacity-full);
   }
   to {
-    opacity: var(--tinita-opacity-hidden);
+    opacity: var(--tnt-opacity-hidden);
   }
 }
 
 /* Sheet presentation (iOS bottom sheet) */
-@keyframes tinita-sheet-up {
+@keyframes tnt-sheet-up {
   from {
-    transform: translateY(var(--tinita-translate-sheet));
+    transform: translateY(var(--tnt-translate-sheet));
   }
   to {
     transform: translateY(0);
   }
 }
 
-@keyframes tinita-sheet-down {
+@keyframes tnt-sheet-down {
   from {
     transform: translateY(0);
   }
   to {
-    transform: translateY(var(--tinita-translate-sheet));
+    transform: translateY(var(--tnt-translate-sheet));
   }
 }
 
 /* Alert (bounce in - overshoot effect) */
-@keyframes tinita-alert-in {
+@keyframes tnt-alert-in {
   from {
-    transform: scale(var(--tinita-scale-alert-enter));
-    opacity: var(--tinita-opacity-hidden);
+    transform: scale(var(--tnt-scale-alert-enter));
+    opacity: var(--tnt-opacity-hidden);
   }
   to {
-    transform: scale(var(--tinita-scale-button-release));
-    opacity: var(--tinita-opacity-full);
+    transform: scale(var(--tnt-scale-button-release));
+    opacity: var(--tnt-opacity-full);
   }
 }
 
-@keyframes tinita-alert-out {
+@keyframes tnt-alert-out {
   from {
-    transform: scale(var(--tinita-scale-button-release));
-    opacity: var(--tinita-opacity-full);
+    transform: scale(var(--tnt-scale-button-release));
+    opacity: var(--tnt-opacity-full);
   }
   to {
-    transform: scale(var(--tinita-scale-modal-enter));
-    opacity: var(--tinita-opacity-hidden);
+    transform: scale(var(--tnt-scale-modal-enter));
+    opacity: var(--tnt-opacity-hidden);
   }
 }
 
 /* Modal (scale + fade) */
-@keyframes tinita-modal-in {
+@keyframes tnt-modal-in {
   from {
-    transform: scale(var(--tinita-scale-modal-enter));
-    opacity: var(--tinita-opacity-hidden);
+    transform: scale(var(--tnt-scale-modal-enter));
+    opacity: var(--tnt-opacity-hidden);
   }
   to {
-    transform: scale(var(--tinita-scale-button-release));
-    opacity: var(--tinita-opacity-full);
+    transform: scale(var(--tnt-scale-button-release));
+    opacity: var(--tnt-opacity-full);
   }
 }
 
-@keyframes tinita-modal-out {
+@keyframes tnt-modal-out {
   from {
-    transform: scale(var(--tinita-scale-button-release));
-    opacity: var(--tinita-opacity-full);
+    transform: scale(var(--tnt-scale-button-release));
+    opacity: var(--tnt-opacity-full);
   }
   to {
-    transform: scale(var(--tinita-scale-modal-enter));
-    opacity: var(--tinita-opacity-hidden);
+    transform: scale(var(--tnt-scale-modal-enter));
+    opacity: var(--tnt-opacity-hidden);
   }
 }
 
 /* Popover (snap in) */
-@keyframes tinita-popover-in {
+@keyframes tnt-popover-in {
   from {
-    transform: scale(var(--tinita-scale-popover-enter));
-    opacity: var(--tinita-opacity-hidden);
+    transform: scale(var(--tnt-scale-popover-enter));
+    opacity: var(--tnt-opacity-hidden);
   }
   to {
-    transform: scale(var(--tinita-scale-button-release));
-    opacity: var(--tinita-opacity-full);
+    transform: scale(var(--tnt-scale-button-release));
+    opacity: var(--tnt-opacity-full);
   }
 }
 
-@keyframes tinita-popover-out {
+@keyframes tnt-popover-out {
   from {
-    transform: scale(var(--tinita-scale-button-release));
-    opacity: var(--tinita-opacity-full);
+    transform: scale(var(--tnt-scale-button-release));
+    opacity: var(--tnt-opacity-full);
   }
   to {
-    transform: scale(var(--tinita-scale-popover-enter));
-    opacity: var(--tinita-opacity-hidden);
+    transform: scale(var(--tnt-scale-popover-enter));
+    opacity: var(--tnt-opacity-hidden);
   }
 }
 
 /* Navigation push (incoming view) */
-@keyframes tinita-push-in {
+@keyframes tnt-push-in {
   from {
     transform: translateX(100%);
   }
@@ -442,30 +442,30 @@
 }
 
 /* Navigation push (outgoing view with parallax) */
-@keyframes tinita-push-out {
+@keyframes tnt-push-out {
   from {
     transform: translateX(0);
   }
   to {
-    transform: translateX(var(--tinita-translate-parallax));
-    opacity: var(--tinita-opacity-press);
+    transform: translateX(var(--tnt-translate-parallax));
+    opacity: var(--tnt-opacity-press);
   }
 }
 
 /* Navigation pop (returning view) */
-@keyframes tinita-pop-in {
+@keyframes tnt-pop-in {
   from {
-    transform: translateX(var(--tinita-translate-parallax));
-    opacity: var(--tinita-opacity-press);
+    transform: translateX(var(--tnt-translate-parallax));
+    opacity: var(--tnt-opacity-press);
   }
   to {
     transform: translateX(0);
-    opacity: var(--tinita-opacity-full);
+    opacity: var(--tnt-opacity-full);
   }
 }
 
 /* Navigation pop (dismissing view) */
-@keyframes tinita-pop-out {
+@keyframes tnt-pop-out {
   from {
     transform: translateX(0);
   }
@@ -475,47 +475,47 @@
 }
 
 /* General slide animations */
-@keyframes tinita-slide-up {
+@keyframes tnt-slide-up {
   from {
-    transform: translateY(var(--tinita-translate-slide));
-    opacity: var(--tinita-opacity-hidden);
+    transform: translateY(var(--tnt-translate-slide));
+    opacity: var(--tnt-opacity-hidden);
   }
   to {
     transform: translateY(0);
-    opacity: var(--tinita-opacity-full);
+    opacity: var(--tnt-opacity-full);
   }
 }
 
-@keyframes tinita-slide-down {
+@keyframes tnt-slide-down {
   from {
     transform: translateY(0);
-    opacity: var(--tinita-opacity-full);
+    opacity: var(--tnt-opacity-full);
   }
   to {
-    transform: translateY(var(--tinita-translate-slide));
-    opacity: var(--tinita-opacity-hidden);
+    transform: translateY(var(--tnt-translate-slide));
+    opacity: var(--tnt-opacity-hidden);
   }
 }
 
-@keyframes tinita-slide-left {
+@keyframes tnt-slide-left {
   from {
-    transform: translateX(var(--tinita-translate-slide));
-    opacity: var(--tinita-opacity-hidden);
+    transform: translateX(var(--tnt-translate-slide));
+    opacity: var(--tnt-opacity-hidden);
   }
   to {
     transform: translateX(0);
-    opacity: var(--tinita-opacity-full);
+    opacity: var(--tnt-opacity-full);
   }
 }
 
-@keyframes tinita-slide-right {
+@keyframes tnt-slide-right {
   from {
-    transform: translateX(calc(var(--tinita-translate-slide) * -1));
-    opacity: var(--tinita-opacity-hidden);
+    transform: translateX(calc(var(--tnt-translate-slide) * -1));
+    opacity: var(--tnt-opacity-hidden);
   }
   to {
     transform: translateX(0);
-    opacity: var(--tinita-opacity-full);
+    opacity: var(--tnt-opacity-full);
   }
 }
 
