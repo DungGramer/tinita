@@ -52,7 +52,24 @@ for (const cell of selected) {
   ], { encoding: 'utf8', timeout: 900_000 });
 
   if (build.status !== 0) {
-    cases.push({ id: `${cell.id}:build`, ok: false, detail: `docker build exit=${build.status}: ${(build.stderr ?? '').split('\n').filter(Boolean).pop() ?? ''}`, tier: cell.tier, advisory: cell.advisory ?? false });
+    const err = `${build.stdout ?? ''}${build.stderr ?? ''}`;
+    // Build fail do MẠNG là lỗi hạ tầng, không phải "package sai". Đã gặp 2026-09-25:
+    // node22-yarn-classic fail vì Docker Hub timeout khi pull node:22-slim, và runner đếm nó
+    // là fail package. CI sẽ xử hai thứ đó khác nhau.
+    // Hai loại khác nhau, đừng gộp: "not found" là tag sai trong matrix.json (lỗi CẤU HÌNH của
+    // ta), còn timeout là mạng. Cả hai đều exit 2 nhưng thông báo phải nói đúng nguyên nhân, nếu
+    // không một typo trong matrix sẽ bị đọc thành "mạng hôm nay kém" và không ai sửa.
+    const TAG_MISSING = /: not found(\s|$)|manifest unknown|manifest for .* not found/i;
+    const NETWORK = /timeout awaiting response headers|DeadlineExceeded|TLS handshake timeout|temporary failure in name resolution|i\/o timeout|connection refused|no such host/i;
+    if (TAG_MISSING.test(err)) {
+      process.stderr.write(`\n[l3] ${cell.id}: image KHÔNG TỒN TẠI - kiểm 'node'/'pmVersion' trong matrix.json:\n${err.split('\n').filter(Boolean).pop()}\n`);
+      process.exit(EXIT.INFRA);
+    }
+    if (NETWORK.test(err)) {
+      process.stderr.write(`\n[l3] ${cell.id}: docker build fail do MẠNG, không phải lỗi package. Chạy lại:\n${err.split('\n').filter(Boolean).pop()}\n`);
+      process.exit(EXIT.INFRA);
+    }
+    cases.push({ id: `${cell.id}:build`, ok: false, detail: `docker build exit=${build.status}: ${err.split('\n').filter(Boolean).pop() ?? ''}`, tier: cell.tier, advisory: cell.advisory ?? false });
     continue;
   }
 
@@ -88,8 +105,14 @@ for (const cell of selected) {
 }
 
 if (selected.length === 0) {
-  process.stderr.write(`[l3] không cell nào khớp tier=${tier} case=${only}\n`);
-  process.exit(EXIT.INFRA);
+  // --tier=1 chọn 0 cell là ĐÚNG: L3 bắt đầu từ tier 2. Đó không phải lỗi hạ tầng.
+  // Chỉ --case trỏ tên không tồn tại mới là lỗi.
+  if (only) {
+    process.stderr.write(`[l3] không có cell nào tên '${only}' trong matrix.json\n`);
+    process.exit(EXIT.INFRA);
+  }
+  process.stdout.write(`[l3] không cell nào ở tier <= ${tier} - L3 bắt đầu từ tier 2, bỏ qua\n`);
+  process.exit(EXIT.PASS);
 }
 
 const payload = { level: 'l3', ranAt: new Date().toISOString(), wallClockMs: Date.now() - t0, selectedCells: selected.map((c) => c.id), cases, findings };

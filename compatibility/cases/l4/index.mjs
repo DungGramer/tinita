@@ -17,6 +17,12 @@ const flags = Object.fromEntries(
   }),
 );
 
+// L4 là tier 3: production build + browser. --tier thấp hơn thì bỏ qua sạch, không fail.
+if (flags.tier && Number(flags.tier) < 3) {
+  process.stdout.write(`[l4] tier=${flags.tier} < 3 - L4 thuộc tier 3, bỏ qua\n`);
+  process.exit(EXIT.PASS);
+}
+
 const SHOTS = resolve(LAB, 'cases/l4/__screenshots__');
 const IN_CONTAINER = process.env.IN_PLAYWRIGHT_CONTAINER === '1';
 
