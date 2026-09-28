@@ -70,17 +70,39 @@ function globMatchesCompatibility(pattern) {
 
 // 3. Không package.json nào trong lab dùng workspace: hoặc file: trỏ packages/
 {
+  /**
+   * Phạm vi khác nhau theo VỊ TRÍ của manifest, vì hai chỗ này trả lời hai câu hỏi khác nhau.
+   *
+   * - Manifest do LAB viết: cả 4 mục. `workspace:*` ở bất kỳ mục nào cũng là rò rỉ cô lập -
+   *   pnpm sẽ link thẳng từ packages/ và mọi ca xanh giả.
+   * - Manifest TRONG tarball đã giải nén (`.artifacts/extracted/`): chỉ 3 mục mà người cài
+   *   thật sự resolve. `devDependencies` của một dependency KHÔNG bao giờ được cài bởi npm,
+   *   pnpm hay yarn, nên `workspace:*` ở đó là chữ chết, không phải rò rỉ.
+   *
+   *   Chuyện có thật (2026-09-28): `tinita-react` thêm `tinita: workspace:*` vào
+   *   `devDependencies` để `getFileNameParts` được Vite BUNDLE vào `dist/` (rule 5,
+   *   docs/code-standards.md). `npm pack` - thứ lab dùng vì nó đúng bằng cái người dùng nhận -
+   *   chép `devDependencies` nguyên văn, không rewrite `workspace:` như `pnpm publish`. Ca này
+   *   đỏ, và nó đỏ đúng chỗ sai: consumer không hề resolve mục đó.
+   *
+   * `dependencies`/`peerDependencies`/`optionalDependencies` thì vẫn bắt ở CẢ HAI nơi -
+   *   `workspace:*` ở đó là bug publish không thu hồi được.
+   */
+  const CONSUMER_FACING = ['dependencies', 'peerDependencies', 'optionalDependencies'];
+  const ALL_SECTIONS = [...CONSUMER_FACING, 'devDependencies'];
   const offenders = [];
   walk(LAB, (abs) => {
     // CHỈ xét package.json do LAB viết. package.json bên trong bất kỳ node_modules nào là của
     // vendor - `workspace:*` trong đó là chuyện nội bộ của họ, không phải rò rỉ của lab.
     if (!abs.endsWith('package.json') || /[/\\]node_modules[/\\]/.test(abs)) return;
+    const isExtractedArtifact = /[/\\]extracted[/\\]/.test(abs);
+    const sections = isExtractedArtifact ? CONSUMER_FACING : ALL_SECTIONS;
     const json = JSON.parse(readFileSync(abs, 'utf8'));
-    for (const section of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']) {
+    for (const section of sections) {
       for (const [dep, spec] of Object.entries(json[section] ?? {})) {
         if (typeof spec !== 'string') continue;
         if (spec.startsWith('workspace:') || /^(file:|link:).*packages\//.test(spec)) {
-          offenders.push(`${relative(REPO, abs)} -> ${dep}@${spec}`);
+          offenders.push(`${relative(REPO, abs)} [${section}] -> ${dep}@${spec}`);
         }
       }
     }

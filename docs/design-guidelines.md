@@ -409,7 +409,7 @@ Bắt buộc bọc sau **anti-corruption layer**: consumer viết
 `import { Dialog } from 'tinita-react'` và không được biết Base UI tồn tại. Đổi Base UI sang
 React Aria sau này không được đổi public API.
 
-**[KHOẢNG CÁCH]** `FileTree` hiện `import` thẳng `@radix-ui/react-accordion`. CSS lộ rõ dấu
+**[KHOẢNG CÁCH]** `FileTree` hiện `import` thẳng `@base-ui/react`. CSS lộ rõ dấu
 vết: class `.tnt-filetree__accordion-trigger` / `__accordion-content`, selector
 `[data-state='open']` / `[data-state='closed']`, và keyframes dùng
 `var(--radix-accordion-content-height)`. Biến `--radix-*` là API nội bộ của Radix nằm lọt vào

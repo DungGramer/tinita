@@ -6,6 +6,22 @@ import { EXIT, LAB } from '../../scripts/paths.mjs';
 import { createConsumer, tarballFor } from '../../scripts/consumer.mjs';
 import { printSummary, writeReport } from '../../scripts/report.mjs';
 
+/**
+ * Optional peer lấy TỪ CONTRACT, không viết tay - giống ca 04 của L1 và L2.
+ *
+ * Bản trước gõ cứng `'@radix-ui/react-accordion'`. Sau khi `Tree` chuyển sang
+ * `@base-ui/react`, cả 2 ca của L4 đỏ với 'Build failed because of webpack errors'
+ * vì consumer cài sai peer. Đo 2026-09-28: 2 đỏ trước, 0 sau.
+ */
+const OPTIONAL_PEERS = [
+  ...new Set(
+    Object.values(
+      JSON.parse(readFileSync(resolve(LAB, 'contract.json'), 'utf8')).packages['tinita-react']
+        .optionalPeers
+    ).flat()
+  ),
+];
+
 const cases = [];
 const findings = [];
 const add = (id, ok, detail, extra = {}) => cases.push({ id, ok, detail, ...extra });
@@ -51,7 +67,7 @@ for (const reactVersion of REACT_VERSIONS) {
   const work = createConsumer({
     level: 'l4',
     name: `next-react${reactVersion}`,
-    deps: [`react@${reactVersion}`, `react-dom@${reactVersion}`, 'next@15', '@radix-ui/react-accordion', 'lucide-react'],
+    deps: [`react@${reactVersion}`, `react-dom@${reactVersion}`, 'next@15', ...OPTIONAL_PEERS],
     tarballs: [tarballFor('tinita-react')],
     files: {
       'next.config.mjs': 'export default { eslint: { ignoreDuringBuilds: true }, typescript: { ignoreBuildErrors: true } };\n',

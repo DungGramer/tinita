@@ -43,7 +43,7 @@ export default defineConfig({
   dts: { only: true },
   bundle: true,
   clean: false,
-  external: ['react', 'react-dom', 'lucide-react', '@radix-ui/react-accordion'],
+  external: ['react', 'react-dom', 'lucide-react', '@base-ui/react/collapsible', '@base-ui/react'],
   splitting: false,
   minify: true,
   // Remove comments when minifying

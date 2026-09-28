@@ -145,3 +145,45 @@ export const DesktopUltraWide: Story = {
     },
   },
 };
+
+/**
+ * Tên file dài hơn khung - trường hợp CHỈ xuất hiện trên mobile.
+ *
+ * Ba story dưới đây là ba câu trả lời của prop `overflow`, cùng một cây, cùng một
+ * viewport, để so trực tiếp.
+ */
+const longNamesText = `
+project/
+  src/
+    components/
+      UserProfileSettingsDialogContainer.stories.tsx
+      AuthenticationProviderConfiguration.test.ts
+      index.ts
+    .env.production.local
+  documentation-for-new-contributors.md
+  .gitignore
+`;
+
+/** Mặc định: không mất ký tự nào, cả cây cuộn ngang. Hành vi của VS Code. */
+export const OverflowScroll: Story = {
+  name: 'overflow: scroll (mặc định)',
+  args: { text: longNamesText, overflow: 'scroll' },
+  globals: { viewport: { value: 'mobile', isRotated: false } },
+};
+
+/**
+ * Rút bằng `…` nhưng ĐUÔI FILE luôn hiện - `UserProfileSetti….tsx` vẫn đọc được là
+ * file gì, `UserProfileSettingsDial…` thì không. Nhãn đầy đủ nằm trong `title`.
+ */
+export const OverflowTruncate: Story = {
+  name: 'overflow: truncate',
+  args: { text: longNamesText, overflow: 'truncate' },
+  globals: { viewport: { value: 'mobile', isRotated: false } },
+};
+
+/** Xuống dòng: không cuộn, không mất ký tự, nhưng hàng cao không đều. */
+export const OverflowWrap: Story = {
+  name: 'overflow: wrap',
+  args: { text: longNamesText, overflow: 'wrap' },
+  globals: { viewport: { value: 'mobile', isRotated: false } },
+};

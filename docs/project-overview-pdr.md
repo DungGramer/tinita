@@ -441,7 +441,7 @@ dùng 1-2 component **không được** phải cài toàn bộ dependency của 
 - _Hiện trạng chưa đạt:_ cả 5 dependency khai ở `dependencies` cấp package, nên
   `npm install tinita-react` kéo ~20 gói kể cả khi user chỉ dùng `Ping` (component 0 dependency).
 - _Điều kiện thuận lợi:_ tập dependency của 3 component hiện **rời nhau hoàn toàn** -
-  `Ping`={}, `CarouselTicker`={clsx, tailwind-merge}, `FileTree`={@radix-ui/react-accordion,
+  `Ping`={}, `CarouselTicker`={clsx, tailwind-merge}, `FileTree`={@base-ui/react,
   lucide-react}. Không có dep nào bị chia sẻ, nên tách được sạch.
 - _Lãng phí đã xác định:_ `motion` khai trong `dependencies` nhưng **không file nào import**
   (hit duy nhất là comment `prefers-reduced-motion` tại `src/ui/file-tree/types.ts:93`).
@@ -522,7 +522,7 @@ buộc, không còn là tuỳ chọn**:
   nó thành gánh nặng cho người chỉ dùng một component Base UI.
 - _Hiện trạng:_ `antd` và Base UI **chưa xuất hiện ở đâu trong repo** (grep toàn bộ `packages/`,
   `apps/`, mọi `package.json` -> 0 kết quả). `FileTree` đang dùng thẳng
-  `@radix-ui/react-accordion` mà chưa có lớp bọc nào - đây là khoảng cách so với định hướng, và
+  `@base-ui/react` mà chưa có lớp bọc nào - đây là khoảng cách so với định hướng, và
   đã rò rỉ ra CSS công khai qua `var(--radix-accordion-content-height)`.
 
 ### Kiến Trúc Phân Tầng (Target)

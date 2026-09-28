@@ -174,8 +174,9 @@ src/ui/FileTree/
 `peerDependencies`:
 
 - `react >=18.0.0` - **bắt buộc**
-- `@radix-ui/react-accordion >=1.2.0` - **optional**, chỉ `FileTree` cần
-- `lucide-react >=0.400.0` - **optional**, chỉ `FileTree` cần (17 icon, named import)
+- `@base-ui/react >=1.8.0` - **optional**, `Tree` và `FileTree` cần (`Collapsible`)
+- `lucide-react >=0.400.0` - **optional**, CHỈ `FileTree` cần (17 icon, named import).
+  `Tree` tự vẽ chevron và dấu `?` bằng SVG nên nó không cần lib icon nào.
 
 `peerDependenciesMeta` đánh dấu 2 lib sau `optional: true`, nên npm/pnpm không tự cài và không
 cảnh báo khi thiếu. Cả hai cũng ở `devDependencies` để workspace build/typecheck/Storybook chạy được.
@@ -186,11 +187,12 @@ không cần cài.
 
 **Component -> Runtime Dependency (thực tế):**
 
-| Component        | Dep ngoài                               | Ghi chú                           |
-| ---------------- | --------------------------------------- | --------------------------------- |
-| `Ping`           | -                                       | Zero dependencies                 |
-| `CarouselTicker` | clsx, tailwind-merge                    | Bundled (inline vào dist)         |
-| `FileTree`       | @radix-ui/react-accordion, lucide-react | Externalized (import lúc runtime) |
+| Component        | Dep ngoài                    | Ghi chú                                                                |
+| ---------------- | ---------------------------- | ---------------------------------------------------------------------- |
+| `Ping`           | -                            | Zero dependencies                                                      |
+| `CarouselTicker` | clsx, tailwind-merge         | Bundled (inline vào dist)                                              |
+| `Tree`           | @base-ui/react               | Externalized (import lúc runtime)                                      |
+| `FileTree`       | @base-ui/react, lucide-react | Externalized. `tinita` (getFileNameParts) được BUNDLE, không phải peer |
 
 Xác minh trên `dist/` đã build: `dist/ui/ping/index.mjs` chỉ import `react/jsx-runtime`;
 `carousel-ticker` chỉ `react`; `file-tree` đúng 2 lib trên.
@@ -395,7 +397,7 @@ nên mọi thứ trông như chạy): `node_modules` chỉ có `react` + `tinita
 ```
 storybook
   └── tinita-react (workspace:*)
-       ├── @radix-ui/react-accordion ^1.2.12
+       ├── @base-ui/react ^1.2.12
        ├── clsx ^2.1.1
        ├── lucide-react ^0.555.0
        └── tailwind-merge ^3.4.0

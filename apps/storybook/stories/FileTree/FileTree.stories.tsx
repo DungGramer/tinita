@@ -9,7 +9,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A tree view component for displaying hierarchical file/folder structures from text input. Supports both indent-based and CLI tree formats. Powered by Radix UI Accordion for smooth, accessible animations.',
+          'Adapter từ chuỗi cây (thụt lề hoặc CLI) sang `Tree`. Mọi hành vi nằm ở `Tree`; `FileTree` chỉ đọc chuỗi, gắn icon theo phần mở rộng, và đưa xuống. Có sẵn dữ liệu dạng cây thì dùng thẳng `Tree`.',
       },
     },
   },
@@ -191,4 +191,102 @@ export const AllFeatures: Story = {
     indicator: true,
     enableAnimation: true,
   },
+};
+
+/**
+ * Cú pháp `?` trong chuỗi: khoảng trắng, dấu `?`, rồi chú thích.
+ *
+ * Dấu phân cách BẮT BUỘC có khoảng trắng đứng trước, nên tên file chứa `?`
+ * (`foo?.ts`) không bị cắt nhầm.
+ */
+const DESCRIBED = [
+  'project/',
+  '├── src/                        ? Mã nguồn ứng dụng',
+  '│   ├── components/             ? Component dùng lại được',
+  '│   │   ├── Button.tsx          ? Nút bấm chính',
+  '│   │   └── FileTree.tsx        ? Hiển thị cây thư mục',
+  '│   ├── app.tsx                 ? Điểm vào ứng dụng',
+  '│   └── index.ts                ? Export công khai',
+  '├── package.json                ? Phụ thuộc và script',
+  '└── README.md                   ? Tài liệu dự án',
+].join('\n');
+
+/** Mặc định: chú thích nằm trong tooltip, node nào có thì mang dấu `?` ở cuối. */
+export const DescriptionsTooltip: Story = {
+  name: 'Chú thích trong tooltip',
+  args: { text: DESCRIBED, showArrow: true },
+};
+
+export const DescriptionsInline: Story = {
+  name: 'Chú thích inline (tất cả)',
+  args: { text: DESCRIBED, showArrow: true, showDescriptions: true },
+};
+
+/** Chỉ nhánh `src/components`; phần còn lại vẫn nằm trong tooltip. */
+export const DescriptionsScoped: Story = {
+  name: 'Chú thích theo nhánh',
+  args: {
+    text: DESCRIBED,
+    showArrow: true,
+    showDescriptions: 'project/src/components',
+  },
+};
+
+export const SortByType: Story = {
+  name: 'Sắp xếp theo loại',
+  args: { text: DESCRIBED, showArrow: true, sort: 'type' },
+};
+
+export const SortByName: Story = {
+  name: 'Sắp xếp theo tên',
+  args: { text: DESCRIBED, showArrow: true, sort: 'name' },
+};
+
+/** `selected` nhận ĐƯỜNG DẪN đầy đủ, không phải tên file. */
+export const Selected: Story = {
+  name: 'Đang chọn một file',
+  args: {
+    text: DESCRIBED,
+    showArrow: true,
+    selected: 'project/src/components/Button.tsx',
+  },
+};
+
+/** `showRoot={false}` bỏ node gốc, các con của nó lên làm cấp ngoài cùng. */
+export const WithoutRoot: Story = {
+  name: 'Ẩn node gốc',
+  args: { text: DESCRIBED, showArrow: true, showRoot: false },
+};
+
+export const CustomIconColors: Story = {
+  name: 'Màu icon tuỳ biến',
+  args: {
+    text: DESCRIBED,
+    showArrow: true,
+    iconColors: {
+      folder: '#eab308',
+      javascript: '#38bdf8',
+      markdown: '#f472b6',
+    },
+  },
+};
+
+/** Cây con đóng sẵn - chúng KHÔNG nằm trong DOM cho tới khi mở. */
+export const Collapsed: Story = {
+  name: 'Đóng sẵn',
+  args: { text: DESCRIBED, showArrow: true, defaultExpanded: false },
+};
+
+/**
+ * RTL: thụt lề, đường kẻ chỉ mục và mũi tên lật sang phải; tên file latin vẫn
+ * đọc đúng chiều nhờ `dir="auto"` trên từng nhãn.
+ */
+export const RightToLeft: Story = {
+  name: 'RTL',
+  args: { text: DESCRIBED, showArrow: true, showDescriptions: true },
+  render: (args) => (
+    <div dir="rtl">
+      <FileTree {...args} />
+    </div>
+  ),
 };

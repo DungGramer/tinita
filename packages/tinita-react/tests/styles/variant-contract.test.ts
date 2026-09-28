@@ -62,10 +62,19 @@ describe('hợp đồng variant', () => {
 
   it('mọi `data-*` mà CSS nhắm tới đều được component phát ra', () => {
     // Chiều này bắt việc đổi tên prop mà quên CSS, và CSS chết trong im lặng.
-    // Của Radix Accordion, không phải của tinita. `data-disabled` từng có 2 rule trong
-    // FileTree.module.css nhưng `disabled` chưa bao giờ được truyền cho `Accordion.Item`
-    // - đo được 0 element mang nó. Đã xoá rule, không đưa vào allowlist.
-    const fromRadix = new Set(['data-state']);
+    // Do Base UI `Collapsible` đặt, không phải tinita. `data-starting-style` và
+    // `data-ending-style` chỉ tồn tại trong lúc transition vào/ra chạy; CSS của ta
+    // đọc chúng theo đúng mẫu trong docs của Base UI.
+    //
+    // `data-disabled` từng có 2 rule trong FileTree.module.css nhưng `disabled` chưa
+    // bao giờ được truyền xuống - đo được 0 element mang nó, đã xoá rule chứ không
+    // đưa vào allowlist.
+    const fromLibrary = new Set([
+      'data-open',
+      'data-closed',
+      'data-starting-style',
+      'data-ending-style',
+    ]);
     const emitted = new Set<string>();
     for (const { code } of tsxFiles) {
       for (const m of code.matchAll(/variantAttributes\(\{([\s\S]*?)\}\)/g)) {
@@ -78,7 +87,7 @@ describe('hợp đồng variant', () => {
         }
       }
     }
-    const missing = [...cssAttributes].filter((a) => !emitted.has(a) && !fromRadix.has(a));
+    const missing = [...cssAttributes].filter((a) => !emitted.has(a) && !fromLibrary.has(a));
     expect(missing).toEqual([]);
   });
 });

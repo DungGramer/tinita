@@ -37,6 +37,9 @@
       ],
       "utils/autoInjectStyles": [
         "dist/utils/autoInjectStyles.d.ts"
+      ],
+      "ui/tree": [
+        "./dist/ui/tree/index.d.ts"
       ]
     }
   },
@@ -63,6 +66,11 @@
       "types": "./dist/ui/file-tree/index.d.ts",
       "import": "./dist/ui/file-tree/index.mjs",
       "require": "./dist/ui/file-tree/index.cjs"
+    },
+    "./ui/tree": {
+      "types": "./dist/ui/tree/index.d.ts",
+      "import": "./dist/ui/tree/index.mjs",
+      "require": "./dist/ui/tree/index.cjs"
     },
     "./ui/ping": {
       "types": "./dist/ui/ping/index.d.ts",
@@ -103,20 +111,20 @@
     "build:types": "tsup"
   },
   "peerDependencies": {
-    "@radix-ui/react-accordion": ">=1.2.0",
+    "@base-ui/react": ">=1.8.0",
     "lucide-react": ">=0.400.0",
     "react": ">=18.0.0"
   },
   "peerDependenciesMeta": {
-    "@radix-ui/react-accordion": {
+    "lucide-react": {
       "optional": true
     },
-    "lucide-react": {
+    "@base-ui/react": {
       "optional": true
     }
   },
   "devDependencies": {
-    "@radix-ui/react-accordion": "^1.2.12",
+    "@base-ui/react": "^1.8.0",
     "@tailwindcss/postcss": "^4.1.17",
     "@testing-library/react": "^16.3.0",
     "@testing-library/react-hooks": "^8.0.1",
@@ -135,6 +143,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tailwindcss": "^4.1.17",
+    "tinita": "workspace:*",
     "vite": "^7.2.6"
   },
   "publishConfig": {

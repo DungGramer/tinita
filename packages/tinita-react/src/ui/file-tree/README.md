@@ -1,365 +1,292 @@
-# FileTree Component
+# FileTree
 
-A tree view component for displaying hierarchical file/folder structures from text input. Supports both indent-based and CLI `tree` format.
+Vẽ cây thư mục từ một chuỗi văn bản.
 
-## Features
+`FileTree` là **adapter**: nó đọc chuỗi thành node, gắn icon theo phần mở rộng, rồi
+đưa cho [`Tree`](../tree). Mọi hành vi - mở/đóng, bàn phím, chọn, chú thích, RTL,
+animation, tràn ngang - nằm ở `Tree`.
 
-- ✅ **Universal text parser** - Supports indent tree and CLI tree formats
-- ✅ **Auto-detect format** - Automatically detects input format
-- ✅ **Smooth animations** - Powered by Radix UI Accordion with height + fade transitions
-- ✅ **Radix UI Accordion** - Professional, accessible accordion with built-in animations
-- ✅ **File type icons** - Colored border icons based on file extension
-- ✅ **Dark & light themes** - Default dark theme with light theme support
-- ✅ **Accessibility** - ARIA compliant, respects prefers-reduced-motion preference
-- ✅ **TypeScript** - Full type safety
-- ✅ **SSR-safe** - Works with Next.js, Remix, etc.
-- ✅ **Customizable** - CSS variables for easy theming
+Đã có dữ liệu dạng cây thì **dùng thẳng `Tree`**, đừng chuyển nó về chuỗi rồi parse
+lại:
 
-## Installation
+```tsx
+import { Tree } from 'tinita-react/ui/tree';
+
+<Tree nodes={nodes} />;
+```
+
+## Cài đặt
 
 ```bash
-npm install tinita-react
-# or
-pnpm add tinita-react
-# or
-yarn add tinita-react
+pnpm add tinita-react lucide-react
 ```
 
-## Basic Usage
+`lucide-react` là **optional peer**, chỉ `FileTree` cần (nó vẽ icon theo loại file).
+`Tree` không cần. Xem `docs/code-standards.md` mục "Quy Tắc Dependency".
 
-### Indent Tree Format (2 spaces)
+CSS phải import một lần ở gốc ứng dụng:
 
 ```tsx
-import { FileTree } from 'tinita-react/ui';
-
-const treeText = `
-content/
-  1_photography/
-    1_animals/
-    2_trees/
-    album.txt
-    photo.jpg
-  2_notes/
-    notes.txt
-`;
-
-function App() {
-  return <FileTree text={treeText} />;
-}
+import 'tinita-react/styles.css';
+// hoặc, nếu app đã dùng cascade layer:
+import 'tinita-react/styles.layer.css';
 ```
 
-### CLI Tree Format (Windows/Unix)
+## Dùng cơ bản
 
 ```tsx
-const cliTreeText = `
-D:\\PROJECT
-├───src
-│   └───components
-│       ├───Button.tsx
-│       └───Input.tsx
-└───dist
-    └───index.js
+import { FileTree } from 'tinita-react/ui/file-tree';
+
+const tree = `
+src/
+  components/
+    Button.tsx
+    index.ts
+  utils/
+    format.ts
+README.md
 `;
 
-<FileTree text={cliTreeText} hideRootName />;
+<FileTree text={tree} />;
 ```
+
+## Định dạng đầu vào
+
+Parser nhận **cả hai** định dạng, tự nhận biết.
+
+**Thụt lề 2 dấu cách:**
+
+```
+project/
+  src/
+    app.tsx
+  README.md
+```
+
+**Cây CLI (`tree` của Windows hoặc Unix):**
+
+```
+project/
+├── src/
+│   └── app.tsx
+└── README.md
+```
+
+Hai quy ước quan trọng:
+
+| Viết          | Nghĩa               |
+| ------------- | ------------------- |
+| `docs/`       | thư mục             |
+| `docs`        | **file** tên `docs` |
+| `empty/` rỗng | thư mục rỗng        |
+
+Dấu `/` ở cuối là tín hiệu **duy nhất** phân biệt file với thư mục rỗng.
+
+### Chú thích bằng `?`
+
+Dấu `?` có **khoảng trắng đứng trước** tách phần chú thích:
+
+```
+src/          ? Mã nguồn
+  app.tsx     ? Điểm vào
+  types.ts
+```
+
+Yêu cầu khoảng trắng là có chủ ý: `foo?.ts` là tên file hợp lệ và nó không bị cắt.
+
+`showDescriptions` quyết định chú thích hiện inline hay nằm trong tooltip.
 
 ## Props
 
-### `FileTreeProps`
+`FileTreeProps` kế thừa **toàn bộ** `TreeProps` trừ `nodes`, cộng thêm:
 
-| Prop              | Type                   | Default      | Description                              |
-| ----------------- | ---------------------- | ------------ | ---------------------------------------- |
-| `text`            | `string`               | **required** | Text tree input (indent or CLI format)   |
-| `className`       | `string`               | `''`         | Custom class name                        |
-| `hideRootName`    | `boolean`              | `false`      | Hide root node when only 1 root exists   |
-| `theme`           | `'dark' \| 'light'`    | `'light'`    | Color theme                              |
-| `indicator`       | `boolean`              | `true`       | Show tree indicator lines                |
-| `size`            | `'sm' \| 'md' \| 'lg'` | `'md'`       | Size/density preset                      |
-| `borderRadius`    | `'sm' \| 'md' \| 'lg'` | `'md'`       | Border radius for hover state            |
-| `showArrow`       | `boolean`              | `false`      | Show collapse/expand arrow icons         |
-| `enableAnimation` | `boolean`              | `true`       | Enable smooth collapse/expand animations |
+| Prop           | Kiểu                                    | Mặc định | Mô tả                                                                                            |
+| -------------- | --------------------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `text`         | `string`                                | -        | **Bắt buộc.** Cây dạng văn bản.                                                                  |
+| `showRoot`     | `boolean`                               | `true`   | Ẩn node gốc khi nó chỉ là đường dẫn máy (`D:\PROJECT`). Chỉ có tác dụng khi cây có đúng một gốc. |
+| `hideRootName` | `boolean`                               | `false`  | Nghịch đảo của `showRoot`, giữ từ bản đầu. Truyền cả hai thì `showRoot` thắng.                   |
+| `iconColors`   | `Partial<Record<FileIconType, string>>` | -        | Ghi đè màu icon theo loại.                                                                       |
 
-### `FileNode`
+Props thừa hưởng từ `Tree`:
 
-```typescript
-type FileNode = {
-  name: string;
-  children: FileNode[];
-};
-```
+| Prop               | Kiểu                                             | Mặc định   | Mô tả                                                      |
+| ------------------ | ------------------------------------------------ | ---------- | ---------------------------------------------------------- |
+| `defaultExpanded`  | `boolean \| string[]`                            | `true`     | Trạng thái mở ban đầu khi không kiểm soát.                 |
+| `expanded`         | `string[]`                                       | -          | Danh sách id đang mở. Truyền vào là chuyển sang kiểm soát. |
+| `onExpandedChange` | `(expanded: string[]) => void`                   | -          | Bắt buộc nếu dùng `expanded`.                              |
+| `selected`         | `string`                                         | -          | id node đang chọn, để tô sáng.                             |
+| `onSelectedChange` | `(node: TreeNode) => void`                       | -          | Gọi khi click / Enter / Space.                             |
+| `sort`             | `'none' \| 'name' \| 'type' \| (a, b) => number` | `'none'`   | `'type'` đưa thư mục lên trước.                            |
+| `showDescriptions` | `boolean \| string \| string[]`                  | `false`    | Chú thích nào hiện inline. Còn lại vào tooltip.            |
+| `overflow`         | `'scroll' \| 'truncate' \| 'wrap'`               | `'scroll'` | Nhãn dài hơn khung thì làm gì. Xem mục dưới.               |
+| `renderNode`       | `(node, context) => ReactNode`                   | -          | Thay hoặc **bọc** nội dung một hàng.                       |
+| `indicator`        | `boolean`                                        | `true`     | Đường kẻ dọc theo cấp.                                     |
+| `size`             | `'sm' \| 'md' \| 'lg'`                           | `'md'`     | Mật độ hàng.                                               |
+| `borderRadius`     | `'sm' \| 'md' \| 'lg'`                           | `'md'`     | Bo góc hàng.                                               |
+| `showArrow`        | `boolean`                                        | `false`    | Mũi tên mở/đóng cho thư mục.                               |
+| `enableAnimation`  | `boolean`                                        | `true`     | Luôn tắt khi bật `prefers-reduced-motion`.                 |
+| `theme`            | `'dark' \| 'light'`                              | -          | Không truyền thì theo dark mode của trang.                 |
 
-## Examples
+`id` của mỗi node là **đường dẫn đầy đủ** (`src/components/Button.tsx`). Đây là thứ
+`expanded`, `selected` và `showDescriptions` nhắm tới.
 
-### Hide Root Name
+## Nhãn dài: `overflow`
 
-```tsx
-// Input has root path like "D:\PROJECT"
-// hideRootName will hide the root and show only children
-<FileTree text={cliTreeText} hideRootName={true} />
-```
-
-### Custom Class Name
-
-```tsx
-<FileTree text={treeText} className="my-custom-tree" />
-```
-
-### CSS Import (Required)
+Câu hỏi này chỉ xuất hiện trên màn hình hẹp, và ba câu trả lời đều đúng ở hoàn cảnh
+khác nhau.
 
 ```tsx
-// app.tsx or _app.tsx (Next.js, Remix, etc.)
-import 'tinita-react/ui/file-tree/FileTree.css';
-
-function App() {
-  return <FileTree text={treeText} />;
-}
+<FileTree text={tree} overflow="truncate" />
 ```
 
-## Animations
+| Giá trị      | Hành vi                                                                                                 |
+| ------------ | ------------------------------------------------------------------------------------------------------- |
+| `'scroll'`   | **Mặc định.** Hàng rộng bằng nội dung, cả cây cuộn ngang. Không mất ký tự nào. Đây là cách VS Code làm. |
+| `'truncate'` | Hàng vừa khung, tên rút bằng `…`, **đuôi file vẫn hiện**. Nhãn đầy đủ nằm trong `title`.                |
+| `'wrap'`     | Tên xuống dòng. Không cuộn, không mất ký tự, nhưng hàng cao không đều nên khó quét mắt trên cây lớn.    |
 
-### Smooth Collapse/Expand (Powered by Radix UI)
+`'truncate'` cho ra `UserProfileSetti….tsx` chứ không phải `UserProfileSettings…` -
+đuôi file là phần mang thông tin nhất khi tên bị rút. `FileTree` tách đuôi bằng
+[`getFileNameParts`](../../../../tinita/src/file/getFileNameParts.ts) của `tinita`,
+nên dotfile (`.gitignore` là **tên**, không có đuôi) và nhiều dấu chấm
+(`.env.production.local`) đều đúng.
 
-By default, folders animate smoothly using **Radix UI Accordion** with height + fade transitions (250ms, ease-out).
+Dùng `Tree` thuần thì tự truyền `nameSuffix` cho node - `Tree` không biết gì về file:
 
 ```tsx
-<FileTree text={treeText} enableAnimation={true} />
+<Tree
+  overflow="truncate"
+  nodes={[{ id: 'a', name: 'BaoCaoQuyIV_2026_final', nameSuffix: '.xlsx' }]}
+/>
 ```
 
-**Animation Features:**
+Bất biến: `name + (nameSuffix ?? '')` phải bằng đúng nhãn gốc. Sort và gõ-để-nhảy
+đều dựa vào đó.
 
-- Height animation from 0 to auto (using `--radix-accordion-content-height`)
-- Opacity fade (0 to 1)
-- Arrow rotation (0° to 90°)
-- GPU-accelerated CSS animations
-- ARIA-compliant accessibility
-- Smooth interruption handling
+## Ví dụ
 
-**Technical Implementation:**
-
-- Uses `@radix-ui/react-accordion` for reliable animations
-- CSS keyframes with `data-state` attributes
-- No JavaScript timing hacks or complex state management
-- Works flawlessly with nested folders
-
-### Disable Animations
+### Kiểm soát trạng thái mở
 
 ```tsx
-<FileTree text={treeText} enableAnimation={false} />
+const [expanded, setExpanded] = useState<string[]>(['src']);
+
+<FileTree text={tree} expanded={expanded} onExpandedChange={setExpanded} />;
 ```
 
-When disabled, folders expand/collapse instantly without animation.
-
-### Accessibility
-
-The component automatically respects the user's `prefers-reduced-motion` preference:
-
-```css
-/* Animations are automatically disabled when user prefers reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .tnt-filetree__accordion-content {
-    animation: none !important;
-  }
-}
-```
-
-### Show Arrows
-
-Enable arrow icons to make the collapse/expand behavior more visible:
+### Tô sáng file đang mở
 
 ```tsx
-<FileTree text={treeText} showArrow={true} />
+<FileTree text={tree} selected={currentPath} onSelectedChange={(node) => router.push(node.id)} />
 ```
 
-Arrows rotate 90° when folders expand (CSS transform, GPU-accelerated).
+### Chú thích chỉ cho một nhánh
 
-## Input Formats
-
-### Format 1: Indent Tree (2 spaces)
-
-```
-root/
-  folder1/
-    file1.txt
-    file2.js
-  folder2/
-    nested/
-      deep.md
+```tsx
+<FileTree text={tree} showDescriptions="src/components" />
 ```
 
-**Rules:**
+Node ngoài nhánh vẫn giữ chú thích, nhưng nó vào tooltip và hàng mang dấu `?` ở cuối.
 
-- Use 2 spaces for each level
-- Folders typically end with `/` (optional)
-- Files are leaf nodes
+### Bọc nội dung hàng
 
-### Format 2: CLI Tree (Windows)
+`renderNode` nhận `defaultContent` nên bọc được thay vì phải dựng lại từ đầu:
 
-```
-D:\PROJECT
-├───src
-│   ├───components
-│   │   └───Button.tsx
-│   └───utils
-│       └───helpers.ts
-└───dist
-```
-
-**Characters:**
-
-- `├───` Branch connector
-- `└───` Last branch
-- `│   ` Vertical line
-
-### Format 3: CLI Tree (Unix/Mac)
-
-```
-/home/user/project
-├── src
-│   ├── components
-│   │   └── Button.tsx
-│   └── utils
-└── dist
+```tsx
+<FileTree
+  text={tree}
+  renderNode={(node, ctx) => (
+    <>
+      {ctx.defaultContent}
+      {ctx.isFolder && <span className="count">{node.children?.length}</span>}
+    </>
+  )}
+/>
 ```
 
-**Characters:**
+### Đổi màu icon
 
-- `├──` Branch connector
-- `└──` Last branch
-- `│  ` Vertical line
+```tsx
+<FileTree text={tree} iconColors={{ folder: '#eab308', javascript: '#f7df1e' }} />
+```
+
+Giá trị được gán vào biến `--tnt-filetree-icon-*` trên phần tử gốc, tức đi đúng
+đường mà theme vẫn đi - không phải một cơ chế thứ hai.
+
+## Bàn phím
+
+Theo chuẩn [ARIA tree](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/). Cả cây là
+**một** điểm dừng Tab (roving tabindex).
+
+| Phím              | Hành động                                       |
+| ----------------- | ----------------------------------------------- |
+| `↑` / `↓`         | Hàng trước / sau (chỉ tính hàng đang nhìn thấy) |
+| `→`               | Mở thư mục; đã mở thì xuống con đầu             |
+| `←`               | Đóng thư mục; đã đóng thì về cha                |
+| `Home` / `End`    | Hàng đầu / hàng cuối                            |
+| `Enter` / `Space` | Mở/đóng và kích hoạt node                       |
+| `*`               | Mở mọi thư mục anh em cùng cấp                  |
+| chữ cái           | Nhảy tới node kế tiếp bắt đầu bằng chữ đó       |
+
+Trong `dir="rtl"`, `←` và `→` **đảo nghĩa**.
 
 ## Styling
 
-### CSS Variables
+Toàn bộ class là CSS Modules, sinh ra với tiền tố `tnt-`: `.tnt-tree-root`,
+`.tnt-tree-row`, `.tnt-file-tree-root`. Không có class global nào rò vào trang của
+bạn.
 
-Customize the component by overriding CSS variables:
+### Biến CSS
+
+Chỉnh cấu trúc và màu qua biến, không cần ghi đè selector:
 
 ```css
 :root {
-  /* Dark theme (default) */
-  --tnt-filetree-bg: #0a0a0a;
-  --tnt-filetree-text: #e0e0e0;
-  --tnt-filetree-hover: rgba(255, 255, 255, 0.05);
-  --tnt-filetree-indent: 16px;
-
-  /* Icon colors */
-  --tnt-filetree-icon-folder: #666;
-  --tnt-filetree-icon-javascript: #facc15;
-  --tnt-filetree-icon-markdown: #4b8bea;
-  --tnt-filetree-icon-css: #61dafb;
-  /* ... more icon colors */
+  --tnt-tree-bg: #ffffff;
+  --tnt-tree-text: #1a1a1a;
+  --tnt-tree-text-dim: #6b7280;
+  --tnt-tree-hover: rgb(0 0 0 / 0.06);
+  --tnt-tree-selected-bg: rgb(37 99 235 / 0.12);
+  --tnt-tree-font: Menlo, Monaco, 'Courier New', monospace;
+  --tnt-tree-font-size: 14px;
+  --tnt-tree-indent: 16px;
+  --tnt-tree-row-gap: 1px;
 }
 ```
 
-### Light Theme
+Màu icon: `--tnt-filetree-icon-<loại>` với `<loại>` là một giá trị của
+`FileIconType` (`folder`, `javascript`, `markdown`, `image`, ...).
 
-```css
-[data-theme='light'] {
-  --tnt-filetree-bg: #ffffff;
-  --tnt-filetree-text: #1a1a1a;
-  --tnt-filetree-hover: rgba(0, 0, 0, 0.05);
-}
-```
+### Theme
+
+Dark mode tự động theo `.dark` hoặc `[data-theme='dark']` trên bất kỳ tổ tiên nào.
+Ép một cây về một theme:
 
 ```tsx
-<div data-theme="light">
-  <FileTree text={treeText} />
-</div>
+<FileTree text={tree} theme="light" />
 ```
 
-## File Type Icons
+## Animation
 
-Icons are colored borders based on file extensions:
+Đóng/mở dùng `Collapsible` của [Base UI](https://base-ui.com), **transition trên
+`height`** theo đúng mẫu trong docs của nó - không phải keyframes. Chi tiết và lý do
+nằm trong `Tree.module.css`.
 
-| Type           | Extensions      | Color  |
-| -------------- | --------------- | ------ |
-| **Folder**     | (directories)   | Gray   |
-| **README**     | `README.*`      | Blue   |
-| **Markdown**   | `.md`           | Blue   |
-| **JavaScript** | `.js`           | Yellow |
-| **CSS**        | `.css`          | Cyan   |
-| **HTML**       | `.html`, `.htm` | Red    |
-| **JSON**       | `.json`         | Yellow |
-| **PHP**        | `.php`          | Purple |
-| **Vue**        | `.vue`          | Green  |
-| **Git**        | `.git*`         | Red    |
-| **Database**   | `.yml`, `.yaml` | Blue   |
-| **Text**       | `.txt`          | Gray   |
+Cây con **đang đóng không nằm trong DOM**. Trên cây 1364 dòng, điều này giảm số node
+DOM lúc đóng từ 7277 xuống 145.
 
-## Advanced Usage
+`prefers-reduced-motion: reduce` **tắt hẳn** animation, không dùng thời lượng gần-0.
 
-### From External Source
+## Kiểu TypeScript
 
 ```tsx
-import { useState, useEffect } from 'react';
-import { FileTree } from 'tinita-react/ui';
-
-function DynamicTree() {
-  const [treeText, setTreeText] = useState('');
-
-  useEffect(() => {
-    // Fetch tree from API or execute CLI command
-    fetch('/api/file-structure')
-      .then((res) => res.text())
-      .then((text) => setTreeText(text));
-  }, []);
-
-  return treeText ? <FileTree text={treeText} /> : <div>Loading...</div>;
-}
+import type { FileTreeProps, FileIconType } from 'tinita-react/ui/file-tree';
+import type { TreeNode, TreeProps, TreeSort } from 'tinita-react/ui/tree';
 ```
 
-### Execute CLI Tree Command
+`FileNode` vẫn được export để không phá code cũ. Parser nội bộ giờ trả `ParsedNode`
+(có thêm `path` và `description`, `children` là tuỳ chọn).
 
-```bash
-# Windows
-tree /F /A > tree.txt
+## Liên quan
 
-# Unix/Mac
-tree -a > tree.txt
-```
-
-Then read the file content and pass to FileTree.
-
-## Browser Support
-
-- Chrome/Edge: Latest 2 versions
-- Firefox: Latest 2 versions
-- Safari: Latest 2 versions
-- SSR: Full support (Next.js, Remix, Gatsby)
-
-## Performance
-
-- Lightweight parser (~1KB)
-- Radix UI Accordion for professional-grade animations
-- GPU-accelerated CSS keyframes for smooth transitions
-- Minimal dependencies (React + @radix-ui/react-accordion)
-- Small bundle size (~6KB minified + gzipped including Radix UI)
-- All folders start expanded by default (configurable)
-- Respects reduced-motion preference for accessibility
-- Zero animation bugs (thanks to Radix UI's battle-tested implementation)
-
-## Accessibility
-
-- ARIA-compliant accordion implementation (Radix UI)
-- Full keyboard navigation support (Space, Enter, Arrow keys)
-- Screen reader friendly with proper ARIA attributes
-- Respects `prefers-reduced-motion` preference (disables animations automatically)
-- SSR-safe (Radix UI handles browser environment checks)
-- Focus management handled automatically
-
-## TypeScript
-
-Fully typed with TypeScript:
-
-```typescript
-import type { FileTreeProps, FileNode } from 'tinita-react/ui';
-```
-
-## License
-
-MIT
-
-## Related
-
-- [CSS Guide](../../CSS_GUIDE.md) - Comprehensive CSS customization guide
-- [useToggle hook](../../hooks/useToggle.ts) - Toggle hook (not used in this version)
+- [`Tree`](../tree) - primitive, không phụ thuộc thư viện icon
+- `docs/code-standards.md` - Quy Tắc Dependency, Quy Tắc CSS Chống Rò Rỉ Global

@@ -1,3 +1,5 @@
+import type { FileIconType } from '../types';
+
 /**
  * File Icon Type Detection
  *
@@ -5,9 +7,9 @@
  */
 
 /**
- * Get icon type for a file
+ * Suy loại icon từ tên file.
  */
-export function getIconType(filename: string): string {
+export function getIconType(filename: string): FileIconType {
   // README / LICENSE
   if (/^(readme|license)\.?/i.test(filename)) return 'readme';
 
@@ -15,7 +17,7 @@ export function getIconType(filename: string): string {
   const extMatch = filename.match(/\.([^.]+)$/);
   const ext = extMatch ? extMatch[1].toLowerCase() : '';
 
-  const mapping: Record<string, string[]> = {
+  const mapping: Partial<Record<FileIconType, string[]>> = {
     javascript: ['js', 'jsx', 'mjs', 'cjs', 'ts', 'tsx'],
     css: ['css', 'scss', 'sass', 'less', 'styl'],
     database: ['yml', 'yaml', 'sql', 'db', 'sqlite'],
@@ -40,7 +42,7 @@ export function getIconType(filename: string): string {
   };
 
   for (const [type, exts] of Object.entries(mapping)) {
-    if (exts.includes(ext)) return type;
+    if (exts?.includes(ext)) return type as FileIconType;
   }
 
   return 'file';

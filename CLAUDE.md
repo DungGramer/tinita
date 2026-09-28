@@ -18,7 +18,7 @@ ra được từ code.
 ```
 packages/tinita/       utility framework-agnostic, 0 dependency, 0 peer
 packages/tinita-react/ hook + UI component, 0 dependency, peer: react (bắt buộc)
-                       + @radix-ui/react-accordion và lucide-react (optional)
+                       + @base-ui/react và lucide-react (optional)
 packages/tinita-dom/   utility DOM thuần, 0 dependency, 0 peer, browser-only
 ```
 
@@ -85,11 +85,12 @@ từng subpath, KHÔNG wildcard**; xem `docs/code-standards.md`.
 
 `tinita` - barrel hoặc subpath đều được.
 
-`tinita-react` - dùng **subpath cụ thể**. 9 key thật:
+`tinita-react` - dùng **subpath cụ thể**. 10 key thật:
 
 ```
 tinita-react/hooks/useToggle   tinita-react/ui/ping
-tinita-react/ui/file-tree      tinita-react/ui/carousel-ticker
+tinita-react/ui/tree           tinita-react/ui/file-tree
+tinita-react/ui/carousel-ticker
 tinita-react/utils/autoInjectStyles
 tinita-react/styles.css        tinita-react/styles.layer.css
 tinita-react/styles/globals.css  tinita-react/styles/animations.css
@@ -152,6 +153,49 @@ client. Mọi quy tắc dưới đây có số đo và có guard.
 Guard: `packages/tinita-react/tests/styles/no-global-leak.test.ts` (10 ca, chạy
 trong `pnpm test`) và ca `css-leak` của L2 (đo thật trong Chromium). Hai cái không
 thay thế nhau - ca L2 mạnh hơn nhưng cần chromium nên không chạy trong vòng lặp.
+
+## Tree và FileTree: primitive và adapter
+
+`Tree` nhận dữ liệu (`nodes: TreeNode[]`). `FileTree` đọc chuỗi cây CLI/thụt lề,
+gắn icon theo phần mở rộng, rồi đưa cho `Tree`. Có sẵn dữ liệu dạng cây thì dùng
+thẳng `Tree` - đừng chuyển ngược về chuỗi để parse lại.
+
+`Tree` không phụ thuộc thư viện icon (nhận `ReactNode`), chỉ `FileTree` dùng
+`lucide-react`. Cả hai cần `@base-ui/react` cho phần đóng/mở.
+
+### Animation: dùng NGUYÊN mẫu của Base UI, đừng tự chế
+
+Bản gốc nằm ngay trong package: `@base-ui/react/docs/react/components/accordion.md`.
+Viết bằng Tailwind, dịch sang CSS thường:
+
+```css
+.panel {
+  height: var(--accordion-panel-height); /* hoặc --collapsible-panel-height */
+  overflow: hidden;
+  transition: height 150ms ease-out;
+}
+.panel[data-starting-style],
+.panel[data-ending-style] {
+  height: 0;
+}
+```
+
+**TRANSITION trên `height`, không phải `@keyframes`.** Đó là chi tiết quyết định.
+`getAnimationType` của Base UI đọc computed style ngay tại thời điểm đổi trạng thái
+và chỉ chạy animation khi phát hiện được. Với transition, `transition-duration`
+luôn khác 0 trên class gốc nên nó luôn phát hiện đúng.
+
+Với keyframes thì hỏng: lúc ĐÓNG, `[data-open]` vừa bị gỡ còn `[data-ending-style]`
+chưa được thêm, Base UI đọc ra `animation-name: none`, kết luận không có animation,
+và bỏ luôn animation đóng. Đo được 2026-09-28: panel biến mất ở t=9ms,
+`data-ending-style` không bao giờ xuất hiện. `keepMounted` KHÔNG cứu được.
+
+### Biến CSS của Base UI không có namespace
+
+Nó là `--collapsible-panel-height`, không phải `--base-ui-...`. Hai hệ quả: nó có
+thể đụng biến cùng tên của host, và guard dò biến third-party không thể dựa vào
+tiền tố nhà cung cấp - phải liệt kê tên thật. Bọc nó sau token của tinita ngay tại
+chỗ dùng, đúng một lần.
 
 ## Reduced motion: tắt hẳn
 

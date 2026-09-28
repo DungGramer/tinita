@@ -38,12 +38,18 @@
   /* -------------------
      Easing Curves (cubic-bezier approximations)
      ------------------- */
+  /* Bốn đường cong dưới đây là của MATERIAL DESIGN */
   --tnt-ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* Defaultcurve */
   --tnt-ease-decelerate: cubic-bezier(0, 0, 0.2, 1); /* Elements entering */
   --tnt-ease-accelerate: cubic-bezier(0.4, 0, 1, 1); /* Elements exiting */
   --tnt-ease-sharp: cubic-bezier(0.4, 0, 0.6, 1); /* Attention-grabbing */
   --tnt-ease-spring: cubic-bezier(0.36, 0.66, 0.04, 1); /* Spring approximation */
   --tnt-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1); /* Bounce approximation */
+
+  /* https://developer.apple.com/documentation/uikit/uicubictimingparameters */
+  --tnt-ease-in-out: cubic-bezier(0.42, 0, 0.58, 1); /* kCAMediaTimingFunctionEaseInEaseOut */
+  --tnt-ease-out: cubic-bezier(0, 0, 0.58, 1); /* kCAMediaTimingFunctionEaseOut */
+  --tnt-ease-in: cubic-bezier(0.42, 0, 1, 1); /* kCAMediaTimingFunctionEaseIn */
 
   /* -------------------
      Scale Values by Context

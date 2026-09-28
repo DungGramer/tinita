@@ -1,10 +1,7 @@
 /**
- * FileTree Component
- *
- * A tree view component for displaying hierarchical file/folder structures.
+ * FileTree - adapter từ chuỗi cây CLI/thụt lề sang `Tree`.
  *
  * @packageDocumentation
  */
-
 export { FileTree } from './FileTree';
-export type { FileTreeProps, FileNode } from './types';
+export type { FileTreeProps, FileIconType, FileNode, ParsedNode } from './types';

@@ -91,10 +91,20 @@ for (const { name, dir } of TARGETS) {
   const tgz = tarballFor('tinita-react');
   const specs = Object.entries(contract['tinita-react'].optionalPeers);
   const withoutPeers = createConsumer({ level: 'l1', name: '04-peer-absent', deps: ['react@19'], tarballs: [tgz] });
+  // Danh sách peer lấy TỪ CONTRACT, không viết tay.
+  //
+  // Bản trước hardcode `['@radix-ui/react-accordion', 'lucide-react']` ngay ở đây
+  // trong khi contract đã khai `optionalPeers`. Hai nguồn sự thật, và nó lệch im
+  // lặng ngay lần đầu đổi peer: consumer "có đủ peer" thật ra không cài peer nào,
+  // nên mọi đường nhập đều fail và ca chỉ báo "3 sai" mà không nói vì sao.
+  //
+  // `react-dom` phải có: `@base-ui/react` khai nó là peer của chính nó. Đây là chi
+  // phí mà người dùng thừa hưởng khi cài optional peer, và nó cần được đo thật.
+  const allPeers = [...new Set(Object.values(contract['tinita-react'].optionalPeers).flat())];
   const withPeers = createConsumer({
     level: 'l1',
     name: '04-peer-present',
-    deps: ['react@19', '@radix-ui/react-accordion', 'lucide-react'],
+    deps: ['react@19', 'react-dom@19', ...allPeers],
     tarballs: [tgz],
   });
 

@@ -115,24 +115,24 @@ const withNoJS = (Story: React.ComponentType, context: StoryContext) => {
   return React.createElement(Story);
 };
 
-// Focus management decorator
-const withFocusManagement = (Story: React.ComponentType) => {
-  return React.createElement(
-    'div',
-    null,
-    React.createElement(
-      'style',
-      null,
-      `
-        *:focus {
-          outline: 2px solid #2563eb !important;
-          outline-offset: 2px !important;
-        }
-      `
-    ),
-    React.createElement(Story)
-  );
-};
+/**
+ * ĐÃ XOÁ: decorator `withFocusManagement`.
+ *
+ * Nó bơm `*:focus { outline: 2px solid #2563eb !important; outline-offset: 2px
+ * !important }` vào MỌI story. Hai hậu quả, cả hai đều làm Storybook nói sai về
+ * library:
+ *
+ * 1. `outline-offset: 2px` đè mất `-2px` mà `Tree.module.css` đặt CÓ CHỦ Ý. Offset
+ *    dương vẽ vòng focus ra NGOÀI border box, nên `overflow: hidden` của nhóm con
+ *    ăn mất cạnh trên của hàng đầu tiên trong nhóm. Đây chính là lỗi "focus bị mất
+ *    viền trên" owner báo 2026-09-28 - đo được `outline-offset` computed là `2px`
+ *    trong khi CSS nguồn và `dist/styles.css` đều là `-2px`, và rule đè đến từ
+ *    inline `<style>` 126 byte này.
+ * 2. Nó bắt `:focus` chứ không phải `:focus-visible`, nên click chuột cũng hiện
+ *    vòng focus - trong app thật thì không.
+ *
+ * Library đã tự lo vòng focus. Storybook không được thêm lớp thứ hai.
+ */
 
 const preview: Preview = {
   parameters: {
@@ -180,7 +180,7 @@ const preview: Preview = {
       enabled: true,
     },
   },
-  decorators: [withTheme, withRTL, withNoJS, withFocusManagement],
+  decorators: [withTheme, withRTL, withNoJS],
   globalTypes: {
     theme: {
       description: 'Global theme for components',

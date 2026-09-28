@@ -1,96 +1,122 @@
-/**
- * FileTree Types
- *
- * Type definitions for FileTree component and related utilities.
- */
+import type { TreeProps } from '../tree';
 
 /**
- * Internal file node structure
+ * Node do parser sinh ra.
+ *
+ * `children === undefined` là FILE. `children === []` là thư mục rỗng. Dấu `/` ở
+ * cuối tên trong chuỗi đầu vào là tín hiệu duy nhất phân biệt hai thứ đó.
  *
  * @internal
  */
-export interface FileNode {
-  /** Node name (file or folder name) */
+export interface ParsedNode {
   name: string;
-  /** Child nodes */
+  /** Đường dẫn đầy đủ, ví dụ `src/components/Button.tsx`. Đây là `id` của node. */
+  path: string;
+  description?: string;
+  children?: ParsedNode[];
+}
+
+/**
+ * Hình dạng node của bản đầu.
+ *
+ * Giữ nguyên để không phá code đang import nó. Parser giờ trả `ParsedNode` - có
+ * thêm `path` và `description`, và `children` là tuỳ chọn để phân biệt file với
+ * thư mục rỗng. `FileNode` vẫn gán được vào `ParsedNode` nếu bạn thêm `path`.
+ *
+ * @public
+ */
+export interface FileNode {
+  name: string;
   children: FileNode[];
 }
 
 /**
- * FileTree component props
+ * Kiểu icon suy ra từ phần mở rộng. `iconColors` nhận đúng các khoá này.
  *
  * @public
  */
-export interface FileTreeProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
+export type FileIconType =
+  | 'folder'
+  | 'file'
+  | 'readme'
+  | 'markdown'
+  | 'javascript'
+  | 'css'
+  | 'html'
+  | 'json'
+  | 'database'
+  | 'php'
+  | 'vue'
+  | 'git'
+  | 'text'
+  | 'code'
+  | 'font'
+  | 'image'
+  | 'video'
+  | 'audio'
+  | 'spreadsheet'
+  | 'archive';
+
+/**
+ * Props của FileTree.
+ *
+ * Kế thừa toàn bộ props của `Tree` trừ `nodes` - `FileTree` dựng `nodes` từ `text`.
+ * Nếu bạn đã có cây dạng dữ liệu thì dùng thẳng `Tree`, đừng chuyển nó về chuỗi.
+ *
+ * @public
+ */
+export interface FileTreeProps extends Omit<TreeProps, 'nodes'> {
   /**
-   * Text tree input in one of the following formats:
+   * Cây dạng văn bản, một trong hai định dạng:
    *
-   * **Indent-based format (2 spaces):**
+   * **Thụt lề 2 dấu cách:**
    * ```
-   * root/
-   *   folder/
-   *     file.txt
+   * src/
+   *   components/
+   *     Button.tsx
    * ```
    *
-   * **CLI tree format (Windows/Unix):**
+   * **Cây CLI (Windows/Unix):**
    * ```
-   * D:\PROJECT
-   * ├───src
-   * │   └───components
-   * └───dist
+   * project/
+   * ├── src/          ? Mã nguồn
+   * │   └── app.tsx   ? Điểm vào
+   * └── README.md     ? Tài liệu
    * ```
+   *
+   * Dấu `?` có khoảng trắng đứng trước tách phần chú thích. `showDescriptions`
+   * quyết định chú thích hiện inline hay nằm trong tooltip.
    */
   text: string;
 
   /**
-   * Hide root node name when only one root exists.
-   * Useful for hiding the root path (e.g., `D:\...`) in CLI tree format.
+   * Hiện node gốc. Đặt `false` khi gốc chỉ là đường dẫn máy (`D:\PROJECT`) và
+   * không mang thông tin gì - các con của nó lên làm cấp ngoài cùng.
+   *
+   * Chỉ có tác dụng khi cây có ĐÚNG một gốc.
+   *
+   * @default true
+   */
+  showRoot?: boolean;
+
+  /**
+   * Ẩn tên node gốc. Nghịch đảo của `showRoot`, giữ nguyên từ bản đầu.
+   *
+   * Truyền cả hai thì `showRoot` thắng.
    *
    * @default false
    */
   hideRootName?: boolean;
 
   /**
-   * Theme color scheme.
-   * @default 'light'
+   * Ghi đè màu icon theo loại.
+   *
+   * ```tsx
+   * <FileTree text={tree} iconColors={{ folder: '#eab308', javascript: '#f7df1e' }} />
+   * ```
+   *
+   * Giá trị được gán vào biến `--tnt-filetree-icon-*` trên phần tử gốc, nên nó
+   * theo đúng đường mà theme vẫn đi - không phải một cơ chế thứ hai.
    */
-  theme?: 'dark' | 'light';
-
-  /**
-   * Whether to show the tree indicator line.
-   * @default true
-   */
-  indicator?: boolean;
-
-  /**
-   * Size preset for density (padding).
-   * - sm: Compact (0.8px 8px 0.8px 4px)
-   * - md: Default (4px 8px 4px 4px)
-   * - lg: Spacious (8px 8px 8px 4px)
-   * @default 'md'
-   */
-  size?: 'sm' | 'md' | 'lg';
-
-  /**
-   * Border radius for hover state.
-   * - sm: 1px
-   * - md: 4px
-   * - lg: 30px
-   * @default 'md'
-   */
-  borderRadius?: 'sm' | 'md' | 'lg';
-
-  /**
-   * Whether to show arrow icon for folders (collapse/expand indicator).
-   * @default false
-   */
-  showArrow?: boolean;
-
-  /**
-   * Enable smooth collapse/expand animations.
-   * When enabled, folders will animate smoothly when expanding/collapsing.
-   * Respects user's prefers-reduced-motion preference.
-   * @default true
-   */
-  enableAnimation?: boolean;
+  iconColors?: Partial<Record<FileIconType, string>>;
 }

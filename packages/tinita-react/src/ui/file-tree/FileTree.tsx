@@ -1,83 +1,111 @@
-/**
- * FileTree Component
- *
- * A tree view component for displaying hierarchical file/folder structures from text input.
- * Supports both indent-based and CLI tree formats.
- * Uses Radix UI Accordion for smooth animations.
- *
- * @example
- * ```tsx
- * const treeText = `
- * content/
- *   1_photography/
- *     album.txt
- *     photo.jpg
- * `;
- *
- * <FileTree text={treeText} />
- * ```
- */
-
 'use client';
 
-import React, { forwardRef, useMemo } from 'react';
-import type { FileTreeProps } from './types';
-import { parseFileTreeUniversal } from './utils';
-import { renderTreeNodes } from './components';
-import { variantAttributes } from '../../utils/variantAttributes';
+import React, { useMemo } from 'react';
+import { getFileNameParts } from 'tinita/file/getFileNameParts';
+import { Tree } from '../tree';
+import type { TreeNode } from '../tree';
+import { FileIcon } from './components/FileIcon';
+import type { FileIconType, FileTreeProps, ParsedNode } from './types';
+import { getIconType, parseFileTreeUniversal } from './utils';
 import styles from './FileTree.module.css';
 
 /**
- * FileTree - A tree view component for displaying hierarchical file/folder structures
+ * FileTree - adapter từ chuỗi cây sang `Tree`.
  *
- * @public
+ * `FileTree` chỉ làm ba việc: đọc chuỗi thành node, gắn icon theo phần mở rộng, và
+ * đưa cho `Tree`. Mọi hành vi - mở/đóng, bàn phím, chọn, chú thích, RTL, animation -
+ * nằm ở `Tree`.
+ *
+ * Tách như vậy vì cấu trúc cây và cú pháp cây CLI là hai thứ khác nhau. Trước đây
+ * chúng dính làm một, nên không dùng được component với dữ liệu đã có sẵn dạng cây -
+ * phải chuyển ngược về chuỗi rồi parse lại.
+ *
+ * @example
+ * ```tsx
+ * <FileTree
+ *   text={tree}
+ *   sort="type"
+ *   selected="src/components/Button.tsx"
+ *   showDescriptions="src/components"
+ * />
+ * ```
+ *
+ * Có sẵn dữ liệu dạng cây thì dùng thẳng `Tree`:
+ * ```tsx
+ * import { Tree } from 'tinita-react/ui/tree';
+ * <Tree nodes={nodes} />
+ * ```
  */
-export const FileTree = forwardRef<HTMLDivElement, FileTreeProps>(
-  (
-    {
-      text,
-      className,
-      hideRootName,
-      // KHÔNG default 'light'. `undefined` nghĩa là "theo chủ nhà", và đó là hành vi
-      // đúng: host bật dark thì component theo dark. Default 'light' sẽ render
-      // `data-theme="light"` luôn, và từ khi `[data-theme='light']` có rule thật
-      // (2026-09-28) thì nó ÉP sáng mọi component nằm trong host dark.
-      theme,
-      indicator = true,
-      size = 'md',
-      borderRadius = 'md',
-      showArrow = false,
-      enableAnimation = true,
-      ...props
-    },
-    ref
-  ) => {
-    // Parse tree structure
-    const tree = useMemo(() => parseFileTreeUniversal(text), [text]);
+export const FileTree = React.forwardRef<HTMLDivElement, FileTreeProps>(function FileTree(
+  { text, showRoot, hideRootName = false, iconColors, style, className, ...treeProps },
+  ref
+) {
+  const nodes = useMemo(() => {
+    const parsed = parseFileTreeUniversal(text);
 
-    // Optionally hide root name
-    const wrappedTree = hideRootName && tree.length === 1 ? tree[0].children : tree;
+    // `showRoot` thắng `hideRootName` khi truyền cả hai.
+    const keepRoot = showRoot ?? !hideRootName;
+    const roots =
+      !keepRoot && parsed.length === 1 && parsed[0]?.children ? parsed[0].children : parsed;
 
-    const containerClassName = [styles.root, className].filter(Boolean).join(' ');
+    return roots.map(toTreeNode);
+  }, [text, showRoot, hideRootName]);
 
-    return (
-      <div
-        ref={ref}
-        className={containerClassName}
-        {...variantAttributes({
-          theme,
-          indicator,
-          size,
-          borderRadius,
-          showArrow,
-          animation: enableAnimation,
-        })}
-        {...props}
-      >
-        {renderTreeNodes(wrappedTree, 0, showArrow, enableAnimation)}
-      </div>
-    );
-  }
-);
+  /**
+   * `iconColors` đi qua CSS variable chứ không phải một cơ chế riêng.
+   *
+   * Đây là inline style, và nó là ngoại lệ có chủ ý so với quy tắc "dùng class,
+   * không dùng inline style": giá trị đến từ người dùng lúc chạy nên không thể có
+   * sẵn trong stylesheet. Gán vào đúng biến mà theme vẫn dùng, nên nó không tạo ra
+   * đường thứ hai để tô màu icon.
+   */
+  const iconStyle = useMemo(() => {
+    if (!iconColors) return style;
+    const vars: Record<string, string> = {};
+    for (const [type, color] of Object.entries(iconColors)) {
+      if (color) vars[`--tnt-filetree-icon-${type}`] = color;
+    }
+    return { ...vars, ...style } as React.CSSProperties;
+  }, [iconColors, style]);
 
-FileTree.displayName = 'FileTree';
+  return (
+    <Tree
+      {...treeProps}
+      ref={ref}
+      nodes={nodes}
+      // GỘP chứ không ghi đè. Bản đầu viết `className={styles.root}` sau khi spread
+      // `treeProps`, nên `className` của người dùng bị nuốt mất - có ca test bắt.
+      className={[styles.root, className].filter(Boolean).join(' ')}
+      style={iconStyle}
+    />
+  );
+});
+
+function toTreeNode(node: ParsedNode): TreeNode {
+  const isFolder = node.children !== undefined;
+  const iconType: FileIconType = isFolder ? 'folder' : (getIconType(node.name) as FileIconType);
+
+  /**
+   * Tách đuôi file để `overflow: 'truncate'` không ăn mất nó.
+   *
+   * `getFileNameParts` của `tinita` chứ không phải một `lastIndexOf('.')` viết tại
+   * đây: nó đã xử lý dotfile (`.gitignore` là TÊN, không có đuôi), nhiều dấu chấm
+   * (`my.file.txt` -> `txt`) và dấu chấm cuối, cùng bất biến
+   * `name + ('.' + ext) === input`. `tinita` nằm ở `devDependencies` nên hàm này
+   * được BUNDLE vào `dist/` - consumer không phải cài thêm gì (rule 5,
+   * `docs/code-standards.md` mục "Quy Tắc Dependency").
+   *
+   * Thư mục không tách: `src.old/` là tên thư mục, `.old` không phải đuôi file.
+   */
+  const [base, extension] = isFolder ? [node.name, ''] : getFileNameParts(node.name);
+
+  return {
+    id: node.path,
+    name: base,
+    ...(extension ? { nameSuffix: `.${extension}` } : {}),
+    ...(node.description !== undefined ? { description: node.description } : {}),
+    icon: <FileIcon iconType={iconType} />,
+    ...(isFolder ? { expandedIcon: <FileIcon iconType="folder" open /> } : {}),
+    ...(node.children ? { children: node.children.map(toTreeNode) } : {}),
+  };
+}

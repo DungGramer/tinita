@@ -235,7 +235,7 @@ src/ui/FileTree/
   external: [
     'react', 'react-dom',
     'lucide-react',
-    '@radix-ui/react-accordion',
+    '@base-ui/react',
     'motion'                  // External runtime deps
   ],
   splitting: false,
@@ -521,13 +521,14 @@ cập nhật cùng lúc với việc thêm component. Không có bảng đó th�
 
 ### Bảng component -> optional peer
 
-| Import                                | Optional peer cần cài                       |
-| ------------------------------------- | ------------------------------------------- |
-| `tinita-react/ui/ping`                | không cần gì                                |
-| `tinita-react/ui/carousel-ticker`     | không cần gì                                |
-| `tinita-react/hooks/*`                | không cần gì                                |
-| `tinita-react/utils/autoInjectStyles` | không cần gì                                |
-| `tinita-react/ui/file-tree`           | `@radix-ui/react-accordion`, `lucide-react` |
+| Import                                | Optional peer cần cài            |
+| ------------------------------------- | -------------------------------- |
+| `tinita-react/ui/ping`                | không cần gì                     |
+| `tinita-react/ui/carousel-ticker`     | không cần gì                     |
+| `tinita-react/hooks/*`                | không cần gì                     |
+| `tinita-react/utils/autoInjectStyles` | không cần gì                     |
+| `tinita-react/ui/tree`                | `@base-ui/react`                 |
+| `tinita-react/ui/file-tree`           | `@base-ui/react`, `lucide-react` |
 
 `react >=18` là peer **bắt buộc** (không optional) cho mọi đường nhập.
 
@@ -832,7 +833,7 @@ thiếu; nó nằm trong `pnpm gate`.
 
 Story phải import bằng **subpath cụ thể**, không qua barrel. Guard bắt được đúng lỗi này lần chạy
 đầu: `Ping.stories.tsx` import `from 'tinita-react'`, và barrel re-export `./ui/file-tree` nên nó
-kéo theo `@radix-ui/react-accordion` và `lucide-react` dù Ping không cần.
+kéo theo `@base-ui/react` và `lucide-react` dù Ping không cần.
 
 Miễn trừ phải khai tường minh trong `EXEMPT` của `scripts/check-stories.mjs` kèm lý do. Hiện miễn
 trừ: barrel của cả hai package, `hooks/useToggle`, `utils/autoInjectStyles` - không có mặt nhìn được.

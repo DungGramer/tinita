@@ -56,19 +56,21 @@ import 'tinita-react/styles.css';
 `tinita-react` **không có `dependencies`**. Lib nào chỉ một phần component cần thì là **optional
 peer** - bạn chỉ cài cái mà component bạn dùng đòi.
 
-| Import                                | Cần cài thêm                                 |
-| ------------------------------------- | -------------------------------------------- |
-| `tinita-react/ui/ping`                | không cần gì                                 |
-| `tinita-react/ui/carousel-ticker`     | không cần gì                                 |
-| `tinita-react/hooks/*`                | không cần gì                                 |
-| `tinita-react/utils/autoInjectStyles` | không cần gì                                 |
-| `tinita-react/ui/file-tree`           | `@radix-ui/react-accordion` + `lucide-react` |
+| Import                                | Cần cài thêm                      |
+| ------------------------------------- | --------------------------------- |
+| `tinita-react/ui/ping`                | không cần gì                      |
+| `tinita-react/ui/carousel-ticker`     | không cần gì                      |
+| `tinita-react/hooks/*`                | không cần gì                      |
+| `tinita-react/utils/autoInjectStyles` | không cần gì                      |
+| `tinita-react/ui/tree`                | `@base-ui/react`                  |
+| `tinita-react/ui/file-tree`           | `@base-ui/react` + `lucide-react` |
 
 `react >=18` là peer bắt buộc cho mọi đường nhập.
 
 ```bash
 npm install tinita-react                                          # Ping, CarouselTicker, hooks
-npm install tinita-react @radix-ui/react-accordion lucide-react   # thêm FileTree
+npm install tinita-react @base-ui/react                            # thêm Tree
+npm install tinita-react @base-ui/react lucide-react               # thêm FileTree
 ```
 
 Thiếu peer thì lỗi xuất hiện lúc chạy (`Cannot find module 'lucide-react'`), không phải lúc install -

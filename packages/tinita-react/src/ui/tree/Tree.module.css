@@ -1,0 +1,386 @@
+/**
+ * Tree CSS Modules
+ *
+ * Tên class ở đây là LOCAL. Vite sinh `tnt-tree-root`, `tnt-tree-row`, ... theo
+ * `generateScopedName`.
+ *
+ * MỌI thuộc tính chiều ngang là LOGICAL (`padding-inline-start`,
+ * `inset-inline-start`, `margin-inline-*`). Bản cũ dùng `padding-left` và
+ * `left:` nên trong `dir="rtl"` cây thụt lề sai bên và đường kẻ chỉ mục nằm sai
+ * phía. Đây không phải chuyện thẩm mỹ: cây thụt sai bên thì không đọc được.
+ */
+
+.root {
+  background-color: var(--tnt-tree-bg);
+  color: var(--tnt-tree-text);
+  font-family: var(--tnt-tree-font);
+  font-size: var(--tnt-tree-font-size);
+  line-height: 1.6;
+  padding: 1rem;
+  overflow: auto;
+  scrollbar-color: rgb(0 0 0 / 0.2) rgb(0 0 0 / 0.04);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  position: relative;
+}
+
+/* ---------- Hàng ---------- */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--tnt-tree-gap);
+  min-inline-size: 0;
+  border-radius: var(--tnt-tree-radius);
+  cursor: default;
+  user-select: none;
+
+  /* Một chút khe dọc để vòng focus không dính vào nền của hàng trên/dưới. Không có
+     nó, các hàng chạm nhau và vòng focus trông như bị đè. */
+  margin-block: var(--tnt-tree-row-gap);
+
+  /* `outline-offset` ÂM là điều quan trọng nhất trong file này.
+     Nhóm con dùng `overflow: hidden` để cắt nội dung lúc đóng - bắt buộc cho
+     animation. Outline vẽ ra NGOÀI border box sẽ bị chính cái cắt đó ăn mất cạnh
+     trên của hàng đầu tiên trong nhóm; đó là bug đã báo. Offset âm vẽ vòng focus
+     vào TRONG hàng nên không có gì cắt được nó, ở bất kỳ độ sâu nào.
+     Vẫn dùng `outline` chứ không phải `box-shadow`: chế độ tương phản cao của
+     Windows chỉ tôn trọng `outline`. */
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+}
+
+.row:hover {
+  background-color: var(--tnt-tree-hover);
+}
+
+.row:focus-visible {
+  outline-color: var(--tnt-ring);
+}
+
+.row[data-selected='true'] {
+  background-color: var(--tnt-tree-selected-bg);
+  color: var(--tnt-tree-selected-text);
+}
+
+.row[data-selected='true']:hover {
+  background-color: var(--tnt-tree-selected-bg);
+}
+
+/* ---------- Ô icon và mũi tên ---------- */
+
+.arrow-slot,
+.icon-slot {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+}
+
+.arrow-slot {
+  inline-size: var(--tnt-tree-arrow-size);
+}
+
+.arrow {
+  color: var(--tnt-tree-text-dim);
+  /* Chevron chỉ sang phải. RTL lật 180deg; mở ra thì quay xuống ở CẢ HAI chiều. */
+  rotate: 0deg;
+  transition: rotate var(--tnt-duration-fast) var(--tnt-ease-standard);
+}
+
+[dir='rtl'] .arrow {
+  rotate: 180deg;
+}
+
+.item[aria-expanded='true'] > .row .arrow {
+  rotate: 90deg;
+}
+
+.icon-slot {
+  color: var(--tnt-tree-icon);
+}
+
+/* ---------- Chữ ---------- */
+
+/**
+ * `.label` bọc `.name` + `.extension` thành MỘT flex item của `.row`.
+ *
+ * Phải có bọc: `.row` có `gap`, nên để `name` và `extension` rời ra là giữa
+ * `Button` và `.tsx` có 6px trống. Trong bọc thì không có gap nào.
+ */
+.label {
+  display: flex;
+  align-items: baseline;
+  min-inline-size: 0;
+  /* Không co ở mặc định (`scroll`). Chế độ `truncate`/`wrap` mở cho co. */
+  flex: 0 0 auto;
+}
+
+.name {
+  min-inline-size: 0;
+  white-space: nowrap;
+}
+
+/**
+ * Đuôi file KHÔNG BAO GIỜ co và không bao giờ bị `…` ăn.
+ *
+ * `Button.stor….tsx` đọc được; `Button.stories…` thì không biết là file gì. Đây là
+ * cách VS Code rút tên tab.
+ */
+.extension {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.description {
+  margin-inline-start: auto;
+  padding-inline-start: 2ch;
+  color: var(--tnt-tree-text-dim);
+  font-size: 0.92em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* Chú thích là phần nhường chỗ đầu tiên khi hẹp; tên file mới là nội dung. */
+  flex: 0 1 auto;
+}
+
+.description-mark {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  color: var(--tnt-tree-text-dim);
+  opacity: 0.65;
+}
+
+.row:hover .description-mark,
+.row:focus-visible .description-mark {
+  opacity: 1;
+}
+
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Nhóm con: đóng/mở ---------- */
+
+/**
+ * Chiều cao do `useCollapse` điều khiển bằng JS - xem file đó để biết vì sao.
+ *
+ * Tóm lại: animate `height` từ 0 tới chiều cao ĐO ĐƯỢC, đúng kỹ thuật của Radix
+ * Accordion, vì `grid-template-rows: 0fr -> 1fr` làm nội dung trông như bị bóp
+ * chứ không trượt ra. Ở đây không có rule `transition` nào: hook tự gán và tự gỡ,
+ * nên trạng thái nghỉ là `height: auto` và cây con lồng nhau mở ra vẫn đúng.
+ */
+/**
+ * Đóng/mở theo ĐÚNG mẫu trong docs của Base UI, không thêm gì.
+ *
+ * Bản gốc (docs/react/components/accordion.md của chính package, viết bằng
+ * Tailwind):
+ *   h-[var(--accordion-panel-height)] overflow-hidden
+ *   transition-[height] duration-150 ease-out
+ *   data-starting-style:h-0 data-ending-style:h-0
+ *
+ * TRANSITION trên `height`, không phải keyframes. Đó là chi tiết quyết định:
+ * `getAnimationType` của Base UI đọc computed style ngay tại thời điểm đổi trạng
+ * thái, và với transition thì `transition-duration` luôn khác 0 trên class gốc nên
+ * nó luôn phát hiện đúng. Với keyframes thì lúc đóng, `[data-open]` vừa bị gỡ còn
+ * `[data-ending-style]` chưa được thêm - Base UI đọc ra `animation-name: none`,
+ * kết luận không có animation, và bỏ luôn animation đóng. Đo được: panel biến mất
+ * ở t=9ms. `keepMounted` không cứu được.
+ *
+ * Biến `--collapsible-panel-height` bọc sau token của tinita ngay tại đây và chỉ ở
+ * đây - nó là chi tiết nội bộ của Base UI, không thuộc hợp đồng CSS công khai.
+ */
+.group {
+  --tnt-tree-content-height: var(--collapsible-panel-height);
+
+  height: var(--tnt-tree-content-height);
+  overflow: hidden;
+  transition: height var(--tnt-tree-collapse-duration) var(--tnt-tree-collapse-ease);
+
+  /* `easeInEaseOut` CỦA APPLE (UIKit `UICubicTimingParameters`), không phải
+     `--tnt-ease-standard` - cái đó là của Material Design dù animations.css tự mô
+     tả là "Apple". */
+  --tnt-tree-collapse-duration: 220ms;
+  --tnt-tree-collapse-ease: var(--tnt-ease-in-out);
+}
+
+.group[data-starting-style],
+.group[data-ending-style] {
+  height: 0;
+}
+
+.root[data-animation='false'] .group {
+  transition: none;
+}
+
+.group-inner {
+  min-block-size: 0;
+}
+
+/* ---------- Thụt lề và đường kẻ chỉ mục ---------- */
+
+.group-inner > .list {
+  position: relative;
+  padding-inline-start: var(--tnt-tree-indent);
+}
+
+.root[data-indicator='true'] .group-inner > .list::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: var(--tnt-tree-indicator-offset);
+  inset-block: 0;
+  inline-size: 1px;
+  background-color: var(--tnt-tree-text-dim);
+  opacity: 0.2;
+}
+
+/* ---------- Tràn ngang: nhãn dài hơn khung ---------- */
+
+/**
+ * Ba chế độ của prop `overflow`. Chỉ `scroll` (mặc định) cho hàng rộng hơn khung.
+ */
+
+/**
+ * `scroll`: `min-inline-size: max-content` để HÀNG rộng bằng cả vùng cuộn, không
+ * chỉ bằng khung nhìn.
+ *
+ * Không có nó, `<li>` là block nên nó chỉ rộng bằng containing block. Khi cây tràn
+ * ngang, mép phải của hàng nằm ĐÚNG tại biên cắt của `overflow: auto` ở `.root`, và
+ * vòng focus vẽ sát biên đó trông như bị cắt cụt - đúng ảnh owner gửi 2026-09-28.
+ * Nền hover và nền "đang chọn" cũng dừng giữa chừng khi cuộn sang phải. Đây là cách
+ * VS Code và Finder làm.
+ *
+ * Cây hẹp hơn khung thì `max-content` nhỏ hơn width tự động, nên nó không đổi gì.
+ */
+.root[data-overflow='scroll'] .list {
+  min-inline-size: max-content;
+}
+
+/**
+ * `truncate`: hàng vừa khung, tên rút bằng `…`, đuôi file vẫn thấy.
+ *
+ * Giữa `…` và `.tsx` có thể thấy một khoảng trống nhỏ. Đó KHÔNG phải khe layout:
+ * đo được mép trái `.extension` trừ mép phải hộp `.name` bằng ĐÚNG 0px
+ * (2026-09-28, Menlo 14px, hộp 242.28px). Nó là phần dư của chính
+ * `text-overflow: ellipsis` - Chromium đặt `…` ngay sau ký tự cuối vừa chỗ rồi bỏ
+ * trống phần còn lại, tối đa dưới một ký tự (< 8.43px ở font này). Không có cách
+ * nào bỏ nó bằng CSS thuần; muốn hết thì phải đo chữ bằng JS, không đáng.
+ */
+.root[data-overflow='truncate'] .label {
+  flex: 0 1 auto;
+}
+
+.root[data-overflow='truncate'] .name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* `wrap`: tên xuống dòng. Không cuộn, không mất ký tự. */
+.root[data-overflow='wrap'] .row {
+  /* Nhãn cao nhiều dòng thì icon và mũi tên phải neo ở DÒNG ĐẦU, không phải giữa
+     khối - căn giữa làm chúng trôi xuống giữa đoạn. */
+  align-items: flex-start;
+}
+
+/**
+ * `wrap` trả `.label` về LUỒNG CHỮ, không phải flex.
+ *
+ * Là flex thì `.name` và `.extension` là hai hộp cạnh nhau: tên xuống dòng bên
+ * trong hộp của nó còn `.tsx` đứng yên ở cuối DÒNG ĐẦU, đọc ra
+ * `UserProfileSettingsDialogCon .tsx / tainer.stories`. Đo được 2026-09-28 ở
+ * story `overflow: wrap`. Là block thì hai span thành inline và `.tsx` đi liền sau
+ * ký tự cuối, đúng bất biến `name + nameSuffix`.
+ */
+.root[data-overflow='wrap'] .label {
+  display: block;
+  flex: 0 1 auto;
+}
+
+.root[data-overflow='wrap'] .name {
+  white-space: normal;
+  /* `anywhere` chứ không phải `break-word`: đường dẫn và tên file không có khoảng
+     trắng để ngắt, nên `break-word` sẽ để nguyên nó tràn ra. */
+  overflow-wrap: anywhere;
+}
+
+.root[data-overflow='wrap'] .arrow-slot,
+.root[data-overflow='wrap'] .icon-slot {
+  /* Cao bằng MỘT dòng chữ để nó vẫn căn giữa theo dòng đầu, không dính mép trên. */
+  block-size: calc(1em * 1.6);
+}
+
+.root[data-overflow='wrap'] .description {
+  white-space: normal;
+}
+
+/* ---------- Mật độ ---------- */
+
+.root[data-size='sm'] .row {
+  padding-block: 1px;
+  padding-inline: 4px;
+}
+
+.root[data-size='md'] .row {
+  padding-block: 4px;
+  padding-inline: 6px;
+}
+
+.root[data-size='lg'] .row {
+  padding-block: 8px;
+  padding-inline: 8px;
+}
+
+/* ---------- Bo góc ---------- */
+
+.root[data-border-radius='sm'] .row {
+  --tnt-tree-radius: 2px;
+}
+
+.root[data-border-radius='md'] .row {
+  --tnt-tree-radius: 6px;
+}
+
+.root[data-border-radius='lg'] .row {
+  --tnt-tree-radius: 9999px;
+}
+
+/* ---------- Vô hiệu hoá ---------- */
+
+.row[aria-disabled='true'],
+.item[aria-disabled='true'] > .row {
+  opacity: var(--tnt-opacity-disabled);
+  pointer-events: none;
+}
+
+/* ---------- Dark ---------- */
+
+:global(:where(.dark, [data-theme='dark'])) .root,
+.root[data-theme='dark'] {
+  scrollbar-color: rgb(255 255 255 / 0.2) rgb(255 255 255 / 0.05);
+}
+
+/* ---------- Reduced motion ---------- */
+
+/* Tắt hẳn, KHÔNG dùng thời lượng gần-0. Xem docs/code-standards.md mục
+   "Quy Tắc Reduced Motion". `enableAnimation` cũng đã bị ép false ở JS nên đây là
+   lớp thứ hai, phòng khi CSS được dùng mà không có JS. */
+@media (prefers-reduced-motion: reduce) {
+  .arrow {
+    transition: none !important;
+  }
+}

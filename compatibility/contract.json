@@ -55,6 +55,7 @@
         "./ui/ping",
         "./ui/carousel-ticker",
         "./ui/file-tree",
+        "./ui/tree",
         "./utils/autoInjectStyles"
       ],
       "cssSpecifiers": [
@@ -85,12 +86,15 @@
       ],
       "optionalPeers": {
         ".": [
-          "@radix-ui/react-accordion",
+          "@base-ui/react",
           "lucide-react"
         ],
         "./ui/file-tree": [
-          "@radix-ui/react-accordion",
+          "@base-ui/react",
           "lucide-react"
+        ],
+        "./ui/tree": [
+          "@base-ui/react"
         ],
         "./ui/ping": [],
         "./ui/carousel-ticker": [],
@@ -105,7 +109,9 @@
         "dist/styles/animations.css",
         "dist/ui/file-tree/index.mjs",
         "dist/ui/file-tree/index.cjs",
-        "dist/styles.layer.css"
+        "dist/styles.layer.css",
+        "dist/ui/tree/index.mjs",
+        "dist/ui/tree/index.cjs"
       ],
       "forbiddenFiles": [
         "src",

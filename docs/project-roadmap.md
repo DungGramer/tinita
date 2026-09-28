@@ -34,12 +34,12 @@ xuất cả CJS/ESM/`.d.ts`. Không có dependency ngoài.
 
 - 2 hook: `useToggle`, `useIsomorphicLayoutEffect`
 - 3 UI component (đều theo đúng pattern colocation - file chính riêng + `index.ts` re-export):
-  `FileTree` (dùng `@radix-ui/react-accordion` trực tiếp), `Ping`, `CarouselTicker`
+  `FileTree` (dùng `@base-ui/react` trực tiếp), `Ping`, `CarouselTicker`
 - CSS pipeline: Tailwind v4 (`@theme inline` trong `globals.css`) + `packages/tinita-react/scripts/build-css.mjs` tự
   viết (copy theme CSS, compile qua PostCSS, gộp với CSS từng component thành `dist/styles.css`)
 - `tsup.config.ts` ở đây dùng `bundle: true` (khác `tinita`, và khác nguyên tắc "no bundling"
   trong CLAUDE.md) vì cần external hoá `react`, `react-dom`, `lucide-react`,
-  `@radix-ui/react-accordion`, `motion`
+  `@base-ui/react`, `motion`
 
 ### apps/storybook
 
@@ -84,7 +84,7 @@ Kiểm chứng bằng consumer thật + gate đầy đủ (`check-types`, `lint`
 | `apps/storybook` lint 6 warning + 1 lỗi type (`--max-warnings 0` nên warning = fail)                                                                    | gỡ import/biến/dead component không dùng, `any` -> `StoryContext`, thêm `args` thiếu cho story `ThemeComparison` | `check-types` và `lint` của storybook EXIT 0                                             |
 | `tinita-react#test` fail vì vitest exit 1 khi không có file test                                                                                        | thêm `--passWithNoTests`                                                                                         | `turbo test` 4/4 EXIT 0. **Vẫn 0 test thật** - nợ #1 còn nguyên cho package này          |
 
-`tinita-react` giảm từ **5 dependency cứng xuống 0**: 2 lib còn lại (`@radix-ui/react-accordion`,
+`tinita-react` giảm từ **5 dependency cứng xuống 0**: 2 lib còn lại (`@base-ui/react`,
 `lucide-react` - đúng 2 lib mà `FileTree` cần) nay là **optional peer dependencies**. Đo trên project
 cô lập dựng bằng `npm pack`: `node_modules` chỉ có `react` + `tinita-react`; `Ping`,
 `CarouselTicker`, `useToggle`, `autoInjectStyles` load được mà không cài gì thêm.
@@ -127,7 +127,7 @@ test đối chiếu output thật, cộng 5 bất biến quét 1890 tổ hợp.
 | 9   | Không có CI/CD: không `.github/`, không `.changeset/`. Release hoàn toàn thủ công qua `scripts/publish.mjs` + `scripts/update-package-versions.mjs`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | repo root                                                                        |
 | 10  | **ĐÃ VÁ** - `motion` là dependency CHẾT: khai trong `dependencies` (`^12.23.25`) nhưng không file nào trong `src/` hay `apps/storybook` import nó - hit duy nhất là comment "prefers-reduced-motion". Kéo theo chuỗi `framer-motion` -> `motion-dom`, `motion-utils` (~4 gói) cho MỌI consumer dù không dùng. Gỡ được ngay, chi phí gần bằng 0, ưu tiên cao nhất trong nhóm dependency                                                                                                                                                                                                                                                                                                                           | `packages/tinita-react/package.json`, comment tại `src/ui/file-tree/types.ts:93` |
 | 11  | **ĐÃ VÁ** - `clsx`, `tailwind-merge` khai ở `dependencies` cứng nhưng bị tsup inline vào bundle (không có trong mảng `external` của `tsup.config.ts`) - runtime không cần chúng là dependency ngoài, có thể hạ xuống `devDependencies` ngay                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | `packages/tinita-react/package.json`, `tsup.config.ts`                           |
-| 12  | **ĐÃ VÁ** (5 dep cứng -> 0; 2 lib còn lại là optional peer) - Cả 5 dependency ngoài (`@radix-ui/react-accordion`, `clsx`, `lucide-react`, `motion`, `tailwind-merge`) khai ở `dependencies` cấp package, trong khi dependency-set của 3 component RỜI NHAU hoàn toàn: `Ping`={}, `CarouselTicker`={clsx, tailwind-merge}, `FileTree`={`@radix-ui/react-accordion`, `lucide-react`}. User chỉ dùng `Ping` (0 dep thật) vẫn phải tải ~20 gói vào `node_modules`. Đây chính là ràng buộc mới #1 của owner - xem mốc M2                                                                                                                                                                                              | `packages/tinita-react/package.json`                                             |
+| 12  | **ĐÃ VÁ** (5 dep cứng -> 0; 2 lib còn lại là optional peer) - Cả 5 dependency ngoài (`@base-ui/react`, `clsx`, `lucide-react`, `motion`, `tailwind-merge`) khai ở `dependencies` cấp package, trong khi dependency-set của 3 component RỜI NHAU hoàn toàn: `Ping`={}, `CarouselTicker`={clsx, tailwind-merge}, `FileTree`={`@base-ui/react`, `lucide-react`}. User chỉ dùng `Ping` (0 dep thật) vẫn phải tải ~20 gói vào `node_modules`. Đây chính là ràng buộc mới #1 của owner - xem mốc M2                                                                                                                                                                                                                    | `packages/tinita-react/package.json`                                             |
 | 13  | `src/styles/index.css` mồ côi: có `@import "tailwindcss"` đầy đủ (tức ship cả Preflight) nhưng không nằm trong build pipeline (`build-css.mjs` chỉ compile `build-entry.css`) và không có trong `exports` - không file nào reference. Gỡ hoặc nêu rõ mục đích                                                                                                                                                                                                                                                                                                                                                                                                                                                    | `packages/tinita-react/src/styles/index.css`                                     |
 | 14  | `src/utils/cn.ts` được tsup build ra `dist/utils/cn.{mjs,cjs,d.ts}` qua glob nhưng không có subpath export trong `package.json` - output tồn tại trên đĩa nhưng không import được qua entry chính thức                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | `packages/tinita-react/src/utils/cn.ts`                                          |
 | 15  | `apps/storybook/stories/Ping/Ping.stories.tsx:3` dùng barrel `import { Ping } from 'tinita-react'`, trong khi 7 story còn lại dùng subpath - chính storybook đang vi phạm quy ước subpath-only mà repo muốn áp dụng                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | `apps/storybook/stories/Ping/Ping.stories.tsx`                                   |
@@ -155,7 +155,7 @@ positioning, portal, dismissable layer.
 Chọn **Base UI** (`@base-ui/react`, headless, MIT) làm nền accessibility/positioning cho
 component mới, thay vì tự implement. shadcn đã chuyển Base UI thành default cho project mới từ
 07/2026; Base UI v1.8.0 phát hành 09/2026. Radix vẫn chấp nhận được cho phần code sẵn có
-(FileTree đang dùng `@radix-ui/react-accordion` trực tiếp) nhưng cần một lớp chống ăn mòn
+(FileTree đang dùng `@base-ui/react` trực tiếp) nhưng cần một lớp chống ăn mòn
 (anti-corruption layer) bọc quanh: consumer gọi `import { Dialog } from "tinita-react"` không
 được biết bên dưới là Base UI hay Radix, để sau này đổi implementation không phá public API.
 Không fork shadcn ở tầng component - dùng shadcn như reference implementation + convention +
@@ -304,7 +304,7 @@ text-foreground } }` tại `src/styles/globals.css:116-127`. `*` và `body` thu�
 
 ### M2 - Chiến lược dependency: cài lẻ theo component **[PHẦN LỚN ĐÃ XONG 2026-09-25]**
 
-**Đã làm:** chọn hướng A, chuyển `@radix-ui/react-accordion` và `lucide-react` sang optional peer
+**Đã làm:** chọn hướng A, chuyển `@base-ui/react` và `lucide-react` sang optional peer
 (`dependencies` nay rỗng), viết bảng component -> peer vào `README.md`, `code-standards.md`,
 `codebase-summary.md`, và ghi quy tắc + lệnh kiểm để lần sau follow.
 **Đã xong phần còn lại:** kiểm tự động nay là ca `04b-optional-peer-matrix` của compatibility lab
@@ -314,7 +314,7 @@ text-foreground } }` tại `src/styles/globals.css:116-127`. `*` và `body` thu�
 **Tiên quyết:** M0. Có thể song song M1.
 **Mục tiêu:** ràng buộc RB-1 - user dùng 1-2 component không phải cài toàn bộ dependency.
 **Điều kiện thuận lợi:** tập dependency của 3 component hiện **rời nhau hoàn toàn** -
-`Ping`={}, `CarouselTicker`={clsx, tailwind-merge}, `FileTree`={@radix-ui/react-accordion,
+`Ping`={}, `CarouselTicker`={clsx, tailwind-merge}, `FileTree`={@base-ui/react,
 lucide-react}. Không dep nào bị chia sẻ nên tách được sạch, làm sớm sẽ rẻ hơn nhiều so với làm
 sau khi có 12 component.
 **Bốn hướng, KHÔNG chốt hộ owner - đây là lựa chọn cần quyết:**
@@ -396,7 +396,7 @@ Exit 0 pass · 1 package sai · 2 hạ tầng sai. Không cần viết lại gì
 
 **Tiên quyết:** M0.
 **Mục tiêu:** tách public API của `tinita-react` khỏi implementation detail Radix/Base UI.
-**Việc cụ thể:** bọc `@radix-ui/react-accordion` hiện đang dùng trực tiếp trong `FileTree` sau
+**Việc cụ thể:** bọc `@base-ui/react` hiện đang dùng trực tiếp trong `FileTree` sau
 một module nội bộ (ví dụ `src/primitives/`); đánh giá và thử nghiệm Base UI
 (`@base-ui/react`) làm nền cho component mới ở M7.
 **Tiêu chí hoàn thành:** không còn `import` trực tiếp từ `@radix-ui/*` hay `@base-ui/*` bên

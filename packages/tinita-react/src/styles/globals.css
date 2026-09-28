@@ -81,16 +81,29 @@
   --tnt-font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --tnt-font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
 
+  /* Tree - primitive. Token chung cho mọi cây, KHÔNG mang tên `filetree`:
+     `FileTree` chỉ là một adapter dựng trên nó. */
+  --tnt-tree-bg: #ffffff;
+  --tnt-tree-text: #1a1a1a;
+  --tnt-tree-text-dim: #6b7280;
+  --tnt-tree-icon: #6b7280;
+  --tnt-tree-hover: rgb(0 0 0 / 0.06);
+  --tnt-tree-selected-bg: rgb(37 99 235 / 0.12);
+  --tnt-tree-selected-text: #1a1a1a;
+  --tnt-tree-font: Menlo, Monaco, 'Courier New', monospace;
+  --tnt-tree-font-size: 14px;
+  --tnt-tree-gap: 6px;
+  --tnt-tree-radius: 6px;
+  --tnt-tree-indent: 16px;
+  --tnt-tree-arrow-size: 14px;
+  /* Khe dọc giữa các hàng, để vòng focus có chỗ thở. */
+  --tnt-tree-row-gap: 1px;
+  /* Đường kẻ chỉ mục nằm dưới tâm ô mũi tên của hàng cha. */
+  --tnt-tree-indicator-offset: 7px;
+
   /* FileTree - chuyển từ FileTree.css 2026-09-26. Token là hợp đồng công khai
      nên nó thuộc file token; CSS Modules chỉ dành cho internals của component. */
   /* Light theme (default) */
-  --tnt-filetree-bg: #ffffff;
-  --tnt-filetree-text: #1a1a1a;
-  --tnt-filetree-text-dim: #6b7280;
-  --tnt-filetree-hover: rgba(0, 0, 0, 0.06);
-  --tnt-filetree-active: rgba(0, 0, 0, 0.12);
-  --tnt-filetree-spacing: 4px;
-  --tnt-filetree-indent: 16px;
 
   /* Icon colors - Light theme optimized */
   --tnt-filetree-icon-folder: #4b5563;
@@ -137,15 +150,19 @@
   --tnt-ring: #60a5fa;
   --tnt-ping: oklch(70.8% 0 0);
 
+  /* Tree - dark */
+  --tnt-tree-bg: #0a0a0a;
+  --tnt-tree-text: #e5e7eb;
+  --tnt-tree-text-dim: #9ca3af;
+  --tnt-tree-icon: #9ca3af;
+  --tnt-tree-hover: rgb(255 255 255 / 0.06);
+  --tnt-tree-selected-bg: rgb(96 165 250 / 0.18);
+  --tnt-tree-selected-text: #e5e7eb;
+
   /* FileTree - dark. Selector `:where(.dark, [data-theme='dark'])` khớp CẢ element
      mang `data-theme` trực tiếp, nên prop `theme="dark"` của FileTree và Ping cũng
      nhận đúng token ở đây. KHÔNG nhân bản khối này vào CSS Modules của component:
      25 giá trị ở hai chỗ là nguồn lệch, và lệch kiểu này không ai thấy. */
-  --tnt-filetree-bg: #0a0a0a;
-  --tnt-filetree-text: #e5e7eb;
-  --tnt-filetree-text-dim: #9ca3af;
-  --tnt-filetree-hover: rgba(255, 255, 255, 0.06);
-  --tnt-filetree-active: rgba(255, 255, 255, 0.12);
 
   /* Icon colors - Dark theme optimized */
   --tnt-filetree-icon-folder: #9ca3af;

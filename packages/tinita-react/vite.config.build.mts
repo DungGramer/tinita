@@ -90,7 +90,18 @@ export default defineConfig({
     },
     rollupOptions: {
       // `react/jsx-runtime` phải external riêng - nó không nằm trong `react`.
-      external: ['react', 'react/jsx-runtime', 'react-dom', 'lucide-react', '@radix-ui/react-accordion'],
+      // PHẢI khớp `peerDependencies`. Quên một tên ở đây là package đó bị BUNDLE
+      // VÀO dist thay vì để làm optional peer - và không có gì báo, vì component
+      // vẫn chạy. Đã xảy ra khi đổi từ react-accordion sang react-collapsible:
+      // chunk Tree phình lên 28310 bytes vì nuốt cả Radix vào trong.
+      external: [
+        'react',
+        'react/jsx-runtime',
+        'react-dom',
+        'lucide-react',
+        '@base-ui/react/collapsible',
+        '@base-ui/react',
+      ],
       output: {
         // `'use client'`: esbuild XOÁ directive khỏi source nên banner là cách duy
         // nhất giữ được nó. Cả package là client - hooks, autoInjectStyles chạm

@@ -20,6 +20,22 @@ const flags = Object.fromEntries(
 );
 
 const REACT = ['react@19', 'react-dom@19'];
+
+/**
+ * Optional peer lấy TỪ CONTRACT, không viết tay.
+ *
+ * Bản trước hardcode `'@radix-ui/react-accordion'` ở 3 chỗ. Khi `Tree` chuyển sang
+ * `@base-ui/react` thì 3 chỗ đó vẫn cài Radix, nên consumer thiếu đúng peer mà
+ * library cần: `vite build` và 2 ca RSC của Next đỏ với 'Failed to resolve
+ * @base-ui/react/collapsible', trông như lỗi package chứ không phải lỗi consumer
+ * của lab. Đây ĐÚNG lỗi mà ca 04 của L1 đã sửa - hai nguồn sự thật thì sẽ lệch,
+ * và nó lệch im lặng.
+ *
+ * Đo 2026-09-28: 3 ca đỏ trước khi suy từ contract, 0 sau.
+ */
+const OPTIONAL_PEERS = [
+  ...new Set(Object.values(contract['tinita-react'].optionalPeers).flat()),
+];
 // Đọc ĐỘNG từ manifest, không hardcode: thêm package thứ tư mà quên sửa đây thì ca `tsc` sẽ
 // fail với 'Cannot find module' và trông như lỗi package, không phải lỗi consumer của lab.
 const TGZ = readManifest().map((e) => e.tarball);
@@ -68,7 +84,7 @@ findings.push({
   const work = createConsumer({
     level: 'l2',
     name: 'tsc-matrix',
-    deps: [...REACT, '@types/react@19', 'typescript@5.9.2', '@radix-ui/react-accordion', 'lucide-react'],
+    deps: [...REACT, '@types/react@19', 'typescript@5.9.2', ...OPTIONAL_PEERS],
     tarballs: TGZ,
     files: { 'probe.ts': tsProbe(specs) },
   });
@@ -211,7 +227,7 @@ if (hasBrowser) {
   const work = createConsumer({
     level: 'l2',
     name: 'vite-react19',
-    deps: [...REACT, 'vite@7', '@vitejs/plugin-react@5', '@radix-ui/react-accordion', 'lucide-react'],
+    deps: [...REACT, 'vite@7', '@vitejs/plugin-react@5', ...OPTIONAL_PEERS],
     tarballs: TGZ,
     pkgJson: { type: 'module' },
     files: {
@@ -233,17 +249,51 @@ createRoot(document.getElementById('root')).render(
 
   const built = run('npx', ['vite', 'build'], work, 300_000);
   if (!built.ok) {
-    add('vite:build', false, `vite build exit=${built.code}: ${built.out.split('\n').find((l) => /rror/.test(l))?.trim() ?? ''}`);
+    // Lấy DÒNG SAU dòng 'error during build:' nữa, không chỉ dòng khớp /rror/.
+    // Vite in tiêu đề lỗi trước, nguyên nhân sau; chỉ lấy dòng đầu thì detail ra
+    // đúng chuỗi "error during build:" và không nói được gì (đo 2026-09-28).
+    const lines = built.out.split('\n').map((l) => l.trim()).filter(Boolean);
+    const at = lines.findIndex((l) => /rror/.test(l));
+    add('vite:build', false, `vite build exit=${built.code}: ${lines.slice(at, at + 4).join(' | ')}`);
   } else {
     add('vite:build', true, 'vite build exit 0');
     // preview chạy nền -> spawn, không execFileSync
     const { spawn } = await import('node:child_process');
+    /**
+     * `localhost`, KHÔNG phải `127.0.0.1`.
+     *
+     * `vite preview` bind IPv6 `::1` mà không bind IPv4. Đo 2026-09-28 trên cùng
+     * server: `[::1]:4319` -> 200, `localhost:4319` -> 200, `127.0.0.1:4319` -> 000
+     * (connection refused). Gõ cứng IPv4 nên ca này không bao giờ tới được trang,
+     * và trước khi có vòng chờ + catch ở dưới thì nó giết cả lần chạy L2.
+     */
+    const PREVIEW_URL = 'http://localhost:4319/';
     const proc = spawn('npx', ['vite', 'preview', '--port', '4319', '--strictPort'], { cwd: work, stdio: 'ignore' });
     try {
-      await new Promise((r) => setTimeout(r, 4000));
+      /**
+       * CHỜ SERVER SẴN SÀNG, không ngủ một khoảng cố định.
+       *
+       * Bản trước ngủ 4000ms rồi goto thẳng. `npx vite preview` trong consumer mới
+       * phải resolve binary trước, và trên máy này nó vượt 4s -> `goto` ném
+       * ERR_CONNECTION_REFUSED. Vì `try` chỉ có `finally` mà không có `catch`, lỗi
+       * đó thoát ra và GIẾT cả lần chạy L2: mọi ca sau không chạy và report không
+       * được ghi. Đo 2026-09-28.
+       */
+      const deadline = Date.now() + 30_000;
+      let up = false;
+      while (Date.now() < deadline) {
+        try {
+          const r = await fetch(PREVIEW_URL, { signal: AbortSignal.timeout(1000) });
+          if (r.ok) { up = true; break; }
+        } catch {
+          // chưa lên, thử lại
+        }
+        await new Promise((r) => setTimeout(r, 250));
+      }
+      if (!up) throw new Error('vite preview không lên sau 30s trên cổng 4319');
       const browser = await chromium.launch();
       const page = await browser.newPage();
-      await page.goto('http://127.0.0.1:4319/', { waitUntil: 'networkidle' });
+      await page.goto(PREVIEW_URL, { waitUntil: 'networkidle' });
       const seen = await page.evaluate(() => ({
         filetree: document.querySelectorAll('.tnt-file-tree-root').length,
         ping: document.querySelectorAll('[class*="tnt-ping"]').length,
@@ -253,6 +303,9 @@ createRoot(document.getElementById('root')).render(
       await browser.close();
       const ok = seen.filetree >= 1 && seen.tinitaRules > 0;
       add('vite:render', ok, `FileTree=${seen.filetree} Ping=${seen.ping} rule .tnt-*=${seen.tinitaRules}`);
+    } catch (error) {
+      // Một ca đỏ là một ca đỏ, không phải lý do để bỏ luôn phần còn lại của L2.
+      add('vite:render', false, `không dựng được trang preview: ${error.message}`);
     } finally {
       proc.kill('SIGTERM');
     }
@@ -275,7 +328,7 @@ if (tierFlag < 2) {
 if (tierFlag >= 2) {
   const base = {
     level: 'l2',
-    deps: [...REACT, 'next@15', '@radix-ui/react-accordion', 'lucide-react'],
+    deps: [...REACT, 'next@15', ...OPTIONAL_PEERS],
     tarballs: TGZ,
     files: {
       'next.config.mjs': 'export default { eslint: { ignoreDuringBuilds: true }, typescript: { ignoreBuildErrors: true } };\n',

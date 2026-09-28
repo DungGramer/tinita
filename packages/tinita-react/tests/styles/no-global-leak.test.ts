@@ -174,17 +174,26 @@ describe('CSS không được rò rỉ ra trang khách', () => {
     expect(bad).toEqual([]);
   });
 
-  it('không dùng biến runtime của third-party trực tiếp', () => {
-    // `--radix-*` là chi tiết nội bộ của Radix. Nó chỉ được xuất hiện đúng một lần,
-    // ở chỗ bọc lại sau token của tinita.
+  it('biến runtime của third-party chỉ xuất hiện ĐÚNG MỘT LẦN, ở chỗ bọc lại', () => {
+    // `--radix-*` là chi tiết nội bộ của Radix. Nó ĐƯỢC PHÉP tồn tại - `Tree` dùng
+    // `Collapsible` để đo chiều cao nội dung - nhưng chỉ ở một chỗ duy nhất, nơi nó
+    // được gán vào token của tinita. Keyframes và mọi rule khác chỉ đọc token đó.
+    // Không có ca này thì `--radix-*` rò rỉ dần vào hợp đồng CSS công khai, và đổi
+    // foundation là vỡ mà người dùng không có cách nào biết trước.
     const uses: string[] = [];
     for (const { rel, css } of files) {
-      for (const m of stripComments(css).matchAll(/var\(\s*(--radix-[\w-]+)/g)) {
+      // Base UI KHÔNG đặt namespace nhà cung cấp cho biến của nó -
+      // `--collapsible-panel-height` chứ không phải `--base-ui-...`. Nên phải liệt
+      // kê tên thật; một regex theo tiền tố nhà cung cấp sẽ mù với nó. Đó cũng là
+      // lý do phải bọc: tên trần như vậy có thể đụng biến cùng tên của host.
+      for (const m of stripComments(css).matchAll(
+        /var\(\s*(--(?:radix|mui|chakra|mantine)-[\w-]+|--(?:collapsible|accordion|popup|positioner)-[\w-]+)/g
+      )) {
         uses.push(`${rel}: ${m[1]}`);
       }
     }
     expect(uses).toHaveLength(1);
-    expect(uses[0]).toContain('--radix-accordion-content-height');
+    expect(uses[0]).toContain('--collapsible-panel-height');
   });
 
   it('khối reduced-motion tắt hẳn, không thời lượng gần-0', () => {

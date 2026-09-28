@@ -130,7 +130,7 @@ tinita/ (root)
 ```
 storybook (@tinita/storybook)
   └── tinita-react (workspace:*)
-       ├── @radix-ui/react-accordion ^1.2.12
+       ├── @base-ui/react ^1.2.12
        ├── clsx ^2.1.1
        ├── lucide-react ^0.555.0
        └── tailwind-merge ^3.4.0
@@ -201,7 +201,7 @@ All packages:
     'react',
     'react-dom',
     'lucide-react',
-    '@radix-ui/react-accordion',
+    '@base-ui/react',
     'motion'
   ],
   splitting: false,
@@ -488,7 +488,7 @@ manager giải dependency tree lúc `install`, khi đó nó chưa biết user s�
 | ---------------- | -------------------------------------------- | ---------------------------- |
 | `Ping`           | **không có** (chỉ type `ReactNode` từ react) | -                            |
 | `CarouselTicker` | `clsx`, `tailwind-merge` (qua `utils/cn.ts`) | inline vào bundle            |
-| `FileTree`       | `@radix-ui/react-accordion`, `lucide-react`  | external, import lúc runtime |
+| `FileTree`       | `@base-ui/react`, `lucide-react`             | external, import lúc runtime |
 
 **Đã sửa 2026-09-25:** `motion ^12.23.25` từng khai trong `dependencies` mà **không file nào import** - hit duy nhất của
 chuỗi "motion" trong `src/` là comment `prefers-reduced-motion` tại `src/ui/file-tree/types.ts:93`.
@@ -500,7 +500,7 @@ consumer mà không đổi lại gì.
 
 ### Hệ quả của `bundle: true` + `external`
 
-`external: ['react', 'react-dom', 'lucide-react', '@radix-ui/react-accordion', 'motion']`
+`external: ['react', 'react-dom', 'lucide-react', '@base-ui/react', 'motion']`
 
 - Nằm trong `external` -> giữ nguyên `import` ở output, cần có mặt trong `node_modules` lúc runtime.
 - KHÔNG nằm trong `external` -> bị esbuild **inline vào bundle**. `clsx` và `tailwind-merge` rơi
@@ -523,12 +523,12 @@ Tree-shaking giảm **bytes gửi tới browser**; nó không giảm **thứ ph�
 
 ```json
 "peerDependencies": {
-  "@radix-ui/react-accordion": ">=1.2.0",
+  "@base-ui/react": ">=1.2.0",
   "lucide-react": ">=0.400.0",
   "react": ">=18.0.0"
 },
 "peerDependenciesMeta": {
-  "@radix-ui/react-accordion": { "optional": true },
+  "@base-ui/react": { "optional": true },
   "lucide-react": { "optional": true }
 }
 ```
@@ -571,7 +571,7 @@ Cả 2 lib optional cũng nằm trong `devDependencies` để workspace build/ty
 - Đổi lại: user sở hữu source, không nhận update qua `npm update`; phải dựng và duy trì registry.
 
 **Đã triển khai 2026-09-25:** `peerDependenciesMeta.optional` cho
-`@radix-ui/react-accordion` và `lucide-react`; `tinita-react` từ 5 hard dependency
+`@base-ui/react` và `lucide-react`; `tinita-react` từ 5 hard dependency
 xuống **0**. Chưa dùng: `optionalDependencies`, package con, export condition theo
 dependency. Ca L1 `04b-optional-peer-matrix` kiểm 6 đường nhập x 2 trạng thái peer.
 
