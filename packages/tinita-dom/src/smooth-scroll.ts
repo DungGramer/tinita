@@ -344,12 +344,11 @@ export function installSmoothScroll(): () => void {
   // `settledSource` carries the last CONFIDENT verdict across the gap, for the
   // one case a single opening event cannot settle.
   //
-  // Measured 2026-09-10 on /events, replaying a recorded flick shape as wheel
-  // events with spoofed timestamps and counting how often `defaultPrevented`
-  // changed WITHIN one gesture: before, 4 handovers on the first flick and 2 on
-  // every flick after it - the reported "giật 2-3 lần". After, 0 on all five
-  // flicks and 0 on three mouse gestures, trackpad fully native and wheel fully
-  // eased from their first event each.
+  // Measured by replaying a recorded flick shape as wheel events with spoofed
+  // timestamps and counting how often `defaultPrevented` changed WITHIN one
+  // gesture: before, 4 handovers on the first flick and 2 on every flick after
+  // it. After, 0 on all five flicks and 0 on three mouse gestures, with the
+  // trackpad fully native and the wheel fully eased from their first event each.
   let lastEventTime = 0;
   let gestureSource: WheelSource | null = null;
   let settledSource: WheelSource | null = null;
@@ -393,9 +392,9 @@ export function installSmoothScroll(): () => void {
     if (verdict) settledSource = verdict;
 
     // MEMORY IS THE TIE-BREAKER, NOT THE AUTHORITY. `settledSource` is about the
-    // gesture before this one, and the reader may have changed hands since:
-    // measured 2026-09-10, a remembered `stepped` eased a whole trackpad flick
-    // taken up after a mouse. So an opening event decisive enough to contradict
+    // gesture before this one, and the user may have changed devices since: a
+    // remembered `stepped` was measured easing a whole trackpad flick that came
+    // after a mouse. So an opening event decisive enough to contradict
     // it wins, and memory only speaks inside the band where one event genuinely
     // cannot tell a fine detent from a ramp.
     gestureSource ??=

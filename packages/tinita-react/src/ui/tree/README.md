@@ -1,16 +1,15 @@
 # Tree
 
-Primitive cây tổng quát. Nhận dữ liệu dạng cây, **không** biết gì về file, về phần
-mở rộng, hay về cú pháp cây CLI - [`FileTree`](../file-tree) mới là adapter cho
-những thứ đó.
+Generic tree primitive. It takes tree-shaped data and knows **nothing** about files, extensions or
+CLI tree syntax - [`FileTree`](../file-tree) is the adapter for those.
 
-Tách như vậy để component không bị khoá vào một định dạng chuỗi. Có sẵn dữ liệu dạng
-cây thì dùng thẳng `Tree`, đừng chuyển ngược về chuỗi rồi parse lại.
+Split this way so the component is not locked to one string format. If you already have tree-shaped
+data, use `Tree` directly rather than serialising it back to a string and re-parsing.
 
-**Zero optional peer.** `Tree` tự vẽ chevron và dấu `?` bằng SVG, không kéo theo
-`lucide-react`.
+**Zero optional peers for icons.** `Tree` draws its own chevron and `?` marker as SVG, so it does not
+pull in `lucide-react`.
 
-## Dùng
+## Usage
 
 ```tsx
 import { Tree } from 'tinita-react/ui/tree';
@@ -20,84 +19,82 @@ import 'tinita-react/styles.css';
 const nodes: TreeNode[] = [
   {
     id: 'docs',
-    name: 'Tài liệu',
-    description: 'Mọi thứ người đọc cần',
+    name: 'Documentation',
+    description: 'Everything a reader needs',
     children: [
-      { id: 'docs/bat-dau', name: 'Bắt đầu' },
-      { id: 'docs/trong', name: 'Chưa viết', children: [] },
+      { id: 'docs/getting-started', name: 'Getting started' },
+      { id: 'docs/unwritten', name: 'Not written yet', children: [] },
     ],
   },
   { id: 'changelog', name: 'Changelog' },
 ];
 
-<Tree nodes={nodes} aria-label="Tài liệu" />;
+<Tree nodes={nodes} aria-label="Documentation" />;
 ```
 
 ## `TreeNode`
 
-| Trường         | Kiểu         | Mô tả                                                           |
-| -------------- | ------------ | --------------------------------------------------------------- |
-| `id`           | `string`     | **Bắt buộc.** Định danh ổn định, duy nhất trong cả cây.         |
-| `name`         | `string`     | **Bắt buộc.** Nhãn hiển thị.                                    |
-| `nameSuffix`   | `string`     | Đuôi nhãn không bao giờ bị rút. Xem `overflow`.                 |
-| `children`     | `TreeNode[]` | Xem bảng dưới.                                                  |
-| `description`  | `string`     | Chú thích. Inline hay tooltip do `showDescriptions` quyết định. |
-| `icon`         | `ReactNode`  | Icon lúc đóng, hoặc icon của lá.                                |
-| `expandedIcon` | `ReactNode`  | Icon lúc mở. Không truyền thì dùng `icon`.                      |
-| `disabled`     | `boolean`    | Không focus được, không mở được.                                |
+| Field          | Type         | Description                                                    |
+| -------------- | ------------ | -------------------------------------------------------------- |
+| `id`           | `string`     | **Required.** Stable identifier, unique across the whole tree. |
+| `name`         | `string`     | **Required.** Display label.                                   |
+| `nameSuffix`   | `string`     | Tail of the label that is never shortened. See `overflow`.     |
+| `children`     | `TreeNode[]` | See the table below.                                           |
+| `description`  | `string`     | Description. `showDescriptions` decides inline vs tooltip.     |
+| `icon`         | `ReactNode`  | Icon when collapsed, or the icon of a leaf.                    |
+| `expandedIcon` | `ReactNode`  | Icon when expanded. Falls back to `icon`.                      |
+| `disabled`     | `boolean`    | Not focusable, not expandable.                                 |
 
-`children` phân biệt **ba** trạng thái, và sự phân biệt đó là có ý nghĩa:
+`children` distinguishes **three** states, and the distinction carries meaning:
 
-| `children`  | Nghĩa                                          |
-| ----------- | ---------------------------------------------- |
-| `undefined` | **lá** (file). Không có mũi tên, không mở được |
-| `[]`        | thư mục **rỗng**. Có mũi tên, mở ra thì trống  |
-| `[...]`     | thư mục có nội dung                            |
+| `children`  | Meaning                                          |
+| ----------- | ------------------------------------------------ |
+| `undefined` | a **leaf** (file). No arrow, cannot expand       |
+| `[]`        | an **empty** folder. Has an arrow, expands empty |
+| `[...]`     | a folder with contents                           |
 
-`id` phải **ổn định**, không phải vị trí. Nó là thứ `expanded`, `selected` và
-`showDescriptions` nhắm tới. Bản đầu dùng `${level}-${idx}`: đổi thứ tự sort là mọi
-trạng thái mở/đóng nhảy sang node khác.
+`id` must be **stable**, never positional. It is what `expanded`, `selected` and `showDescriptions`
+target, so an id derived from index or depth makes every expanded and selected state jump to a
+different node as soon as the sort order changes.
 
 ## Props
 
-Xem bảng đầy đủ trong [`README` của `FileTree`](../file-tree/README.md#props) -
-`FileTreeProps` kế thừa toàn bộ `TreeProps` trừ `nodes`. Bảng đó là nguồn duy nhất,
-để hai nơi không nói khác nhau.
+See the full table in [`FileTree`'s README](../file-tree/README.md#props) - `FileTreeProps` inherits
+every `TreeProps` except `nodes`. That table is the single source, so the two cannot disagree.
 
-Riêng `Tree`:
+Specific to `Tree`:
 
 ```tsx
 <Tree nodes={nodes} />
 ```
 
-`nodes: TreeNode[]` là prop bắt buộc duy nhất.
+`nodes: TreeNode[]` is the only required prop.
 
-## Bàn phím
+## Keyboard
 
-Chuẩn [ARIA tree](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/), roving
-tabindex - cả cây là **một** điểm dừng Tab. Bảng phím: xem
-[`FileTree`](../file-tree/README.md#bàn-phím).
+Follows the [ARIA tree pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/) with roving
+tabindex - the whole tree is **one** tab stop. Key table: see
+[`FileTree`](../file-tree/README.md#keyboard).
 
-`Tree` mượn `Collapsible.Root` + `Panel` của Base UI cho phần đóng/mở, nhưng
-**không** dùng `Collapsible.Trigger`: nó render `<button aria-expanded>`, mà trong
-`role="tree"` thì `aria-expanded` thuộc về `treeitem`. Khai hai lần là trình đọc màn
-hình đọc sai.
+`Tree` borrows Base UI's `Collapsible.Root` + `Panel` for expanding and collapsing, but does **not**
+use `Collapsible.Trigger`: that renders `<button aria-expanded>`, while inside `role="tree"` the
+`aria-expanded` belongs on the `treeitem`. Declaring it twice makes screen readers announce the wrong
+thing.
 
-## Hiệu năng
+## Performance
 
-Hai quyết định, cả hai đều có số đo (2026-09-28, cây 1364 dòng):
+Two decisions, both with measurements (2026-09-28, 1364-row tree):
 
-1. **Cây con đang đóng không nằm trong DOM.** Số node DOM lúc đóng: 7277 -> 145.
-2. **Mỗi node nghe đúng id của mình** qua `useSyncExternalStore` + `React.memo`.
-   Trước đó `Set` id đang mở nằm trong state và truyền xuống, nên mỗi lần toggle là
-   **mọi** hàng render lại - đo được 242ms đứng luồng chính. Chi tiết trong
-   `store.ts`.
+1. **A collapsed subtree is not in the DOM.** DOM nodes while collapsed: 7277 -> 145.
+2. **Each node subscribes to its own id** via `useSyncExternalStore` + `React.memo`. Before that the
+   set of expanded ids lived in state and was passed down, so every row re-rendered on each toggle -
+   measured 242ms of main-thread stall. Details in `store.ts`.
 
 ## RTL
 
-Mọi thuộc tính chiều ngang trong CSS là **logical**
-(`padding-inline-start`, `inset-inline-start`). Thụt lề, đường kẻ chỉ mục và mũi tên
-đều lật trong `dir="rtl"`, và mũi tên trái/phải trên bàn phím đảo nghĩa.
+Every horizontal property in the CSS is **logical** (`padding-inline-start`, `inset-inline-start`).
+Indentation, the guide line and the arrows all flip under `dir="rtl"`, and the left/right arrow keys
+swap meaning.
 
-Tên node mang `dir="auto"` nên tên tiếng Ả Rập không bị đảo trong giao diện LTR và
-tên ASCII không bị đảo trong giao diện RTL.
+Node names carry `dir="auto"`, so Arabic names are not reversed in an LTR interface and ASCII names
+are not reversed in an RTL one.

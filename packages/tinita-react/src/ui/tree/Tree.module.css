@@ -1,13 +1,12 @@
 /**
  * Tree CSS Modules
  *
- * Tên class ở đây là LOCAL. Vite sinh `tnt-tree-root`, `tnt-tree-row`, ... theo
- * `generateScopedName`.
+ * Class names here are local; the build emits `tnt-tree-root`, `tnt-tree-row`, ...
  *
- * MỌI thuộc tính chiều ngang là LOGICAL (`padding-inline-start`,
- * `inset-inline-start`, `margin-inline-*`). Bản cũ dùng `padding-left` và
- * `left:` nên trong `dir="rtl"` cây thụt lề sai bên và đường kẻ chỉ mục nằm sai
- * phía. Đây không phải chuyện thẩm mỹ: cây thụt sai bên thì không đọc được.
+ * Every horizontal property must stay logical (`padding-inline-start`,
+ * `inset-inline-start`, `margin-inline-*`). Physical properties indent the tree on
+ * the wrong side under `dir="rtl"` and put the guide line on the wrong edge, which
+ * makes the tree unreadable rather than merely misaligned.
  */
 
 .root {
@@ -31,7 +30,7 @@
   position: relative;
 }
 
-/* ---------- Hàng ---------- */
+/* ---------- Row ---------- */
 
 .row {
   display: flex;
@@ -42,17 +41,16 @@
   cursor: default;
   user-select: none;
 
-  /* Một chút khe dọc để vòng focus không dính vào nền của hàng trên/dưới. Không có
-     nó, các hàng chạm nhau và vòng focus trông như bị đè. */
+  /* Keeps the focus ring off the background of the adjacent rows. */
   margin-block: var(--tnt-tree-row-gap);
 
-  /* `outline-offset` ÂM là điều quan trọng nhất trong file này.
-     Nhóm con dùng `overflow: hidden` để cắt nội dung lúc đóng - bắt buộc cho
-     animation. Outline vẽ ra NGOÀI border box sẽ bị chính cái cắt đó ăn mất cạnh
-     trên của hàng đầu tiên trong nhóm; đó là bug đã báo. Offset âm vẽ vòng focus
-     vào TRONG hàng nên không có gì cắt được nó, ở bất kỳ độ sâu nào.
-     Vẫn dùng `outline` chứ không phải `box-shadow`: chế độ tương phản cao của
-     Windows chỉ tôn trọng `outline`. */
+  /* The negative `outline-offset` is the most important line in this file. Child
+     groups need `overflow: hidden` to clip content while collapsed, and a ring
+     drawn outside the border box is clipped by it on the first row of every group.
+     A negative offset draws the ring inside the row, so nothing can clip it at any
+     depth.
+     `outline` rather than `box-shadow`: Windows high-contrast mode only honours
+     `outline`. */
   outline: 2px solid transparent;
   outline-offset: -2px;
 }
@@ -74,7 +72,7 @@
   background-color: var(--tnt-tree-selected-bg);
 }
 
-/* ---------- Ô icon và mũi tên ---------- */
+/* ---------- Icon and arrow slots ---------- */
 
 .arrow-slot,
 .icon-slot {
@@ -90,7 +88,7 @@
 
 .arrow {
   color: var(--tnt-tree-text-dim);
-  /* Chevron chỉ sang phải. RTL lật 180deg; mở ra thì quay xuống ở CẢ HAI chiều. */
+  /* Chevron points right; RTL flips it, and expanding turns it down either way. */
   rotate: 0deg;
   transition: rotate var(--tnt-duration-fast) var(--tnt-ease-standard);
 }
@@ -107,19 +105,18 @@
   color: var(--tnt-tree-icon);
 }
 
-/* ---------- Chữ ---------- */
+/* ---------- Text ---------- */
 
 /**
- * `.label` bọc `.name` + `.extension` thành MỘT flex item của `.row`.
- *
- * Phải có bọc: `.row` có `gap`, nên để `name` và `extension` rời ra là giữa
- * `Button` và `.tsx` có 6px trống. Trong bọc thì không có gap nào.
+ * `.label` wraps `.name` + `.extension` into one flex item of `.row`. The wrapper
+ * is required because `.row` has a `gap`, which would otherwise appear between the
+ * name and the extension.
  */
 .label {
   display: flex;
   align-items: baseline;
   min-inline-size: 0;
-  /* Không co ở mặc định (`scroll`). Chế độ `truncate`/`wrap` mở cho co. */
+  /* Does not shrink by default (`scroll`); `truncate`/`wrap` opt in below. */
   flex: 0 0 auto;
 }
 
@@ -129,10 +126,8 @@
 }
 
 /**
- * Đuôi file KHÔNG BAO GIỜ co và không bao giờ bị `…` ăn.
- *
- * `Button.stor….tsx` đọc được; `Button.stories…` thì không biết là file gì. Đây là
- * cách VS Code rút tên tab.
+ * The extension never shrinks and is never eaten by the `…`: `Button.stor….tsx`
+ * still says what the file is, `Button.stories…` does not.
  */
 .extension {
   flex: 0 0 auto;
@@ -147,7 +142,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  /* Chú thích là phần nhường chỗ đầu tiên khi hẹp; tên file mới là nội dung. */
+  /* The description yields space first; the name is the content. */
   flex: 0 1 auto;
 }
 
@@ -175,35 +170,21 @@
   border: 0;
 }
 
-/* ---------- Nhóm con: đóng/mở ---------- */
+/* ---------- Child group: expand/collapse ---------- */
 
 /**
- * Chiều cao do `useCollapse` điều khiển bằng JS - xem file đó để biết vì sao.
+ * Expand/collapse follows Base UI's documented Collapsible pattern exactly.
  *
- * Tóm lại: animate `height` từ 0 tới chiều cao ĐO ĐƯỢC, đúng kỹ thuật của Radix
- * Accordion, vì `grid-template-rows: 0fr -> 1fr` làm nội dung trông như bị bóp
- * chứ không trượt ra. Ở đây không có rule `transition` nào: hook tự gán và tự gỡ,
- * nên trạng thái nghỉ là `height: auto` và cây con lồng nhau mở ra vẫn đúng.
- */
-/**
- * Đóng/mở theo ĐÚNG mẫu trong docs của Base UI, không thêm gì.
+ * It must be a TRANSITION on `height`, never `@keyframes`. Base UI's
+ * `getAnimationType` reads the computed style at the moment the state changes.
+ * With a transition, `transition-duration` is non-zero on the base class, so it
+ * always detects one. With keyframes it breaks on collapse: `[data-open]` has just
+ * been removed and `[data-ending-style]` is not applied yet, so Base UI reads
+ * `animation-name: none`, concludes there is no animation and drops the closing
+ * one - the panel disappears at t=9ms. `keepMounted` does not help.
  *
- * Bản gốc (docs/react/components/accordion.md của chính package, viết bằng
- * Tailwind):
- *   h-[var(--accordion-panel-height)] overflow-hidden
- *   transition-[height] duration-150 ease-out
- *   data-starting-style:h-0 data-ending-style:h-0
- *
- * TRANSITION trên `height`, không phải keyframes. Đó là chi tiết quyết định:
- * `getAnimationType` của Base UI đọc computed style ngay tại thời điểm đổi trạng
- * thái, và với transition thì `transition-duration` luôn khác 0 trên class gốc nên
- * nó luôn phát hiện đúng. Với keyframes thì lúc đóng, `[data-open]` vừa bị gỡ còn
- * `[data-ending-style]` chưa được thêm - Base UI đọc ra `animation-name: none`,
- * kết luận không có animation, và bỏ luôn animation đóng. Đo được: panel biến mất
- * ở t=9ms. `keepMounted` không cứu được.
- *
- * Biến `--collapsible-panel-height` bọc sau token của tinita ngay tại đây và chỉ ở
- * đây - nó là chi tiết nội bộ của Base UI, không thuộc hợp đồng CSS công khai.
+ * `--collapsible-panel-height` is a Base UI internal, wrapped behind a tinita
+ * token here and only here so it stays out of the public CSS contract.
  */
 .group {
   --tnt-tree-content-height: var(--collapsible-panel-height);
@@ -212,9 +193,8 @@
   overflow: hidden;
   transition: height var(--tnt-tree-collapse-duration) var(--tnt-tree-collapse-ease);
 
-  /* `easeInEaseOut` CỦA APPLE (UIKit `UICubicTimingParameters`), không phải
-     `--tnt-ease-standard` - cái đó là của Material Design dù animations.css tự mô
-     tả là "Apple". */
+  /* Apple's `easeInEaseOut` (UIKit `UICubicTimingParameters`), not
+     `--tnt-ease-standard`, which is Material Design's curve. */
   --tnt-tree-collapse-duration: 220ms;
   --tnt-tree-collapse-ease: var(--tnt-ease-in-out);
 }
@@ -232,7 +212,7 @@
   min-block-size: 0;
 }
 
-/* ---------- Thụt lề và đường kẻ chỉ mục ---------- */
+/* ---------- Indentation and guide line ---------- */
 
 .group-inner > .list {
   position: relative;
@@ -249,37 +229,39 @@
   opacity: 0.2;
 }
 
-/* ---------- Tràn ngang: nhãn dài hơn khung ---------- */
+/* ---------- Horizontal overflow: labels wider than the container ---------- */
 
 /**
- * Ba chế độ của prop `overflow`. Chỉ `scroll` (mặc định) cho hàng rộng hơn khung.
+ * The three modes of the `overflow` prop. Only `scroll` (the default) lets a row
+ * grow wider than the container.
  */
 
 /**
- * `scroll`: `min-inline-size: max-content` để HÀNG rộng bằng cả vùng cuộn, không
- * chỉ bằng khung nhìn.
+ * `scroll`: `min-inline-size: max-content` makes the row as wide as the whole
+ * scrollable area rather than the viewport.
  *
- * Không có nó, `<li>` là block nên nó chỉ rộng bằng containing block. Khi cây tràn
- * ngang, mép phải của hàng nằm ĐÚNG tại biên cắt của `overflow: auto` ở `.root`, và
- * vòng focus vẽ sát biên đó trông như bị cắt cụt - đúng ảnh owner gửi 2026-09-28.
- * Nền hover và nền "đang chọn" cũng dừng giữa chừng khi cuộn sang phải. Đây là cách
- * VS Code và Finder làm.
+ * Without it `<li>` is only as wide as its containing block, so once the tree
+ * overflows horizontally the row's right edge lands on the clip boundary of
+ * `.root`'s `overflow: auto`: the focus ring looks cut off, and the hover and
+ * selected backgrounds stop halfway when scrolled right. VS Code and Finder do the
+ * same thing.
  *
- * Cây hẹp hơn khung thì `max-content` nhỏ hơn width tự động, nên nó không đổi gì.
+ * When the tree is narrower than the container, `max-content` is smaller than the
+ * automatic width and this changes nothing.
  */
 .root[data-overflow='scroll'] .list {
   min-inline-size: max-content;
 }
 
 /**
- * `truncate`: hàng vừa khung, tên rút bằng `…`, đuôi file vẫn thấy.
+ * `truncate`: the row fits the container, the name is cut with `…`, the extension
+ * stays visible.
  *
- * Giữa `…` và `.tsx` có thể thấy một khoảng trống nhỏ. Đó KHÔNG phải khe layout:
- * đo được mép trái `.extension` trừ mép phải hộp `.name` bằng ĐÚNG 0px
- * (2026-09-28, Menlo 14px, hộp 242.28px). Nó là phần dư của chính
- * `text-overflow: ellipsis` - Chromium đặt `…` ngay sau ký tự cuối vừa chỗ rồi bỏ
- * trống phần còn lại, tối đa dưới một ký tự (< 8.43px ở font này). Không có cách
- * nào bỏ nó bằng CSS thuần; muốn hết thì phải đo chữ bằng JS, không đáng.
+ * A small gap can appear between `…` and the extension. It is not a layout gap -
+ * `.extension`'s left edge sits exactly on `.name`'s box edge. It is leftover
+ * space from `text-overflow: ellipsis`: the browser places `…` after the last
+ * character that fits and leaves the remainder blank, up to just under one
+ * character wide. Closing it would require measuring text in JS.
  */
 .root[data-overflow='truncate'] .label {
   flex: 0 1 auto;
@@ -290,21 +272,21 @@
   text-overflow: ellipsis;
 }
 
-/* `wrap`: tên xuống dòng. Không cuộn, không mất ký tự. */
+/* `wrap`: the name wraps. No scrolling, nothing cut. */
 .root[data-overflow='wrap'] .row {
-  /* Nhãn cao nhiều dòng thì icon và mũi tên phải neo ở DÒNG ĐẦU, không phải giữa
-     khối - căn giữa làm chúng trôi xuống giữa đoạn. */
+  /* With a multi-line label the icon and arrow must anchor to the first line;
+     centring drifts them into the middle of the paragraph. */
   align-items: flex-start;
 }
 
 /**
- * `wrap` trả `.label` về LUỒNG CHỮ, không phải flex.
+ * `wrap` returns `.label` to text flow rather than flex.
  *
- * Là flex thì `.name` và `.extension` là hai hộp cạnh nhau: tên xuống dòng bên
- * trong hộp của nó còn `.tsx` đứng yên ở cuối DÒNG ĐẦU, đọc ra
- * `UserProfileSettingsDialogCon .tsx / tainer.stories`. Đo được 2026-09-28 ở
- * story `overflow: wrap`. Là block thì hai span thành inline và `.tsx` đi liền sau
- * ký tự cuối, đúng bất biến `name + nameSuffix`.
+ * As flex, `.name` and `.extension` are two boxes side by side: the name wraps
+ * inside its own box while the extension stays at the end of the first line,
+ * reading as `LongFileNameCon .tsx / tainer.stories`. As a block the two spans are
+ * inline and the extension follows the last character, honouring the
+ * `name + nameSuffix` invariant.
  */
 .root[data-overflow='wrap'] .label {
   display: block;
@@ -313,14 +295,14 @@
 
 .root[data-overflow='wrap'] .name {
   white-space: normal;
-  /* `anywhere` chứ không phải `break-word`: đường dẫn và tên file không có khoảng
-     trắng để ngắt, nên `break-word` sẽ để nguyên nó tràn ra. */
+  /* `anywhere`, not `break-word`: file names have no whitespace to break at, so
+     `break-word` would leave them overflowing. */
   overflow-wrap: anywhere;
 }
 
 .root[data-overflow='wrap'] .arrow-slot,
 .root[data-overflow='wrap'] .icon-slot {
-  /* Cao bằng MỘT dòng chữ để nó vẫn căn giữa theo dòng đầu, không dính mép trên. */
+  /* One line tall, so it centres against the first line. */
   block-size: calc(1em * 1.6);
 }
 
@@ -328,7 +310,7 @@
   white-space: normal;
 }
 
-/* ---------- Mật độ ---------- */
+/* ---------- Density ---------- */
 
 .root[data-size='sm'] .row {
   padding-block: 1px;
@@ -345,7 +327,7 @@
   padding-inline: 8px;
 }
 
-/* ---------- Bo góc ---------- */
+/* ---------- Corner radius ---------- */
 
 .root[data-border-radius='sm'] .row {
   --tnt-tree-radius: 2px;
@@ -359,7 +341,7 @@
   --tnt-tree-radius: 9999px;
 }
 
-/* ---------- Vô hiệu hoá ---------- */
+/* ---------- Disabled ---------- */
 
 .row[aria-disabled='true'],
 .item[aria-disabled='true'] > .row {
@@ -376,9 +358,9 @@
 
 /* ---------- Reduced motion ---------- */
 
-/* Tắt hẳn, KHÔNG dùng thời lượng gần-0. Xem docs/code-standards.md mục
-   "Quy Tắc Reduced Motion". `enableAnimation` cũng đã bị ép false ở JS nên đây là
-   lớp thứ hai, phòng khi CSS được dùng mà không có JS. */
+/* Off entirely, never a near-zero duration: at 0.01ms the transition still runs and
+   still fires `transitionend`. `enableAnimation` is already forced false in JS; this
+   is the second layer, for when the CSS is used without it. */
 @media (prefers-reduced-motion: reduce) {
   .arrow {
     transition: none !important;

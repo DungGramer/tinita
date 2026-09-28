@@ -4,36 +4,41 @@ import { Tree } from 'tinita-react/ui/tree';
 import type { TreeNode } from 'tinita-react/ui/tree';
 
 /**
- * `Tree` là primitive. Nó nhận dữ liệu dạng cây và không biết gì về file, về phần
- * mở rộng, hay về cú pháp cây CLI - `FileTree` mới là adapter cho những thứ đó.
+ * `Tree` is the primitive. It takes tree-shaped data and knows nothing about
+ * files, extensions or CLI tree syntax - `FileTree` is the adapter for those.
  *
- * Tách như vậy để component không bị khoá vào một định dạng chuỗi. Có sẵn dữ liệu
- * dạng cây thì dùng thẳng `Tree`, đừng chuyển ngược về chuỗi rồi parse lại.
+ * Split this way so the component is not locked to one string format. If you
+ * already have tree-shaped data, use `Tree` directly rather than serialising it
+ * back to a string and re-parsing.
  */
 const nodes: TreeNode[] = [
   {
     id: 'docs',
-    name: 'Tài liệu',
-    description: 'Mọi thứ người đọc cần',
+    name: 'Documentation',
+    description: 'Everything a reader needs',
     children: [
-      { id: 'docs/bat-dau', name: 'Bắt đầu', description: 'Cài trong 2 phút' },
-      { id: 'docs/api', name: 'API', description: 'Tham chiếu đầy đủ' },
-      { id: 'docs/trong', name: 'Chưa viết', children: [] },
+      {
+        id: 'docs/getting-started',
+        name: 'Getting started',
+        description: 'Install in 2 minutes',
+      },
+      { id: 'docs/api', name: 'API', description: 'Full reference' },
+      { id: 'docs/unwritten', name: 'Not written yet', children: [] },
     ],
   },
   {
-    id: 'thiet-ke',
-    name: 'Thiết kế',
+    id: 'design',
+    name: 'Design',
     children: [
       {
-        id: 'thiet-ke/token',
-        name: 'Token',
-        description: 'Màu, khoảng cách, chữ',
+        id: 'design/tokens',
+        name: 'Tokens',
+        description: 'Colour, spacing, type',
       },
-      { id: 'thiet-ke/motion', name: 'Chuyển động' },
+      { id: 'design/motion', name: 'Motion' },
     ],
   },
-  { id: 'changelog', name: 'Changelog', description: 'Có gì mới' },
+  { id: 'changelog', name: 'Changelog', description: "What's new" },
 ];
 
 const meta = {
@@ -44,7 +49,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Primitive cây tổng quát. Không phụ thuộc thư viện icon. Bàn phím theo chuẩn ARIA tree: mũi tên lên/xuống di chuyển, phải mở, trái đóng hoặc về cha, Home/End, `*` mở hết anh em, và gõ chữ để nhảy tới.',
+          'Generic tree primitive. Depends on no icon library. Keyboard follows the ARIA tree pattern: up/down move, right expands, left collapses or moves to the parent, Home/End, `*` expands all siblings, and typing a letter jumps to a node.',
       },
     },
   },
@@ -65,78 +70,90 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  args: { nodes, 'aria-label': 'Tài liệu' },
+  args: { nodes, 'aria-label': 'Documentation' },
 };
 
 export const Arrows: Story = {
-  name: 'Mũi tên mở/đóng',
-  args: { nodes, 'showArrow': true, 'aria-label': 'Tài liệu' },
+  name: 'Expand/collapse arrows',
+  args: { nodes, 'showArrow': true, 'aria-label': 'Documentation' },
 };
 
-/** `sort="type"` đưa thư mục lên trước, rồi tới file, mỗi nhóm theo tên tự nhiên. */
+/** `sort="type"` puts folders first, then files, each group in natural name order. */
 export const SortByType: Story = {
-  name: 'Sắp xếp theo loại',
-  args: { nodes, 'sort': 'type', 'showArrow': true, 'aria-label': 'Tài liệu' },
+  name: 'Sort by type',
+  args: {
+    nodes,
+    'sort': 'type',
+    'showArrow': true,
+    'aria-label': 'Documentation',
+  },
 };
 
 export const SortByName: Story = {
-  name: 'Sắp xếp theo tên',
-  args: { nodes, 'sort': 'name', 'showArrow': true, 'aria-label': 'Tài liệu' },
+  name: 'Sort by name',
+  args: {
+    nodes,
+    'sort': 'name',
+    'showArrow': true,
+    'aria-label': 'Documentation',
+  },
 };
 
-/** Chú thích hiện hết ở hàng. Không đủ chỗ thì chú thích co trước, tên giữ nguyên. */
+/** Every description renders in its row. When space runs short the description
+ *  shrinks first and the name stays intact. */
 export const DescriptionsInline: Story = {
-  name: 'Chú thích inline',
+  name: 'Inline descriptions',
   args: {
     nodes,
     'showDescriptions': true,
     'showArrow': true,
-    'aria-label': 'Tài liệu',
+    'aria-label': 'Documentation',
   },
 };
 
 /**
- * Chỉ nhánh được nêu hiện chú thích inline. Phần còn lại vào tooltip, và node nào
- * có chú thích đều mang dấu `?` ở cuối hàng.
+ * Only the named branch shows inline descriptions. The rest go to a tooltip, and
+ * any node carrying a description gets a `?` marker at the end of its row.
  */
 export const DescriptionsScoped: Story = {
-  name: 'Chú thích theo nhánh',
+  name: 'Descriptions scoped to a branch',
   args: {
     nodes,
     'showDescriptions': 'docs',
     'showArrow': true,
-    'aria-label': 'Tài liệu',
+    'aria-label': 'Documentation',
   },
 };
 
 export const Selected: Story = {
-  name: 'Đang chọn',
+  name: 'Selected node',
   args: {
     nodes,
     'selected': 'docs/api',
     'showArrow': true,
-    'aria-label': 'Tài liệu',
+    'aria-label': 'Documentation',
   },
 };
 
-/** Cây con đóng sẵn: dùng để thấy chúng KHÔNG nằm trong DOM cho tới khi mở. */
+/** Subtrees start collapsed: use this to see they are NOT in the DOM until opened. */
 export const Collapsed: Story = {
-  name: 'Đóng sẵn',
+  name: 'Collapsed by default',
   args: {
     nodes,
     'defaultExpanded': false,
     'showArrow': true,
-    'aria-label': 'Tài liệu',
+    'aria-label': 'Documentation',
   },
 };
 
-/** `renderNode` nhận `defaultContent` nên bọc được thay vì phải dựng lại từ đầu. */
+/** `renderNode` receives `defaultContent`, so it can wrap the row instead of
+ *  rebuilding it from scratch. */
 export const CustomRender: Story = {
   name: 'renderNode',
   args: {
     nodes,
     'showArrow': true,
-    'aria-label': 'Tài liệu',
+    'aria-label': 'Documentation',
     'renderNode': (node, ctx) => (
       <>
         {ctx.defaultContent}
@@ -158,11 +175,11 @@ export const CustomRender: Story = {
 };
 
 /**
- * RTL: thụt lề, đường kẻ chỉ mục và mũi tên đều lật sang phải. Mũi tên trái/phải
- * trên bàn phím cũng đảo nghĩa.
+ * RTL: indentation, the guide line and the arrows all flip to the right. The
+ * left/right arrow keys swap meaning too.
  */
 export const RTL: Story = {
-  name: 'RTL (tiếng Ả Rập)',
+  name: 'RTL (Arabic)',
   args: {
     'aria-label': 'شجرة',
     'showArrow': true,
@@ -195,23 +212,20 @@ export const RTL: Story = {
   ),
 };
 
-/** Kiểm soát từ ngoài: `expanded` + `onExpandedChange`. */
+/** Controlled from outside: `expanded` + `onExpandedChange`. */
 export const Controlled: Story = {
-  name: 'Kiểm soát expanded',
-  args: { nodes, 'aria-label': 'Tài liệu' },
+  name: 'Controlled expanded',
+  args: { nodes, 'aria-label': 'Documentation' },
   render: (args) => {
     const [expanded, setExpanded] = useState<string[]>(['docs']);
     return (
       <div style={{ display: 'grid', gap: 12 }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            onClick={() => setExpanded(['docs', 'thiet-ke'])}
-          >
-            Mở hết
+          <button type="button" onClick={() => setExpanded(['docs', 'design'])}>
+            Expand all
           </button>
           <button type="button" onClick={() => setExpanded([])}>
-            Đóng hết
+            Collapse all
           </button>
           <code style={{ fontSize: 12, alignSelf: 'center' }}>
             expanded = [{expanded.join(', ')}]
@@ -229,10 +243,11 @@ export const Controlled: Story = {
 };
 
 /**
- * Cây lớn để đo. 6 cấp, ~1500 node.
+ * A large tree for measurement. 6 levels, ~1500 nodes.
  *
- * Đây là hình dạng mà chi phí đóng/mở mới nhìn thấy được: cây con đang đóng KHÔNG
- * nằm trong DOM, nên mở một nhánh chỉ dựng đúng nhánh đó.
+ * This is the shape where the cost of expanding and collapsing becomes visible: a
+ * collapsed subtree is NOT in the DOM, so expanding one branch only builds that
+ * branch.
  */
 function buildStressTree(
   depth: number,
@@ -244,26 +259,28 @@ function buildStressTree(
     const id = `${prefix}-${i}`;
     const children = buildStressTree(depth - 1, breadth, id);
     return depth === 1
-      ? { id, name: `tệp-${i}.ts` }
-      : { id, name: `thư-mục-${i}`, children };
+      ? { id, name: `file-${i}.ts` }
+      : { id, name: `folder-${i}`, children };
   });
 }
 
 export const Stress: Story = {
-  name: 'Cây lớn (đo hiệu năng)',
+  name: 'Large tree (performance)',
   args: {
     'nodes': buildStressTree(5, 4),
     'defaultExpanded': false,
     'showArrow': true,
-    'aria-label': 'Cây lớn',
+    'aria-label': 'Large tree',
   },
 };
 
 /**
- * Nhãn dài trong khung hẹp, cho `Tree` thuần (không có `FileTree` tách đuôi).
+ * Long labels in a narrow container, for plain `Tree` (no `FileTree` splitting off
+ * the extension).
  *
- * `nameSuffix` là của NODE, không phải suy ra từ tên: `Tree` không biết gì về file.
- * Ở đây truyền tay để thấy đuôi vẫn hiện khi tên bị rút.
+ * `nameSuffix` belongs to the NODE and is never derived from the name: `Tree` knows
+ * nothing about files. It is passed by hand here to show the extension surviving
+ * while the name is cut.
  */
 const longNodes: TreeNode[] = [
   {
@@ -286,8 +303,8 @@ const longNodes: TreeNode[] = [
 ];
 
 export const Overflow: Story = {
-  name: 'Nhãn dài (overflow)',
-  args: { 'nodes': longNodes, 'showArrow': true, 'aria-label': 'Nhãn dài' },
+  name: 'Long labels (overflow)',
+  args: { 'nodes': longNodes, 'showArrow': true, 'aria-label': 'Long labels' },
   render: (args) => (
     <div style={{ display: 'grid', gap: 20, maxInlineSize: 320 }}>
       {(['scroll', 'truncate', 'wrap'] as const).map((mode) => (

@@ -1,17 +1,17 @@
 /**
  * FileTree CSS Modules
  *
- * CHỈ màu icon. Toàn bộ cấu trúc, thụt lề, đường kẻ chỉ mục, focus, animation và
- * RTL nằm ở `Tree.module.css` - `FileTree` là adapter, không phải một cây thứ hai.
+ * Icon colours ONLY. All structure, indentation, guide lines, focus, animation and
+ * RTL live in `Tree.module.css` - `FileTree` is an adapter, not a second tree.
  *
- * Màu theo `data-icon` chứ không theo class riêng cho từng loại: `iconColors` gán
- * biến `--tnt-filetree-icon-*` lên phần tử gốc, nên prop và theme đi CÙNG một
- * đường. Hai đường thì sẽ có lúc chúng nói khác nhau.
+ * Colour keys off `data-icon` rather than a class per type: `iconColors` assigns
+ * the `--tnt-filetree-icon-*` variables on the root element, so the prop and the
+ * theme travel the SAME path. Two paths eventually disagree.
  */
 
 .root {
-  /* Không có gì ở đây. Class tồn tại để `iconColors` có chỗ bám và để người dùng
-     nhắm được `.tnt-file-tree-root` nếu cần. */
+  /* Nothing here. The class exists so `iconColors` has something to attach to and
+     so callers can target `.tnt-file-tree-root` when they need to. */
   display: block;
 }
 

@@ -1,5 +1,5 @@
 /**
- * Tree - primitive cây tổng quát. Không phụ thuộc thư viện icon nào.
+ * Tree - generic tree primitive. Depends on no icon library.
  *
  * @packageDocumentation
  */

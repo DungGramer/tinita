@@ -1,13 +1,12 @@
 import { type ClassValue, clsx } from 'clsx';
 
 /**
- * Nối className. `clsx` thuần, KHÔNG `twMerge`.
+ * Join class names. Plain `clsx`, no `twMerge`.
  *
- * `tailwind-merge` chỉ có nghĩa khi có class Tailwind cần dedupe. Từ khi layout
- * của component chuyển hết sang CSS thật (BEM + data-attribute), không còn class
- * Tailwind nào trong JSX, nên `twMerge` chỉ còn là code chết được bundle vào mọi
- * consumer. Đo được 2026-09-26: `dist/ui/carousel-ticker/index.mjs` 31084 bytes
- * khi còn nó.
+ * `tailwind-merge` only earns its bytes when there are Tailwind classes to
+ * deduplicate. Component layout is all real CSS with data-attribute variants, so
+ * there is no Tailwind class in the JSX and `twMerge` would be dead weight bundled
+ * into every consumer.
  */
 export function cn(...inputs: ClassValue[]) {
   return clsx(inputs);

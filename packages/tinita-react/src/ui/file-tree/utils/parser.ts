@@ -1,11 +1,11 @@
 /**
- * Parser cho chuỗi cây dạng văn bản.
+ * Parser for text tree strings.
  *
- * Hai định dạng:
- * - thụt lề 2 dấu cách
- * - cây CLI của Windows/Unix (`├──`, `└──`, `+---`, `\---`)
+ * Two formats:
+ * - two-space indent
+ * - Windows/Unix CLI tree (`├──`, `└──`, `+---`, `\---`)
  *
- * Và cú pháp chú thích: `tên  ? mô tả`.
+ * Plus the description syntax: `name  ? description`.
  */
 
 import type { ParsedNode } from '../types';
@@ -19,11 +19,11 @@ function isCliTreeFormat(text: string): boolean {
 }
 
 /**
- * Tách `tên  ? mô tả`.
+ * Split `name  ? description`.
  *
- * Dấu phân cách BẮT BUỘC có khoảng trắng đứng trước. Nếu không thì `foo?.ts` hay
- * `query?param` sẽ bị cắt làm đôi - tên file có dấu `?` là hợp lệ trên Unix.
- * Sau `?` thì khoảng trắng là tuỳ chọn, để `name ?desc` vẫn hiểu được.
+ * The separator REQUIRES leading whitespace. Without it `foo?.ts` or `query?param`
+ * would be cut in half - a file name containing `?` is legal on Unix. Whitespace
+ * after the `?` is optional, so `name ?desc` still parses.
  */
 function splitDescription(raw: string): { name: string; description?: string } {
   const match = raw.match(/^(.*?)\s+\?\s*(.*)$/);
@@ -35,10 +35,9 @@ function splitDescription(raw: string): { name: string; description?: string } {
 }
 
 /**
- * Tạo node. `children` là `undefined` cho file và `[]` cho thư mục.
+ * Create a node. `children` is `undefined` for a file and `[]` for a folder.
  *
- * Dấu `/` ở cuối là tín hiệu DUY NHẤT phân biệt thư mục rỗng với file. Bản cũ dùng
- * `children.length > 0` nên thư mục rỗng hiển thị y hệt một file.
+ * A trailing `/` is the only signal separating an empty folder from a file.
  */
 function makeNode(rawName: string, parentPath: string): ParsedNode {
   const { name, description } = splitDescription(rawName);
@@ -54,7 +53,7 @@ function makeNode(rawName: string, parentPath: string): ParsedNode {
   };
 }
 
-/** Thư mục có con thì phải có mảng `children`, kể cả khi vào là file. */
+/** A folder with children must have a `children` array, even if it arrived as a file. */
 function asFolder(node: ParsedNode): ParsedNode {
   if (!node.children) node.children = [];
   return node;
@@ -87,7 +86,7 @@ function parseCliTree(text: string): ParsedNode[] {
   for (let i = 1; i < lines.length; i++) {
     const raw = lines[i]!;
 
-    // Thay connector bằng khoảng trắng để đếm được độ sâu.
+    // Replace connectors with spaces so depth can be counted.
     const stripped = raw.replace(/[│├└─|+\\]/g, ' ');
     const leadingSpaces = stripped.match(/^ */)?.[0].length ?? 0;
     const depth = Math.floor(leadingSpaces / 4) + 1;
@@ -153,7 +152,7 @@ function parseIndentTree(text: string): ParsedNode[] {
   return result;
 }
 
-/** Tự nhận định dạng. */
+/** Auto-detect the format. */
 export function parseFileTreeUniversal(text: string): ParsedNode[] {
   const normalized = normalizeText(text);
   return isCliTreeFormat(normalized) ? parseCliTree(normalized) : parseIndentTree(normalized);

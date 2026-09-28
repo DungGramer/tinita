@@ -3,9 +3,9 @@ import { render, waitFor } from '@testing-library/react';
 import { CarouselTicker } from '../../src/ui/carousel-ticker/CarouselTicker';
 
 /**
- * jsdom không có `matchMedia`, không có `Element.animate`, và
- * `getBoundingClientRect` trả 0 hết. Không stub cả ba thì `stridePx` là 0,
- * effect thoát sớm, và mọi assertion về animation thành vô nghĩa mà vẫn xanh.
+ * jsdom has no `matchMedia`, no `Element.animate`, and `getBoundingClientRect`
+ * returns all zeroes. Without stubbing all three, `stridePx` is 0, the effect bails
+ * early, and every animation assertion becomes meaningless while staying green.
  */
 let animateSpy: ReturnType<typeof vi.fn>;
 let mediaListeners: Array<(e: MediaQueryListEvent) => void>;
@@ -62,10 +62,11 @@ afterEach(() => {
 });
 
 describe('CarouselTicker', () => {
-  it('KHÔNG tạo animation nào khi prefers-reduced-motion: reduce', () => {
-    // Đây là bug đã sửa. Marquee chạy bằng Web Animations API nên khối
-    // `@media (prefers-reduced-motion)` trong CarouselTicker.css KHÔNG với tới nó -
-    // khối đó có từ đầu và chưa bao giờ tắt được marquee. Phải tắt ở JS.
+  it('creates NO animation under prefers-reduced-motion: reduce', () => {
+    // This is a fixed bug. The marquee runs on the Web Animations API, so the
+    // `@media (prefers-reduced-motion)` block in CarouselTicker.css CANNOT reach it -
+    // that block was there from the start and never once stopped the marquee. It has
+    // to be turned off in JS.
     setReducedMotion(true);
     render(
       <CarouselTicker>
@@ -77,8 +78,9 @@ describe('CarouselTicker', () => {
     });
   });
 
-  it('có tạo animation khi user không yêu cầu giảm chuyển động', () => {
-    // Chiều ngược. Thiếu ca này thì một ticker chưa bao giờ chạy cũng cho xanh ca trên.
+  it('does create an animation when the user has not asked for reduced motion', () => {
+    // The other direction. Without this case, a ticker that never ran at all would
+    // make the case above green.
     setReducedMotion(false);
     render(
       <CarouselTicker>
@@ -90,9 +92,9 @@ describe('CarouselTicker', () => {
     });
   });
 
-  it('ghim content ở frame đầu khi reduced-motion, không để transform về 0', async () => {
-    // Chỉ `cancel()` thì transform về 0 và các clone `aria-hidden` dẫn đường lọt
-    // vào viewport thay cho pattern thật.
+  it('pins the content at the first frame under reduced motion, not transform 0', async () => {
+    // With `cancel()` alone the transform returns to 0 and the leading
+    // `aria-hidden` clones end up in the viewport instead of the real pattern.
     setReducedMotion(true);
     const { container } = render(
       <CarouselTicker overflowBufferPx={200}>
@@ -105,7 +107,7 @@ describe('CarouselTicker', () => {
     });
   });
 
-  it('biến thể đi qua data-attribute, không qua class Tailwind', async () => {
+  it('variants travel through data-attributes, not Tailwind classes', async () => {
     setReducedMotion(false);
     const { container } = render(
       <CarouselTicker direction="top" overflowVisible>
@@ -118,7 +120,7 @@ describe('CarouselTicker', () => {
     await waitFor(() => expect(animateSpy).toHaveBeenCalled());
   });
 
-  it('KHÔNG dùng class Tailwind thô nào trong JSX', async () => {
+  it('uses NO raw Tailwind class in the JSX', async () => {
     setReducedMotion(false);
     const { container } = render(
       <CarouselTicker fade>
@@ -132,7 +134,7 @@ describe('CarouselTicker', () => {
     expect(classes).toEqual([]);
   });
 
-  it('chỉ MỘT pattern không aria-hidden - phần còn lại là clone', async () => {
+  it('exactly ONE pattern is not aria-hidden - the rest are clones', async () => {
     setReducedMotion(false);
     const { container } = render(
       <CarouselTicker>

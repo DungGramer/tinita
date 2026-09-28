@@ -1,5 +1,5 @@
 /**
- * FileTree - adapter từ chuỗi cây CLI/thụt lề sang `Tree`.
+ * FileTree - adapter from a CLI/indent tree string to `Tree`.
  *
  * @packageDocumentation
  */

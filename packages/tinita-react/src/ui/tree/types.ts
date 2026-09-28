@@ -1,85 +1,78 @@
 import type { ReactNode } from 'react';
 
 /**
- * Một node trong cây.
+ * One node in the tree.
  *
- * `children` phân biệt ba trạng thái, và sự phân biệt đó là có ý nghĩa:
- * - `undefined` -> đây là LÁ (file). Không có mũi tên, không mở được.
- * - `[]`        -> thư mục RỖNG. Có mũi tên, mở ra thì trống.
- * - `[...]`     -> thư mục có nội dung.
- *
- * Bản cũ dùng `children.length > 0` nên thư mục rỗng và file là một - không
- * hiển thị khác nhau được.
+ * `children` distinguishes three states:
+ * - `undefined` -> a leaf (file). No arrow, cannot expand.
+ * - `[]`        -> an empty folder. Has an arrow, expands to nothing.
+ * - `[...]`     -> a folder with contents.
  */
 export interface TreeNode {
   /**
-   * Định danh ỔN ĐỊNH và duy nhất trong cả cây.
+   * Stable identifier, unique across the whole tree.
    *
-   * Đây là thứ `expanded`, `selected` và `showDescriptions` nhắm tới, nên nó phải
-   * có nghĩa với người dùng. `FileTree` dùng đường dẫn đầy đủ
-   * (`src/components/Button.tsx`). Bản cũ dùng `${level}-${idx}` - đổi thứ tự sort
-   * là mọi trạng thái mở/đóng nhảy sang node khác.
+   * This is what `expanded`, `selected` and `showDescriptions` target. It must not
+   * be positional: an id derived from index or depth makes every expanded and
+   * selected state jump to a different node as soon as the sort order changes.
+   * `FileTree` uses the full path (`src/components/Button.tsx`).
    */
   id: string;
-  /** Nhãn hiển thị. */
+  /** Display label. */
   name: string;
   /**
-   * Phần đuôi của nhãn KHÔNG BAO GIỜ bị rút ngắn.
+   * Tail of the label that is never shortened under `overflow: 'truncate'`, so
+   * `Button.stories.tsx` cuts to `Button.stor….tsx` rather than `Button.stor…`.
    *
-   * Tồn tại vì `overflow: 'truncate'`. Rút `Button.stories.tsx` thành
-   * `Button.stor…` là mất đúng phần mang thông tin - đuôi file cho biết đó là
-   * cái gì. Tách ra hai span thì `name` co lại còn `nameSuffix` giữ nguyên, ra
-   * `Button.stor….tsx`.
+   * `Tree` never derives this: it knows nothing about files. `FileTree` supplies
+   * `'.tsx'`.
    *
-   * `Tree` không biết gì về file nên nó không tự tách: `FileTree` tách bằng
-   * `getFileNameParts` của `tinita` rồi truyền `'.tsx'` vào đây. Bất biến:
-   * `name + (nameSuffix ?? '')` phải bằng đúng nhãn gốc - sort và gõ-để-nhảy đều
-   * dựa vào đó.
+   * Invariant: `name + (nameSuffix ?? '')` must equal the original label. Sort and
+   * type-ahead both read that concatenation.
    */
   nameSuffix?: string;
-  /** Xem ghi chú ở trên: `undefined` là lá, `[]` là thư mục rỗng. */
+  /** See the note above: `undefined` is a leaf, `[]` is an empty folder. */
   children?: TreeNode[];
-  /** Chú thích. Hiện inline hay trong tooltip do `showDescriptions` quyết định. */
+  /** Description. `showDescriptions` decides inline vs tooltip. */
   description?: string;
-  /** Icon lúc đóng, hoặc icon của lá. */
+  /** Icon when collapsed, or the icon of a leaf. */
   icon?: ReactNode;
-  /** Icon lúc mở. Không truyền thì dùng `icon`. */
+  /** Icon when expanded. Falls back to `icon`. */
   expandedIcon?: ReactNode;
-  /** Không focus được, không mở được. */
+  /** Not focusable, not expandable. */
   disabled?: boolean;
 }
 
 /**
- * - `'name'`: theo tên, so sánh tự nhiên (`file2` trước `file10`).
- * - `'type'`: thư mục trước, rồi tới file, mỗi nhóm theo tên.
- * - `'none'`: giữ nguyên thứ tự đầu vào. Mặc định - thứ tự trong chuỗi tree
- *   thường đã có nghĩa.
- * - hàm: so sánh tuỳ ý, áp cho từng cấp.
+ * - `'name'`: by name, natural compare (`file2` before `file10`).
+ * - `'type'`: folders first, then files, each group by name.
+ * - `'none'`: keep input order. The default, since the order in the source data
+ *   usually already means something.
+ * - function: any comparator, applied per level.
  */
 export type TreeSort = 'name' | 'type' | 'none' | ((a: TreeNode, b: TreeNode) => number);
 
 /**
- * Ngữ cảnh truyền cho `renderNode`.
+ * Context handed to `renderNode`.
  *
- * `defaultContent` có mặt để `renderNode` BỌC được thay vì phải thay thế. Không có
- * nó thì mọi tuỳ biến nhỏ đều buộc người dùng dựng lại icon, mũi tên, chú thích và
- * thụt lề - và họ sẽ dựng sai.
+ * `defaultContent` lets `renderNode` wrap the row instead of replacing it, so a
+ * small customisation does not mean rebuilding the arrow, icon and description.
  */
 export interface TreeNodeRenderContext {
   node: TreeNode;
-  /** 0 là cấp ngoài cùng. */
+  /** 0 is the outermost level. */
   level: number;
   isExpanded: boolean;
   isSelected: boolean;
-  /** `children` khác `undefined`. Thư mục rỗng vẫn là thư mục. */
+  /** `children` is not `undefined`. An empty folder is still a folder. */
   isFolder: boolean;
-  /** id của tổ tiên, gần nhất đứng cuối. */
+  /** Ancestor ids, nearest last. */
   ancestors: string[];
-  /** Nội dung mặc định: mũi tên + icon + tên + chú thích. */
+  /** Default content: arrow + icon + name + description. */
   defaultContent: ReactNode;
-  /** Mở/đóng. Không làm gì với lá. */
+  /** Expand/collapse. No-op on a leaf. */
   toggle: () => void;
-  /** Kích hoạt node (giống click hoặc Enter). */
+  /** Activate the node (same as a click or Enter). */
   select: () => void;
 }
 
@@ -87,33 +80,33 @@ export interface TreeProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'c
   nodes: TreeNode[];
 
   /**
-   * Trạng thái mở ban đầu khi KHÔNG kiểm soát.
-   * - `true`: mở hết
-   * - `false`: đóng hết
-   * - `string[]`: chỉ những id này
+   * Initial expanded state when UNCONTROLLED.
+   * - `true`: expand everything
+   * - `false`: collapse everything
+   * - `string[]`: only these ids
    *
    * @default true
    */
   defaultExpanded?: boolean | string[];
 
-  /** Danh sách id đang mở. Truyền vào là chuyển sang chế độ kiểm soát. */
+  /** Ids currently expanded. Passing it switches to controlled mode. */
   expanded?: string[];
 
-  /** Gọi khi người dùng mở/đóng. Bắt buộc phải có nếu dùng `expanded`. */
+  /** Called on expand/collapse. Required when using `expanded`. */
   onExpandedChange?: (expanded: string[]) => void;
 
   /**
-   * id của node đang được chọn, để tô sáng.
-   * Ví dụ: `selected="src/components/Button.tsx"`.
+   * Id of the selected node, for highlighting.
+   * Example: `selected="src/components/Button.tsx"`.
    */
   selected?: string;
 
   /**
-   * Gọi khi người dùng kích hoạt một node (click, Enter, Space).
+   * Called when the user activates a node (click, Enter, Space).
    *
-   * Tên là `onSelectedChange` chứ không phải `onSelect` vì `onSelect` đã là một
-   * prop DOM (sự kiện bôi đen văn bản). Đè lên nó sẽ lặng lẽ làm hỏng code đang
-   * truyền handler DOM xuống.
+   * Named `onSelectedChange` rather than `onSelect` because `onSelect` is already
+   * a DOM prop (the text-selection event), and this component spreads the rest of
+   * its props onto the root element.
    */
   onSelectedChange?: (node: TreeNode) => void;
 
@@ -121,37 +114,36 @@ export interface TreeProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'c
   sort?: TreeSort;
 
   /**
-   * Chú thích nào hiện INLINE. Phần còn lại vào tooltip, và node nào có chú thích
-   * đều mang dấu `?` ở cuối hàng.
+   * Which descriptions render INLINE. The rest go to a tooltip, and any node with
+   * a description gets a `?` marker at the end of its row.
    *
-   * - `false` (mặc định): không có chú thích nào inline
-   * - `true`: tất cả inline
-   * - `string | string[]`: chỉ node nằm TRONG các id này (tính cả chính nó)
+   * - `false` (default): nothing inline
+   * - `true`: everything inline
+   * - `string | string[]`: only nodes WITHIN these ids (the id itself included)
    *
    * @default false
    */
   showDescriptions?: boolean | string | string[];
 
-  /** Thay hoặc bọc nội dung một hàng. */
+  /** Replace or wrap the content of a row. */
   renderNode?: (node: TreeNode, context: TreeNodeRenderContext) => ReactNode;
 
   /**
-   * Nhãn dài hơn khung thì làm gì. Đây là câu hỏi CHỈ xuất hiện trên màn hình hẹp,
-   * và ba câu trả lời đều đúng ở hoàn cảnh khác nhau - nên nó là prop, không phải
-   * một mặc định ép buộc.
+   * What to do when a label is wider than the container.
    *
-   * - `'scroll'` (mặc định): hàng rộng bằng nội dung, cả cây cuộn ngang. Không mất
-   *   ký tự nào. Đây là hành vi của VS Code và của bản trước, nên nó là mặc định.
-   * - `'truncate'`: hàng vừa khung, tên rút bằng `…`, phần `nameSuffix` (đuôi file)
-   *   luôn hiện. Nhãn đầy đủ vẫn có trong `title` để hover đọc được.
-   * - `'wrap'`: tên xuống dòng. Không cuộn, không mất ký tự, nhưng hàng cao không
-   *   đều nên khó quét mắt trên cây lớn.
+   * - `'scroll'` (default): the row is as wide as its content and the tree scrolls
+   *   sideways. Nothing is cut. This is what VS Code does.
+   * - `'truncate'`: the row fits the container, the name is cut with `…`, and
+   *   `nameSuffix` (the file extension) stays visible. The full label goes into
+   *   `title`.
+   * - `'wrap'`: the name wraps. No scrolling and nothing is cut, but rows have
+   *   uneven heights, which makes a large tree harder to scan.
    *
    * @default 'scroll'
    */
   overflow?: 'truncate' | 'scroll' | 'wrap';
 
-  /** Đường kẻ dọc theo cấp. @default true */
+  /** Vertical guide line per level. @default true */
   indicator?: boolean;
 
   /** @default 'md' */
@@ -160,18 +152,19 @@ export interface TreeProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'c
   /** @default 'md' */
   borderRadius?: 'sm' | 'md' | 'lg';
 
-  /** Mũi tên mở/đóng cho thư mục. @default false */
+  /** Expand/collapse arrow on folders. @default false */
   showArrow?: boolean;
 
   /**
-   * Animation mở/đóng. Luôn tắt khi người dùng bật `prefers-reduced-motion`.
+   * Expand/collapse animation. Always off when the user has
+   * `prefers-reduced-motion` set.
    * @default true
    */
   enableAnimation?: boolean;
 
-  /** Không truyền thì theo dark mode của trang. */
+  /** Left unset, the component follows the page's dark mode. */
   theme?: 'dark' | 'light';
 
-  /** Nhãn cho `role="tree"`. Bỏ qua nếu đã có `aria-labelledby`. */
+  /** Label for `role="tree"`. Ignored when `aria-labelledby` is present. */
   'aria-label'?: string;
 }

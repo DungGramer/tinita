@@ -38,7 +38,7 @@
   /* -------------------
      Easing Curves (cubic-bezier approximations)
      ------------------- */
-  /* Bốn đường cong dưới đây là của MATERIAL DESIGN */
+  /* The four curves below are MATERIAL DESIGN's */
   --tnt-ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* Defaultcurve */
   --tnt-ease-decelerate: cubic-bezier(0, 0, 0.2, 1); /* Elements entering */
   --tnt-ease-accelerate: cubic-bezier(0.4, 0, 1, 1); /* Elements exiting */
@@ -530,20 +530,18 @@
  * WCAG 2.1 Level AA Compliance
  * Respects user's motion sensitivity preferences
  *
- * TẮT HẲN, KHÔNG dùng `animation-duration: 0.01ms`.
- * Với 0.01ms animation VẪN chạy, nên `animationend`/`transitionend` vẫn fire
- * (gần như tức thì) - sinh bug thứ tự và nháy 1 frame rất khó truy. Owner đã
- * gặp thật. `animation: none` không fire event nào.
+ * Off entirely. Never `animation-duration: 0.01ms`: at that duration the animation
+ * still runs, so `animationend`/`transitionend` still fire almost immediately,
+ * producing ordering bugs and one-frame flashes that are very hard to trace.
+ * `animation: none` fires no events at all.
  *
- * `animation`/`transition` là shorthand nên reset luôn duration,
- * iteration-count, timing-function; không cần liệt kê riêng.
+ * `animation`/`transition` are shorthands, so they reset duration, iteration-count
+ * and timing-function too; there is no need to list them.
  *
- * SCOPE: `[class*='tnt-']`, không phải `*`. Bản trước dùng `*, *::before,
- * *::after` và đo được trên host thật (ca L4 `reduced-motion-scope`): element
- * của chủ nhà đặt `animation 5s/spin` nhận về `0s/none`. Tức library tắt luôn
- * animation của trang khách. Dưới reduced-motion host có cách xử lý riêng của
- * họ và đó là việc của họ. `[class*='tnt-']` không thể khớp element nào không
- * mang class của tinita.
+ * Scope is `[class*='tnt-']`, never `*`. A `*, *::before, *::after` selector here
+ * switches off the host page's animations as well - a host element set to
+ * `animation 5s/spin` comes back `0s/none`. Under reduced motion the host has its
+ * own handling, and that is their business.
  */
 @media (prefers-reduced-motion: reduce) {
   [class*='tnt-'],

@@ -1,27 +1,28 @@
 import type { TreeProps } from '../tree';
 
 /**
- * Node do parser sinh ra.
+ * Node produced by the parser.
  *
- * `children === undefined` là FILE. `children === []` là thư mục rỗng. Dấu `/` ở
- * cuối tên trong chuỗi đầu vào là tín hiệu duy nhất phân biệt hai thứ đó.
+ * `children === undefined` is a FILE. `children === []` is an empty folder. A
+ * trailing `/` on the name in the input string is the only signal separating the
+ * two.
  *
  * @internal
  */
 export interface ParsedNode {
   name: string;
-  /** Đường dẫn đầy đủ, ví dụ `src/components/Button.tsx`. Đây là `id` của node. */
+  /** Full path, e.g. `src/components/Button.tsx`. This is the node's `id`. */
   path: string;
   description?: string;
   children?: ParsedNode[];
 }
 
 /**
- * Hình dạng node của bản đầu.
+ * Legacy node shape, kept so existing imports keep working.
  *
- * Giữ nguyên để không phá code đang import nó. Parser giờ trả `ParsedNode` - có
- * thêm `path` và `description`, và `children` là tuỳ chọn để phân biệt file với
- * thư mục rỗng. `FileNode` vẫn gán được vào `ParsedNode` nếu bạn thêm `path`.
+ * The parser returns `ParsedNode` now: it adds `path` and `description`, and makes
+ * `children` optional so a file can be told apart from an empty folder. A
+ * `FileNode` is still assignable to `ParsedNode` once you add `path`.
  *
  * @public
  */
@@ -31,7 +32,7 @@ export interface FileNode {
 }
 
 /**
- * Kiểu icon suy ra từ phần mở rộng. `iconColors` nhận đúng các khoá này.
+ * Icon type derived from the file extension. `iconColors` takes exactly these keys.
  *
  * @public
  */
@@ -58,65 +59,68 @@ export type FileIconType =
   | 'archive';
 
 /**
- * Props của FileTree.
+ * Props of FileTree.
  *
- * Kế thừa toàn bộ props của `Tree` trừ `nodes` - `FileTree` dựng `nodes` từ `text`.
- * Nếu bạn đã có cây dạng dữ liệu thì dùng thẳng `Tree`, đừng chuyển nó về chuỗi.
+ * Inherits every `Tree` prop except `nodes` - `FileTree` builds `nodes` from
+ * `text`. If you already have tree-shaped data, use `Tree` directly instead of
+ * serialising it to a string.
  *
  * @public
  */
 export interface FileTreeProps extends Omit<TreeProps, 'nodes'> {
   /**
-   * Cây dạng văn bản, một trong hai định dạng:
+   * The tree as text, in either of two formats:
    *
-   * **Thụt lề 2 dấu cách:**
+   * **Two-space indent:**
    * ```
    * src/
    *   components/
    *     Button.tsx
    * ```
    *
-   * **Cây CLI (Windows/Unix):**
+   * **CLI tree (Windows/Unix):**
    * ```
    * project/
-   * ├── src/          ? Mã nguồn
-   * │   └── app.tsx   ? Điểm vào
-   * └── README.md     ? Tài liệu
+   * ├── src/          ? Source code
+   * │   └── app.tsx   ? Entry point
+   * └── README.md     ? Docs
    * ```
    *
-   * Dấu `?` có khoảng trắng đứng trước tách phần chú thích. `showDescriptions`
-   * quyết định chú thích hiện inline hay nằm trong tooltip.
+   * A `?` preceded by whitespace splits off the description. `showDescriptions`
+   * decides whether descriptions render inline or in a tooltip.
    */
   text: string;
 
   /**
-   * Hiện node gốc. Đặt `false` khi gốc chỉ là đường dẫn máy (`D:\PROJECT`) và
-   * không mang thông tin gì - các con của nó lên làm cấp ngoài cùng.
+   * Show the root node. Set `false` when the root is just a machine path
+   * (`D:\PROJECT`) and carries no information - its children then become the
+   * outermost level.
    *
-   * Chỉ có tác dụng khi cây có ĐÚNG một gốc.
+   * Only has an effect when the tree has EXACTLY one root.
    *
    * @default true
    */
   showRoot?: boolean;
 
   /**
-   * Ẩn tên node gốc. Nghịch đảo của `showRoot`, giữ nguyên từ bản đầu.
+   * Hide the root node's name. The inverse of `showRoot`, kept from the first
+   * version.
    *
-   * Truyền cả hai thì `showRoot` thắng.
+   * When both are passed, `showRoot` wins.
    *
    * @default false
    */
   hideRootName?: boolean;
 
   /**
-   * Ghi đè màu icon theo loại.
+   * Override icon colours per type.
    *
    * ```tsx
    * <FileTree text={tree} iconColors={{ folder: '#eab308', javascript: '#f7df1e' }} />
    * ```
    *
-   * Giá trị được gán vào biến `--tnt-filetree-icon-*` trên phần tử gốc, nên nó
-   * theo đúng đường mà theme vẫn đi - không phải một cơ chế thứ hai.
+   * The values are assigned to the `--tnt-filetree-icon-*` variables on the root
+   * element, so they travel the same path the theme does - not a second mechanism.
    */
   iconColors?: Partial<Record<FileIconType, string>>;
 }

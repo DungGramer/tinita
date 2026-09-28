@@ -1,61 +1,65 @@
 # tinita-dom
 
-Tiện ích DOM framework-agnostic. **Browser-only** - xem mục dưới.
+Framework-agnostic DOM utilities. **Browser-only** - see below.
 
-Zero dependency. Zero peer dependency. Không cần React.
+Zero dependencies. Zero peer dependencies. No React required.
 
-## Cài
+## Install
 
 ```bash
 npm install tinita-dom
 ```
 
-## Browser-only, và đó là có chủ ý
+## Browser-only, and that is deliberate
 
-Package này chạm `document`, `window.matchMedia`, `requestAnimationFrame`, `getComputedStyle`.
-**Không có SSR guard**, và đó là quyết định chứ không phải sơ suất: `installSmoothScroll` cài
-listener trên `document`: trên server không có gì để cài, nên gọi nó ở đó là lỗi của người gọi.
+This package touches `document`, `window.matchMedia`, `requestAnimationFrame` and `getComputedStyle`.
+There is **no SSR guard**, and that is a decision rather than an oversight: `installSmoothScroll`
+attaches listeners to `document`, and on the server there is nothing to attach them to, so calling it
+there is the caller's mistake.
 
-Thêm guard im lặng sẽ biến một lỗi rõ ràng thành "sao smooth scroll không hoạt động". Gọi nó trong
-`useEffect`, hoặc sau khi biết chắc đang ở browser.
+A silent guard would turn an obvious error into "why isn't smooth scroll working". Call it inside a
+`useEffect`, or once you know you are in a browser.
 
 ## `installSmoothScroll`
 
-Một listener `wheel` cho toàn app, nên scroller không phải tự xin smoothing.
+One app-wide `wheel` listener, so individual scrollers never have to ask for smoothing.
 
 ```ts
 import { installSmoothScroll } from 'tinita-dom/smooth-scroll';
 
-// Gọi MỘT LẦN, ngoài React. Đây là việc ở tầng document, không component nào sở hữu nó, và
-// effect bị gọi hai lần của StrictMode sẽ cài nó hai lần.
+// Call it ONCE, outside React. This is document-level work that no component owns, and
+// StrictMode's double-invoked effects would install it twice.
 const uninstall = installSmoothScroll();
 
-// Khi cần gỡ (test, hot reload):
+// When you need to remove it (tests, hot reload):
 uninstall();
 ```
 
-Hai hành vi, và chúng là hai thứ riêng:
+Two behaviours, and they are separate things:
 
-1. **Wheel có detent được làm mượt (eased)** trên đúng element mà browser vốn sẽ scroll. Cùng
-   element, cùng khoảng cách, cùng điểm kết thúc.
-2. **Wheel dọc trên element chỉ scroll được NGANG thì scroll nó ngang.** Browser không làm việc này,
-   và `Shift+wheel` là câu trả lời mà phần lớn người dùng không nghĩ tới.
+1. **Detented wheels are eased** on exactly the element the browser would have scrolled anyway. Same
+   element, same distance, same end point.
+2. **A vertical wheel over an element that can only scroll HORIZONTALLY scrolls it horizontally.** The
+   browser does not do this, and `Shift+wheel` is the answer most users never think of.
 
-Input vốn đã mượt (Mos, SmoothScroll, Mac Mouse Fix, hoặc trackpad) được để nguyên cho browser ở
-trường hợp 1 - làm mượt lần hai trên cái đã mượt chính là thứ khiến trang có cảm giác trễ so với tay.
+Input that is already smooth (Mos, SmoothScroll, Mac Mouse Fix, or a trackpad) is left to the browser
+in case 1 - smoothing something already smooth is exactly what makes a page feel like it lags behind
+your hand.
 
-### Nó cố ý KHÔNG đụng vào
+### What it deliberately does NOT touch
 
-- Wheel mà handler bên trong đã nhận (kiểm bằng `defaultPrevented`). Listener nằm ở `document` pha
-  **bubble**, không phải capture, nên wheel-to-zoom hay scroll-zoom của map chạy trước và nó nhường.
-- `Ctrl+wheel` - đó là zoom của browser.
-- Wheel đã có `deltaX` - trackpad quét ngang thì vốn đã scroll ngang.
-- Subtree có `data-no-smooth-scroll` - đường opt-out tường minh.
-- Người đã bật `prefers-reduced-motion`.
+- A wheel event an inner handler already claimed (checked via `defaultPrevented`). The listener sits on
+  `document` in the **bubble** phase, not capture, so wheel-to-zoom or a map's scroll-zoom runs first
+  and this yields to it.
+- `Ctrl+wheel` - that is browser zoom.
+- A wheel event that already has `deltaX` - a trackpad swiping sideways already scrolls sideways.
+- Any subtree carrying `data-no-smooth-scroll` - the explicit opt-out.
+- Anyone who has `prefers-reduced-motion` enabled.
 
 ## `wheel-source`
 
-Phân loại nguồn wheel từ chuỗi event, không phải từ việc dò xem có app nào đang cài.
+Classifies the source of a wheel event from the event stream itself, not by sniffing for installed
+apps.
 
 ```ts
 import {
@@ -64,19 +68,19 @@ import {
 } from 'tinita-dom/wheel-source';
 ```
 
-Đây là subpath công khai chứ không phải chi tiết nội bộ: nó zero-dep, và các hằng số trong đó
-(`WHEEL_STEP_MIN_PIXELS`, `WHEEL_REPEAT_SHARE`...) là số đã đo, có ghi ngày trong comment. Đổi chúng
-là breaking change.
+This is a public subpath rather than an internal detail: it is zero-dependency, and the constants in
+it (`WHEEL_STEP_MIN_PIXELS`, `WHEEL_REPEAT_SHARE`, ...) are measured numbers, each dated in a comment.
+Changing them is a breaking change.
 
-## Đường nhập
+## Imports
 
 ```ts
-import { installSmoothScroll } from 'tinita-dom/smooth-scroll'; // khuyến nghị
-import { classifyWheelSource } from 'tinita-dom/wheel-source'; // khuyến nghị
-import { installSmoothScroll } from 'tinita-dom'; // barrel, kéo cả 2 module
+import { installSmoothScroll } from 'tinita-dom/smooth-scroll'; // recommended
+import { classifyWheelSource } from 'tinita-dom/wheel-source'; // recommended
+import { installSmoothScroll } from 'tinita-dom'; // barrel, pulls in both modules
 ```
 
-## Nguồn gốc
+## Origin
 
-Port từ `apps/iva-service/web/src/lib/` của deepstream-v2, nơi nó chạy thật. Các comment chứa số đo
-và ngày được giữ nguyên - chúng không tái tạo được.
+Ported from `apps/iva-service/web/src/lib/` in deepstream-v2, where it runs in production. Comments
+carrying measurements and dates are kept verbatim - they cannot be reproduced.

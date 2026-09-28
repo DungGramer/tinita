@@ -1,10 +1,11 @@
 /**
- * Ambient type cho CSS Modules.
+ * Ambient type for CSS Modules.
  *
- * `Readonly<Record<string, string>>` - không phải key chính xác. Sinh key chính xác
- * cần một tool generate `.d.ts` từ CSS, tức machinery và một lớp bug staleness mới.
- * Mức an toàn ngang với viết chuỗi class trực tiếp như trước: `styles.roott` không bị
- * bắt, `'tnt-ping__boddy'` cũng không. Không mất gì so với hiện tại.
+ * `Readonly<Record<string, string>>` - not exact keys. Exact keys would need a tool
+ * generating `.d.ts` from the CSS, i.e. machinery plus a new class of staleness
+ * bugs. The safety level equals writing class strings by hand as before:
+ * `styles.roott` is not caught, and neither was `'tnt-ping__boddy'`. Nothing is
+ * lost relative to what we had.
  */
 declare module '*.module.css' {
   const classes: Readonly<Record<string, string>>;

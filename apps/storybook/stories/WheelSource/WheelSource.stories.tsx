@@ -11,10 +11,11 @@ import {
 } from 'tinita-dom/wheel-source';
 
 /**
- * `classifyWheelSource` là hàm thuần, nên story ở đây là một dụng cụ đo: lăn chuột
- * hoặc quét trackpad lên khung và xem nó phân loại ra gì với dữ liệu thật của
- * thiết bị bạn đang cầm. Đây là thứ unit test không nói được - nó chỉ nói hàm
- * đúng với mẫu đã ghi.
+ * `classifyWheelSource` is a pure function, so the story here is an instrument:
+ * scroll a mouse wheel or swipe a trackpad over the frame and watch how it
+ * classifies the real data from the device in your hand. This is what a unit test
+ * cannot tell you - a unit test only says the function agrees with recorded
+ * samples.
  */
 function Probe() {
   const samples = useRef<WheelSample[]>([]);
@@ -58,11 +59,11 @@ function Probe() {
   return (
     <div style={{ display: 'grid', gap: 12, maxWidth: 620, fontSize: 13 }}>
       <p style={{ margin: 0, lineHeight: 1.5 }}>
-        Lăn chuột hoặc quét trackpad lên khung dưới. Cần{' '}
-        <strong>{WHEEL_SAMPLE_COUNT} mẫu</strong> mới có phán quyết chắc chắn;
-        trước đó dùng <code>provisionalWheelSource</code>. Khoảng nghỉ quá{' '}
-        <strong>{WHEEL_GESTURE_IDLE_MS}ms</strong> là một gesture mới và buffer
-        được xoá.
+        Scroll a mouse wheel or swipe a trackpad over the frame below. It takes{' '}
+        <strong>{WHEEL_SAMPLE_COUNT} samples</strong> to reach a confident
+        verdict; before that <code>provisionalWheelSource</code> is used. A
+        pause longer than <strong>{WHEEL_GESTURE_IDLE_MS}ms</strong> starts a
+        new gesture and clears the buffer.
       </p>
       <div
         onWheel={onWheel}
@@ -76,8 +77,8 @@ function Probe() {
         }}
       >
         <span>
-          gesture #{gestures} · mẫu: {samples.current.length} · phán quyết:{' '}
-          <strong>{verdict ?? '(chưa có)'}</strong>
+          gesture #{gestures} · samples: {samples.current.length} · verdict:{' '}
+          <strong>{verdict ?? '(none yet)'}</strong>
         </span>
       </div>
       <table
@@ -117,7 +118,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Phân loại nguồn wheel event: chuột theo bước (stepped) hay trackpad (smoothed). Phán quyết bị khoá trong suốt một gesture - đổi ý giữa gesture chính là nguyên nhân của cú giật đã báo 2026-09-10.',
+          'Classifies the source of a wheel event: a stepped mouse wheel or a smoothed trackpad. The verdict is locked for the duration of a gesture - changing its mind mid-gesture was the cause of the jank reported 2026-09-10.',
       },
     },
   },
@@ -126,4 +127,4 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Probe_: Story = { name: 'Dụng cụ đo' };
+export const Probe_: Story = { name: 'Instrument' };

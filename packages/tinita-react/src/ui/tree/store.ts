@@ -1,26 +1,25 @@
 import { useSyncExternalStore } from 'react';
 
 /**
- * Store đăng ký THEO TỪNG NODE cho trạng thái mở / chọn / focus.
+ * Per-node subscription store for expanded / selected / focused state.
  *
- * VÌ SAO CẦN: bản đầu giữ `Set` các id đang mở trong state của `Tree` và truyền
- * xuống. Mỗi lần toggle sinh một `Set` mới, nên MỌI `TreeItem` render lại. Đo được
- * 2026-09-28 trên cây 1364 dòng: một lần đóng node gốc làm đứng luồng chính
- * **242ms**, và số dòng trong DOM lúc đó vẫn nguyên 1364 - tức chi phí nằm ở React
- * render lại, không phải ở việc gỡ DOM. Đó là cú giật "cây càng to càng giật".
+ * Why not plain state: holding the set of expanded ids in `Tree` and passing it
+ * down means every toggle produces a new set and re-renders every row. On a
+ * 1364-row tree that measured 242ms of main-thread stall per toggle, with the DOM
+ * unchanged - the cost was React reconciliation, not DOM work.
  *
- * Ở đây mỗi node chỉ nghe đúng id của mình. Mở một thư mục thì chỉ node đó đổi
- * snapshot, nên chỉ nó render lại - chi phí O(1) thay vì O(số dòng).
+ * Here each node subscribes to its own id, so a toggle re-renders one node
+ * instead of all of them.
  *
- * `useSyncExternalStore` trả về BOOLEAN. React tự bỏ qua render khi giá trị không
- * đổi, nên không cần so sánh gì thêm.
+ * `useSyncExternalStore` returns a boolean, and React skips the render when it is
+ * unchanged, so no extra comparison is needed.
  */
 export interface TreeStore {
   isExpanded: (id: string) => boolean;
   isSelected: (id: string) => boolean;
   isTabbable: (id: string) => boolean;
   subscribe: (id: string, listener: () => void) => () => void;
-  /** Đặt trạng thái mới và chỉ đánh thức những id thật sự đổi. */
+  /** Set the new state and wake only the ids that actually changed. */
   sync: (next: { expanded: Set<string>; selected?: string; tabbable: string | null }) => void;
 }
 
@@ -62,7 +61,7 @@ export function createTreeStore(): TreeStore {
       selected = next.selected;
       tabbable = next.tabbable;
 
-      // Chỉ đánh thức phần đối xứng của hai tập, không phải cả cây.
+      // Wake only the symmetric difference of the two sets, not the whole tree.
       for (const id of next.expanded) if (!previousExpanded.has(id)) wake(id);
       for (const id of previousExpanded) if (!next.expanded.has(id)) wake(id);
 

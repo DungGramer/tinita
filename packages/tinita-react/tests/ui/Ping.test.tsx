@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { Ping } from '../../src/ui/ping/Ping';
 
 describe('Ping', () => {
-  it('render div khi không có onClick, anchor khi có', () => {
+  it('renders a div without onClick and an anchor with one', () => {
     const { container, unmount } = render(<Ping />);
     expect(container.firstElementChild?.tagName).toBe('DIV');
     expect(container.firstElementChild?.getAttribute('role')).toBeNull();
@@ -15,22 +15,23 @@ describe('Ping', () => {
     expect(anchor.getAttribute('tabindex')).toBe('0');
   });
 
-  it('count={0} hiển thị trong span, không phải text trần', () => {
-    // Regression: điều kiện cũ là `{count && <span>}`. Với `count={0}` thì `0 &&`
-    // trả về số 0, và React RENDER số 0 - ra một "0" trần ngoài span, không có
-    // class nào. Không phải "không render gì" như trực giác.
+  it('count={0} renders inside the span, not as bare text', () => {
+    // Regression: the old condition was `{count && <span>}`. With `count={0}`,
+    // `0 &&` returns the number 0, and React RENDERS the number 0 - producing a bare
+    // "0" outside the span with no class at all. Not "renders nothing", as intuition
+    // suggests.
     const { container } = render(<Ping count={0} />);
     const span = container.querySelector('.tnt-ping-count');
     expect(span).not.toBeNull();
     expect(span?.textContent).toBe('0');
   });
 
-  it('không truyền count thì không có node count nào', () => {
+  it('no count prop means no count node at all', () => {
     const { container } = render(<Ping />);
     expect(container.querySelector('.tnt-ping-count')).toBeNull();
   });
 
-  it('chỉ thêm class offset khi có prefix', () => {
+  it('adds the offset class only when a prefix is present', () => {
     const { container, unmount } = render(<Ping count={3} />);
     expect(container.querySelector('.tnt-ping-body-offset')).toBeNull();
     unmount();
@@ -39,10 +40,11 @@ describe('Ping', () => {
     expect(withPrefix.container.querySelector('.tnt-ping-body-offset')).not.toBeNull();
   });
 
-  it('KHÔNG dùng class Tailwind thô nào trong JSX', () => {
-    // Bundle cố ý không ship utility Tailwind. Một class Tailwind trong JSX là phụ
-    // thuộc NGẦM vào Tailwind của host: host không có thì component vỡ layout.
-    // Đo được trước khi sửa: `.tnt-ping` nhận `display: block` thay vì `inline-flex`.
+  it('uses NO raw Tailwind class in the JSX', () => {
+    // The bundle deliberately ships no Tailwind utilities. A Tailwind class in the
+    // JSX is an IMPLICIT dependency on the host's Tailwind: without it the
+    // component's layout breaks. Measured before the fix: `.tnt-ping` got
+    // `display: block` instead of `inline-flex`.
     const { container } = render(<Ping count={3} prefix={<span>pre</span>} />);
     const classes = Array.from(container.querySelectorAll('*'))
       .flatMap((el) => Array.from(el.classList))
@@ -50,7 +52,7 @@ describe('Ping', () => {
     expect(classes).toEqual([]);
   });
 
-  it('hai dot chỉ để trang trí nên phải aria-hidden', () => {
+  it('both dots are decorative and must be aria-hidden', () => {
     const { container } = render(<Ping />);
     expect(container.querySelectorAll('[aria-hidden="true"]')).toHaveLength(2);
   });

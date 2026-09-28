@@ -1,42 +1,41 @@
 /**
  * Tinita React - Design Tokens & Theme
  *
- * CHỈ khai token. KHÔNG có reset, KHÔNG chạm `body`, KHÔNG set `color-scheme`.
+ * Tokens only. No reset, no rule touching `body`, no `color-scheme`.
  *
- * Từng có `@layer base { * { @apply border-border } body { @apply bg-background
- * text-foreground } }`. Đo được trên host thật (ca L2 `css-leak`): `body`
- * background `rgb(10,20,30)` -> `rgb(255,255,255)`, `body` color
- * `rgb(40,50,60)` -> `rgb(26,26,26)`, và `*{border-color}` đè
- * `#host-filetree-override` từ `rgb(123,123,123)` -> `rgb(229,231,235)`. Một
- * component library không có việc gì reset `*` hay `body` của người khác.
+ * A component library has no business resetting somebody else's `*` or `body`: a
+ * base layer here rewrites the host page's background, text colour and every
+ * element's border colour.
  *
- * `:root` chỉ khai biến `--tnt-*`. Biến có namespace nên không đụng biến của
- * host. `color-scheme` thì KHÔNG: nó đổi scrollbar và form control của cả trang.
+ * `:root` declares `--tnt-*` variables and nothing else. They are namespaced, so
+ * they cannot collide with the host's. `color-scheme` is deliberately not
+ * declared: it changes the scrollbars and form controls of the entire page.
  *
- * Dark mode ĐỌC quy ước của host (`.dark` hoặc `[data-theme='dark']`) chứ không
- * định nghĩa nó. Bọc `:where()` để specificity = 0, host luôn đè lại được.
+ * Dark mode READS the host's convention (`.dark` or `[data-theme='dark']`), it does
+ * not define it. Wrapped in `:where()` for specificity 0, so the host can always
+ * override.
  *
- * Token light khai trên `:where(:root, [data-theme='light'])` - CÙNG một khối, không
- * phải hai bản.
+ * Light tokens are declared on `:where(:root, [data-theme='light'])` - the SAME
+ * block, not two copies.
  *
- * `:where(:root)` chứ KHÔNG phải `:root` trần. Đo được 2026-09-28 trong Chromium:
- * `:root` là specificity (0,1,0) còn `:where(.dark, [data-theme='dark'])` là (0,0,0),
- * nên khi host đặt `.dark` hoặc `data-theme="dark"` LÊN CHÍNH `<html>` thì cả hai
- * rule khớp cùng một element và `:root` thắng - dark mode vỡ hoàn toàn. Đó đúng là
- * cách Tailwind `darkMode: 'class'` và shadcn làm (`<html class="dark">`), tức là
- * cấu hình phổ biến nhất trong hệ sinh thái. Đặt `.dark` ở `<body>` hay một div bọc
- * ngoài thì lại chạy, nên bug này ẩn rất kỹ.
+ * `:where(:root)` and never a bare `:root`. `:root` has specificity (0,1,0) while
+ * `:where(.dark, [data-theme='dark'])` has (0,0,0), so when the host puts `.dark`
+ * or `data-theme="dark"` on `<html>` itself both rules match the same element and
+ * `:root` wins - dark mode breaks completely. That is exactly what Tailwind's
+ * `darkMode: 'class'` and shadcn do (`<html class="dark">`). Putting `.dark` on
+ * `<body>` or a wrapper div works either way, which is what makes this easy to
+ * miss.
  *
- * Bọc `:where()` hạ cả hai về (0,0,0), lúc đó thứ tự khai quyết định: khối dark nằm
- * sau nên nó thắng khi cả hai khớp. Kèm lợi: mọi rule của host, kể cả `:root` trần,
- * đều đè được token của tinita.
+ * Wrapping in `:where()` drops both to (0,0,0), at which point declaration order
+ * decides: the dark block comes later, so it wins when both match. Bonus: every
+ * host rule, a bare `:root` included, can override tinita's tokens.
  *
- * Không có nhánh `light` thì `theme="light"` KHÔNG có tác dụng: bên trong host đang
- * bật dark, token dark thừa kế xuống mà `[data-theme='light']` chẳng khớp rule nào để
- * kéo về sáng. README của FileTree đã ghi nó dùng được từ trước khi nó thật sự dùng được.
+ * Without a `light` branch, `theme="light"` would do nothing: inside a host in
+ * dark mode the dark tokens inherit down and `[data-theme='light']` matches no rule
+ * to pull them back.
  *
- * `@theme inline` đo được là KHÔNG phát ra bundle (bundle không import
- * Tailwind). Nó chỉ có tác dụng khi chính bạn build lại bằng Tailwind.
+ * `@theme inline` emits nothing into the shipped bundle, which does not import
+ * Tailwind. It only has an effect if you rebuild with Tailwind yourself.
  */
 
 /* ============================================
@@ -60,7 +59,7 @@
   --tnt-input: #ffffff;
   --tnt-ring: #2563eb;
   --tnt-ping: oklch(55.6% 0 0);
-  /* Ping: từng hard-code `bg-green-500` trong JSX, giờ là token */
+  /* Ping */
   --tnt-ping-dot: oklch(72.3% 0.219 149.579);
   --tnt-ping-dot-size: 0.5rem;
   --tnt-ping-gap: 0.25rem;
@@ -81,8 +80,8 @@
   --tnt-font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --tnt-font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
 
-  /* Tree - primitive. Token chung cho mọi cây, KHÔNG mang tên `filetree`:
-     `FileTree` chỉ là một adapter dựng trên nó. */
+  /* Tree - the primitive. Shared by every tree, deliberately not named `filetree`:
+     `FileTree` is one adapter built on top of it. */
   --tnt-tree-bg: #ffffff;
   --tnt-tree-text: #1a1a1a;
   --tnt-tree-text-dim: #6b7280;
@@ -96,13 +95,13 @@
   --tnt-tree-radius: 6px;
   --tnt-tree-indent: 16px;
   --tnt-tree-arrow-size: 14px;
-  /* Khe dọc giữa các hàng, để vòng focus có chỗ thở. */
+  /* Vertical gap between rows, so the focus ring has room to breathe. */
   --tnt-tree-row-gap: 1px;
-  /* Đường kẻ chỉ mục nằm dưới tâm ô mũi tên của hàng cha. */
+  /* The guide line sits under the centre of the parent row's arrow slot. */
   --tnt-tree-indicator-offset: 7px;
 
-  /* FileTree - chuyển từ FileTree.css 2026-09-26. Token là hợp đồng công khai
-     nên nó thuộc file token; CSS Modules chỉ dành cho internals của component. */
+  /* FileTree. Tokens are a public contract so they belong here; CSS Modules is for
+     component internals only. */
   /* Light theme (default) */
 
   /* Icon colors - Light theme optimized */
@@ -159,10 +158,10 @@
   --tnt-tree-selected-bg: rgb(96 165 250 / 0.18);
   --tnt-tree-selected-text: #e5e7eb;
 
-  /* FileTree - dark. Selector `:where(.dark, [data-theme='dark'])` khớp CẢ element
-     mang `data-theme` trực tiếp, nên prop `theme="dark"` của FileTree và Ping cũng
-     nhận đúng token ở đây. KHÔNG nhân bản khối này vào CSS Modules của component:
-     25 giá trị ở hai chỗ là nguồn lệch, và lệch kiểu này không ai thấy. */
+  /* FileTree - dark. `:where(.dark, [data-theme='dark'])` also matches an element
+     carrying `data-theme` directly, so the `theme="dark"` prop picks these up too.
+     Do not duplicate this block into a component's CSS Modules - the same values in
+     two places drift invisibly. */
 
   /* Icon colors - Dark theme optimized */
   --tnt-filetree-icon-folder: #9ca3af;

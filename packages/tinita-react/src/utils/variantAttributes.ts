@@ -1,34 +1,33 @@
 /**
- * Map prop của component thành `data-*` attribute.
+ * Map component props to `data-*` attributes.
  *
- * Đây là cổng DUY NHẤT để một variant/state đi từ React ra DOM. Trước đây mỗi
- * component tự viết tay từng `data-*`, và không có gì bắt chúng đồng quy ước.
+ * The single gate a variant or state passes through on its way from React to the
+ * DOM, so every component shares one convention.
  *
- * Vì sao `data-*` chứ không phải chuỗi class: `variant × size × state × orientation`
- * nhân thành chuỗi class dài vô hạn, còn một thuộc tính cho mỗi chiều thì không. Và
- * state đọc được ngay trong DevTools mà không phải giải mã chuỗi class. Hướng của
- * Radix và Primer. Lý do đầy đủ ở `docs/code-standards.md`.
+ * Why `data-*` and not class strings: `variant × size × state × orientation`
+ * multiplies into an unbounded set of class strings; one attribute per dimension
+ * does not. The state is also readable straight from DevTools without decoding a
+ * class string.
  */
 
 export type VariantValue = string | number | boolean | null | undefined;
 
 /**
- * BOOLEAN RENDER TƯỜNG MINH `'true'` / `'false'`, KHÔNG bỏ attribute khi false.
+ * Booleans render explicitly as `'true'` / `'false'`; the attribute is not dropped
+ * when false.
  *
- * Khác quy ước của Radix (`data-disabled` có/không). Lý do là CSS ở đây đã dựa vào
- * giá trị: `[data-indicator='false']` và `[data-show-arrow='false']` là các rule
- * thật, và bỏ attribute khi false sẽ làm chúng chết âm thầm.
+ * This differs from the present/absent convention because the CSS keys off the
+ * value: `[data-indicator='false']` and `[data-show-arrow='false']` are real rules,
+ * and dropping the attribute would kill them silently.
  *
- * Hệ quả phải biết: `[data-indicator]` khớp CẢ HAI trạng thái. Trong CSS của
- * component luôn viết đủ giá trị - `[data-indicator='true']` hoặc
- * `[data-indicator='false']`, đừng bao giờ viết `[data-indicator]` trần cho một
- * boolean.
+ * Consequence: `[data-indicator]` matches both states. In component CSS always
+ * write the full value, never a bare `[data-indicator]` for a boolean.
  *
- * `undefined` và `null` thì BỎ HẲN attribute, và đó là điều có nghĩa: "không quyết,
- * theo chủ nhà". `theme` dùng đúng cơ chế này - không truyền thì component theo
- * dark mode của host, truyền `'light'` hay `'dark'` là ép.
+ * `undefined` and `null` drop the attribute entirely, which means "no opinion,
+ * follow the host". `theme` uses exactly this: left unset the component follows the
+ * host's dark mode, passing `'light'` or `'dark'` forces it.
  *
- * Key camelCase thành kebab: `borderRadius` -> `data-border-radius`.
+ * camelCase keys become kebab: `borderRadius` -> `data-border-radius`.
  */
 export function variantAttributes(variants: Record<string, VariantValue>): Record<string, string> {
   const attributes: Record<string, string> = {};

@@ -9,7 +9,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Adapter từ chuỗi cây (thụt lề hoặc CLI) sang `Tree`. Mọi hành vi nằm ở `Tree`; `FileTree` chỉ đọc chuỗi, gắn icon theo phần mở rộng, và đưa xuống. Có sẵn dữ liệu dạng cây thì dùng thẳng `Tree`.',
+          'Adapter from a tree string (indent or CLI format) to `Tree`. Every behaviour lives in `Tree`; `FileTree` only parses the string, attaches icons by extension, and hands it down. If you already have tree-shaped data, use `Tree` directly.',
       },
     },
   },
@@ -53,6 +53,20 @@ const meta = {
     enableAnimation: {
       control: 'boolean',
       description: 'Enable smooth collapse/expand animations',
+    },
+    overflow: {
+      control: 'select',
+      options: ['scroll', 'truncate', 'wrap'],
+      description: 'What happens when a label is wider than the container',
+    },
+    sort: {
+      control: 'select',
+      options: ['none', 'name', 'type'],
+      description: 'Order of nodes within each level',
+    },
+    showDescriptions: {
+      control: 'boolean',
+      description: 'Show `?` descriptions inline instead of in a tooltip',
     },
   },
 } satisfies Meta<typeof FileTree>;
@@ -194,37 +208,38 @@ export const AllFeatures: Story = {
 };
 
 /**
- * Cú pháp `?` trong chuỗi: khoảng trắng, dấu `?`, rồi chú thích.
+ * The `?` syntax inside the string: whitespace, a `?`, then the description.
  *
- * Dấu phân cách BẮT BUỘC có khoảng trắng đứng trước, nên tên file chứa `?`
- * (`foo?.ts`) không bị cắt nhầm.
+ * The separator REQUIRES leading whitespace, so a file name containing `?`
+ * (`foo?.ts`) is never split by mistake.
  */
 const DESCRIBED = [
   'project/',
-  '├── src/                        ? Mã nguồn ứng dụng',
-  '│   ├── components/             ? Component dùng lại được',
-  '│   │   ├── Button.tsx          ? Nút bấm chính',
-  '│   │   └── FileTree.tsx        ? Hiển thị cây thư mục',
-  '│   ├── app.tsx                 ? Điểm vào ứng dụng',
-  '│   └── index.ts                ? Export công khai',
-  '├── package.json                ? Phụ thuộc và script',
-  '└── README.md                   ? Tài liệu dự án',
+  '├── src/                        ? Application source',
+  '│   ├── components/             ? Reusable components',
+  '│   │   ├── Button.tsx          ? The primary button',
+  '│   │   └── FileTree.tsx        ? Renders a directory tree',
+  '│   ├── app.tsx                 ? Application entry point',
+  '│   └── index.ts                ? Public exports',
+  '├── package.json                ? Dependencies and scripts',
+  '└── README.md                   ? Project documentation',
 ].join('\n');
 
-/** Mặc định: chú thích nằm trong tooltip, node nào có thì mang dấu `?` ở cuối. */
+/** Default: descriptions live in a tooltip and any node carrying one gets a
+ *  trailing `?` marker. */
 export const DescriptionsTooltip: Story = {
-  name: 'Chú thích trong tooltip',
+  name: 'Descriptions in a tooltip',
   args: { text: DESCRIBED, showArrow: true },
 };
 
 export const DescriptionsInline: Story = {
-  name: 'Chú thích inline (tất cả)',
+  name: 'Inline descriptions (all)',
   args: { text: DESCRIBED, showArrow: true, showDescriptions: true },
 };
 
-/** Chỉ nhánh `src/components`; phần còn lại vẫn nằm trong tooltip. */
+/** Only the `src/components` branch; the rest stay in tooltips. */
 export const DescriptionsScoped: Story = {
-  name: 'Chú thích theo nhánh',
+  name: 'Descriptions scoped to a branch',
   args: {
     text: DESCRIBED,
     showArrow: true,
@@ -233,18 +248,18 @@ export const DescriptionsScoped: Story = {
 };
 
 export const SortByType: Story = {
-  name: 'Sắp xếp theo loại',
+  name: 'Sort by type',
   args: { text: DESCRIBED, showArrow: true, sort: 'type' },
 };
 
 export const SortByName: Story = {
-  name: 'Sắp xếp theo tên',
+  name: 'Sort by name',
   args: { text: DESCRIBED, showArrow: true, sort: 'name' },
 };
 
-/** `selected` nhận ĐƯỜNG DẪN đầy đủ, không phải tên file. */
+/** `selected` takes the full PATH, not the file name. */
 export const Selected: Story = {
-  name: 'Đang chọn một file',
+  name: 'A selected file',
   args: {
     text: DESCRIBED,
     showArrow: true,
@@ -252,14 +267,15 @@ export const Selected: Story = {
   },
 };
 
-/** `showRoot={false}` bỏ node gốc, các con của nó lên làm cấp ngoài cùng. */
+/** `showRoot={false}` drops the root node and promotes its children to the
+ *  outermost level. */
 export const WithoutRoot: Story = {
-  name: 'Ẩn node gốc',
+  name: 'Hide the root node',
   args: { text: DESCRIBED, showArrow: true, showRoot: false },
 };
 
 export const CustomIconColors: Story = {
-  name: 'Màu icon tuỳ biến',
+  name: 'Custom icon colours',
   args: {
     text: DESCRIBED,
     showArrow: true,
@@ -271,21 +287,127 @@ export const CustomIconColors: Story = {
   },
 };
 
-/** Cây con đóng sẵn - chúng KHÔNG nằm trong DOM cho tới khi mở. */
+/** Subtrees start collapsed - they are NOT in the DOM until opened. */
 export const Collapsed: Story = {
-  name: 'Đóng sẵn',
+  name: 'Collapsed by default',
   args: { text: DESCRIBED, showArrow: true, defaultExpanded: false },
 };
 
 /**
- * RTL: thụt lề, đường kẻ chỉ mục và mũi tên lật sang phải; tên file latin vẫn
- * đọc đúng chiều nhờ `dir="auto"` trên từng nhãn.
+ * RTL: indentation, the guide line and the arrows flip to the right; Latin file
+ * names still read in the right direction thanks to `dir="auto"` on each label.
  */
 export const RightToLeft: Story = {
   name: 'RTL',
   args: { text: DESCRIBED, showArrow: true, showDescriptions: true },
   render: (args) => (
     <div dir="rtl">
+      <FileTree {...args} />
+    </div>
+  ),
+};
+
+/**
+ * Long file names, the case that only shows up on a narrow screen.
+ *
+ * Each frame below is a fixed 300px wide, so the three `overflow` modes differ
+ * here at any viewport - including the Docs tab, where the viewport globals do
+ * not apply. Resize the browser and nothing about this comparison changes.
+ */
+const longNamesText = `
+project/
+  src/
+    components/
+      UserProfileSettingsDialogContainer.stories.tsx
+      AuthenticationProviderConfiguration.test.ts
+      index.ts
+    .env.production.local
+  documentation-for-new-contributors.md
+  .gitignore
+`;
+
+const OVERFLOW_MODES = [
+  {
+    value: 'scroll' as const,
+    title: 'scroll (default)',
+    note: 'Row is as wide as its content and the tree scrolls sideways. Nothing is cut. This is what VS Code does.',
+  },
+  {
+    value: 'truncate' as const,
+    title: 'truncate',
+    note: 'Row fits the frame, the name is cut with an ellipsis, and the file extension always stays visible. The full label is in the `title` attribute.',
+  },
+  {
+    value: 'wrap' as const,
+    title: 'wrap',
+    note: 'The name wraps. No scrolling and nothing is cut, but rows have uneven heights, which makes a large tree harder to scan.',
+  },
+];
+
+export const LongFileNames: Story = {
+  name: 'Long file names (overflow)',
+  args: { text: longNamesText },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The three answers to "the label is wider than the container", side by side in identical 300px frames. `scroll` is the default and matches the behaviour of every earlier version.',
+      },
+    },
+  },
+  render: (args) => (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+        gap: 24,
+        alignItems: 'start',
+      }}
+    >
+      {OVERFLOW_MODES.map((mode) => (
+        <div
+          key={mode.value}
+          style={{ display: 'grid', gap: 8, maxInlineSize: 300 }}
+        >
+          <code style={{ fontSize: 12, fontWeight: 600 }}>
+            overflow=&quot;{mode.value}&quot;
+          </code>
+          {/* The border makes the clip boundary VISIBLE - without it `truncate`
+              and `scroll` look identical in a wide container. */}
+          <div
+            style={{
+              inlineSize: 300,
+              border: '1px solid rgb(127 127 127 / 0.4)',
+              borderRadius: 8,
+              overflow: 'hidden',
+            }}
+          >
+            <FileTree {...args} overflow={mode.value} />
+          </div>
+          <p
+            style={{ margin: 0, fontSize: 12, lineHeight: 1.5, opacity: 0.75 }}
+          >
+            {mode.note}
+          </p>
+        </div>
+      ))}
+    </div>
+  ),
+};
+
+/** One mode at a time, in a 300px frame. Switch modes with the `overflow` control. */
+export const LongFileNamesSingle: Story = {
+  name: 'Long file names (single frame)',
+  args: { text: longNamesText, overflow: 'truncate' },
+  render: (args) => (
+    <div
+      style={{
+        inlineSize: 300,
+        border: '1px solid rgb(127 127 127 / 0.4)',
+        borderRadius: 8,
+        overflow: 'hidden',
+      }}
+    >
       <FileTree {...args} />
     </div>
   ),

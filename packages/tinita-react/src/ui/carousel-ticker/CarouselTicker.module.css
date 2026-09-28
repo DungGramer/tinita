@@ -1,18 +1,19 @@
 /**
  * CarouselTicker CSS Modules
  *
- * Trước đây layout của component nằm trong class Tailwind thô viết trong JSX
+ * Component layout used to live in raw Tailwind classes written in the JSX
  * (`shrink-0 grow-0 flex will-change-transform`, `absolute inset-0`,
- * `h-full min-h-[100px]`...) mà bundle không ship utility nào. Component chỉ
- * hiển thị đúng nếu host có Tailwind, đúng version, đúng config - phụ thuộc
- * NGẦM. Giờ toàn bộ là CSS thật; biến thể đi qua `data-orientation` và
- * `data-overflow` thay vì đổi class.
+ * `h-full min-h-[100px]`...) while the bundle shipped no utilities at all. The
+ * component only rendered correctly if the host had Tailwind, at the right
+ * version, with the right config - an IMPLICIT dependency. It is all real CSS
+ * now; variants go through `data-orientation` and `data-overflow` instead of
+ * swapping classes.
  *
- * `box-sizing` KHÔNG còn đặt qua `.root *`: nó với tới cả
- * children do người dùng truyền vào. Chỉ đặt trên element của chính component.
+ * `box-sizing` is NO LONGER set via `.root *`: that reaches the children the
+ * caller passes in. It is set only on the component's own elements.
  *
- * CSS Modules: tên ở đây là LOCAL. Vite sinh `tnt-carousel-ticker-root`,
- * `tnt-carousel-ticker-content`, ... theo `generateScopedName`.
+ * CSS Modules: the names here are LOCAL. Vite emits `tnt-carousel-ticker-root`,
+ * `tnt-carousel-ticker-content`, ... via `generateScopedName`.
  */
 
 .root,
@@ -88,14 +89,14 @@
   pointer-events: none;
 }
 
-/* Accessibility: tắt hẳn khi user yêu cầu reduced-motion. KHÔNG dùng
-   `animation-duration: 0.01ms` - với 0.01ms animation vẫn chạy và vẫn fire
-   `animationend`, sinh bug thứ tự khó truy.
+/* Accessibility: off entirely when the user asks for reduced motion. Do NOT use
+   `animation-duration: 0.01ms` - at 0.01ms the animation still runs and still
+   fires `animationend`, producing ordering bugs that are hard to trace.
 
-   Block này chỉ với tới CSS animation của children do user truyền vào. Marquee
-   của ticker chạy bằng Web Animations API (`element.animate()`), CSS
-   `animation-*` KHÔNG điều khiển được nó - nó bị tắt ở JS trong
-   CarouselTicker.tsx. Sửa một chỗ là chưa đủ. */
+   This block only reaches CSS animations on the children the caller passes in.
+   The ticker's own marquee runs on the Web Animations API (`element.animate()`),
+   which CSS `animation-*` CANNOT control - it is disabled in JS inside
+   CarouselTicker.tsx. Fixing one place is not enough. */
 @media (prefers-reduced-motion: reduce) {
   .root * {
     animation: none !important;

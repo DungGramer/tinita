@@ -6,23 +6,23 @@ afterEach(() => {
 });
 
 describe('autoInjectStyles', () => {
-  it('chèn một style tag mang đúng id và nội dung', () => {
+  it('inserts a style tag with the right id and content', () => {
     autoInjectStyles('tnt-test-a', '.x{color:red}');
     const tag = document.getElementById('tnt-test-a');
     expect(tag?.tagName).toBe('STYLE');
     expect(tag?.textContent).toBe('.x{color:red}');
   });
 
-  it('gọi hai lần KHÔNG nhân đôi tag - đây là ca HMR', () => {
+  it('calling twice does NOT duplicate the tag - this is the HMR case', () => {
     autoInjectStyles('tnt-test-b', '.x{color:red}');
     autoInjectStyles('tnt-test-b', '.x{color:blue}');
     expect(document.querySelectorAll('#tnt-test-b')).toHaveLength(1);
-    // Lần thứ hai bị bỏ qua hoàn toàn, KHÔNG cập nhật nội dung. Ghi lại vì đây là
-    // hành vi dễ gây bất ngờ: đổi CSS rồi hot-reload sẽ không thấy thay đổi.
+    // The second call is ignored entirely and does NOT update the content. Recorded
+    // because it is surprising: edit the CSS, hot-reload, and see no change.
     expect(document.getElementById('tnt-test-b')?.textContent).toBe('.x{color:red}');
   });
 
-  it('removeInjectedStyles gỡ đúng tag và chịu được id không tồn tại', () => {
+  it('removeInjectedStyles removes the right tag and tolerates a missing id', () => {
     autoInjectStyles('tnt-test-c', '.x{color:red}');
     removeInjectedStyles('tnt-test-c');
     expect(document.getElementById('tnt-test-c')).toBeNull();

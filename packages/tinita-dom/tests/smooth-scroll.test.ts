@@ -3,12 +3,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { installSmoothScroll } from '../src/smooth-scroll';
 
 /**
- * Smoke, không phải test easing. Kiểm hợp đồng cài/gỡ: nó cài listener trên `document` và hàm trả
- * về gỡ đúng những listener đó. Test đường cong spring cần rAF thật và thuộc phạm vi khác.
+ * A smoke test, not an easing test. It checks the install/uninstall contract: listeners go onto
+ * `document` and the returned function removes exactly those. Testing the spring curve needs a real
+ * rAF and belongs elsewhere.
  */
 describe('installSmoothScroll', () => {
   beforeEach(() => {
-    // jsdom không có matchMedia; installSmoothScroll gọi nó cho prefers-reduced-motion.
+    // jsdom has no matchMedia; installSmoothScroll calls it for prefers-reduced-motion.
     if (!window.matchMedia) {
       window.matchMedia = ((query: string) => ({
         matches: false,
@@ -19,13 +20,13 @@ describe('installSmoothScroll', () => {
     }
   });
 
-  it('trả về hàm gỡ', () => {
+  it('returns an uninstall function', () => {
     const uninstall = installSmoothScroll();
     expect(typeof uninstall).toBe('function');
     uninstall();
   });
 
-  it('cài đúng 2 listener trên document và gỡ đúng 2', () => {
+  it('installs exactly 2 listeners on document and removes exactly 2', () => {
     const add = vi.spyOn(document, 'addEventListener');
     const remove = vi.spyOn(document, 'removeEventListener');
 
@@ -43,7 +44,7 @@ describe('installSmoothScroll', () => {
     remove.mockRestore();
   });
 
-  it('wheel listener khai passive:false - nó cần preventDefault', () => {
+  it('the wheel listener declares passive:false - it needs preventDefault', () => {
     const add = vi.spyOn(document, 'addEventListener');
     const uninstall = installSmoothScroll();
     const wheelCall = add.mock.calls.find(([type]) => type === 'wheel');
@@ -52,7 +53,7 @@ describe('installSmoothScroll', () => {
     add.mockRestore();
   });
 
-  it('bỏ qua wheel đã bị defaultPrevented', () => {
+  it('ignores a wheel event that was already defaultPrevented', () => {
     const uninstall = installSmoothScroll();
     const event = new WheelEvent('wheel', {
       deltaY: 100,
@@ -60,12 +61,12 @@ describe('installSmoothScroll', () => {
       bubbles: true,
     });
     event.preventDefault();
-    // Không throw, và không claim event lần nữa.
+    // Does not throw, and does not claim the event a second time.
     expect(() => document.dispatchEvent(event)).not.toThrow();
     uninstall();
   });
 
-  it('bỏ qua ctrl+wheel - đó là zoom của browser', () => {
+  it('ignores ctrl+wheel - that is browser zoom', () => {
     const uninstall = installSmoothScroll();
     const event = new WheelEvent('wheel', {
       deltaY: 100,
@@ -78,7 +79,7 @@ describe('installSmoothScroll', () => {
     uninstall();
   });
 
-  it('gọi hai lần rồi gỡ hai lần không throw', () => {
+  it('installing twice then removing twice does not throw', () => {
     const a = installSmoothScroll();
     const b = installSmoothScroll();
     expect(() => {

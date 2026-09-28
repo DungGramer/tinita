@@ -21,14 +21,14 @@ import { variantAttributes } from '../../utils/variantAttributes';
 import styles from './CarouselTicker.module.css';
 
 /**
- * Đọc `prefers-reduced-motion` và theo dõi khi user đổi setting hệ thống.
+ * Read `prefers-reduced-motion` and follow changes to the system setting.
  *
- * Không export: thêm public export là phải thêm subpath `exports`, entry tsup và
- * ca L1 - ngoài phạm vi. Nếu sau này cần dùng chỗ khác thì mới nâng lên
- * `src/hooks/`.
+ * Not exported: promote it to `src/hooks/` once something outside this folder
+ * needs it.
  *
- * Khởi tạo `false` rồi mới set trong effect: server không có `matchMedia`, và
- * render đầu ở client phải khớp HTML server trả về nếu không sẽ lệch hydration.
+ * Initialised to `false` and only set inside an effect: the server has no
+ * `matchMedia`, and the first client render must match the HTML the server
+ * returned or hydration mismatches.
  */
 function usePrefersReducedMotion(): boolean {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -175,10 +175,11 @@ export const CarouselTicker: React.FC<CarouselTickerProps> = ({
       animationRef,
     };
 
-    // Reduced-motion: KHÔNG chạy animation nào. Marquee là chuyển động vô hạn và
-    // tự khởi động - đúng ca WCAG 2.2.2, và CSS không tắt được nó vì nó là Web
-    // Animations API. Ghim content ở frame đầu rồi thoát; đổi setting hệ thống
-    // là effect chạy lại nên marquee chạy/dừng ngay, không cần reload.
+    // Reduced motion: run NO animation. A marquee is infinite, self-starting
+    // motion - exactly the WCAG 2.2.2 case - and CSS cannot stop it because it
+    // runs on the Web Animations API. Pin the content at the first frame and
+    // bail; changing the system setting re-runs this effect, so the marquee
+    // starts/stops immediately with no reload.
     if (prefersReducedMotion) {
       pinContentAtStart(animationConfig);
       return;

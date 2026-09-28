@@ -3,9 +3,10 @@ import { useEffect, useRef, useState } from 'react';
 import { installSmoothScroll } from 'tinita-dom/smooth-scroll';
 
 /**
- * `installSmoothScroll` không phải component - nó cài listener lên `document` và
- * trả về hàm gỡ. Story dựng lại đúng cách dùng thật: gọi MỘT lần, và gỡ khi
- * unmount. Effect của StrictMode chạy hai lần, nên không gỡ là cài hai lần.
+ * `installSmoothScroll` is not a component - it installs listeners on `document`
+ * and returns an uninstall function. The story reproduces real usage: call it ONCE
+ * and uninstall on unmount. StrictMode runs effects twice, so failing to uninstall
+ * means installing twice.
  */
 function Demo({ enabled }: { enabled: boolean }) {
   const boxRef = useRef<HTMLDivElement | null>(null);
@@ -27,17 +28,18 @@ function Demo({ enabled }: { enabled: boolean }) {
   return (
     <div style={{ display: 'grid', gap: 12, maxWidth: 560 }}>
       <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5 }}>
-        Cuộn bằng con lăn chuột trong khung dưới. Trackpad đi theo đường native,
-        chuột có nút cuộn theo bước thì được ease -{' '}
-        <code>classifyWheelSource</code> quyết định, và quyết định đó bị khoá
+        Scroll with a mouse wheel inside the frame below. A trackpad takes the
+        native path; a stepped mouse wheel gets eased -{' '}
+        <code>classifyWheelSource</code> decides, and that decision is locked
         trong suốt một gesture.
       </p>
       <p style={{ margin: 0, fontSize: 13 }}>
-        <strong>installSmoothScroll:</strong> {enabled ? 'đang cài' : 'đã gỡ'}
+        <strong>installSmoothScroll:</strong>{' '}
+        {enabled ? 'installed' : 'uninstalled'}
         {' · '}
         <strong>prefers-reduced-motion:</strong>{' '}
         {reduced ? 'reduce' : 'no-preference'}
-        {reduced && ' → easing bị bỏ hẳn, không phải làm nhanh hơn'}
+        {reduced && ' → easing is dropped entirely, not merely sped up'}
       </p>
       <div
         ref={boxRef}
@@ -55,7 +57,7 @@ function Demo({ enabled }: { enabled: boolean }) {
             key={i}
             style={{ padding: '10px 4px', borderBottom: '1px solid #f0f0f0' }}
           >
-            Dòng {i + 1}
+            Row {i + 1}
           </div>
         ))}
       </div>
@@ -70,12 +72,12 @@ function Demo({ enabled }: { enabled: boolean }) {
         }}
       >
         <p style={{ margin: '0 0 8px', fontSize: 12 }}>
-          Khung này mang <code>data-no-smooth-scroll</code> nên luôn cuộn
-          native, kể cả khi đã cài.
+          This frame carries <code>data-no-smooth-scroll</code>, so it always
+          scrolls natively, even while installed.
         </p>
         {Array.from({ length: 20 }, (_, i) => (
           <div key={i} style={{ padding: '8px 4px' }}>
-            Dòng {i + 1}
+            Row {i + 1}
           </div>
         ))}
       </div>
@@ -91,12 +93,15 @@ const meta = {
     docs: {
       description: {
         component:
-          'Smooth scroll cho chuột có nút cuộn theo bước, giữ nguyên native cho trackpad. Browser-only, không có SSR guard - gọi nó trên server là lỗi của người gọi.',
+          "Smooth scrolling for stepped mouse wheels, leaving trackpads native. Browser-only with no SSR guard - calling it on the server is the caller's mistake.",
       },
     },
   },
   argTypes: {
-    enabled: { control: 'boolean', description: 'Cài hay gỡ listener' },
+    enabled: {
+      control: 'boolean',
+      description: 'Install or uninstall the listeners',
+    },
   },
 } satisfies Meta<typeof Demo>;
 

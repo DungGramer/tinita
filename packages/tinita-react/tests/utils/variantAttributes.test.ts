@@ -2,51 +2,53 @@ import { describe, expect, it } from 'vitest';
 import { variantAttributes } from '../../src/utils/variantAttributes';
 
 describe('variantAttributes', () => {
-  it('camelCase thành kebab-case', () => {
+  it('camelCase becomes kebab-case', () => {
     expect(variantAttributes({ borderRadius: 'md' })).toEqual({
       'data-border-radius': 'md',
     });
   });
 
-  it('boolean render TƯỜNG MINH true/false, không bỏ attribute', () => {
-    // Khác quy ước Radix (`data-disabled` có/không) là CÓ CHỦ Ý: CSS ở đây có rule
-    // thật cho `[data-indicator='false']` và `[data-show-arrow='false']`, bỏ attribute
-    // khi false sẽ làm chúng chết âm thầm.
+  it('booleans render EXPLICITLY as true/false, the attribute is not dropped', () => {
+    // Differing from Radix's convention (`data-disabled` present/absent) is
+    // DELIBERATE: the CSS here has real rules for `[data-indicator='false']` and
+    // `[data-show-arrow='false']`, and dropping the attribute when false would kill
+    // them silently.
     expect(variantAttributes({ indicator: true, showArrow: false })).toEqual({
       'data-indicator': 'true',
       'data-show-arrow': 'false',
     });
   });
 
-  it('undefined và null BỎ HẲN attribute - nghĩa là "theo chủ nhà"', () => {
-    // Đây là cơ chế của `theme`: không truyền thì component theo dark mode của host;
-    // truyền 'light' hay 'dark' là ép.
+  it('undefined and null DROP the attribute entirely - meaning "follow the host"', () => {
+    // This is the mechanism behind `theme`: left unset the component follows the
+    // host's dark mode; passing 'light' or 'dark' forces it.
     expect(variantAttributes({ theme: undefined, other: null })).toEqual({});
   });
 
-  it('số render được, kể cả 0', () => {
-    // `data-level={0}` phải ra `"0"`. Nếu code dùng falsy check thì level 0 mất
-    // attribute và `[data-level='0']` trong FileTree.module.css chết.
+  it('numbers render, 0 included', () => {
+    // `data-level={0}` must come out as `"0"`. With a falsy check, level 0 would
+    // lose its attribute and `[data-level='0']` in FileTree.module.css would die.
     expect(variantAttributes({ level: 0, size: 12 })).toEqual({
       'data-level': '0',
       'data-size': '12',
     });
   });
 
-  it('chuỗi rỗng vẫn là giá trị, không phải "không quyết"', () => {
+  it('an empty string is still a value, not "no opinion"', () => {
     expect(variantAttributes({ state: '' })).toEqual({ 'data-state': '' });
   });
 
-  it('nhiều chữ hoa liên tiếp mỗi chữ một dấu gạch', () => {
-    // Ghi lại hành vi thật chứ không phải mong đợi: `ariaLabelID` -> `data-aria-label-i-d`.
-    // Không đẹp, nhưng prop của tinita không đặt tên kiểu đó, và làm thông minh hơn
-    // thì phải đoán ranh giới từ viết tắt - đoán sai còn tệ hơn.
+  it('consecutive capitals each get their own dash', () => {
+    // Records the actual behaviour, not the desired one: `ariaLabelID` ->
+    // `data-aria-label-i-d`. Not pretty, but no tinita prop is named that way, and
+    // being smarter would mean guessing acronym boundaries - guessing wrong is
+    // worse.
     expect(variantAttributes({ ariaLabelID: 'x' })).toEqual({
       'data-aria-label-i-d': 'x',
     });
   });
 
-  it('không đụng gì khi input rỗng', () => {
+  it('touches nothing when the input is empty', () => {
     expect(variantAttributes({})).toEqual({});
   });
 });

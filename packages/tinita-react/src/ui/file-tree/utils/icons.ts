@@ -7,7 +7,7 @@ import type { FileIconType } from '../types';
  */
 
 /**
- * Suy loại icon từ tên file.
+ * Derive the icon type from a file name.
  */
 export function getIconType(filename: string): FileIconType {
   // README / LICENSE

@@ -6,12 +6,12 @@ import { truncateFileNameParts } from '../src/file/truncateFileNameParts';
 
 const LONG = 'very-long-document-name.pdf'; // 27 ký tự, name 23 + '.pdf'
 
-describe('truncateFileName - không cần truncate', () => {
-  it('trả nguyên chuỗi khi đã vừa maxLength', () => {
+describe('truncateFileName - no truncation needed', () => {
+  it('returns the string unchanged when it already fits maxLength', () => {
     expect(truncateFileName('document.pdf')).toBe('document.pdf');
   });
 
-  it('trả nguyên chuỗi khi dài đúng bằng maxLength', () => {
+  it('returns the string unchanged when it is exactly maxLength', () => {
     expect(truncateFileName('a.pdf', { maxLength: 5 })).toBe('a.pdf');
   });
 
@@ -19,20 +19,20 @@ describe('truncateFileName - không cần truncate', () => {
     expect(truncateFileName('', { maxLength: 5 })).toBe('');
   });
 
-  it('LONG dài 27 < default maxLength 30 nên không bị cắt', () => {
+  it('LONG is 27 chars < the default maxLength of 30, so it is not cut', () => {
     expect(LONG.length).toBe(27);
     expect(truncateFileName(LONG)).toBe(LONG);
   });
 });
 
-describe('truncateFileName - truncate cơ bản', () => {
-  it('giữ extension và suffix, tôn trọng maxLength', () => {
+describe('truncateFileName - basic truncation', () => {
+  it('keeps the extension and suffix while respecting maxLength', () => {
     const got = truncateFileName(LONG, { maxLength: 20 });
     expect(got).toBe('very-long-...ame.pdf');
     expect(got.length).toBe(20);
   });
 
-  it('preservedSuffixLength tăng thì suffix dài ra', () => {
+  it('a larger preservedSuffixLength makes the suffix longer', () => {
     const got = truncateFileName(LONG, {
       maxLength: 24,
       preservedSuffixLength: 5,
@@ -41,7 +41,7 @@ describe('truncateFileName - truncate cơ bản', () => {
     expect(got.length).toBe(24);
   });
 
-  it('ellipsis tuỳ biến', () => {
+  it('custom ellipsis', () => {
     const got = truncateFileName(LONG, { maxLength: 20, ellipsis: '…' });
     expect(got).toBe('very-long-do…ame.pdf');
     expect(got.length).toBe(20);
@@ -53,7 +53,7 @@ describe('truncateFileName - truncate cơ bản', () => {
     );
   });
 
-  it('preservedSuffixLength lớn hơn chỗ trống thì bị giảm tự động', () => {
+  it('a preservedSuffixLength larger than the available room is reduced automatically', () => {
     const got = truncateFileName(LONG, {
       maxLength: 20,
       preservedSuffixLength: 20,
@@ -62,32 +62,32 @@ describe('truncateFileName - truncate cơ bản', () => {
     expect(got.length).toBe(20);
   });
 
-  it('file không có extension', () => {
+  it('a file with no extension', () => {
     expect(truncateFileName('very-long-document-name', { maxLength: 15 })).toBe(
       'very-long...ame'
     );
   });
 
-  it('tên nhiều dấu chấm - chỉ đoạn sau dấu chấm cuối là extension', () => {
+  it('a name with several dots - only the part after the last dot is the extension', () => {
     expect(
       truncateFileName('my.archive.backup.tar.gz', { maxLength: 15 })
     ).toBe('my.arc...tar.gz');
   });
 });
 
-describe('truncateFileName - fallback khi maxLength quá nhỏ', () => {
-  it('bỏ ellipsis, giữ tối đa prefix', () => {
+describe('truncateFileName - fallback when maxLength is too small', () => {
+  it('drops the ellipsis and keeps as much prefix as possible', () => {
     const got = truncateFileName(LONG, { maxLength: 10, minPrefixLength: 3 });
     expect(got).toBe('very-l.pdf');
     expect(got.length).toBe(10);
   });
 
-  it('minPrefixLength lớn bất khả thi vẫn ra kết quả đúng maxLength', () => {
+  it('an impossibly large minPrefixLength still yields a result of exactly maxLength', () => {
     const got = truncateFileName(LONG, { maxLength: 20, minPrefixLength: 999 });
     expect(got.length).toBe(20);
   });
 
-  it('ellipsis dài hơn chỗ trống thì bị bỏ hẳn', () => {
+  it('an ellipsis longer than the available room is dropped entirely', () => {
     const got = truncateFileName(LONG, {
       maxLength: 20,
       ellipsis: 'x'.repeat(30),
@@ -95,13 +95,13 @@ describe('truncateFileName - fallback khi maxLength quá nhỏ', () => {
     expect(got.length).toBe(20);
   });
 
-  it('không extension, maxLength nhỏ', () => {
+  it('no extension, small maxLength', () => {
     expect(truncateFileName('abcdefghij', { maxLength: 4 })).toBe('abcd');
   });
 });
 
 describe('truncateFileNameParts', () => {
-  it('trả object khi thực sự truncate', () => {
+  it('returns an object when truncation actually happens', () => {
     expect(truncateFileNameParts(LONG, { maxLength: 20 })).toEqual({
       prefix: 'very-long-',
       ellipsis: '...',
@@ -113,7 +113,7 @@ describe('truncateFileNameParts', () => {
     });
   });
 
-  it('parts ghép lại bằng đúng chuỗi của truncateFileName', () => {
+  it('the parts join back into exactly the string truncateFileName returns', () => {
     const cfg = { maxLength: 20 } as const;
     const p = truncateFileNameParts(LONG, cfg);
     expect(`${p.prefix}${p.ellipsis}${p.suffix}${p.extensionWithDot}`).toBe(
@@ -133,11 +133,12 @@ describe('getFileNameParts', () => {
   });
 });
 
-/** Từng là lỗi, đã vá. Giữ lại làm chốt chặn hồi quy. */
-describe('hồi quy - các lỗi đã vá', () => {
-  // Từng là: return sớm chạy trước khi xét `output`, nên trả string thay vì object;
-  // nhánh đáng lẽ xử lý việc đó là dead code. Nay parts là hàm riêng, không còn cờ `output`.
-  it('parts trả object cả khi KHÔNG cần truncate', () => {
+/** All were real bugs, all fixed. Kept as regression gates. */
+describe('regression - fixed bugs', () => {
+  // Used to be: the early return ran before `output` was considered, so it returned
+  // a string instead of an object; the branch meant to handle it was dead code. parts
+  // is its own function now, with no `output` flag.
+  it('parts returns an object even when NO truncation is needed', () => {
     expect(truncateFileNameParts('a.pdf', { maxLength: 30 })).toEqual({
       prefix: 'a',
       ellipsis: '',
@@ -149,16 +150,16 @@ describe('hồi quy - các lỗi đã vá', () => {
     });
   });
 
-  // L176 truyền extension vào tham số `suffix`, nhưng createOutput (L171)
-  // luôn nối thêm extensionWithDot -> extension xuất hiện 2 lần.
-  it('maxLength <= độ dài extension: giữ phần cuối extension, không nhân đôi', () => {
+  // L176 passed the extension into the `suffix` parameter, but createOutput (L171)
+  // always appends extensionWithDot -> the extension appeared twice.
+  it('maxLength <= extension length: keeps the extension tail without duplicating it', () => {
     expect(truncateFileName('a.pdf', { maxLength: 3 })).toBe('pdf');
     expect(truncateFileName('a.pdf', { maxLength: 4 })).toBe('.pdf');
     expect(truncateFileName('a.pdf', { maxLength: 1 })).toBe('f');
     expect(truncateFileName('a.pdf', { maxLength: 0 })).toBe('');
   });
 
-  it('maxLength <= độ dài extension: kết quả phải tôn trọng maxLength', () => {
+  it('maxLength <= extension length: the result must respect maxLength', () => {
     for (const maxLength of [0, 1, 3, 4]) {
       expect(
         truncateFileName('a.pdf', { maxLength }).length
@@ -166,8 +167,9 @@ describe('hồi quy - các lỗi đã vá', () => {
     }
   });
 
-  // L187 `nameWithoutExt.slice(-suffixLength)`; slice(-0) === slice(0) -> trả CẢ chuỗi.
-  it('preservedSuffixLength:0 - slice(-0) không trả cả tên file', () => {
+  // L187 `nameWithoutExt.slice(-suffixLength)`; slice(-0) === slice(0) -> returns the
+  // WHOLE string.
+  it('preservedSuffixLength:0 - slice(-0) must not return the entire file name', () => {
     const got = truncateFileName(LONG, {
       maxLength: 20,
       preservedSuffixLength: 0,
@@ -176,30 +178,30 @@ describe('hồi quy - các lỗi đã vá', () => {
     expect(got.length).toBe(20);
   });
 
-  // maxLength âm không bị chặn, rơi vào nhánh L176.
-  it('maxLength âm và NaN bị kẹp về 0', () => {
+  // A negative maxLength was not guarded and fell into the L176 branch.
+  it('a negative maxLength and NaN are clamped to 0', () => {
     expect(truncateFileName(LONG, { maxLength: -5 })).toBe('');
     expect(truncateFileName(LONG, { maxLength: Number.NaN })).toBe('');
   });
 
-  it('maxLength Infinity nghĩa là không cắt', () => {
+  it('maxLength Infinity means no cutting', () => {
     expect(
       truncateFileName(LONG, { maxLength: Number.POSITIVE_INFINITY })
     ).toBe(LONG);
   });
 
-  // getFileNameParts('.gitignore') => ['', 'gitignore'] nên dotfile bị coi là
-  // "không có tên, extension = gitignore". Cộng với lỗi nhân đôi extension.
-  it('dotfile: .gitignore phải là tên file, không phải extension', () => {
+  // getFileNameParts('.gitignore') => ['', 'gitignore'], so a dotfile was read as
+  // "no name, extension = gitignore". Compounded by the duplicated-extension bug.
+  it('dotfile: .gitignore must be a file name, not an extension', () => {
     expect(getFileNameParts('.gitignore')).toEqual(['.gitignore', '']);
   });
 
-  it('dotfile: truncate .gitignore tôn trọng maxLength', () => {
+  it('dotfile: truncating .gitignore respects maxLength', () => {
     expect(truncateFileName('.gitignore', { maxLength: 8 })).toBe('.g...ore');
   });
 
-  // .length và .slice làm việc trên UTF-16 code unit, cắt giữa surrogate pair.
-  it('emoji không được bị cắt thành surrogate lẻ', () => {
+  // .length and .slice work on UTF-16 code units and cut through surrogate pairs.
+  it('an emoji must not be cut into a lone surrogate', () => {
     const got = truncateFileName('\u{1F389}'.repeat(8) + '.png', {
       maxLength: 12,
     });
@@ -210,10 +212,11 @@ describe('hồi quy - các lỗi đã vá', () => {
 });
 
 /**
- * Bất biến: đúng với MỌI tổ hợp, không chỉ case đã nghĩ ra.
- * Đây là phần bắt được lỗi slice(-0), nhân đôi extension và surrogate lẻ.
+ * Invariants: true for EVERY combination, not just the cases someone thought of.
+ * This is the part that caught the slice(-0) bug, the duplicated extension and the
+ * lone surrogate.
  */
-describe('bất biến trên mọi tổ hợp', () => {
+describe('invariants across every combination', () => {
   const inputs = [
     'document.pdf',
     'very-long-document-name.pdf',
@@ -228,7 +231,7 @@ describe('bất biến trên mọi tổ hợp', () => {
   ];
   const limits = [0, 1, 2, 3, 4, 5, 8, 10, 12, 15, 20, 24, 30, 100];
 
-  it('kết quả LUÔN <= maxLength', () => {
+  it('the result is ALWAYS <= maxLength', () => {
     for (const fileName of inputs) {
       for (const maxLength of limits) {
         for (const preservedSuffixLength of [0, 1, 3, 5, 20]) {
@@ -248,7 +251,7 @@ describe('bất biến trên mọi tổ hợp', () => {
     }
   });
 
-  it('parts ghép lại === dạng string', () => {
+  it('the joined parts === the string form', () => {
     for (const fileName of inputs) {
       for (const maxLength of limits) {
         const parts = truncateFileNameParts(fileName, { maxLength });
@@ -259,7 +262,7 @@ describe('bất biến trên mọi tổ hợp', () => {
     }
   });
 
-  it('truncated=false thì dựng lại đúng input', () => {
+  it('truncated=false reconstructs the input exactly', () => {
     for (const fileName of inputs) {
       for (const maxLength of limits) {
         const parts = truncateFileNameParts(fileName, { maxLength });
@@ -272,7 +275,7 @@ describe('bất biến trên mọi tổ hợp', () => {
     }
   });
 
-  it('không bao giờ sinh surrogate lẻ', () => {
+  it('never produces a lone surrogate', () => {
     const lone =
       /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;
     for (const maxLength of limits) {
@@ -289,7 +292,7 @@ describe('bất biến trên mọi tổ hợp', () => {
     }
   });
 
-  it('name + extension dựng lại đúng input với mọi tên', () => {
+  it('name + extension reconstructs the input for every name', () => {
     for (const fileName of inputs) {
       const [name, extension] = getFileNameParts(fileName);
       expect(name + (extension ? `.${extension}` : '')).toBe(fileName);

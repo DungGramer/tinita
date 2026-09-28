@@ -76,8 +76,8 @@ export function calculateLayout(
 }
 
 /**
- * Transform của frame đầu marquee: đẩy content lùi qua hết các pattern dẫn đường
- * để pattern thật (không `aria-hidden`) nằm trong viewport.
+ * First-frame transform of the marquee: push the content back past every leading
+ * pattern so the real pattern (the one without `aria-hidden`) sits in the viewport.
  */
 function buildStartTransform(layoutState: CarouselLayoutState, isVertical: boolean): string {
   const axis = isVertical ? 'Y' : 'X';
@@ -86,12 +86,13 @@ function buildStartTransform(layoutState: CarouselLayoutState, isVertical: boole
 }
 
 /**
- * Ghim content ở frame đầu, không tạo animation nào.
+ * Pin the content at the first frame, creating no animation.
  *
- * Dùng cho reduced-motion. Marquee chạy bằng Web Animations API nên CSS
- * `@media (prefers-reduced-motion: reduce)` KHÔNG với tới nó - phải tắt ở đây.
- * Chỉ `cancel()` là chưa đủ: transform về 0 và các clone `aria-hidden` dẫn đường
- * lọt vào viewport thay cho pattern thật.
+ * Used for reduced motion. The marquee runs on the Web Animations API, so CSS
+ * `@media (prefers-reduced-motion: reduce)` CANNOT reach it - it has to be turned
+ * off here. `cancel()` alone is not enough: the transform returns to 0 and the
+ * leading `aria-hidden` clones end up in the viewport instead of the real
+ * pattern.
  */
 export function pinContentAtStart(config: CarouselAnimationConfig): void {
   const { contentRef, layoutState, isVertical, animationRef } = config;
@@ -136,8 +137,8 @@ export function initializeOrUpdateAnimation(config: CarouselAnimationConfig): vo
     animationRef.current = null;
   }
 
-  // Xoá transform tĩnh mà `pinContentAtStart` có thể đã set, nếu không nó còn lại
-  // sau khi animation bị cancel.
+  // Clear the static transform `pinContentAtStart` may have set, otherwise it
+  // survives once the animation is cancelled.
   contentElement.style.transform = '';
 
   // Calculate start and end offsets based on leadingRepeatCount for off-screen buffer

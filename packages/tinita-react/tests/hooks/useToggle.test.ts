@@ -3,7 +3,7 @@ import { act, renderHook } from '@testing-library/react';
 import { useToggle } from '../../src/hooks/useToggle';
 
 describe('useToggle', () => {
-  it('mặc định false khi không truyền gì', () => {
+  it('defaults to false when nothing is passed', () => {
     const { result } = renderHook(() => useToggle({}));
     expect(result.current.value).toBe(false);
   });
@@ -13,7 +13,7 @@ describe('useToggle', () => {
     expect(result.current.value).toBe(true);
   });
 
-  it('toggle đảo giá trị', () => {
+  it('toggle flips the value', () => {
     const { result } = renderHook(() => useToggle({}));
     act(() => result.current.toggle());
     expect(result.current.value).toBe(true);
@@ -21,7 +21,7 @@ describe('useToggle', () => {
     expect(result.current.value).toBe(false);
   });
 
-  it('setTrue / setFalse là idempotent', () => {
+  it('setTrue / setFalse are idempotent', () => {
     const { result } = renderHook(() => useToggle({}));
     act(() => result.current.setTrue());
     act(() => result.current.setTrue());
@@ -31,7 +31,7 @@ describe('useToggle', () => {
     expect(result.current.value).toBe(false);
   });
 
-  it('toggle giữ identity qua các lần render - nếu không, effect của consumer chạy lại vô cớ', () => {
+  it('toggle keeps its identity across renders - otherwise consumer effects re-run for nothing', () => {
     const { result, rerender } = renderHook(() => useToggle({}));
     const first = result.current.toggle;
     rerender();

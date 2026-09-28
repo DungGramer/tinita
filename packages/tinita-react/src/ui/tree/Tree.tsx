@@ -10,18 +10,17 @@ import React, {
   useState,
 } from 'react';
 import { Collapsible } from '@base-ui/react/collapsible';
+import { cn } from '../../utils/cn';
 import { variantAttributes } from '../../utils/variantAttributes';
 import type { TreeNode, TreeNodeRenderContext, TreeProps, TreeSort } from './types';
 import { createTreeStore, useNodeState, type TreeStore } from './store';
 import styles from './Tree.module.css';
 
 /**
- * Icon vẽ tay, KHÔNG dùng thư viện.
+ * Inline SVG, no icon library: `Tree` must work without one.
  *
- * `Tree` là primitive nên nó phải chạy được mà không kéo theo `lucide-react`.
- * `FileTree` mới là chỗ dùng lucide cho icon theo phần mở rộng file. Hai SVG này
- * lấy đúng hình học của lucide (viewBox 24, stroke 2, linecap round) để nét khớp
- * với icon file khi hai bên đứng cạnh nhau.
+ * Geometry matches lucide (viewBox 24, stroke 2, linecap round) so the strokes
+ * line up when a caller mixes these with lucide icons in the same row.
  */
 const ChevronIcon = () => (
   <svg
@@ -61,17 +60,17 @@ const HelpIcon = () => (
   </svg>
 );
 
-/** So sánh tự nhiên: `file2` đứng trước `file10`, không phải sau. */
+/** Natural compare: `file2` comes before `file10`, not after. */
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
 
 const isFolderNode = (node: TreeNode) => node.children !== undefined;
 
 /**
- * Nhãn như người dùng ĐỌC nó, gồm cả `nameSuffix`.
+ * The label as the user reads it, `nameSuffix` included.
  *
- * Sort và gõ-để-nhảy phải dùng cái này, không phải `node.name`. `FileTree` tách
- * `Button.tsx` thành `name: 'Button'` + `nameSuffix: '.tsx'`, nên sort theo
- * `node.name` sẽ so `'Button'` với `'Button.test'` - thứ tự đổi mà không ai đổi gì.
+ * Sort and type-ahead must use this rather than `node.name`: with `Button.tsx`
+ * split into `name: 'Button'` + `nameSuffix: '.tsx'`, comparing `node.name` alone
+ * orders `'Button'` against `'Button.test'` and silently changes the result.
  */
 const labelOf = (node: TreeNode) => node.name + (node.nameSuffix ?? '');
 
@@ -88,13 +87,13 @@ function sortNodes(nodes: TreeNode[], sort: TreeSort): TreeNode[] {
             return byType !== 0 ? byType : collator.compare(labelOf(a), labelOf(b));
           };
 
-  // `toSorted` chưa có ở Node 18, và sort tại chỗ sẽ sửa mảng của người gọi.
+  // `toSorted` needs Node 20, and an in-place sort would mutate the caller's array.
   return [...nodes]
     .sort(compare)
     .map((node) => (node.children ? { ...node, children: sortNodes(node.children, sort) } : node));
 }
 
-/** Mọi id thư mục, để `defaultExpanded: true` mở được toàn bộ. */
+/** Every folder id, so `defaultExpanded: true` can open all of them. */
 function collectFolderIds(nodes: TreeNode[], out: string[] = []): string[] {
   for (const node of nodes) {
     if (node.children) {
@@ -105,7 +104,7 @@ function collectFolderIds(nodes: TreeNode[], out: string[] = []): string[] {
   return out;
 }
 
-/** Node hiện đang NHÌN THẤY, theo thứ tự trên màn hình. Đây là trục của bàn phím. */
+/** Currently VISIBLE nodes, in screen order. This is the keyboard's axis. */
 function flattenVisible(
   nodes: TreeNode[],
   expanded: Set<string>,
@@ -181,35 +180,29 @@ export const Tree = React.forwardRef<HTMLDivElement, TreeProps>(function Tree(
   const visible = useMemo(() => flattenVisible(sorted, expandedSet), [sorted, expandedSet]);
 
   const [activeId, setActiveId] = useState<string | null>(null);
-  // Hàng nhận Tab là hàng đang active, hoặc hàng đầu nếu chưa có. Roving tabindex -
-  // cả cây là MỘT điểm dừng Tab, đúng chuẩn ARIA tree.
+  // The Tab target is the active row, or the first row if there is none. Roving
+  // tabindex - the whole tree is ONE tab stop, per the ARIA tree pattern.
   const tabbableId =
     (activeId && visible.some((v) => v.node.id === activeId) ? activeId : visible[0]?.node.id) ??
     null;
 
-  /**
-   * Store nghe theo TỪNG id. Xem `store.ts` để biết vì sao.
-   *
-   * Tóm lại: giữ `Set` trong state và truyền xuống làm mọi `TreeItem` render lại
-   * mỗi lần toggle - đo được 242ms đứng luồng trên cây 1364 dòng.
-   */
+  /** Per-id subscription store, so a toggle re-renders one row. See `store.ts`. */
   const store = useRef<TreeStore>(undefined as unknown as TreeStore);
   if (!store.current) store.current = createTreeStore();
 
   const latest = useRef({ expandedList, isControlled, onExpandedChange });
   latest.current = { expandedList, isControlled, onExpandedChange };
 
-  // Đồng bộ trước khi trình duyệt vẽ, nếu không node vừa mở sẽ trễ một frame.
+  // Sync before the browser paints, otherwise a just-expanded node lags one frame.
   useEffect(() => {
     store.current.sync({ expanded: expandedSet, selected, tabbable: tabbableId });
   }, [expandedSet, selected, tabbableId]);
 
   /**
-   * `toggle` và `focusRow` phải ỔN ĐỊNH về identity.
-   *
-   * Chúng đi xuống qua context tới mọi item. Nếu identity đổi mỗi lần toggle thì
-   * `React.memo` ở `TreeItem` vô hiệu và ta quay lại đúng chỗ cũ - vì vậy trạng
-   * thái mới nhất đọc từ ref chứ không nằm trong dependency.
+   * `toggle` and `focusRow` must be stable by identity: they reach every item
+   * through context, and a new identity per toggle would defeat the `React.memo`
+   * on `TreeItem`. That is why the latest state is read from a ref rather than
+   * listed as a dependency.
    */
   const toggle = useCallback((id: string, force?: boolean) => {
     const {
@@ -250,8 +243,8 @@ export const Tree = React.forwardRef<HTMLDivElement, TreeProps>(function Tree(
       const isFolder = current.node.children !== undefined;
       const isOpen = expandedSet.has(id);
 
-      // RTL đảo nghĩa của mũi tên trái/phải. Đọc `direction` đã tính chứ không đoán
-      // theo prop: người dùng có thể đặt `dir` ở bất kỳ tổ tiên nào.
+      // RTL swaps the meaning of left/right arrows. Read the computed `direction`
+      // instead of guessing from a prop: `dir` may sit on any ancestor.
       const rtl =
         typeof window !== 'undefined' && rootRef.current
           ? getComputedStyle(rootRef.current).direction === 'rtl'
@@ -302,7 +295,7 @@ export const Tree = React.forwardRef<HTMLDivElement, TreeProps>(function Tree(
           onSelectedChange?.(current.node);
           return;
         case '*': {
-          // Chuẩn ARIA: mở mọi anh em cùng cấp với node đang focus.
+          // ARIA pattern: expand every sibling at the focused node's level.
           event.preventDefault();
           const siblings = visible
             .filter(
@@ -320,7 +313,7 @@ export const Tree = React.forwardRef<HTMLDivElement, TreeProps>(function Tree(
           break;
       }
 
-      // Type-ahead: gõ chữ để nhảy tới node kế tiếp bắt đầu bằng chữ đó.
+      // Type-ahead: type a letter to jump to the next node starting with it.
       if (event.key.length === 1 && !event.metaKey && !event.ctrlKey && !event.altKey) {
         const lower = event.key.toLowerCase();
         const order = [...visible.slice(index + 1), ...visible.slice(0, index + 1)];
@@ -343,8 +336,8 @@ export const Tree = React.forwardRef<HTMLDivElement, TreeProps>(function Tree(
   const animate = enableAnimation && !reducedMotion;
 
   /**
-   * Giá trị context chỉ đổi khi PROP đổi, không đổi khi toggle. Đó là điều kiện để
-   * `React.memo` ở `TreeItem` thật sự chặn được render lan ra cả cây.
+   * The context value changes only when a prop changes, never on a toggle - the
+   * precondition for `React.memo` on `TreeItem` to contain a re-render.
    */
   const context = useMemo(
     () => ({
@@ -365,7 +358,7 @@ export const Tree = React.forwardRef<HTMLDivElement, TreeProps>(function Tree(
     <div
       {...rest}
       ref={setRefs}
-      className={[styles.root, className].filter(Boolean).join(' ')}
+      className={cn(styles.root, className)}
       {...variantAttributes({
         theme,
         indicator,
@@ -385,13 +378,7 @@ export const Tree = React.forwardRef<HTMLDivElement, TreeProps>(function Tree(
   );
 });
 
-/**
- * Bản sao thu nhỏ của hook trong CarouselTicker.
- *
- * Không export ra ngoài: thêm một public subpath là phải thêm `exports`,
- * `typesVersions`, ca L1 và một story. Khi có component thứ ba cần nó thì nâng lên
- * `src/hooks/`.
- */
+/** Local copy of the hook in CarouselTicker. Promote to `src/hooks/` on third use. */
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
   React.useEffect(() => {
@@ -406,11 +393,10 @@ function usePrefersReducedMotion(): boolean {
 }
 
 /**
- * Context mang những thứ KHÔNG đổi khi toggle.
+ * Context carries only what does not change on a toggle.
  *
- * Trạng thái đổi liên tục (mở / chọn / tabbable) KHÔNG đi qua đây - context đổi giá
- * trị là mọi consumer render lại, đúng cái ta đang tránh. Chúng đi qua `store`,
- * nơi mỗi node chỉ nghe id của mình.
+ * Expanded / selected / tabbable deliberately do not travel here: a new context
+ * value re-renders every consumer. They go through `store` instead.
  */
 interface TreeContextValue {
   store: TreeStore;
@@ -429,7 +415,7 @@ const EMPTY_ANCESTORS: string[] = [];
 
 function useTreeContext(): TreeContextValue {
   const value = useContext(TreeContext);
-  if (!value) throw new Error('TreeItem phải nằm trong <Tree>');
+  if (!value) throw new Error('TreeItem must be rendered inside <Tree>');
   return value;
 }
 
@@ -467,11 +453,9 @@ interface TreeItemProps {
 }
 
 /**
- * `memo` ở đây là thứ chặn render lan ra cả cây.
- *
- * Props của nó đều ổn định qua một lần toggle: `node` đến từ mảng đã memo, `level`
- * và `setSize` là số, `ancestors` được memo ở cấp cha. Trạng thái đổi thì đến từ
- * `useNodeState`, và nó chỉ đánh thức đúng node liên quan.
+ * `memo` here is what stops a render from spreading across the tree. Its props are
+ * all stable across a toggle; changing state arrives through `useNodeState`, which
+ * wakes only the node involved.
  */
 const TreeItem = React.memo(function TreeItem({
   node,
@@ -497,7 +481,7 @@ const TreeItem = React.memo(function TreeItem({
   const isExpanded = isFolder && state.isExpanded;
   const isSelected = state.isSelected;
 
-  /** Mảng tổ tiên cho con. Phải ổn định, nếu không `memo` ở cấp dưới vô hiệu. */
+  /** Ancestor array for the children. Must be stable or `memo` below is void. */
   const childAncestors = useMemo(() => [...ancestors, node.id], [ancestors, node.id]);
 
   const inlineDescription =
@@ -522,18 +506,18 @@ const TreeItem = React.memo(function TreeItem({
         </span>
       )}
       {/**
-       * `name` và `nameSuffix` nằm trong MỘT bọc `.label`, không phải hai flex item
-       * của `.row`. `.row` có `gap: var(--tnt-tree-gap)` = 6px, nên để rời ra thì
-       * `Button` và `.tsx` cách nhau 6px - nhãn đứt làm hai.
+       * `name` and `nameSuffix` share one `.label` wrapper rather than sitting as
+       * two flex items of `.row`, which has a `gap` that would otherwise appear
+       * between `Button` and `.tsx`.
        *
-       * `dir="auto"` để tên file tiếng Ả Rập hay Do Thái không bị đảo ngược trong
-       * giao diện LTR, và tên ASCII không bị đảo trong giao diện RTL.
+       * `dir="auto"` keeps RTL file names from being reversed in an LTR interface,
+       * and ASCII names from being reversed in an RTL one.
        */}
       <span
         className={styles.label}
         dir="auto"
-        // Chỉ ở chế độ truncate mới cần tooltip: các chế độ khác không mất ký tự
-        // nào, và `title` trên MỌI hàng là tooltip nhảy ra khắp nơi khi rê chuột.
+        // Only truncate loses characters; a `title` on every row would mean
+        // tooltips popping up all over on hover.
         title={overflow === 'truncate' ? labelOf(node) : undefined}
       >
         <span className={styles.name}>{node.name}</span>
@@ -592,8 +576,8 @@ const TreeItem = React.memo(function TreeItem({
         {renderNode ? renderNode(node, context) : defaultContent}
       </div>
 
-      {/* Chú thích vẫn phải tới được trình đọc màn hình kể cả khi nó nằm trong
-          tooltip. `title` một mình là không đủ - hỗ trợ của nó rất chắp vá. */}
+      {/* The description must reach screen readers even when it lives in a
+          tooltip; `title` alone is not reliably announced. */}
       {node.description !== undefined && !inlineDescription && (
         <span id={describedById} className={styles.srOnly}>
           {node.description}
@@ -611,21 +595,19 @@ const TreeItem = React.memo(function TreeItem({
   );
 
   /**
-   * `Collapsible` của Base UI, MỘT cái cho MỖI thư mục - không phải một cái cho mỗi
-   * cấp.
+   * Base UI's `Collapsible`, one per folder.
    *
-   * Vì sao Collapsible chứ không phải Accordion: Accordion là danh sách panel ngang
-   * hàng có roving focus giữa các trigger. Dùng nó cho cây thì mỗi cấp phải là một
-   * `Accordion.Root` riêng - đo được 17 Root cho cây 19 dòng ở bản đầu, mỗi Root một
-   * bộ đo riêng, nên mở một thư mục sâu kích hoạt chuỗi đo dọc lên trên. Collapsible
-   * là một đơn vị đóng/mở độc lập, đúng hình dạng của một node cây.
+   * Collapsible and not Accordion: an Accordion is a list of sibling panels with
+   * roving focus between triggers, so a tree would need one `Accordion.Root` per
+   * level, each with its own measurement pass - expanding one deep folder then
+   * triggers a chain of measurements up the ancestry. A Collapsible is a single
+   * open/close unit, which is the shape of a tree node.
    *
-   * KHÔNG dùng `Collapsible.Trigger`: nó render `<button aria-expanded>`, mà trong
-   * `role="tree"` thì `aria-expanded` thuộc về `treeitem`. Khai hai lần là trình đọc
-   * màn hình đọc sai. Ở đây chỉ mượn Root + Panel; ARIA và bàn phím vẫn theo chuẩn
-   * ARIA tree.
-   *
-   * `render` là cách compose của Base UI, thay cho `asChild` của Radix.
+   * Do not use `Collapsible.Trigger`: it renders `<button aria-expanded>`, but
+   * inside `role="tree"` the `aria-expanded` belongs on the `treeitem`, and
+   * declaring it twice makes screen readers announce the wrong thing. Only Root
+   * and Panel are borrowed; ARIA and keyboard handling follow the ARIA tree
+   * pattern.
    */
   if (!isFolder) return body;
 

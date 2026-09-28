@@ -1,9 +1,9 @@
 /**
- * Icon theo loại file.
+ * Per-file-type icons.
  *
- * Đây là chỗ DUY NHẤT trong package phụ thuộc `lucide-react`, và nó là optional
- * peer. `Tree` không đụng tới nó - primitive nhận icon dạng `ReactNode` nên nó
- * không biết gì về thư viện icon nào cả.
+ * This is the ONLY place in the package that depends on `lucide-react`, and that
+ * dependency is an optional peer. `Tree` never touches it - the primitive takes
+ * icons as `ReactNode`, so it knows nothing about any icon library.
  */
 
 import React from 'react';
@@ -30,13 +30,13 @@ import styles from '../FileTree.module.css';
 
 export interface FileIconProps {
   iconType: FileIconType;
-  /** Thư mục đang mở thì đổi sang icon mở. */
+  /** Switch to the open-folder icon when the folder is expanded. */
   open?: boolean;
 }
 
 export const FileIcon: React.FC<FileIconProps> = ({ iconType, open = false }) => {
-  // `data-icon` là thứ CSS dùng để tô màu theo loại, và cũng là thứ `iconColors`
-  // nhắm tới qua biến `--tnt-filetree-icon-*`.
+  // `data-icon` is what the CSS colours by type, and what `iconColors` targets
+  // through the `--tnt-filetree-icon-*` variables.
   const props = { className: styles.icon, size: 16, ...variantAttributes({ icon: iconType }) };
 
   if (iconType === 'folder') {

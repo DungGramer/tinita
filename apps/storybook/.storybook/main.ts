@@ -37,8 +37,8 @@ const config: StorybookConfig = {
 
   async viteFinal(config) {
     return mergeConfig(config, {
-      // Để dev trực tiếp trên source thay vì dist, bật alias dưới đây. Cần thêm
-      // `resolve` từ 'node:path' và `fileURLToPath` từ 'node:url' vào import:
+      // To develop against the source instead of dist, enable the alias below. It
+      // needs `resolve` from 'node:path' and `fileURLToPath` from 'node:url':
       //   const dir = dirname(fileURLToPath(import.meta.url));
       //   resolve: { alias: { 'tinita-react': resolve(dir, '../../../packages/tinita-react/src') } },
       css: {

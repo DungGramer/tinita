@@ -1,26 +1,18 @@
 /**
  * Ping CSS Modules
  *
- * Tên class ở đây là LOCAL (`.root`, `.body`). Vite sinh ra
- * `tnt-ping-root`, `tnt-ping-body` theo `generateScopedName` - vẫn có namespace
- * `tnt-`, vẫn đọc được, và người dùng vẫn nhắm được để override.
+ * Class names here are local (`.root`, `.body`); the build emits `tnt-ping-root`,
+ * `tnt-ping-body`, still readable and still targetable for overrides.
  *
- * Không viết selector global ở đây. CSS Modules scope mọi class, nên một rule
- * nhắm `body` hay `*` sẽ KHÔNG bị scope và lọt ra trang khách - guard
- * `tests/styles/no-global-leak.test.ts` chặn việc đó.
+ * Write no global selectors here. CSS Modules scopes classes, but a rule targeting
+ * `body` or `*` is not scoped and would leak into the host page.
  *
- * Trước đây Ping KHÔNG có file CSS: nó viết class Tailwind thô trong JSX
- * (`inline-flex`, `size-2`, `animate-ping`, `bg-green-500`...) mà bundle lại
- * không ship utility nào - `build-entry.css` cố ý không `@import "tailwindcss"`.
- * Đo được (ca L2 `no-tailwind-missing-utilities`): host không có Tailwind thì
- * `.root` nhận `display: block` thay vì `inline-flex`, tức component vỡ
- * layout. Đó là phụ thuộc NGẦM vào Tailwind của host.
+ * Every value is real CSS, never a Tailwind utility class in the JSX: this bundle
+ * ships no utilities, so a Tailwind class would be an implicit dependency on the
+ * host having Tailwind, and the layout breaks where it does not.
  *
- * Mọi giá trị giờ là CSS thật. `bg-green-500` từng hard-code, giờ là
- * `--tnt-ping-dot`.
- *
- * `@keyframes pulse` cũng bị CSS Modules scope. Đặt tên local là `pulse` để nó ra
- * `tnt-ping-pulse`; nếu đặt `tnt-ping-pulse` thì scope lần nữa thành
+ * `@keyframes pulse` is scoped too. The local name is `pulse` so it comes out as
+ * `tnt-ping-pulse`; naming it `tnt-ping-pulse` here would scope it twice into
  * `tnt-ping-tnt-ping-pulse`.
  */
 
@@ -79,8 +71,8 @@
   }
 }
 
-/* Tắt hẳn khi user yêu cầu reduced-motion. Xem docs/code-standards.md mục
-   "Quy Tắc Reduced Motion" - KHÔNG dùng 0.01ms. */
+/* Off entirely when the user asks for reduced motion. Never 0.01ms: at that
+   duration the animation still runs and still fires `animationend`. */
 @media (prefers-reduced-motion: reduce) {
   .pulse {
     animation: none !important;

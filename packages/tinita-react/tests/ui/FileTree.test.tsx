@@ -6,7 +6,7 @@ const INDENT = ['src', '  index.ts', '  ui', '    button.tsx', 'README.md'].join
 const CLI = ['D:\\PROJECT', '├───src', '│   └───components', '└───dist'].join('\n');
 
 describe('FileTree', () => {
-  it('render được định dạng thụt lề 2 space', () => {
+  it('renders the two-space indent format', () => {
     const { container } = render(<FileTree text={INDENT} />);
     const text = container.textContent ?? '';
     for (const name of ['src', 'index.ts', 'ui', 'button.tsx', 'README.md']) {
@@ -14,28 +14,29 @@ describe('FileTree', () => {
     }
   });
 
-  it('render được định dạng CLI tree', () => {
+  it('renders the CLI tree format', () => {
     const { container } = render(<FileTree text={CLI} />);
     const text = container.textContent ?? '';
     expect(text).toContain('src');
     expect(text).toContain('components');
     expect(text).toContain('dist');
-    // Ký tự vẽ cây là cú pháp đầu vào, không phải nội dung - không được lọt ra DOM.
+    // The box-drawing characters are input syntax, not content - they must not
+    // reach the DOM.
     expect(text).not.toContain('├');
     expect(text).not.toContain('└');
   });
 
-  it('text rỗng không throw', () => {
+  it('empty text does not throw', () => {
     expect(() => render(<FileTree text="" />)).not.toThrow();
   });
 
-  it('KHÔNG dùng class Tailwind thô nào trong JSX', () => {
-    // Bundle không ship utility Tailwind nào, nên một class Tailwind trong JSX là
-    // phụ thuộc NGẦM vào Tailwind của host.
+  it('uses NO raw Tailwind class in the JSX', () => {
+    // The bundle ships no Tailwind utilities, so a Tailwind class in the JSX is an
+    // IMPLICIT dependency on the host's Tailwind.
     //
-    // `lucide*` được loại trừ vì `lucide-react` tự gắn class lên `<svg>` của nó -
-    // đó là class của third-party, không phải của tinita, và ta không kiểm soát.
-    // Đo được 2026-09-26: `lucide`, `lucide-folder-open`, `lucide-file-code`.
+    // `lucide*` is excluded because `lucide-react` puts its own classes on its
+    // `<svg>` - those are third-party classes, not tinita's, and out of our control.
+    // Measured 2026-09-26: `lucide`, `lucide-folder-open`, `lucide-file-code`.
     const { container } = render(<FileTree text={INDENT} />);
     const classes = Array.from(container.querySelectorAll('*'))
       .flatMap((el) => Array.from(el.classList))
@@ -43,7 +44,7 @@ describe('FileTree', () => {
     expect(classes).toEqual([]);
   });
 
-  it('nhận className của người dùng mà không mất class gốc', () => {
+  it('accepts the caller className without losing its own', () => {
     const { container } = render(<FileTree text={INDENT} className="host-x" />);
     const root = container.firstElementChild;
     expect(root?.classList.contains('host-x')).toBe(true);

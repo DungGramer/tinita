@@ -71,8 +71,8 @@ export const DarkTheme: Story = {
 };
 
 export const ThemeComparison: Story = {
-  // `render` bỏ qua args, nhưng prop `text` của FileTree là bắt buộc nên Story
-  // vẫn đòi `args`. Giữ lại để docs panel có giá trị hiển thị.
+  // `render` ignores args, but FileTree's `text` prop is required so Story still
+  // demands `args`. Kept so the docs panel has a value to show.
   args: {
     text: treeText,
   },

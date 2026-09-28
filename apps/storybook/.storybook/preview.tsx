@@ -2,11 +2,12 @@ import type { Preview, StoryContext } from '@storybook/react-vite';
 import React from 'react';
 
 // Import component CSS from source
-// `styles.css` là bundle đủ cả ba tầng: token (globals), utility animation, và CSS
-// component đã qua CSS Modules. Trước đây chỉ import globals + animations, nên
-// FileTree/Ping/CarouselTicker chạy trong storybook mà KHÔNG có style của chính nó -
-// lỗ này có từ trước khi chuyển sang CSS Modules, chỉ là không ai để ý vì token và
-// animation vẫn nạp được nên trang không trắng hẳn.
+// `styles.css` is the bundle covering all three layers: tokens (globals), animation
+// utilities, and component CSS that went through CSS Modules. Only globals +
+// animations were imported before, so FileTree/Ping/CarouselTicker ran in Storybook
+// with NONE of their own styles - a hole that predates the move to CSS Modules and
+// went unnoticed because tokens and animations still loaded, so the page was never
+// blank.
 import 'tinita-react/styles.css';
 
 // Custom viewports for responsive testing
@@ -118,20 +119,21 @@ const withNoJS = (Story: React.ComponentType, context: StoryContext) => {
 /**
  * ĐÃ XOÁ: decorator `withFocusManagement`.
  *
- * Nó bơm `*:focus { outline: 2px solid #2563eb !important; outline-offset: 2px
- * !important }` vào MỌI story. Hai hậu quả, cả hai đều làm Storybook nói sai về
- * library:
+ * It injected `*:focus { outline: 2px solid #2563eb !important; outline-offset: 2px
+ * !important }` into EVERY story. Two consequences, both of which make Storybook lie
+ * about the library:
  *
- * 1. `outline-offset: 2px` đè mất `-2px` mà `Tree.module.css` đặt CÓ CHỦ Ý. Offset
- *    dương vẽ vòng focus ra NGOÀI border box, nên `overflow: hidden` của nhóm con
- *    ăn mất cạnh trên của hàng đầu tiên trong nhóm. Đây chính là lỗi "focus bị mất
- *    viền trên" owner báo 2026-09-28 - đo được `outline-offset` computed là `2px`
- *    trong khi CSS nguồn và `dist/styles.css` đều là `-2px`, và rule đè đến từ
- *    inline `<style>` 126 byte này.
- * 2. Nó bắt `:focus` chứ không phải `:focus-visible`, nên click chuột cũng hiện
- *    vòng focus - trong app thật thì không.
+ * 1. `outline-offset: 2px` overrode the `-2px` that `Tree.module.css` sets
+ *    DELIBERATELY. A positive offset draws the focus ring OUTSIDE the border box, so
+ *    the child group's `overflow: hidden` eats the top edge of the group's first
+ *    row. This is exactly the "focus ring loses its top border" bug reported
+ *    2026-09-28 - the computed `outline-offset` measured `2px` while both the source
+ *    CSS and `dist/styles.css` said `-2px`, and the overriding rule came from this
+ *    126-byte inline `<style>`.
+ * 2. It matched `:focus` rather than `:focus-visible`, so a mouse click showed the
+ *    focus ring too - which it does not do in a real app.
  *
- * Library đã tự lo vòng focus. Storybook không được thêm lớp thứ hai.
+ * The library handles its own focus ring. Storybook must not add a second layer.
  */
 
 const preview: Preview = {
