@@ -11,9 +11,6 @@
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
     "sourceMap": true,
-    "baseUrl": ".",
-    "paths": {
-      "@tinita-internal/*": ["packages/core/src/*"]
-    }
+    "baseUrl": "."
   }
 }

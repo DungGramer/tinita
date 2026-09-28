@@ -1,18 +1,19 @@
 # Tinita
 
-Monorepo với framework-agnostic utilities, React hooks + UI components, Storybook.
+A monorepo of framework-agnostic utilities, React hooks and UI components, with Storybook.
 
-**Packages:** `tinita` (v0.1.0, 5 utilities) · `tinita-react` (v0.1.0, 2 hooks + 3 components) · `tinita-dom` (v0.1.0, DOM utilities, browser-only)
+**Packages:** `tinita` (v0.1.0, 5 utilities) · `tinita-react` (v0.1.0, 1 hook + 4 components) · `tinita-dom` (v0.1.0, DOM utilities, browser-only)
 
 ---
 
-## Quick Start
+## Quick start
 
 ```bash
-pnpm install      # Cài dependencies
-pnpm build        # Xây toàn bộ
-pnpm dev          # Dev mode
-pnpm storybook    # Chạy Storybook (xem note bên dưới)
+pnpm install      # install dependencies
+pnpm build        # build everything
+pnpm test         # run the test suites
+pnpm storybook    # browse the components
+pnpm gate         # format, lint, types, build, test, stories, L1 (~90s)
 ```
 
 ---
@@ -21,25 +22,29 @@ pnpm storybook    # Chạy Storybook (xem note bên dưới)
 
 ### tinita (v0.1.0)
 
-4 framework-agnostic utilities:
+Five framework-agnostic utilities:
 
 ```typescript
 import { fileSize } from 'tinita/file/fileSize';
 import { getFileNameParts } from 'tinita/file/getFileNameParts';
 import { truncateFileName } from 'tinita/file/truncateFileName';
+import { truncateFileNameParts } from 'tinita/file/truncateFileNameParts';
 import { generateUUID } from 'tinita/uuid/generateUUID';
 ```
 
+Zero dependencies, zero peer dependencies. The barrel import (`from 'tinita'`) works too.
+
 ### tinita-react (v0.1.0)
 
-2 hooks + 3 UI components (CSS included). **Import từng file, không dùng barrel:**
+One hook and four UI components, CSS included. **Import specific subpaths rather than the barrel** -
+see the note under the peer table for why.
 
 ```typescript
-// Hooks
+// Hook
 import { useToggle } from 'tinita-react/hooks/useToggle';
-import { useIsomorphicLayoutEffect } from 'tinita-react/hooks/useIsomorphicLayoutEffect';
 
 // Components
+import { Tree } from 'tinita-react/ui/tree';
 import { FileTree } from 'tinita-react/ui/file-tree';
 import { Ping } from 'tinita-react/ui/ping';
 import { CarouselTicker } from 'tinita-react/ui/carousel-ticker';
@@ -51,172 +56,182 @@ import { autoInjectStyles } from 'tinita-react/utils/autoInjectStyles';
 import 'tinita-react/styles.css';
 ```
 
-#### Cài theo component
+#### Install per component
 
-`tinita-react` **không có `dependencies`**. Lib nào chỉ một phần component cần thì là **optional
-peer** - bạn chỉ cài cái mà component bạn dùng đòi.
+`tinita-react` has **no `dependencies`**. Any library that only part of the package needs is an
+**optional peer**, so you install only what the components you import actually use.
 
-| Import                                | Cần cài thêm                      |
+| Import                                | Also install                      |
 | ------------------------------------- | --------------------------------- |
-| `tinita-react/ui/ping`                | không cần gì                      |
-| `tinita-react/ui/carousel-ticker`     | không cần gì                      |
-| `tinita-react/hooks/*`                | không cần gì                      |
-| `tinita-react/utils/autoInjectStyles` | không cần gì                      |
+| `tinita-react/ui/ping`                | nothing                           |
+| `tinita-react/ui/carousel-ticker`     | nothing                           |
+| `tinita-react/hooks/*`                | nothing                           |
+| `tinita-react/utils/autoInjectStyles` | nothing                           |
 | `tinita-react/ui/tree`                | `@base-ui/react`                  |
 | `tinita-react/ui/file-tree`           | `@base-ui/react` + `lucide-react` |
 
-`react >=18` là peer bắt buộc cho mọi đường nhập.
+`react >=18` is a required peer for every entry point.
 
 ```bash
-npm install tinita-react                                          # Ping, CarouselTicker, hooks
-npm install tinita-react @base-ui/react                            # thêm Tree
-npm install tinita-react @base-ui/react lucide-react               # thêm FileTree
+npm install tinita-react                                # Ping, CarouselTicker, hooks
+npm install tinita-react @base-ui/react                 # adds Tree
+npm install tinita-react @base-ui/react lucide-react    # adds FileTree
 ```
 
-Thiếu peer thì lỗi xuất hiện lúc chạy (`Cannot find module 'lucide-react'`), không phải lúc install -
-npm không cảnh báo về optional peer. Bảng trên là chỗ tra.
+A missing optional peer surfaces at **runtime** (`Cannot find module 'lucide-react'`), not at install
+time - npm does not warn about optional peers. The table above is where you look it up.
 
-#### CSS của library không chạm vào CSS của bạn
+The barrel (`from 'tinita-react'`) re-exports `./ui/file-tree`, so importing `Ping` through it pulls
+in `@base-ui/react` and `lucide-react` even though `Ping` needs neither. That is the technical reason
+to prefer specific subpaths.
 
-Đo được 2026-09-26 trong Chromium trên một app thật (`compatibility/cases/l2`, ca `css-leak`):
-**11 bề mặt, 0 rò rỉ**. Cụ thể là:
+#### The library's CSS does not touch yours
 
-- Không rule nào nhắm `body`, `html`, hay `*`. Không set `color-scheme`.
-- Mọi class, custom property và `@keyframes` đều mang prefix `tnt-`. Kể cả keyframes: tên
-  `accordion-down` / `accordion-up` trùng với shadcn nên đã đổi.
-- Dark mode **đọc** quy ước của bạn (`.dark` hoặc `[data-theme='dark']`) qua `:where()`, nên
-  specificity là 0 và bạn luôn đè lại được mà không cần `!important`.
-- JSX không chứa class Tailwind nào. Component hiển thị đúng dù app của bạn **không** có Tailwind.
+Verified in Chromium against a real consumer app: **11 surfaces, 0 leaks**. Concretely:
 
-Bạn không phải làm gì cả. Nếu vẫn muốn chắc chắn CSS của bạn thắng trong mọi tình huống, dùng bản
-bọc layer:
+- No rule targets `body`, `html` or `*`. Nothing sets `color-scheme`.
+- Every class, custom property and `@keyframes` carries the `tnt-` prefix. Keyframes included: the
+  names `accordion-down` / `accordion-up` collide with shadcn, so they were renamed.
+- Dark mode **reads** your convention (`.dark` or `[data-theme='dark']`) through `:where()`, so its
+  specificity is 0 and you can always override it without `!important`.
+- The JSX contains no Tailwind classes. Components render correctly whether or not your app has
+  Tailwind.
+
+You do not have to do anything. If you want your CSS to win in every situation regardless, use the
+layered build:
 
 ```css
-@layer tnt, theme, base, components, utilities; /* khai TRƯỚC khi import */
+@layer tnt, theme, base, components, utilities; /* declare BEFORE the import */
 @import 'tinita-react/styles.layer.css';
 ```
 
-CSS **không** nằm trong layer luôn thắng CSS trong layer, nên với bản `.layer.css` thì mọi CSS
-thường của bạn đè lên component - sửa gì cũng được, không cần `!important`. Đánh đổi: nó đè cả khi
-bạn không cố ý. Vì vậy hai bản cùng được ship và bạn chọn:
+Unlayered CSS always beats layered CSS, so with `.layer.css` any ordinary rule of yours overrides the
+components - no `!important` needed. The trade-off is that it overrides even when you did not intend
+to. Both builds ship and you choose:
 
-| File                            | Khi nào dùng                                                  |
-| ------------------------------- | ------------------------------------------------------------- |
-| `tinita-react/styles.css`       | mặc định                                                      |
-| `tinita-react/styles.layer.css` | khi CSS của bạn đang bị đè, hoặc bạn muốn toàn quyền override |
+| File                            | When to use it                                           |
+| ------------------------------- | -------------------------------------------------------- |
+| `tinita-react/styles.css`       | the default                                              |
+| `tinita-react/styles.layer.css` | when your CSS is losing, or you want full override power |
 
-Hai file có nội dung giống nhau, sinh từ cùng một nguồn lúc build.
+The two files have the same content, generated from one source at build time.
 
 ---
 
 ### tinita-dom (v0.1.0)
 
-Tiện ích DOM framework-agnostic. **Browser-only** - nó chạm `document`, `window.matchMedia`,
-`requestAnimationFrame`. Không có SSR guard, và đó là có chủ ý: `installSmoothScroll` cài listener
-trên `document`, trên server không có gì để cài.
+Framework-agnostic DOM utilities. **Browser-only** - it touches `document`, `window.matchMedia` and
+`requestAnimationFrame`. There is no SSR guard, and that is deliberate: `installSmoothScroll` attaches
+listeners to `document`, and on the server there is nothing to attach them to.
 
-Zero dependency. Zero peer dependency. Không cần React.
+Zero dependencies. Zero peer dependencies. No React required.
 
 ```ts
 import { installSmoothScroll } from 'tinita-dom/smooth-scroll';
 
-// Gọi MỘT LẦN, ngoài React - effect bị gọi hai lần của StrictMode sẽ cài nó hai lần.
+// Call it ONCE, outside React - StrictMode's double-invoked effects would install it twice.
 const uninstall = installSmoothScroll();
-uninstall(); // gỡ khi cần
+uninstall(); // remove it when you need to
 ```
 
-Một listener `wheel` cho toàn app. Hai hành vi riêng biệt: wheel có detent được làm mượt trên đúng
-element browser vốn sẽ scroll; và wheel dọc trên element chỉ scroll ngang được thì scroll nó ngang
-(browser không làm việc này). Input vốn đã mượt (trackpad, Mos, Mac Mouse Fix) được để nguyên cho
-browser - làm mượt lần hai là thứ khiến trang có cảm giác trễ so với tay.
+One app-wide `wheel` listener with two distinct behaviours: a detented wheel is eased on exactly the
+element the browser would have scrolled anyway; and a vertical wheel over an element that can only
+scroll horizontally scrolls it horizontally, which the browser does not do. Input that is already
+smooth (a trackpad, Mos, Mac Mouse Fix) is left to the browser - smoothing something already smooth is
+what makes a page feel like it lags behind your hand.
 
-Nó cố ý không đụng: wheel đã `defaultPrevented`, `Ctrl+wheel`, wheel đã có `deltaX`, subtree có
-`data-no-smooth-scroll`, và người đã bật `prefers-reduced-motion`.
+It deliberately does not touch: a wheel event that is already `defaultPrevented`, `Ctrl+wheel`, a
+wheel event that already has `deltaX`, any subtree carrying `data-no-smooth-scroll`, and anyone with
+`prefers-reduced-motion` enabled.
 
 ```ts
 import { classifyWheelSource } from 'tinita-dom/wheel-source';
 ```
 
-Chi tiết: `packages/tinita-dom/README.md`.
+Details: [`packages/tinita-dom/README.md`](./packages/tinita-dom/README.md).
 
 ---
 
-## Root Scripts (13)
+## Root scripts
 
-| Script               | Mục đích                          | Status               |
-| -------------------- | --------------------------------- | -------------------- |
-| build                | Xây toàn bộ                       | ✓                    |
-| dev                  | Dev mode (Storybook + tsup watch) | ✓                    |
-| lint                 | Lint toàn bộ                      | ✓                    |
-| test                 | Run tests (vitest)                | ✓                    |
-| format               | Format với prettier               | ✓                    |
-| check-types          | Type check                        | ✓                    |
-| storybook            | Chạy Storybook                    | ⚠️ Hỏng\*            |
-| build-storybook      | Build Storybook static            | ⚠️ Hỏng\*            |
-| publish:tinita       | Publish tinita                    | ✓                    |
-| publish:tinita-react | Publish tinita-react              | ✓                    |
-| publish:all          | Publish cả hai                    | ✓                    |
-| publish:dry-run      | Dry run                           | ✓                    |
-| generate:exports     | Generate exports                  | ❌ Không tồn tại\*\* |
+| Script                    | Purpose                                            |
+| ------------------------- | -------------------------------------------------- |
+| `build`                   | Build every package                                |
+| `dev`                     | Dev mode                                           |
+| `lint`                    | Lint everything                                    |
+| `test`                    | Run the test suites (vitest)                       |
+| `check-types`             | Type check                                         |
+| `format` / `format:check` | Prettier write / check                             |
+| `gate`                    | format, lint, types, build, test, stories, L1      |
+| `gate:full`               | the above plus L2 and L4 (needs chromium, minutes) |
+| `check-stories`           | Every published subpath must have a story          |
+| `storybook`               | Run Storybook                                      |
+| `build-storybook`         | Build the static Storybook                         |
+| `deploy:storybook`        | Deploy Storybook                                   |
+| `publish:tinita`          | Publish `tinita`                                   |
+| `publish:tinita-react`    | Publish `tinita-react`                             |
+| `publish:tinita-dom`      | Publish `tinita-dom`                               |
+| `publish:all`             | Publish all three                                  |
+| `publish:dry-run`         | Dry run                                            |
 
-\* Storybook lỗi vì filter package sai và script name không khớp. Thay bằng: `turbo build --filter=storybook && cd apps/storybook && pnpm dev`.  
-\*\* Script này không tồn tại. Exports maintain thủ công trong `package.json`.
+`scripts/publish.mjs` discovers packages by reading `packages/`, and it stops at `npm whoami`.
+Publishing is a manual, authenticated step.
+
+There is **no `generate:exports`**. `exports`, `typesVersions` and the tsup entries are maintained by
+hand - see [CLAUDE.md](./CLAUDE.md).
 
 ---
 
-## Cấu trúc
+## Layout
 
 ```
 tinita/
-  ├── packages/tinita          # 4 utilities
-  ├── packages/tinita-react    # 2 hooks + 3 components + CSS
-  ├── apps/storybook           # Storybook 10.1.4
+  ├── packages/tinita          # 5 utilities, zero deps
+  ├── packages/tinita-react    # 1 hook + 4 components + CSS
+  ├── packages/tinita-dom      # DOM utilities, browser-only
+  ├── apps/storybook           # Storybook 10
+  ├── compatibility/           # consumer test lab (outside the pnpm workspace)
   ├── config/                  # ESLint, TypeScript, UI configs
-  ├── scripts/                 # publish.mjs, update-package-versions.mjs
-  └── docs/                    # Documentation (xem docs/README.md)
+  ├── scripts/                 # gate.mjs, publish.mjs, deploy-storybook.mjs
+  └── docs/                    # documentation (see docs/README.md)
 ```
+
+`compatibility/` installs the packed tarballs into throwaway projects and exercises them the way a
+user would - import resolution, optional peers, SSR, CSS leaks, `next build`. It is deliberately
+outside the pnpm workspace so nothing resolves back to the source.
 
 ---
 
 ## Stack
 
-- **Workspace:** pnpm 9.0.0 + Turborepo
+- **Workspace:** pnpm 9 + Turborepo
 - **Node:** >=18
-- **Build:** tsup (JS) + PostCSS (CSS)
-- **Test:** Vitest - `tinita` 35 test, `tinita-react` chưa có test
-- **Release:** Manual qua `scripts/publish.mjs`
+- **Build:** tsup and Vite (JS) + PostCSS (CSS)
+- **Tests:** Vitest - `tinita` 35, `tinita-react` 49, `tinita-dom` 17
+- **Release:** manual, via `scripts/publish.mjs`
 
 ---
 
 ## Docs
 
-Xem [`docs/README.md`](./docs/README.md) để tìm:
-
-- **Project Overview & PDR** - mục tiêu, roadmap, requirements
-- **Codebase Summary** - thực trạng hiện tại, metrics
-- **Code Standards** - quy tắc naming, colocation, CSS
-- **System Architecture** - kiến trúc workspace, build pipeline
-- **Design Guidelines** - nguyên tắc design component (định hướng)
+See [`docs/README.md`](./docs/README.md) for the project overview and PDR, the codebase summary, code
+standards, system architecture and design guidelines. Those documents are written in Vietnamese.
 
 ---
 
-## Known Issues
+## Known issues
 
-Xem `docs/system-architecture.md` phần "Known Issues" để chi tiết. Tóm tắt:
-
-1. **Storybook scripts hỏng** - filter package sai scope, script name không khớp
-2. **generate:exports không tồn tại** - exports maintain thủ công
-3. **tsconfig base path alias chết** - trỏ tới package không tồn tại
-4. **ESLint next preset export sai** - named import không tồn tại
-5. **`motion` là dependency chết** - khai trong dependencies nhưng không file nào import
-6. **`Ping` + `CarouselTicker` cần Tailwind** - dùng class Tailwind thô trong JSX, chỉ hiển thị đúng nếu host có Tailwind (xem chi tiết ở `docs/system-architecture.md` phần CSS)
+1. **The versions currently on npm are broken.** `tinita@0.0.1` has 6 of 18 manifest paths pointing at
+   files that are not in the tarball, and `tinita-react@0.0.2-alpha.1` has 7 of 25. Both predate the
+   build fixes in v0.1.0. They have not been deprecated yet. Install from source until v0.1.0 is
+   published.
+2. **The `tinita-react` barrel pulls in optional peers.** `src/index.ts` re-exports `./ui/file-tree`,
+   so `import { Ping } from 'tinita-react'` requires `@base-ui/react` and `lucide-react`. Use specific
+   subpaths.
 
 ---
 
 ## Contributing
 
-Đọc [ARCHITECTURE.md](./ARCHITECTURE.md) và [CONTRIBUTING.md](./CONTRIBUTING.md) trước. Nguyên tắc: one-file-one-function, subpath exports, strict typing.
-
----
-
-Cập nhật: 2026-09-24 (vòng 2) · commit 0a1dd88
+Read [ARCHITECTURE.md](./ARCHITECTURE.md) and [CONTRIBUTING.md](./CONTRIBUTING.md) first. The
+principles: one file per function, subpath exports, strict typing, and no global CSS.
