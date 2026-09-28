@@ -10,6 +10,7 @@ import * as Accordion from '@radix-ui/react-accordion';
 import type { FileNode } from '../types';
 import { FileLabel } from './FileLabel';
 import { renderTreeNodes } from './TreeNodes';
+import { variantAttributes } from '../../../utils/variantAttributes';
 import styles from '../FileTree.module.css';
 
 export interface FolderNodeProps {
@@ -50,7 +51,11 @@ export const FolderNode: React.FC<FolderNodeProps> = ({
   };
 
   return (
-    <Accordion.Item value={itemValue} className={styles.accordionItem} data-expanded={isExpanded}>
+    <Accordion.Item
+      value={itemValue}
+      className={styles.accordionItem}
+      {...variantAttributes({ expanded: isExpanded })}
+    >
       <Accordion.Trigger className={styles.accordionTrigger} onClick={handleToggle}>
         <FileLabel
           name={displayName}

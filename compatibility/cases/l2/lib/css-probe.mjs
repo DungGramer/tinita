@@ -109,3 +109,52 @@ export async function probeMissingUtilities({ cssPath, html }) {
     await browser.close();
   }
 }
+
+/**
+ * Ma trận theme: dark mode của host được tôn trọng ở MỌI vị trí, và `theme` ép được.
+ *
+ * Ca này sinh ra từ một bug đã đo 2026-09-28: `:root` là specificity (0,1,0) còn
+ * `:where(.dark, [data-theme='dark'])` là (0,0,0), nên khi host đặt `.dark` LÊN CHÍNH
+ * `<html>` thì cả hai rule khớp cùng một element và `:root` thắng - dark mode vỡ hoàn
+ * toàn. Đó đúng là cách Tailwind `darkMode: 'class'` và shadcn làm, tức cấu hình phổ
+ * biến nhất. Đặt `.dark` ở `<body>` hay một div bọc ngoài thì lại chạy, nên bug ẩn rất kỹ.
+ *
+ * Phải đo trong browser thật: jsdom không resolve custom property qua stylesheet +
+ * thừa kế, nên unit test không nói được gì về ca này.
+ */
+export const THEME_MATRIX = [
+  { id: 'html-class-dark', expect: 'dark', html: '<html class="dark"><body><div id="probe">x</div></body></html>', why: 'Tailwind darkMode:class và shadcn đặt .dark lên <html>' },
+  { id: 'html-attr-dark', expect: 'dark', html: '<html data-theme="dark"><body><div id="probe">x</div></body></html>', why: 'quy ước data-theme ở root' },
+  { id: 'body-class-dark', expect: 'dark', html: '<html><body class="dark"><div id="probe">x</div></body></html>', why: 'dark ở body' },
+  { id: 'wrapper-class-dark', expect: 'dark', html: '<html><body><div class="dark"><div id="probe">x</div></div></body></html>', why: 'dark ở div bọc ngoài' },
+  { id: 'force-light-inside-dark', expect: 'light', html: '<html class="dark"><body><div id="probe" data-theme="light">x</div></body></html>', why: 'theme="light" phải ÉP được sáng bên trong host dark' },
+  { id: 'force-dark-inside-light', expect: 'dark', html: '<html><body><div id="probe" data-theme="dark">x</div></body></html>', why: 'theme="dark" phải ép được tối' },
+  { id: 'no-theme', expect: 'light', html: '<html><body><div id="probe">x</div></body></html>', why: 'mặc định là sáng' },
+];
+
+export async function probeTheme({ cssPath }) {
+  const css = readFileSync(cssPath, 'utf8');
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    const rows = [];
+    for (const item of THEME_MATRIX) {
+      await page.setContent(item.html);
+      await page.addStyleTag({ content: css });
+      const measured = await page.evaluate(() => {
+        const cs = getComputedStyle(document.getElementById('probe'));
+        return {
+          background: cs.getPropertyValue('--tnt-background').trim(),
+          filetree: cs.getPropertyValue('--tnt-filetree-bg').trim(),
+        };
+      });
+      // So bằng GIÁ TRỊ TOKEN, không bằng tên rule. Rule đổi tên thì ca vẫn đúng.
+      const actual =
+        measured.background === '#0a0a0a' ? 'dark' : measured.background === '#ffffff' ? 'light' : `?${measured.background}`;
+      rows.push({ ...item, actual, ok: actual === item.expect, measured });
+    }
+    return rows;
+  } finally {
+    await browser.close();
+  }
+}

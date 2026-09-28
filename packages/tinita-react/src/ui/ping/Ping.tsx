@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { variantAttributes } from '../../utils/variantAttributes';
 import styles from './Ping.module.css';
 
 export interface PingProps {
@@ -34,7 +35,7 @@ export const Ping = ({ count, prefix, onClick, theme, className = '' }: PingProp
     <Wrapper
       onClick={onClick}
       className={`${styles.root} ${className}`.trim()}
-      data-theme={theme}
+      {...variantAttributes({ theme })}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
     >

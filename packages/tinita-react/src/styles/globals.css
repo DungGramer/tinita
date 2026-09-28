@@ -16,6 +16,25 @@
  * Dark mode ĐỌC quy ước của host (`.dark` hoặc `[data-theme='dark']`) chứ không
  * định nghĩa nó. Bọc `:where()` để specificity = 0, host luôn đè lại được.
  *
+ * Token light khai trên `:where(:root, [data-theme='light'])` - CÙNG một khối, không
+ * phải hai bản.
+ *
+ * `:where(:root)` chứ KHÔNG phải `:root` trần. Đo được 2026-09-28 trong Chromium:
+ * `:root` là specificity (0,1,0) còn `:where(.dark, [data-theme='dark'])` là (0,0,0),
+ * nên khi host đặt `.dark` hoặc `data-theme="dark"` LÊN CHÍNH `<html>` thì cả hai
+ * rule khớp cùng một element và `:root` thắng - dark mode vỡ hoàn toàn. Đó đúng là
+ * cách Tailwind `darkMode: 'class'` và shadcn làm (`<html class="dark">`), tức là
+ * cấu hình phổ biến nhất trong hệ sinh thái. Đặt `.dark` ở `<body>` hay một div bọc
+ * ngoài thì lại chạy, nên bug này ẩn rất kỹ.
+ *
+ * Bọc `:where()` hạ cả hai về (0,0,0), lúc đó thứ tự khai quyết định: khối dark nằm
+ * sau nên nó thắng khi cả hai khớp. Kèm lợi: mọi rule của host, kể cả `:root` trần,
+ * đều đè được token của tinita.
+ *
+ * Không có nhánh `light` thì `theme="light"` KHÔNG có tác dụng: bên trong host đang
+ * bật dark, token dark thừa kế xuống mà `[data-theme='light']` chẳng khớp rule nào để
+ * kéo về sáng. README của FileTree đã ghi nó dùng được từ trước khi nó thật sự dùng được.
+ *
  * `@theme inline` đo được là KHÔNG phát ra bundle (bundle không import
  * Tailwind). Nó chỉ có tác dụng khi chính bạn build lại bằng Tailwind.
  */
@@ -23,7 +42,7 @@
 /* ============================================
    1. CSS Variables - Light Theme
    ============================================ */
-:root {
+:where(:root, [data-theme='light']) {
   /* Colors */
   --tnt-background: #ffffff;
   --tnt-foreground: #1a1a1a;

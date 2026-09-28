@@ -115,13 +115,13 @@ const hasBrowser = await (async () => {
 })();
 
 if (!hasBrowser) {
-  for (const id of ['css-leak:unlayered', 'css-leak:layered', 'css-probe-proof', 'no-tailwind-standalone-layout', 'vite:render']) {
+  for (const id of ['css-leak:unlayered', 'css-leak:layered', 'theme-matrix', 'css-probe-proof', 'no-tailwind-standalone-layout', 'vite:render']) {
     add(id, true, 'skip: không có chromium trong môi trường này', { skipped: true, reason: 'no-browser' });
   }
 }
 
 if (hasBrowser) {
-  const { probeLeak } = await import('./lib/css-probe.mjs');
+  const { probeLeak, probeTheme } = await import('./lib/css-probe.mjs');
   const work = createConsumer({ level: 'l2', name: 'css-host', deps: REACT, tarballs: TGZ });
   const cssPath = resolve(work, 'node_modules/tinita-react/dist/styles.css');
 
@@ -147,6 +147,19 @@ if (hasBrowser) {
   // Ca CHỨNG MINH: thêm rule rò rỉ mới có chủ ý -> probe phải thấy.
   const proof = await probeLeak({ cssPath, extraCss: '\n#host-interactive { opacity: 0.123 !important }' });
   const proofRow = proof.find((r) => r.id === 'unprefixed-interactive');
+  {
+    const rows = await probeTheme({ cssPath });
+    const wrong = rows.filter((r) => !r.ok);
+    add(
+      'theme-matrix',
+      wrong.length === 0,
+      wrong.length === 0
+        ? `${rows.length} vị trí dark/light đều đúng, kể cả .dark trên <html>`
+        : wrong.map((r) => `${r.id}: mong ${r.expect}, đo ${r.actual} (${r.why})`).join(' | '),
+      { rows: rows.map(({ id, expect, actual, ok }) => ({ id, expect, actual, ok })) },
+    );
+  }
+
   add('css-probe-proof', proofRow?.after === '0.123', `thêm rule có chủ ý -> probe đo được opacity="${proofRow?.after}" (mong đợi 0.123)`);
 }
 

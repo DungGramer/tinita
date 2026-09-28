@@ -136,9 +136,15 @@ client. Mọi quy tắc dưới đây có số đo và có guard.
 - **Không class Tailwind trong JSX.** Bundle cố ý không ship utility nào, nên một
   class Tailwind là phụ thuộc NGẦM vào Tailwind của host. Đo được: `Ping` từng
   nhận `display: block` thay vì `inline-flex` khi host không có Tailwind.
-- **Biến thể đi qua `data-*`**, không qua chuỗi class:
-  `data-orientation`, `data-overflow`, `data-state`. Hướng của Radix và Primer;
-  state inspect được ngay trong DevTools và không nổ combinatorial.
+- **Biến thể đi qua `data-*`**, không qua chuỗi class, và luôn qua
+  `src/utils/variantAttributes.ts`. Viết `data-*` thẳng trong JSX bị guard chặn.
+  Boolean render tường minh `'true'`/`'false'` (CSS có rule cho cả hai);
+  `undefined` bỏ attribute và nghĩa là "theo chủ nhà" - đó là cơ chế của `theme`.
+- **`theme` không có default.** Default `'light'` sẽ ép sáng mọi component nằm
+  trong host dark. Và token light phải khai bằng `:where(:root, ...)` chứ không
+  `:root` trần: `:root` là (0,1,0), `:where(.dark)` là (0,0,0), nên `.dark` đặt
+  trên chính `<html>` (cách Tailwind và shadcn làm) thì dark mode vỡ. Đo được
+  2026-09-28; guard là ca L2 `theme-matrix`.
 - **Source CSS KHÔNG tự bọc `@layer`.** Build sinh hai bản: `styles.css` không
   layer và `styles.layer.css` bọc `@layer tnt`, từ cùng một nguồn. Consumer chọn.
   Đây là cách Mantine làm.

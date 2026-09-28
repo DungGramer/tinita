@@ -24,6 +24,7 @@ import React, { forwardRef, useMemo } from 'react';
 import type { FileTreeProps } from './types';
 import { parseFileTreeUniversal } from './utils';
 import { renderTreeNodes } from './components';
+import { variantAttributes } from '../../utils/variantAttributes';
 import styles from './FileTree.module.css';
 
 /**
@@ -37,7 +38,11 @@ export const FileTree = forwardRef<HTMLDivElement, FileTreeProps>(
       text,
       className,
       hideRootName,
-      theme = 'light',
+      // KHÔNG default 'light'. `undefined` nghĩa là "theo chủ nhà", và đó là hành vi
+      // đúng: host bật dark thì component theo dark. Default 'light' sẽ render
+      // `data-theme="light"` luôn, và từ khi `[data-theme='light']` có rule thật
+      // (2026-09-28) thì nó ÉP sáng mọi component nằm trong host dark.
+      theme,
       indicator = true,
       size = 'md',
       borderRadius = 'md',
@@ -59,12 +64,14 @@ export const FileTree = forwardRef<HTMLDivElement, FileTreeProps>(
       <div
         ref={ref}
         className={containerClassName}
-        data-theme={theme}
-        data-indicator={indicator}
-        data-size={size}
-        data-border-radius={borderRadius}
-        data-show-arrow={showArrow}
-        data-animation={enableAnimation}
+        {...variantAttributes({
+          theme,
+          indicator,
+          size,
+          borderRadius,
+          showArrow,
+          animation: enableAnimation,
+        })}
         {...props}
       >
         {renderTreeNodes(wrappedTree, 0, showArrow, enableAnimation)}

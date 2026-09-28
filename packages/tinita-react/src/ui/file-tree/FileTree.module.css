@@ -237,15 +237,6 @@
   background-color: var(--tnt-filetree-active);
 }
 
-/* Disabled state when enableAnimation=false */
-.accordion-trigger[data-disabled] {
-  cursor: default;
-}
-
-.accordion-trigger[data-disabled]:hover {
-  background-color: transparent;
-}
-
 .label {
   display: inline-flex;
   align-items: center;

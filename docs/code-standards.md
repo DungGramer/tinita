@@ -748,11 +748,17 @@ của L2 trong Chromium - mạnh hơn nhưng cần chromium nên không chạy t
 
 ### Biến thể đi qua `data-*`, không qua chuỗi class
 
+Cổng duy nhất là `src/utils/variantAttributes.ts`. **Không viết `data-*` thẳng trong
+JSX** - có guard chặn (`tests/styles/variant-contract.test.ts`).
+
 ```tsx
 <div
-  className="tnt-carousel-ticker"
-  data-orientation={isVertical ? 'vertical' : 'horizontal'}
-  data-overflow={overflowVisible ? 'visible' : 'hidden'}
+  className={styles.root}
+  {...variantAttributes({
+    theme, // undefined -> bỏ attribute -> theo chủ nhà
+    indicator, // true/false -> 'true'/'false' TƯỜNG MINH
+    borderRadius, // camelCase -> data-border-radius
+  })}
 />
 ```
 
@@ -773,6 +779,50 @@ Vì sao, chứ không phải `cn('tnt-x', isVertical && 'tnt-x--vertical')`:
 
 Token đi qua CSS variable, không phải class. Chi tiết và các mô hình tham chiếu ở
 `docs/system-architecture.md` mục "Quyết Định Kiến Trúc Styling".
+
+#### Ba quy ước của resolver, mỗi cái có lý do
+
+| Đầu vào              | Ra                   | Vì sao                                                                                                                                                                                  |
+| -------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `true` / `false`     | `'true'` / `'false'` | KHÁC Radix (có/không attribute) là **có chủ ý**: CSS ở đây có rule thật cho `[data-indicator='false']` và `[data-show-arrow='false']`, bỏ attribute khi false sẽ làm chúng chết âm thầm |
+| `undefined` / `null` | bỏ hẳn attribute     | Nghĩa là "không quyết, theo chủ nhà". Đây là cơ chế của `theme`                                                                                                                         |
+| `0`                  | `'0'`                | Dùng falsy check thì `data-level={0}` mất attribute và `[data-level='0']` chết. Có ca test riêng                                                                                        |
+
+**Hệ quả phải biết:** `[data-indicator]` trần khớp CẢ HAI trạng thái. Trong CSS của
+component luôn viết đủ giá trị. Ngoại lệ là attribute do Radix đặt (`data-state`) -
+Radix dùng quy ước có/không nên `[data-state]` trần là đúng ở đó.
+
+#### `theme`: không default, và đó là quyết định
+
+`theme` KHÔNG có giá trị mặc định. `undefined` = theo dark mode của host; `'light'` /
+`'dark'` = ép. `FileTree` từng default `'light'`, nghĩa là nó render
+`data-theme="light"` luôn - vô hại khi chưa có rule nào khớp `[data-theme='light']`,
+nhưng sẽ **ép sáng mọi component nằm trong host dark** ngay khi rule đó tồn tại.
+
+#### Bug specificity đã đo được, và nó ẩn rất kỹ
+
+Đo 2026-09-28 trong Chromium: `:root` là specificity **(0,1,0)** còn
+`:where(.dark, [data-theme='dark'])` là **(0,0,0)**. Khi host đặt `.dark` hoặc
+`data-theme="dark"` **lên chính `<html>`** thì cả hai rule khớp cùng một element và
+`:root` thắng - **dark mode vỡ hoàn toàn**. Đó đúng là cách Tailwind
+`darkMode: 'class'` và shadcn làm, tức cấu hình phổ biến nhất trong hệ sinh thái.
+
+Đặt `.dark` ở `<body>` hay một div bọc ngoài thì lại chạy bình thường, nên bug này
+không lộ ra ở phần lớn cách test. Sửa: `:where(:root, [data-theme='light'])` - hạ cả
+hai về (0,0,0), lúc đó thứ tự khai quyết định và khối dark nằm sau nên nó thắng. Kèm
+lợi: mọi rule của host, kể cả `:root` trần, đều đè được token của tinita.
+
+Guard: ca L2 `theme-matrix`, 7 vị trí, đo giá trị token thật trong Chromium. jsdom
+không resolve custom property qua stylesheet + thừa kế nên unit test không nói được gì
+về nó. Đã chứng minh bằng cách trả `:root` về dạng trần: 2/7 vị trí đỏ, đúng hai vị
+trí `<html>`.
+
+#### Dead CSS tìm ra khi làm việc này
+
+`.accordion-trigger[data-disabled]` có 2 rule trong `FileTree.module.css` với comment
+"Disabled state when enableAnimation=false", nhưng `disabled` **chưa bao giờ** được
+truyền cho `Accordion.Item`. Đo được: 0 element mang `data-disabled`. Đã xoá. Ý định
+ghi trong comment cũng sai - tắt animation không có nghĩa là vô hiệu hoá nút bấm.
 
 ### Component mới phải có story
 

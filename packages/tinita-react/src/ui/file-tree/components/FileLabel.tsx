@@ -24,6 +24,7 @@ import {
   ChevronRight,
   ChevronDown,
 } from 'lucide-react';
+import { variantAttributes } from '../../../utils/variantAttributes';
 import styles from '../FileTree.module.css';
 
 /**
@@ -146,7 +147,7 @@ export const FileLabel: React.FC<FileLabelProps> = ({
   };
 
   return (
-    <span className={styles.label} data-type={type} data-icon={iconType}>
+    <span className={styles.label} {...variantAttributes({ type, icon: iconType })}>
       {renderArrow()}
       {renderIcon()}
       <span className={styles.labelText}>{name}</span>

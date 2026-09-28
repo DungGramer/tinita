@@ -17,6 +17,7 @@ import type {
   CarouselAnimationConfig,
   CarouselEventConfig,
 } from './CarouselTicker.types';
+import { variantAttributes } from '../../utils/variantAttributes';
 import styles from './CarouselTicker.module.css';
 
 /**
@@ -310,8 +311,10 @@ export const CarouselTicker: React.FC<CarouselTickerProps> = ({
     <div
       ref={containerRef}
       className={cn(styles.root, className)}
-      data-orientation={isVertical ? 'vertical' : 'horizontal'}
-      data-overflow={overflowVisible ? 'visible' : 'hidden'}
+      {...variantAttributes({
+        orientation: isVertical ? 'vertical' : 'horizontal',
+        overflow: overflowVisible ? 'visible' : 'hidden',
+      })}
     >
       <div ref={contentRef} className={cn(styles.content, contentClassName)}>
         {renderRepeatedPatterns()}
