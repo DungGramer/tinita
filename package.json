@@ -19,7 +19,9 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,css,md}\"",
     "gate": "node scripts/gate.mjs",
     "gate:full": "node scripts/gate.mjs --full",
-    "check-stories": "node scripts/check-stories.mjs"
+    "check-stories": "node scripts/check-stories.mjs",
+    "deploy:storybook": "node scripts/deploy-storybook.mjs",
+    "deploy:storybook:preview": "node scripts/deploy-storybook.mjs --preview"
   },
   "devDependencies": {
     "@dunggramer/prettier": "^4.1.0",

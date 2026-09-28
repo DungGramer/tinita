@@ -2,8 +2,12 @@ import type { Preview, StoryContext } from '@storybook/react-vite';
 import React from 'react';
 
 // Import component CSS from source
-import 'tinita-react/styles/globals.css';
-import 'tinita-react/styles/animations.css';
+// `styles.css` là bundle đủ cả ba tầng: token (globals), utility animation, và CSS
+// component đã qua CSS Modules. Trước đây chỉ import globals + animations, nên
+// FileTree/Ping/CarouselTicker chạy trong storybook mà KHÔNG có style của chính nó -
+// lỗ này có từ trước khi chuyển sang CSS Modules, chỉ là không ai để ý vì token và
+// animation vẫn nạp được nên trang không trắng hẳn.
+import 'tinita-react/styles.css';
 
 // Custom viewports for responsive testing
 const customViewports = {
