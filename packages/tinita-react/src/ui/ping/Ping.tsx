@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { cn } from '../../utils/cn';
 import { variantAttributes } from '../../utils/variantAttributes';
 import styles from './Ping.module.css';
 
@@ -28,19 +29,19 @@ export interface PingProps {
   className?: string;
 }
 
-export const Ping = ({ count, prefix, onClick, theme, className = '' }: PingProps) => {
+export const Ping = ({ count, prefix, onClick, theme, className }: PingProps) => {
   const Wrapper = onClick ? 'a' : 'div';
 
   return (
     <Wrapper
       onClick={onClick}
-      className={`${styles.root} ${className}`.trim()}
+      className={cn(styles.root, className)}
       {...variantAttributes({ theme })}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
     >
       {prefix}
-      <div className={`${styles.body}${prefix ? ` ${styles.bodyOffset}` : ''}`}>
+      <div className={cn(styles.body, prefix && styles.bodyOffset)}>
         <div className={styles.dotWrap}>
           <span className={styles.pulse} aria-hidden="true" />
           <span className={styles.dot} aria-hidden="true" />
