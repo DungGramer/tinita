@@ -104,7 +104,9 @@ export function objectToFormData<T extends Record<string, unknown>>(
       return;
     }
 
-    if (value instanceof FileList) {
+    // `typeof` guard first: FileList exists in no version of Node, so a bare
+    // `instanceof` throws ReferenceError during SSR rather than falling through.
+    if (typeof FileList !== 'undefined' && value instanceof FileList) {
       if (value.length === 0) {
         if (includeEmptyArrays) {
           formData.append(
