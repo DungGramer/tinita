@@ -391,7 +391,7 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 - Format: `*.test.ts` hoặc `*.test.tsx`
 - Coverage: > 80% (mục tiêu)
 
-**Current:** `packages/tinita/tests/truncateFileName.test.ts` - 35 test (unit + bất biến trên mọi tổ hợp). `tinita-react`: chưa có test.
+**Current:** 453 test toàn repo - tinita 262, tinita-dom 102, tinita-react 89. Đo `pnpm test` 2026-10-01.
 
 ---
 
@@ -471,6 +471,9 @@ Kiểm: script so tên file với tên export, mã hoá đúng ba carve-out trê
 ### 3. Không `export default` trong `src/`
 
 Lý do đo được, không phải sở thích: với `bundle: true` + `outExtension` của repo,
+
+<!-- doc-links-ignore -->
+
 `require('tinita-dom/x')` trên một module chỉ có default trả `{ default: fn }` chứ
 không trả hàm - đúng hình dạng interop mà bug B1 đã phải vá một lần. Và `attw` báo
 sai hình dạng CJS/ESM khi default lẫn với named.
@@ -600,14 +603,14 @@ cập nhật cùng lúc với việc thêm component. Không có bảng đó th�
 
 ### Bảng component -> optional peer
 
-| Import                                | Optional peer cần cài            |
-| ------------------------------------- | -------------------------------- |
-| `tinita-react/ui/ping`                | không cần gì                     |
-| `tinita-react/ui/carousel-ticker`     | không cần gì                     |
-| `tinita-react/hooks/*`                | không cần gì                     |
-| `tinita-react/utils/autoInjectStyles` | không cần gì                     |
-| `tinita-react/ui/tree`                | `@base-ui/react`                 |
-| `tinita-react/ui/file-tree`           | `@base-ui/react`, `lucide-react` |
+| Import                            | Optional peer cần cài            |
+| --------------------------------- | -------------------------------- |
+| `tinita-react/ui/ping`            | không cần gì                     |
+| `tinita-react/ui/carousel-ticker` | không cần gì                     |
+| `tinita-react/hooks/*`            | không cần gì                     |
+| `tinita-react/utils/*`            | không cần gì                     |
+| `tinita-react/ui/tree`            | `@base-ui/react`                 |
+| `tinita-react/ui/file-tree`       | `@base-ui/react`, `lucide-react` |
 
 `react >=18` là peer **bắt buộc** (không optional) cho mọi đường nhập.
 
@@ -647,6 +650,9 @@ hoàn toàn, nên `typesVersions` là đường duy nhất để nó tìm đư�
 | **key tường minh từng subpath, không wildcard**      | OK       | OK       | **CÓ**             |
 
 Hình dạng thứ ba là cái bẫy: nó trông như đã sửa xong, nhưng fallback `dist/index.d.ts` khớp **mọi**
+
+<!-- doc-links-ignore -->
+
 subpath không match. Đo được: `import x from 'tinita/file/doesNotExistAtAll'` **typecheck sạch** và
 nhận type của root. Người dùng gõ sai tên subpath không nhận lỗi lúc compile, mà nhận crash lúc chạy.
 

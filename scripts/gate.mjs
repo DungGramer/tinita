@@ -3,7 +3,7 @@
  * Cổng trước commit/publish. Chạy LOCAL, không có CI - đó là quyết định của owner
  * (2026-09-26): repo một người, chạy máy mình là đủ, không dựng GitHub Actions.
  *
- *   pnpm gate        nhanh  - format, lint, types, build, test, stories, L1
+ *   pnpm gate        nhanh  - format, lint, types, build, test, stories, doc-links, L1
  *   pnpm gate --full        + L2 và L4 (cần chromium, chậm hàng phút)
  *
  * DỪNG ở lỗi đầu tiên và nói rõ bước nào chưa chạy. Chạy hết rồi báo một đống lỗi
@@ -26,6 +26,10 @@ const STEPS = [
   { id: 'build', label: 'tsup + build-css', cmd: 'pnpm', args: ['build'] },
   { id: 'test', label: 'vitest', cmd: 'pnpm', args: ['test'] },
   { id: 'stories', label: 'mọi subpath có story', cmd: 'node', args: ['scripts/check-stories.mjs'] },
+  // Rẻ (chỉ đọc file) nên nó thuộc vòng lặp, không thuộc --full. Guard duy nhất chặn
+  // được lớp lỗi CLAUDE.md đã mắc: ghi `tinita-react/hooks` là đường nhập bắt buộc
+  // trong khi subpath đó không tồn tại.
+  { id: 'doc-links', label: 'đường nhập trong docs đều tồn tại', cmd: 'node', args: ['scripts/check-doc-links.mjs'] },
   { id: 'l1', label: 'lab L1 (artifact package)', cmd: 'node', args: ['compatibility/run.mjs', 'l1'] },
   ...(full
     ? [

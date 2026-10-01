@@ -68,7 +68,7 @@ Liệt kê đầy đủ trong `system-architecture.md`. Tóm tắt:
 2. **generate:exports không tồn tại** - exports maintain thủ công
 3. **tsconfig base path alias** - trỏ tới package không tồn tại
 4. **ESLint next preset** - export sai, chỉ khi nào dùng preset này mới phát hiện
-5. **Thiếu test** - `tinita` đã có 35 test; `tinita-react` vẫn 0 test
+5. ~~**Thiếu test**~~ **VÁ**: 453 test toàn repo (tinita 262, tinita-dom 102, tinita-react 89)
 
 ---
 

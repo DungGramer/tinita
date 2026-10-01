@@ -336,7 +336,8 @@ gửi tới browser. C và D là quyết định lớn hơn, nên quyết sau kh
 
 - Quyết chọn hướng, ghi quyết định vào `docs/system-architecture.md`
 - Duy trì bảng component -> dependency trong README và `docs/codebase-summary.md`, cập nhật mỗi
-  lần thêm component
+lần thêm component
+<!-- doc-links-ignore -->
 - Dựng kiểm tự động: xác minh `import 'tinita-react/ui/<x>'` không kéo lib mà `<x>` không dùng
   (hiện chưa có cơ chế nào)
   **Tiêu chí hoàn thành:** cài `tinita-react` vào một project sạch rồi chỉ dùng `Ping`, đếm số gói

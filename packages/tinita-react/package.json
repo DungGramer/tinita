@@ -58,6 +58,9 @@
       ],
       "utils/jsxJoin": [
         "./dist/utils/jsxJoin.d.ts"
+      ],
+      "hooks/useIsomorphicLayoutEffect": [
+        "./dist/hooks/useIsomorphicLayoutEffect.d.ts"
       ]
     }
   },
@@ -163,6 +166,16 @@
       "require": {
         "types": "./dist/utils/jsxJoin.d.ts",
         "default": "./dist/utils/jsxJoin.cjs"
+      }
+    },
+    "./hooks/useIsomorphicLayoutEffect": {
+      "import": {
+        "types": "./dist/hooks/useIsomorphicLayoutEffect.d.mts",
+        "default": "./dist/hooks/useIsomorphicLayoutEffect.mjs"
+      },
+      "require": {
+        "types": "./dist/hooks/useIsomorphicLayoutEffect.d.ts",
+        "default": "./dist/hooks/useIsomorphicLayoutEffect.cjs"
       }
     }
   },

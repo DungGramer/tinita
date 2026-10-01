@@ -1,7 +1,8 @@
 # Project Overview & Product Development Requirements (PDR)
 
 **Project Name**: Tinita  
-**Current Status**: Alpha (v0.0.1 tinita, v0.0.2-alpha.1 tinita-react)  
+**Current Status**: `0.1.0` unpublished on all three packages. npm still carries only the broken
+`tinita@0.0.1` and `tinita-react@0.0.2`; `tinita-dom` has never been published (E404).  
 **Last Updated**: 2026-09-24 (vòng 2) · commit 0a1dd88  
 **Repository**: https://github.com/dunggramer/tinita
 
@@ -69,8 +70,14 @@ Provide production-ready utility packages that:
 
 **Current State (v0.0.x)**:
 
-- **`tinita`** (v0.0.1): Framework-agnostic utilities - 4 files (fileSize, getFileNameParts, truncateFileName, generateUuid)
-- **`tinita-react`** (v0.0.2-alpha.1): React hooks (2) + UI components (3) + CSS
+- **`tinita`** (`0.1.0`, unpublished): runs everywhere, Node and browser. **51 public subpaths** across
+  `array/`, `converter/`, `date/`, `file/`, `html/`, `mime/`, `object/`, `print/`, `string/`, `unit/`,
+  `uuid/`, `validation/`. 262 tests.
+- **`tinita-react`** (`0.1.0`, unpublished): React minimum, must survive SSR. **13 subpaths** plus 4 CSS
+  entries: 7 hooks, 4 UI components, 2 utils. 89 tests.
+- **`tinita-dom`** (`0.1.0`, never published): browser minimum. **22 subpaths** across `converter/`,
+  `dimension/`, `file/`, `html/`, `image/`, `storage/`, `style/`, `unit/`, `validation/`, plus
+  `smooth-scroll` and `wheel-source`. 102 tests.
   - Hooks: useToggle, useIsomorphicLayoutEffect
   - Components: FileTree, Ping, CarouselTicker
   - CSS: Tailwind v4 + CSS variables + prefix `tnt-`
@@ -145,7 +152,7 @@ import { fileSize } from 'tinita/file/fileSize'; // Subpath import (optimal)
 
 ### 6. Component Colocation Pattern
 
-**UI Component Structure** (`tinita-react/src/ui/`):
+**UI Component Structure** (`packages/tinita-react/src/ui/`):
 
 ```
 ComponentName/

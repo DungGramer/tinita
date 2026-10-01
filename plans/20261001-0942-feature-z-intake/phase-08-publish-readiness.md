@@ -9,7 +9,8 @@
 
 ## Overview
 
-**Ngày:** 2026-10-01 · **Ưu tiên:** P1 · **Trạng thái:** chưa làm · **Review:** chưa
+**Ngày:** 2026-10-01 · **Ưu tiên:** P1 · **Trạng thái:** phần agent XONG
+2026-10-01, cổng publish chờ owner · **Review:** chưa
 
 Đóng nhánh: docs khớp số thật, guard canh được những gì vừa thêm, rồi cổng publish
 mà **chỉ owner mở được**.
@@ -187,6 +188,84 @@ tinita-dom@0.1.0 tinita-react@0.1.0` rồi import mọi specifier - 83/83 exit 0
   lại `git status` trước commit cuối.
 - `npm deprecate` sửa được (deprecate bằng chuỗi rỗng để gỡ), nên nó rủi ro thấp
   hơn `publish` - nhưng vẫn là owner chạy.
+
+## Kết quả đo được
+
+| Chỉ số                    |  Trước nhánh |              Giờ |
+| ------------------------- | -----------: | ---------------: |
+| Export công khai (3 pkg)  |           35 |           **93** |
+| Test toàn repo            |          156 |          **453** |
+| Ca L1 / L2 / L4           | 25 / 17 / 16 | 25 / 17 / **24** |
+| Story file                |           10 |           **23** |
+| Bước trong `pnpm gate`    |            7 |            **8** |
+| `accepted` trong contract |            ? |      **[] cả 3** |
+
+`pnpm format:check` exit 0, `check-doc-links` 66 đường nhập đều hợp lệ.
+
+## `check-doc-links` bắt 9 lỗi thật ngay lần chạy đầu
+
+Guard đọc `exports` của ba package rồi quét mọi `.md`. Lần đầu nó báo 86/150 - phần
+lớn là regex của tôi vớ cả `@tinita/core`, một thứ khác hẳn. Sau khi sửa regex còn 12,
+trong đó **9 là lỗi thật**:
+
+| Chỗ                              | Lỗi                                                                                                                                                       |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ARCHITECTURE.md` §2.1           | khai monorepo có `@tinita/core`, `@tinita/react`, `@tinita/vue`, `@tinita/node`, `@tinita/config` - **không cái nào tồn tại**, và tên thật không có scope |
+| `ARCHITECTURE.md` §1.1, 6.6, 6.2 | 6 ví dụ dùng subpath `tinita/number/isNumber` không tồn tại                                                                                               |
+| `ARCHITECTURE.md` §6.2           | ghi "default exports in framework packages" - pha 04 **cấm hẳn** `export default`, có rule ESLint                                                         |
+| `ARCHITECTURE.md` §4 và §7.1     | ví dụ config `bundle: false, // ← CRITICAL` - ai copy là tái tạo đúng bug B2, và nó **trái ngược** bất biến 1 trong CLAUDE.md                             |
+| `docs/project-overview-pdr.md`   | `tinita-react/src/ui/` thiếu tiền tố `packages/`                                                                                                          |
+
+Cái đầu tiên nặng nhất: đọc §2.1 rồi `npm install @tinita/core` thì không resolve gì.
+Guard không thấy được nó (tên scoped bị loại khỏi regex có chủ ý) - nó lộ ra vì tôi
+đọc chính các phát hiện của guard.
+
+**Và nó bắt một lỗi tôi vừa tạo ra phút trước đó**: rename hàng loạt
+`@tinita/core` -> `tinita` sinh ra `tinita/number/isNumber`. Đúng việc nó tồn tại để
+làm.
+
+### Guard có defect riêng, tìm bằng cách chạy `pnpm format`
+
+Marker `<!-- doc-links-ignore -->` neo vào `index - 1`. `prettier` reflow markdown và
+chèn một dòng trắng giữa marker với dòng nó bảo vệ, nên 6 ca đã miễn bật đỏ lại ngay
+lần `pnpm format` kế tiếp. Sửa: lùi qua dòng trắng. Kiểm bằng cách chạy
+`format` + `check` hai lượt liên tiếp, cả hai PASS.
+
+Ca tự phá: thêm `` `import { useToggle } from "tinita-react/hooks"` `` vào
+`docs/README.md` -> `EXIT=1` nêu đúng file và dòng. Gỡ ra -> `EXIT=0`.
+
+## Đính chính tiêu chí 5 của chính pha này
+
+Tiêu chí viết `.mjs trong tarball <= số export + 2`. **Không đạt**, và tiêu chí sai
+chứ không phải code sai: nó không tính 4 chunk chia sẻ mà vite sinh ra và các entry
+export **cần** để chạy.
+
+| Package        | export | `.mjs` | chênh | Chênh là gì                                                                                                                       |
+| -------------- | -----: | -----: | ----: | --------------------------------------------------------------------------------------------------------------------------------- |
+| `tinita`       |     52 |     56 |     4 | `html/types`, `mime/types` (type-only), `mime/defaultTypes`, `validation/patterns` (nội bộ, `bundle:true` đã inline vào consumer) |
+| `tinita-dom`   |     23 |     24 |     1 | `storage/types` (type-only)                                                                                                       |
+| `tinita-react` |     18 |     20 |     6 | 4 `chunks/*` của vite (**bắt buộc**), `utils/cn`, `utils/variantAttributes` (helper nội bộ)                                       |
+
+Tiêu chí đúng là **"mọi entry không export được phải gọi tên được và có lý do"** - 11
+entry, 11 lý do. Trước pha 05 `tinita` là 18 export / 49 entry, tức **31 đường chết**.
+
+Kích thước tarball: `tinita` 146.0 kB packed / 495.9 kB unpacked / 226 file;
+`tinita-dom` 51.5 kB / 161.8 kB / 98; `tinita-react` 52.7 kB / 198.3 kB / 80.
+
+## Cổng publish - CHƯA CHẠY, và không phải việc của agent
+
+```
+1. pnpm gate --full                      9/9 PASS        agent đã chạy
+2. pnpm publish:dry-run                                  agent chạy được
+3. npm login                                             OWNER
+4. pnpm publish, 3 package @0.1.0                        OWNER
+5. npm deprecate tinita@0.0.1                            OWNER
+   npm deprecate tinita-react@0.0.2
+6. chạy lại L1: ca 07 XFAIL -> PASS                      agent chạy được
+```
+
+`npm publish` không thu hồi được: `npm unpublish` chỉ cho trong 72 giờ và chỉ khi
+không ai phụ thuộc. `scripts/publish.mjs` dừng ở `npm whoami` và đó là thiết kế.
 
 ## Next steps
 

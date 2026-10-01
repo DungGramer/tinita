@@ -14,7 +14,8 @@ Tinita là monorepo với framework-agnostic utilities (tinita) + React hooks + 
 - 4 utilities + 2 hooks + 3 UI components
 - 13 root scripts (1 hỏng, 1 không tồn tại)
 - 7 turbo tasks
-- tinita: 35 test; tinita-dom: 2 file test; tinita-react: **36 ca / 6 file** (M3 xong 2026-09-26, trước đó 0)
+- **453 test** toàn repo: tinita **262**, tinita-dom **102**, tinita-react **89** (đo `pnpm test`
+  2026-10-01). Trước nhánh `feature/z`: 156.
 - 0 CI/CD có chủ ý - owner chốt cổng LOCAL: `pnpm gate` (~84s) và `pnpm gate --full`. Release thủ công.
 
 ## `tinita-dom` (package thứ ba)
@@ -100,7 +101,7 @@ tinita/
 | `truncateFileName` | `src/file/truncateFileName.ts` | Shorten long filenames                 |
 | `generateUuid`     | `src/uuid/generateUuid.ts`     | Cross-platform UUID v4                 |
 
-**Exports (4 subpath):**
+**Exports (51 subpath):**
 
 ```json
 {
@@ -355,7 +356,7 @@ nên mọi thứ trông như chạy): `node_modules` chỉ có `react` + `tinita
 
 ## Testing Status
 
-**Current:** tinita 35 test; tinita-dom 2 file; tinita-react 36 ca / 6 file
+**Current:** tinita 262 test; tinita-dom 102; tinita-react 89. Tổng 453.
 
 **Setup:** Vitest configs tồn tại (`vitest.config.ts` root, `vitest.config.ts` tinita-react)
 

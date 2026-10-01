@@ -80,12 +80,39 @@ chủ ý.
 
 ## Tầng test
 
-| Level | Kiểm gì                                                            | Docker |
-| ----- | ------------------------------------------------------------------ | ------ |
-| L1    | package artifact: `exports`, ESM/CJS, optional peer                | không  |
-| L2    | consumer thật: Vite, Next, Node, `tsc`                             | không  |
-| L3    | ecosystem: Node 18-24 × npm/pnpm/yarn/bun                          | có     |
-| L4    | production: CSS leak, hydration, reduced-motion, visual regression | có     |
+| Level | Kiểm gì | Docker |
+| ----- | ------- | ------ |
+
+## Số ca hiện tại, đo 2026-10-01
+
+| Lab |     Ca | Fail | Skip | Thời lượng |
+| --- | -----: | ---: | ---: | ---------: |
+| L1  | **25** |    0 |    2 |      ~107s |
+| L2  | **17** |    0 |    1 |      ~312s |
+| L4  | **24** |    0 |    6 |      ~156s |
+
+L4 tăng từ 16 lên 24 ở pha 06: tám ca mới cho `tinita-dom` trong Chromium thật, vì ba
+hợp đồng của nó **không** quan sát được trong jsdom - jsdom không tải resource (nên
+payload `<img onerror>` nằm im dù dùng `innerHTML`), không layout (nên
+`getScrollbarSize` luôn ra `[0, 0]`), và không có `devicePixelRatio` thật.
+
+Ca `03-smoke-cjs-esm` của L1 từ **29** lên **122** lần thực thi; ca SSR của L2 giờ
+import **cả 52 specifier** của `tinita` ở top level, suy từ `contract.json` thay vì
+liệt kê tay. Trước pha 05 hai fixture SSR chỉ chạm `tinita-react`, nên hợp đồng "chạy
+mọi nơi" của `tinita` không có guard nào.
+
+Mọi `accepted` trong `contract.json` giờ là `[]` cho cả ba package - không còn ngoại
+lệ nào được chấp nhận.
+
+### Ba vấn đề còn treo - NGOÀI phạm vi lần này
+
+`yarn-classic` network flake, `yarn-pnp` corepack fail, và tier 2 chưa đo lại sau khi
+thêm package thứ ba. Không cái nào chặn publish `0.1.0`. Ghi rõ ở đây để không để lửng.
+
+| L1 | package artifact: `exports`, ESM/CJS, optional peer | không |
+| L2 | consumer thật: Vite, Next, Node, `tsc` | không |
+| L3 | ecosystem: Node 18-24 × npm/pnpm/yarn/bun | có |
+| L4 | production: CSS leak, hydration, reduced-motion, visual regression | có |
 
 L1 có **3 chân bổ sung nhau**, đã thực nghiệm để chốt:
 
@@ -235,6 +262,9 @@ Lưu ý `tinita-dom` là tên mới: kiểm `npm view tinita-dom` trước, nế
 Hình dạng `typesVersions` quan trọng, và 3 trong 4 hình dạng là sai. Chi tiết + bảng đo ở
 `docs/code-standards.md` mục "Quy Tắc `typesVersions`". Tóm lại: **key tường minh từng subpath,
 KHÔNG wildcard**. Hình dạng có fallback `dist/index.d.ts` trông như đã sửa nhưng khiến
+
+<!-- doc-links-ignore -->
+
 `import x from 'tinita/file/doesNotExistAtAll'` typecheck sạch và nhận type của root.
 
 Cửa chặn cho việc đồng bộ `typesVersions` <-> `exports`: ca L1 `08-typesversions-sync`, hai chiều.
@@ -268,11 +298,14 @@ khoảng đó, và ca sẽ báo "không bị đè" trong lúc rò rỉ còn nguy
 
 ## Đã sửa nhờ lab (2026-09-25)
 
-| Khiếm khuyết                                                             | Cách sửa                                                                | Bằng chứng                             |
-| ------------------------------------------------------------------------ | ----------------------------------------------------------------------- | -------------------------------------- |
-| `attw` `FalseCJS` 6/6 subpath của `tinita`                               | tách `types` theo condition: `import` -> `.d.mts`, `require` -> `.d.ts` | `Masquerading as CJS` từ 6 xuống **0** |
-| `tinita` thiếu `sideEffects`                                             | thêm `"sideEffects": false`                                             | publint không còn suggestion đó        |
-| `CLAUDE.md` ghi `tinita-react/hooks` và `/ui` là đường nhập **bắt buộc** | sửa: hai đường đó **không tồn tại**; thay bằng 9 subpath thật           | ca `05-contract-drift`                 |
+| Khiếm khuyết                               | Cách sửa                                                                | Bằng chứng                             |
+| ------------------------------------------ | ----------------------------------------------------------------------- | -------------------------------------- |
+| `attw` `FalseCJS` 6/6 subpath của `tinita` | tách `types` theo condition: `import` -> `.d.mts`, `require` -> `.d.ts` | `Masquerading as CJS` từ 6 xuống **0** |
+| `tinita` thiếu `sideEffects`               | thêm `"sideEffects": false`                                             | publint không còn suggestion đó        |
+
+<!-- doc-links-ignore -->
+
+| `CLAUDE.md` ghi `tinita-react/hooks` và `/ui` là đường nhập **bắt buộc** | sửa: hai đường đó **không tồn tại**; thay bằng 9 subpath thật | ca `05-contract-drift` |
 
 Allowlist `contract.json` của `tinita` thu hẹp từ 3 entry xuống 1 - sửa xong thì **xoá** entry, không
 để allowlist phình thành thùng rác.

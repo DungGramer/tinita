@@ -229,13 +229,13 @@ trình viên viết, không phải dữ liệu người dùng, nên không có r
 
 ## Kết quả đo được
 
-| Chỉ số                  | Trước pha | Sau pha |
-| ----------------------- | --------: | ------: |
-| `tinita-react` subpath  |        11 |  **17** |
-| `typesVersions` key     |         6 |  **12** |
-| Test `tinita-react`     |        49 |  **89** |
-| Story file toàn repo    |        10 |  **23** |
-| EXEMPT mới              |         - |   **0** |
+| Chỉ số                 | Trước pha | Sau pha |
+| ---------------------- | --------: | ------: |
+| `tinita-react` subpath |        11 |  **17** |
+| `typesVersions` key    |         6 |  **12** |
+| Test `tinita-react`    |        49 |  **89** |
+| Story file toàn repo   |        10 |  **23** |
+| EXEMPT mới             |         - |   **0** |
 
 49 đường dẫn trong `exports` của `tinita-react` đều resolve, 0 thiếu.
 
@@ -279,7 +279,7 @@ canGoPrevious === page > 1
 ```ts
 // Initialize state with undefined width/height so server and client renders match
 const [windowSize, setWindowSize] = useState({
-  width: window.innerWidth,   // đọc window NGAY trong initializer
+  width: window.innerWidth, // đọc window NGAY trong initializer
   height: window.innerHeight,
 });
 ```

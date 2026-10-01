@@ -64,16 +64,16 @@ thẳng, không alias. QĐ-A/B/C đã chốt và đã làm (xem reports/00).
 
 ## Các pha
 
-| Pha | Việc                                | Trạng thái | Link                                           |
-| --- | ----------------------------------- | ---------- | ---------------------------------------------- |
-| 01  | Chặn chảy máu: build xanh trở lại   | **XONG**   | [phase-01](./phase-01-stop-the-bleeding.md)    |
-| 02  | Định tuyến package + xoá trùng lặp  | **XONG**   | [phase-02](./phase-02-routing.md)              |
-| 03  | 6 hàm owner nêu đích danh lên chuẩn | **XONG**   | [phase-03](./phase-03-six-functions.md)        |
-| 04  | Chốt tên, vị trí, hình dạng export  | **XONG**   | [phase-04](./phase-04-naming-and-placement.md) |
-| 05  | 29 file của `tinita`                | **XONG**   | [phase-05](./phase-05-tinita-pure.md)          |
-| 06  | 15 file của `tinita-dom`            | **XONG**   | [phase-06](./phase-06-tinita-dom.md)           |
-| 07  | 6 file của `tinita-react`           | **XONG**   | [phase-07](./phase-07-tinita-react.md)         |
-| 08  | Docs, guard, cổng publish của owner | chưa làm   | [phase-08](./phase-08-publish-readiness.md)    |
+| Pha | Việc                                | Trạng thái                   | Link                                           |
+| --- | ----------------------------------- | ---------------------------- | ---------------------------------------------- |
+| 01  | Chặn chảy máu: build xanh trở lại   | **XONG**                     | [phase-01](./phase-01-stop-the-bleeding.md)    |
+| 02  | Định tuyến package + xoá trùng lặp  | **XONG**                     | [phase-02](./phase-02-routing.md)              |
+| 03  | 6 hàm owner nêu đích danh lên chuẩn | **XONG**                     | [phase-03](./phase-03-six-functions.md)        |
+| 04  | Chốt tên, vị trí, hình dạng export  | **XONG**                     | [phase-04](./phase-04-naming-and-placement.md) |
+| 05  | 29 file của `tinita`                | **XONG**                     | [phase-05](./phase-05-tinita-pure.md)          |
+| 06  | 15 file của `tinita-dom`            | **XONG**                     | [phase-06](./phase-06-tinita-dom.md)           |
+| 07  | 6 file của `tinita-react`           | **XONG**                     | [phase-07](./phase-07-tinita-react.md)         |
+| 08  | Docs, guard, cổng publish của owner | **XONG** (publish chờ owner) | [phase-08](./phase-08-publish-readiness.md)    |
 
 Pha 04 chặn 05/06/07. Ba pha đó **song song được** (khác package, khác file). Pha 08
 cần cả ba xong. Mỗi pha kết thúc bằng `pnpm gate --full` 9/9.

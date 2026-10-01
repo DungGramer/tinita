@@ -247,7 +247,8 @@
         "./hooks/useRefreshComponent",
         "./hooks/useRequiredContext",
         "./hooks/useWindowSize",
-        "./utils/jsxJoin"
+        "./utils/jsxJoin",
+        "./hooks/useIsomorphicLayoutEffect"
       ],
       "cssSpecifiers": [
         "./styles.css",
@@ -288,6 +289,9 @@
         ],
         "./utils/jsxJoin": [
           "jsxJoin"
+        ],
+        "./hooks/useIsomorphicLayoutEffect": [
+          "useIsomorphicLayoutEffect"
         ]
       },
       "requiredPeers": [

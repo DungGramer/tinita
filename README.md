@@ -2,7 +2,7 @@
 
 A monorepo of framework-agnostic utilities, React hooks and UI components, with Storybook.
 
-**Packages:** `tinita` (v0.1.0, 5 utilities) · `tinita-react` (v0.1.0, 1 hook + 4 components) · `tinita-dom` (v0.1.0, DOM utilities, browser-only)
+**Packages:** `tinita` (v0.1.0, 51 subpaths) · `tinita-dom` (v0.1.0, 22 subpaths, browser-only) · `tinita-react` (v0.1.0, 13 subpaths + 4 CSS entries)
 
 ---
 
@@ -22,17 +22,45 @@ pnpm gate         # format, lint, types, build, test, stories, L1 (~90s)
 
 ### tinita (v0.1.0)
 
-Five framework-agnostic utilities:
+**51 subpaths.** It runs everywhere - Node and browser - and that is the rule that decides what
+belongs here rather than in `tinita-dom`: ask whether the function means anything without a document.
+`stringToBase64` on a server does; `getScrollbarSize` does not.
+
+| Folder        | What is in it                                                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `array/`      | `createRange`, `getArrayValue`, `prependUnique`, `sortAlphaText`, `uniqueArray`                                    |
+| `converter/`  | base64 and Blob conversions, `objectToFormData`, `parseKeyCombination`, the Map/object pair                        |
+| `date/`       | `sortDates`                                                                                                        |
+| `file/`       | `fileSize`, `getFileNameParts`, `truncateFileName`, `truncateFileNameParts`                                        |
+| `html/`       | `html.encode` / `html.decode` / `html.extend`, plus the 1510-entity plugin                                         |
+| `mime/`       | `mime.fromExtension`, `.toExtension`, `.acceptToRegExp`, plus the full table plugin                                |
+| `object/`     | `pick`, `omit`, `once`, `enumKeys`, `sortObjectKeys`, `conditionalEntry`, `omitEmptyValues`                        |
+| `print/`      | `PAGE_SIZES` (ISO 216/217), `PHOTO_PRINT_SIZES`, `DEFAULT_PRINT_MARGINS`                                           |
+| `string/`     | `titleCase`, `sentenceCase`, `snakeToTitleCase`, `collapseWhitespace`, `insertTextEveryNWords`, `stringToSelector` |
+| `unit/`       | `convertLength` - CSS absolute units, exact spec ratios, no DOM                                                    |
+| `uuid/`       | `generateUuid`                                                                                                     |
+| `validation/` | `isEmail`, `isUrl`, `isNumericString`, `isAsciiLetters`, `hasVietnameseDiacritics`                                 |
 
 ```typescript
-import { fileSize } from 'tinita/file/fileSize';
-import { getFileNameParts } from 'tinita/file/getFileNameParts';
 import { truncateFileName } from 'tinita/file/truncateFileName';
-import { truncateFileNameParts } from 'tinita/file/truncateFileNameParts';
-import { generateUuid } from 'tinita/uuid/generateUuid';
+import { stringToBase64 } from 'tinita/converter/stringToBase64';
+import { mime } from 'tinita/mime';
 ```
 
-Zero dependencies, zero peer dependencies. The barrel import (`from 'tinita'`) works too.
+Zero dependencies, zero peer dependencies. The barrel import (`from 'tinita'`) works too, and unlike
+`tinita-react` it carries no optional-peer surprise.
+
+Two tables are opt-in rather than bundled, because `bundle: true` inlines whatever is imported into
+every entry that imports it: `tinita/html/plugin/entities` (1510 named entities) and
+`tinita/mime/plugin/full` (1015 media types, 71KB of output). Apply either with `.extend()`, after
+dayjs:
+
+```typescript
+import { mime } from 'tinita/mime';
+import { full } from 'tinita/mime/plugin/full';
+
+mime.extend(full);
+```
 
 ### tinita-react (v0.1.0)
 
@@ -61,14 +89,14 @@ import 'tinita-react/styles.css';
 `tinita-react` has **no `dependencies`**. Any library that only part of the package needs is an
 **optional peer**, so you install only what the components you import actually use.
 
-| Import                                | Also install                      |
-| ------------------------------------- | --------------------------------- |
-| `tinita-react/ui/ping`                | nothing                           |
-| `tinita-react/ui/carousel-ticker`     | nothing                           |
-| `tinita-react/hooks/*`                | nothing                           |
-| `tinita-react/utils/autoInjectStyles` | nothing                           |
-| `tinita-react/ui/tree`                | `@base-ui/react`                  |
-| `tinita-react/ui/file-tree`           | `@base-ui/react` + `lucide-react` |
+| Import                            | Also install                      |
+| --------------------------------- | --------------------------------- |
+| `tinita-react/ui/ping`            | nothing                           |
+| `tinita-react/ui/carousel-ticker` | nothing                           |
+| `tinita-react/hooks/*`            | nothing                           |
+| `tinita-react/utils/*`            | nothing                           |
+| `tinita-react/ui/tree`            | `@base-ui/react`                  |
+| `tinita-react/ui/file-tree`       | `@base-ui/react` + `lucide-react` |
 
 `react >=18` is a required peer for every entry point.
 
@@ -120,11 +148,28 @@ The two files have the same content, generated from one source at build time.
 
 ### tinita-dom (v0.1.0)
 
-Framework-agnostic DOM utilities. **Browser-only** - it touches `document`, `window.matchMedia` and
-`requestAnimationFrame`. There is no SSR guard, and that is deliberate: `installSmoothScroll` attaches
-listeners to `document`, and on the server there is nothing to attach them to.
+**22 subpaths.** Browser-only: these need a document to do their job, so **calling** one on a server
+is an error and there is no guard for that - deliberately. `installSmoothScroll` attaches listeners to
+`document`, and on the server there is nothing to attach them to.
 
-Zero dependencies. Zero peer dependencies. No React required.
+**Importing** any of them without a DOM is safe, though, and that is enforced: nothing touches
+`document` at module load, so a bundler or an SSR pass can walk the package without throwing.
+
+| Folder        | What is in it                                                                                     |
+| ------------- | ------------------------------------------------------------------------------------------------- |
+| `converter/`  | `blobToFile`, `base64ToFile`, `uint8ArrayToFile` - here because `File` is not a global on Node 18 |
+| `dimension/`  | `getScrollbarSize` - `[0, 0]` where scrollbars are overlays                                       |
+| `file/`       | `downloadBlob`                                                                                    |
+| `html/`       | `htmlToJson`, `jsonToHtml`, `elementToJson`, `isBlockLevelHtml`                                   |
+| `image/`      | `resizeImage`                                                                                     |
+| `storage/`    | `localStorageJson`, `sessionStorageJson`, `cookieJar`, `createJsonStore`                          |
+| `style/`      | `setCssVariables`                                                                                 |
+| `unit/`       | `toDevicePixels`, `fromDevicePixels` - the part that varies per display                           |
+| `validation/` | `isTouchDevice`, `isCoarsePointer`, plus user-agent heuristics in `platform` and `browser`        |
+|               | `smooth-scroll`, `wheel-source`                                                                   |
+
+Zero dependencies. Zero peer dependencies. No React required. `tinita` is a **devDependency** only -
+`bundle: true` inlines what is used, so the published package pulls nothing at runtime.
 
 ```ts
 import { installSmoothScroll } from 'tinita-dom/smooth-scroll';
@@ -165,6 +210,7 @@ Details: [`packages/tinita-dom/README.md`](./packages/tinita-dom/README.md).
 | `gate`                    | format, lint, types, build, test, stories, L1      |
 | `gate:full`               | the above plus L2 and L4 (needs chromium, minutes) |
 | `check-stories`           | Every published subpath must have a story          |
+| `check-doc-links`         | Every import path written in a .md must exist      |
 | `storybook`               | Run Storybook                                      |
 | `build-storybook`         | Build the static Storybook                         |
 | `deploy:storybook`        | Deploy Storybook                                   |
@@ -186,9 +232,9 @@ hand - see [CLAUDE.md](./CLAUDE.md).
 
 ```
 tinita/
-  ├── packages/tinita          # 5 utilities, zero deps
+  ├── packages/tinita          # 51 subpaths, runs everywhere, zero deps
   ├── packages/tinita-react    # 1 hook + 4 components + CSS
-  ├── packages/tinita-dom      # DOM utilities, browser-only
+  ├── packages/tinita-dom      # 22 subpaths, browser-only
   ├── apps/storybook           # Storybook 10
   ├── compatibility/           # consumer test lab (outside the pnpm workspace)
   ├── config/                  # ESLint, TypeScript, UI configs

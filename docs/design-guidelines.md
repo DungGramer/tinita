@@ -19,12 +19,18 @@ navigation, positioning, portal, dismissable layer.
 Phạm vi hiện tại của package (v0.0.2-alpha.1): 3 UI component (`file-tree`, `ping`,
 `carousel-ticker`), 2 hook (`useToggle`, `useIsomorphicLayoutEffect`).
 
+<!-- doc-links-ignore -->
+
 Import path thật (không có `tinita-react/ui` hay `tinita-react/hooks` dạng barrel):
 
 ```ts
+<!-- doc-links-ignore -->
 import { FileTree } from 'tinita-react/ui/file-tree';
+<!-- doc-links-ignore -->
 import { Ping } from 'tinita-react/ui/ping';
+<!-- doc-links-ignore -->
 import { CarouselTicker } from 'tinita-react/ui/carousel-ticker';
+<!-- doc-links-ignore -->
 import { useToggle } from 'tinita-react/hooks/useToggle';
 import 'tinita-react/styles.css'; // bundle đầy đủ
 import 'tinita-react/styles/globals.css'; // chỉ token + theme

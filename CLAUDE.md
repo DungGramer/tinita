@@ -16,10 +16,12 @@ ra được từ code.
 ## Ba package
 
 ```
-packages/tinita/       utility framework-agnostic, 0 dependency, 0 peer
+packages/tinita/       chạy MỌI NƠI (Node + browser), 0 dependency, 0 peer
 packages/tinita-react/ hook + UI component, 0 dependency, peer: react (bắt buộc)
                        + @base-ui/react và lucide-react (optional)
-packages/tinita-dom/   utility DOM thuần, 0 dependency, 0 peer, browser-only
+packages/tinita-dom/   browser tối thiểu, 0 dependency, 0 peer
+                       (devDependency `tinita` cho lúc build; bundle:true inline nên
+                        bản publish không có runtime dep)
 ```
 
 `config/` giữ eslint/typescript/ui dùng chung. `apps/storybook` là nơi xem
@@ -31,7 +33,7 @@ pnpm + Turborepo. Node >= 18.
 ## Lệnh
 
 ```bash
-pnpm gate           # CỔNG: format, lint, types, build, test, stories, L1 (~84s)
+pnpm gate           # CỔNG: format, lint, types, build, test, stories, doc-links, L1
 pnpm gate:full      # thêm L2 và L4 (cần chromium, vài phút) - chạy trước publish
 
 pnpm build          # turbo run build
@@ -41,6 +43,7 @@ pnpm check-types
 pnpm format         # prettier --write
 pnpm format:check   # dùng cái này làm cổng, đừng --write rồi xem diff
 pnpm check-stories  # mọi subpath publish ra đều phải có story
+pnpm check-doc-links # mọi đường nhập viết trong .md đều phải tồn tại trong exports
 pnpm storybook
 ```
 
@@ -53,6 +56,8 @@ dừng ở `npm whoami` - đừng bypass.
 
 - **`generate:exports`**: không có `scripts/generate-package-exports.mjs`, không có
   task trong `turbo.json`. `exports`, entry tsup và barrel đều sửa TAY.
+  (`scripts/generate-mime-table.mjs` là chuyện khác: nó sinh **dữ liệu** bảng MIME từ
+  `mime-db` rồi commit kết quả, không sinh `exports`.)
   `tinita-react/tsup.config.ts` có tự quét entry bằng glob, nhưng `exports` thì
   không. Thêm subpath = sửa `package.json` + `typesVersions` + `contract.json`.
 - **`tailwind.config.cjs`**: đã xoá. `build-entry.css` cố ý không
@@ -83,29 +88,32 @@ từng subpath, KHÔNG wildcard**; xem `docs/code-standards.md`.
 
 ## Đường nhập
 
-`tinita` - barrel hoặc subpath đều được.
+**93 subpath công khai.** Danh sách thật nằm trong `exports` của từng
+`package.json`; `pnpm check-doc-links` làm đỏ nếu một `.md` nào nhắc tới đường
+không tồn tại, nên đừng liệt kê lại ở đây.
 
-`tinita-react` - dùng **subpath cụ thể**. 10 key thật:
+`tinita` (52) - barrel hoặc subpath đều được. Thư mục: `array/`, `converter/`,
+`date/`, `file/`, `html/`, `mime/`, `object/`, `print/`, `string/`, `unit/`,
+`uuid/`, `validation/`.
 
-```
-tinita-react/hooks/useToggle   tinita-react/ui/ping
-tinita-react/ui/tree           tinita-react/ui/file-tree
-tinita-react/ui/carousel-ticker
-tinita-react/utils/autoInjectStyles
-tinita-react/styles.css        tinita-react/styles.layer.css
-tinita-react/styles/globals.css  tinita-react/styles/animations.css
-```
+`tinita-dom` (23) - browser-only, **có chủ ý không có SSR guard khi GỌI**, nhưng
+mọi module phải **import** sạch khi không có DOM. Thư mục: `converter/`,
+`dimension/`, `file/`, `html/`, `image/`, `storage/`, `style/`, `unit/`,
+`validation/`, cộng `smooth-scroll` và `wheel-source`.
 
+`tinita-react` (18, trong đó 4 là CSS) - dùng **subpath cụ thể**. 7 hook,
+4 component, 2 util.
+
+<!-- doc-links-ignore -->
 `tinita-react/hooks` và `tinita-react/ui` **không tồn tại** - CLAUDE.md từng ghi
-chúng là bắt buộc và chỉ người dùng vào đường chết.
+chúng là bắt buộc và chỉ người dùng vào đường chết. Đó là lý do
+`scripts/check-doc-links.mjs` tồn tại.
 
 Barrel `tinita-react` tồn tại nhưng nó re-export `./ui/file-tree`, nên
-`import { Ping } from 'tinita-react'` đòi `@radix-ui/react-accordion` và
-`lucide-react` dù Ping không cần. Đây là lý do KỸ THUẬT để tránh barrel.
+`import { Ping } from 'tinita-react'` đòi `@base-ui/react` và `lucide-react` dù
+Ping không cần. Đây là lý do KỸ THUẬT để tránh barrel.
 
-`tinita-dom` - `tinita-dom/smooth-scroll`, `tinita-dom/wheel-source`.
-Browser-only, không có SSR guard, có chủ ý. `installSmoothScroll()` gọi một lần
-ngoài React và trả về hàm gỡ.
+`installSmoothScroll()` gọi một lần ngoài React và trả về hàm gỡ.
 
 ## Dependency: optional peer, không phải dependencies
 

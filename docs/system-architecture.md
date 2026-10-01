@@ -302,7 +302,7 @@ All packages:
 
 ┌──────────┐
 │   test   │─────────> depends on build, cache: no
-│ Vitest   │         (tinita: 35 test; tinita-react: 0)
+│ Vitest   │         (tinita 262; tinita-dom 102; tinita-react 89)
 └──────────┘
 
 ┌─────────────────┐
@@ -330,21 +330,21 @@ turbo lint --filter=tinita-react
 
 ## Root Scripts (13)
 
-| Script               | Command                                              | Turbo | Notes                                                              |
-| -------------------- | ---------------------------------------------------- | ----- | ------------------------------------------------------------------ |
-| build                | turbo build                                          | yes   | Per-file + CSS build                                               |
-| dev                  | concurrently tsup --watch + build:css --watch        | yes   | storybook dev also runs                                            |
-| lint                 | turbo lint                                           | yes   | ESLint all                                                         |
-| test                 | turbo test                                           | yes   | Vitest - tinita 35 test, tinita-react 0 test (`--passWithNoTests`) |
-| format               | prettier --write                                     | no    | Prettier pass                                                      |
-| check-types          | turbo check-types                                    | yes   | tsc --noEmit                                                       |
-| storybook            | turbo run storybook --filter=@storybook/tinita       | yes   | ⚠️ BROKEN (filter sai)                                             |
-| build-storybook      | turbo run build-storybook --filter=@storybook/tinita | yes   | ⚠️ BROKEN (filter sai)                                             |
-| publish:tinita       | scripts/publish.mjs tinita                           | no    | Thủ công                                                           |
-| publish:tinita-react | scripts/publish.mjs tinita-react                     | no    | Thủ công                                                           |
-| publish:all          | scripts/publish.mjs all                              | no    | Thủ công                                                           |
-| publish:dry-run      | scripts/publish.mjs --dry-run                        | no    | Thủ công                                                           |
-| generate:exports     | turbo run generate:exports                           | yes   | ❌ KHÔNG TỒN TẠI                                                   |
+| Script               | Command                                              | Turbo | Notes                                                |
+| -------------------- | ---------------------------------------------------- | ----- | ---------------------------------------------------- |
+| build                | turbo build                                          | yes   | Per-file + CSS build                                 |
+| dev                  | concurrently tsup --watch + build:css --watch        | yes   | storybook dev also runs                              |
+| lint                 | turbo lint                                           | yes   | ESLint all                                           |
+| test                 | turbo test                                           | yes   | Vitest - tinita 262, tinita-dom 102, tinita-react 89 |
+| format               | prettier --write                                     | no    | Prettier pass                                        |
+| check-types          | turbo check-types                                    | yes   | tsc --noEmit                                         |
+| storybook            | turbo run storybook --filter=@storybook/tinita       | yes   | ⚠️ BROKEN (filter sai)                               |
+| build-storybook      | turbo run build-storybook --filter=@storybook/tinita | yes   | ⚠️ BROKEN (filter sai)                               |
+| publish:tinita       | scripts/publish.mjs tinita                           | no    | Thủ công                                             |
+| publish:tinita-react | scripts/publish.mjs tinita-react                     | no    | Thủ công                                             |
+| publish:all          | scripts/publish.mjs all                              | no    | Thủ công                                             |
+| publish:dry-run      | scripts/publish.mjs --dry-run                        | no    | Thủ công                                             |
+| generate:exports     | turbo run generate:exports                           | yes   | ❌ KHÔNG TỒN TẠI                                     |
 
 ---
 

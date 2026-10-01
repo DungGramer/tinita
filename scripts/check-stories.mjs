@@ -21,6 +21,12 @@ const STORIES = resolve(ROOT, 'apps/storybook/stories');
 /**
  * Subpath KHÔNG cần story: file CSS, barrel, và hook/util không có mặt nhìn được.
  *
+ * `./hooks/useIsomorphicLayoutEffect` là alias: `useLayoutEffect` trong browser,
+ * `useEffect` trên server. Hợp đồng của nó là một câu, và cái duy nhất có thể trưng
+ * ra là một cảnh báo console KHÔNG xuất hiện - không phải mặt nhìn được. Nó có
+ * subpath vì nó vốn đã công khai qua barrel, và đường nhập qua barrel kéo theo peer
+ * của `file-tree`.
+ *
  * `tinita-dom/converter/*` là hàm thuần nhận Blob/base64 trả `File`. Chúng ở
  * `tinita-dom` vì `File` không phải global trên Node 18, không phải vì chúng vẽ ra
  * cái gì. Cùng loại với `autoInjectStyles` ở trên: chỉ chạy được trong browser,
@@ -28,7 +34,12 @@ const STORIES = resolve(ROOT, 'apps/storybook/stories');
  * (`packages/tinita/tests/converter-base64.test.ts` cho cặp nghịch đảo ở `tinita`).
  */
 const EXEMPT = {
-  'tinita-react': ['.', './hooks/useToggle', './utils/autoInjectStyles'],
+  'tinita-react': [
+    '.',
+    './hooks/useToggle',
+    './hooks/useIsomorphicLayoutEffect',
+    './utils/autoInjectStyles',
+  ],
   'tinita-dom': [
     '.',
     './converter/blobToFile',

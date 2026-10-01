@@ -8,17 +8,23 @@ This document defines the core architectural principles, edge cases, and complia
 
 ### 1.1 Core Package Independence
 
-**Rule**: Core packages MUST NOT have runtime dependencies on external micro-packages.
+**Rule**: the published packages MUST NOT have runtime dependencies on external
+micro-packages.
 
 ❌ **Bad Example** (DO NOT DO THIS):
 ```typescript
-// Inside @tinita/core
-import { isNumber } from '@tinita/is-number';
+// Inside tinita
+import { isNumericString } from 'some-is-numeric-string';
 ```
 
-If you publish a separate `@tinita/is-number` package, it must be:
-- An independent package, NOT the sole source for `isNumber` in `@tinita/core`
-- `@tinita/core` must have its own internal implementation
+If such a micro-package is ever published, it must be:
+- An independent package, NOT the sole source for `isNumericString` in `tinita`
+- `tinita` must keep its own internal implementation
+
+**Where this rule is actually tested**: `tinita` and `tinita-dom` declare `{}` as
+`dependencies`, and `tinita-react` declares `react` as a required peer with everything
+else optional. L1 case `04a-consumer-is-clean` installs a package into an isolated
+project and asserts what landed in `node_modules`.
 
 ### 1.2 Avoiding Version Drift
 
@@ -26,8 +32,14 @@ If you publish a separate `@tinita/is-number` package, it must be:
 
 **Solutions**:
 1. **Internalize or bundle** core implementations into their parent package
-2. Do NOT let `@tinita/core` behavior depend on versions users install separately
+2. Do NOT let `tinita` behavior depend on versions users install separately
 3. Similar to `lodash` vs `lodash.isnumber` - they are independent at runtime
+
+This is also why `tinita-dom` and `tinita-react` list `tinita` as a **devDependency**
+rather than a dependency: `bundle: true` inlines what they use, so a consumer cannot
+end up with one version of `tinita` behind the package and a different one in front of
+it. Verified on the build output - `tinita-dom/dist/unit/toDevicePixels.mjs` carries the
+unit table inline and imports nothing.
 
 ### 1.3 Runtime Dependencies (When Required)
 
@@ -65,32 +77,49 @@ For critical dependencies in foundation packages:
 
 ### 2.1 Monorepo Structure
 
-tinita is a monorepo with clearly separated packages:
+tinita is a monorepo with three published packages. Names are **unscoped**:
 
-- **`@tinita/core`** - Framework-agnostic utilities (pure TypeScript)
-- **`@tinita/react`** - React hooks
-- **`@tinita/vue`** - Vue composables
-- **`@tinita/node`** - Node.js utilities
-- **`@tinita/config`** - Shared configurations (ESLint, TypeScript, Prettier)
+- **`tinita`** - runs everywhere, Node and browser. 51 public subpaths.
+- **`tinita-dom`** - browser minimum: needs a document to do its job. 22 subpaths.
+- **`tinita-react`** - React minimum, and must survive SSR. 13 subpaths plus 4 CSS entries.
 
-### 2.2 Cross-Framework Separation
+Plus `config/` (shared ESLint, TypeScript and UI config, private) and `apps/storybook`
+(private).
+
+> Corrected 2026-10-01. This section previously listed `tinita`, `tinita-react`,
+> `@tinita/vue`, `@tinita/node` and `@tinita/config`. **None of those packages has ever
+> existed**, there is no Vue or Node package, and the real names carry no scope. A reader
+> following the old text would have installed nothing that resolves. Kept as a note
+> because the same class of error - documentation describing an API that is not there -
+<!-- doc-links-ignore -->
+> also put `tinita-react/hooks` in CLAUDE.md as a required import path, and is now
+> guarded for subpaths by `scripts/check-doc-links.mjs`.
+
+### 2.2 Separation by Runtime, Not by Framework
+
+The boundary is **what a function needs in order to run**, not which framework a user
+happens to have. "Shared utilities" cannot be checked by a test; "runs in plain Node"
+can, and the lab measures it.
 
 **Strict Rules**:
-1. NO React code in `@tinita/core`
-2. NO Vue code in `@tinita/core`
-3. `@tinita/react` and `@tinita/vue` may only depend on:
-   - Their respective framework (as `peerDependencies`)
-   - `@tinita/core` (if needed)
+1. `tinita` must import cleanly AND run with no DOM. Guarded by L1 (plain Node) and the
+   L2 SSR cases, which import every `tinita` specifier derived from `contract.json`.
+2. `tinita-dom` may use `document` and `window` **when called**, never at import time -
+   the module must still load during SSR. Guarded by the L2 SSR skip plus L4 in Chromium.
+3. `tinita-react` declares `react` as a required peer and everything else as an optional
+   peer. It may depend on `tinita` at build time, where `bundle: true` inlines the code so
+   the published package takes no runtime dependency.
+4. No framework code in `tinita` or `tinita-dom`.
 
 ❌ **Bad**: React code in core package
 ```typescript
-// @tinita/core/src/useWindowSize.ts
+// tinita/src/useWindowSize.ts
 import { useState, useEffect } from 'react'; // WRONG!
 ```
 
 ✅ **Good**: Framework-specific code in appropriate package
 ```typescript
-// @tinita/react/src/useWindowSize.ts
+// tinita-react/src/useWindowSize.ts
 import { useState, useEffect } from 'react'; // CORRECT
 ```
 
@@ -99,7 +128,7 @@ import { useState, useEffect } from 'react'; // CORRECT
 React and Vue MUST be `peerDependencies`, never bundled:
 
 ```json
-// @tinita/react/package.json
+// tinita-react/package.json
 {
   "peerDependencies": {
     "react": ">=18.0.0"
@@ -109,7 +138,7 @@ React and Vue MUST be `peerDependencies`, never bundled:
 
 **tsup configuration must externalize frameworks**:
 ```typescript
-// @tinita/react/tsup.config.ts
+// tinita-react/tsup.config.ts
 export default defineConfig({
   external: ['react'],
   // ...
@@ -128,9 +157,9 @@ export default defineConfig({
 
 ```typescript
 // User only wants isPositive
-import { isPositive } from '@tinita/core';
+import { isPositive } from 'tinita';
 
-// BAD: If @tinita/core bundles everything together,
+// BAD: If tinita bundles everything together,
 // user gets ALL utilities even if they only use one
 ```
 
@@ -150,21 +179,30 @@ import { isPositive } from '@tinita/core';
 **tsup configuration for utility packages**:
 
 ```typescript
-// @tinita/core/tsup.config.ts
+// tinita/tsup.config.ts
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
+  // Real configs auto-discover entries with a glob; see packages/tinita/tsup.config.ts.
+  // Note the glob must cover every extension in use - a `*.ts` glob silently excluded
+  // `.tsx` files three separate times in this repo.
   entry: [
     'src/index.ts',
-    'src/number/isNumber.ts',
-    'src/number/isPositive.ts',
-    // Add each utility file explicitly
+    'src/validation/isNumericString.ts',
+    'src/validation/isEmail.ts',
   ],
   format: ['cjs', 'esm'],
   dts: true,
-  bundle: false,      // ← CRITICAL: Keep modules separate
+  // `true`, NOT false. With `bundle: false` esbuild leaves extensionless relative
+  // specifiers in the `.mjs` output and Node ESM rejects them: ERR_MODULE_NOT_FOUND on
+  // every internal import. Lab bug B2. Each entry is still its own output file, so
+  // subpath tree-shaking is unaffected.
+  bundle: true,
   splitting: false,
   clean: true,
+  // Without this tsup emits `.js` and every `exports.require` pointing at `.cjs`
+  // breaks. Lab bug B1.
+  outExtension: ({ format }) => ({ js: format === 'cjs' ? '.cjs' : '.mjs' }),
   outDir: 'dist'
 });
 ```
@@ -214,12 +252,12 @@ Every utility MUST have a subpath export:
 
 **Allow barrel imports**:
 ```typescript
-import { isPositive } from '@tinita/core';
+import { isPositive } from 'tinita';
 ```
 
 **But RECOMMEND subpath imports in documentation**:
 ```typescript
-import isPositive from '@tinita/core/number/isPositive';
+import { isEmail } from 'tinita/validation/isEmail';
 ```
 
 **Rationale**: Subpath imports guarantee only the specific module is loaded, regardless of bundler tree-shaking capabilities.
@@ -231,12 +269,12 @@ import isPositive from '@tinita/core/number/isPositive';
 ### 4.1 Large Package vs Micro-Packages
 
 If you create micro-packages in the future:
-- `@tinita/is-number`
-- `@tinita/is-positive`
+- `some-is-numeric-string`
+- `some-is-positive`
 
 **Rules**:
-1. These micro-packages MUST NOT be runtime dependencies of `@tinita/core`
-2. `@tinita/core` has its own implementation in `src/number/isNumber.ts`
+1. These micro-packages MUST NOT be runtime dependencies of `tinita`
+2. `tinita` has its own implementation in `src/number/isNumber.ts`
 3. Micro-packages are compiled separately
 
 ### 4.2 User Choice
@@ -245,13 +283,13 @@ Users can choose:
 
 ```typescript
 // Option 1: From main package
-import isNumber from '@tinita/core/number/isNumber';
+import { isNumericString } from 'tinita/validation/isNumericString';
 
 // Option 2: From micro-package
-import isNumber from '@tinita/is-number';
+import { isNumericString } from 'some-is-numeric-string';
 ```
 
-**Critical**: These two imports are INDEPENDENT. The version of `@tinita/is-number` MUST NOT affect `@tinita/core` behavior.
+**Critical**: These two imports are INDEPENDENT. The version of `some-is-numeric-string` MUST NOT affect `tinita` behavior.
 
 ### 4.3 Source Sharing (Monorepo Internal)
 
@@ -330,7 +368,7 @@ When adding a new utility/hook/composable:
 - [ ] Write tests in `tests/`
 - [ ] Update package README with usage example
 - [ ] Verify build output in `dist/`
-- [ ] Test import: `import X from '@tinita/pkg/path/to/util'`
+- [ ] Test import: `import { thing } from 'tinita/<folder>/<thing>'` - named, never default
 
 **Common mistake**: Forgetting to add to `entry` or `exports` → import fails
 
@@ -346,7 +384,7 @@ export default function isNumber(value: unknown): value is number {
 }
 
 // Usage
-import isNumber from '@tinita/core/number/isNumber';
+import { isNumericString } from 'tinita/validation/isNumericString';
 ```
 
 **Option B - Named Export**:
@@ -357,14 +395,23 @@ export function isNumber(value: unknown): value is number {
 }
 
 // Usage
-import { isNumber } from '@tinita/core/number/isNumber';
+import { isNumericString } from 'tinita/validation/isNumericString';
 ```
 
-**Current tinita standard**: Named exports in core, default exports in framework packages (hooks/composables).
+**Current tinita standard**: named exports **everywhere**, in all three packages.
+
+Corrected 2026-10-01: this previously said "default exports in framework packages
+(hooks/composables)". `export default` is now banned in `packages/*/src/**` by
+`no-restricted-syntax` in `config/eslint-config/base.js`. The measured reason is in
+`docs/code-standards.md`: with `bundle: true` plus `outExtension`, `require()` on a
+default-only module returns `{ default: fn }` rather than the function - the same
+interop shape bug B1 already had to fix once - and the worst case was a plugin, where
+`html.extend(require('tinita/html/plugin/entities'))` passed `{ default: fn }` into
+`extend()` and failed silently.
 
 ### 6.3 React/Vue Version Mismatch
 
-**Issue**: User has React 17, but `@tinita/react` requires React 18+
+**Issue**: User has React 17, but `tinita-react` requires React 18+
 
 **Solution**:
 - `peerDependencies` specifies minimum version
@@ -374,9 +421,12 @@ import { isNumber } from '@tinita/core/number/isNumber';
 ### 6.4 Node vs Browser Environment
 
 **Rules**:
-1. `@tinita/core` utilities should be environment-agnostic (no DOM, no Node APIs)
-2. If a utility is environment-specific:
-   - Put it in `@tinita/node` for Node.js
+1. `tinita` utilities must be environment-agnostic: no DOM, no Node-only APIs. The test
+   is "does this mean anything without a document" - `stringToBase64` on a server does,
+   `getScrollbarSize` does not.
+2. If a utility needs a document, put it in `tinita-dom` - and it must still **import**
+   cleanly without one, so any `document` access happens when called, never at module
+   load. There is no Node-only package: nothing in this repo needs `fs` or `path`.
    - Document browser compatibility clearly
    - Use conditional exports if needed:
      ```json
@@ -395,7 +445,7 @@ import { isNumber } from '@tinita/core/number/isNumber';
 When one utility needs another **within the same package**:
 
 ```typescript
-// @tinita/core/src/number/isPositive.ts
+// tinita/src/number/isPositive.ts
 import { isNumber } from './isNumber'; // ✅ CORRECT - relative import
 
 export function isPositive(value: unknown): value is number {
@@ -406,21 +456,21 @@ export function isPositive(value: unknown): value is number {
 **Do NOT**:
 ```typescript
 // ❌ WRONG - circular package dependency
-import { isNumber } from '@tinita/core/number/isNumber';
+import { isNumericString } from 'tinita/validation/isNumericString';
 ```
 
 ### 6.6 Cross-Package Dependencies (Within Monorepo)
 
-If `@tinita/react` needs a utility from `@tinita/core`:
+If `tinita-react` needs a utility from `tinita`:
 
 ```typescript
-// @tinita/react/src/useDebounce.ts
-import { isNumber } from '@tinita/core/number/isNumber'; // ✅ OK
+// packages/tinita-react/src/ui/file-tree/FileTree.tsx - a real example
+import { getFileNameParts } from 'tinita/file/getFileNameParts'; // ✅ OK
 
-// package.json must have:
+// package.json declares it as a devDependency, NOT a dependency:
 {
-  "dependencies": {
-    "@tinita/core": "workspace:*"
+  "devDependencies": {
+    "tinita": "workspace:*"
   }
 }
 ```
@@ -436,15 +486,21 @@ import { isNumber } from '@tinita/core/number/isNumber'; // ✅ OK
 Tree-shaking is a **design requirement**, not a nice-to-have:
 
 - One file = one function/hook/composable
-- Per-file builds (`bundle: false`)
+- One build output per entry, so a subpath import pulls one file
+
+Corrected 2026-10-01: this previously said `bundle: false`, which contradicts build
+invariant 1 in `CLAUDE.md`. `bundle: true` is **required**: with `bundle: false`
+esbuild leaves relative specifiers without an extension in the `.mjs` output and Node
+ESM demands one, so every internal import failed with `ERR_MODULE_NOT_FOUND` - lab bug
+B2. Tree-shaking is unaffected because each entry is still its own file.
 - Explicit subpath exports
 - No side effects in module initialization
 
 ### 7.2 Framework Isolation
 
-- React only in `@tinita/react`
-- Vue only in `@tinita/vue`
-- Core is framework-agnostic
+- React only in `tinita-react`
+- `tinita` and `tinita-dom` are framework-agnostic
+- There is no Vue package. If one is ever added it follows the same rule.
 - Frameworks are `peerDependencies`, never bundled
 
 ### 7.3 TypeScript-First
@@ -463,11 +519,11 @@ Tree-shaking is a **design requirement**, not a nice-to-have:
 
 ### 7.5 No Behavior Dependencies on User-Installed Versions
 
-**Critical**: The behavior of `@tinita/core` MUST NOT depend on which version of any other `@tinita/*` package the user installs.
+**Critical**: The behavior of `tinita` MUST NOT depend on which version of any other `@tinita/*` package the user installs.
 
 Example:
-- User installs `@tinita/core@1.0.0` and `@tinita/is-number@2.0.0`
-- `@tinita/core` must work exactly the same regardless of `@tinita/is-number` version
+- User installs `tinita@1.0.0` and `some-is-numeric-string@2.0.0`
+- `tinita` must work exactly the same regardless of `some-is-numeric-string` version
 - They are independent packages
 
 ---
@@ -560,14 +616,14 @@ export default defineConfig({
 ### ❌ DON'T: Make Core Depend on Framework
 
 ```typescript
-// @tinita/core/src/something.ts
+// tinita/src/something.ts
 import { useState } from 'react'; // ← WRONG: Core can't depend on React
 ```
 
 ### ❌ DON'T: Bundle Framework Dependencies
 
 ```typescript
-// @tinita/react/tsup.config.ts
+// tinita-react/tsup.config.ts
 export default defineConfig({
   // Missing external: ['react'] ← WRONG: Will bundle React
 });
@@ -587,10 +643,10 @@ export default defineConfig({
 ### ❌ DON'T: Use Circular Dependencies
 
 ```typescript
-// @tinita/core/src/a.ts
+// tinita/src/a.ts
 import { b } from './b';
 
-// @tinita/core/src/b.ts
+// tinita/src/b.ts
 import { a } from './a'; // ← WRONG: Circular dependency
 ```
 
