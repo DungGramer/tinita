@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { EXIT, LAB } from '../../scripts/paths.mjs';
 import { createConsumer, readManifest, tarballFor } from '../../scripts/consumer.mjs';
 import { printSummary, writeReport } from '../../scripts/report.mjs';
-import { SSR_CJS, SSR_ESM, tsProbe } from './lib/fixtures.mjs';
+import { ssrCjs, ssrEsm, tsProbe } from './lib/fixtures.mjs';
 
 const contract = JSON.parse(readFileSync(resolve(LAB, 'contract.json'), 'utf8')).packages;
 const cases = [];
@@ -49,15 +49,25 @@ function run(cmd, args, cwd, timeout = 300_000) {
 }
 
 // ---------- SSR smoke: ESM và CJS ----------
+// Mọi specifier của package KHÔNG browserOnly, suy từ contract. `tinita-react` đã
+// được import tường minh ở fixture (nó render), nên ở đây chỉ lấy phần còn lại.
+const UNIVERSAL = Object.entries(contract)
+  .filter(([name, def]) => !def.browserOnly && name !== 'tinita-react')
+  .flatMap(([pkg, def]) =>
+    def.specifiers
+      .map((spec) => [spec === '.' ? pkg : `${pkg}${spec.slice(1)}`, def.namedExports?.[spec]?.[0]])
+      .filter(([, named]) => named)
+  );
+
 for (const [name, source, file, pkgJson] of [
-  ['node-esm', SSR_ESM, 'probe.mjs', { type: 'module' }],
-  ['node-cjs', SSR_CJS, 'probe.cjs', {}],
+  ['node-esm', ssrEsm(UNIVERSAL), 'probe.mjs', { type: 'module' }],
+  ['node-cjs', ssrCjs(UNIVERSAL), 'probe.cjs', {}],
 ]) {
   const work = createConsumer({ level: 'l2', name, deps: REACT, tarballs: TGZ, files: { [file]: source }, pkgJson });
   const r = run('node', [file], work, 60_000);
   const hasPing = r.out.includes('tnt-ping');
   const ok = r.ok && hasPing;
-  add(`ssr:${name}`, ok, ok ? `renderToString không throw, output có tnt-ping` : `exit=${r.code} ${r.out.split('\n').find((l) => /Error/.test(l))?.trim() ?? ''}`, { raw: r.out.slice(0, 400) });
+  add(`ssr:${name}`, ok, ok ? `renderToString không throw, output có tnt-ping; ${UNIVERSAL.length} specifier universal import được và binding không undefined` : `exit=${r.code} ${r.out.split('\n').find((l) => /Error/.test(l))?.trim() ?? ''}`, { raw: r.out.slice(0, 400), universalSpecifiers: UNIVERSAL.length });
 }
 
 for (const [name, def] of Object.entries(contract)) {

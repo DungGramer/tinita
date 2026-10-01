@@ -1,20 +1,57 @@
 /**
+ * Insert `separator` after every `every` words.
+ *
+ * Words are split on single spaces, matching the way the text was written. Nothing
+ * is inserted after the last group, so the result never ends with a stray separator.
+ *
+ * The default separator is `'\n'`, not `'<br>'`. The version this replaced defaulted
+ * to `'<br>'`, which made a plain string function emit HTML: the result looked like
+ * text but was only correct when passed through `innerHTML`. Pass `'<br>'`
+ * explicitly when the caller knows it is building markup - and then it is their job
+ * to escape the surrounding text.
+ *
+ * Returns `value` unchanged when `every < 1` or when there are no more than `every`
+ * words, so there is nothing to break up.
+ *
+ * Throws `TypeError` if `value` or `separator` is not a string, or if `every` is not
+ * an integer.
+ *
  * @example
- * insertTextEveryNWords('This is a long title', 2, '<br>')
+ * ```ts
+ * insertTextEveryNWords('This is a long title', 2);
+ * // 'This is\na long\ntitle'
+ * insertTextEveryNWords('This is a long title', 2, '<br>');
  * // 'This is <br> a long <br> title'
+ * ```
  */
 export function insertTextEveryNWords(
-  string = '',
-  size = 2,
-  additionText = '<br>'
-) {
-  const words = string.split(' ');
-
-  if (size <= 0 || words.length <= size) return string;
-
-  for (let i = size; i < words.length; i += size + 1) {
-    words.splice(i, 0, additionText);
+  value: string,
+  every = 2,
+  separator = '\n'
+): string {
+  if (typeof value !== 'string') {
+    throw new TypeError(
+      `insertTextEveryNWords: expected a string, got ${typeof value}`
+    );
+  }
+  if (typeof separator !== 'string') {
+    throw new TypeError(
+      `insertTextEveryNWords: separator must be a string, got ${typeof separator}`
+    );
+  }
+  if (!Number.isInteger(every)) {
+    throw new TypeError(
+      `insertTextEveryNWords: \`every\` must be an integer, got ${every}`
+    );
   }
 
-  return words.join(' ');
+  const words = value.split(' ');
+  if (every < 1 || words.length <= every) return value;
+
+  const groups: string[] = [];
+  for (let index = 0; index < words.length; index += every) {
+    groups.push(words.slice(index, index + every).join(' '));
+  }
+
+  return groups.join(separator);
 }
