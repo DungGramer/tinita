@@ -18,10 +18,23 @@ import { fileURLToPath } from 'node:url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const STORIES = resolve(ROOT, 'apps/storybook/stories');
 
-/** Subpath KHÔNG cần story: file CSS, barrel, và hook/util không có mặt nhìn được. */
+/**
+ * Subpath KHÔNG cần story: file CSS, barrel, và hook/util không có mặt nhìn được.
+ *
+ * `tinita-dom/converter/*` là hàm thuần nhận Blob/base64 trả `File`. Chúng ở
+ * `tinita-dom` vì `File` không phải global trên Node 18, không phải vì chúng vẽ ra
+ * cái gì. Cùng loại với `autoInjectStyles` ở trên: chỉ chạy được trong browser,
+ * nhưng không có mặt nhìn được để trưng. Hợp đồng của chúng do test giữ
+ * (`packages/tinita/tests/converter-base64.test.ts` cho cặp nghịch đảo ở `tinita`).
+ */
 const EXEMPT = {
   'tinita-react': ['.', './hooks/useToggle', './utils/autoInjectStyles'],
-  'tinita-dom': ['.'],
+  'tinita-dom': [
+    '.',
+    './converter/blobToFile',
+    './converter/base64ToFile',
+    './converter/uint8ArrayToFile',
+  ],
 };
 
 function collect(dir) {

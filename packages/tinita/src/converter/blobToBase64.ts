@@ -1,4 +1,5 @@
 import { blobToUint8Array } from './blobToUint8Array';
+import { bytesToBase64 } from './bytesToBase64';
 
 /**
  * Encode a `Blob` as base64.
@@ -18,15 +19,5 @@ import { blobToUint8Array } from './blobToUint8Array';
  * ```
  */
 export async function blobToBase64(blob: Blob): Promise<string> {
-  const bytes = await blobToUint8Array(blob);
-
-  // Chunked rather than one spread: `String.fromCharCode(...bytes)` passes every
-  // byte as an argument and blows the call stack somewhere around 100k on V8.
-  let binary = '';
-  const CHUNK = 0x8000;
-  for (let i = 0; i < bytes.length; i += CHUNK) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
-  }
-
-  return btoa(binary);
+  return bytesToBase64(await blobToUint8Array(blob));
 }

@@ -1,11 +1,19 @@
 import { defineConfig } from 'tsup';
 import { globSync } from 'glob';
 
-/** Auto-discover: mỗi file .ts trong src/ là một entry, trừ index (barrel) và test. */
+/**
+ * Auto-discover: every .ts under src/ is an entry, except the barrel and tests.
+ *
+ * `src/**` and not `src/*`. The flat pattern only ever saw the top level, so
+ * anything added in a subdirectory was silently not built - and an `exports` entry
+ * pointing at it would be a path to a file that never exists, which is the defect
+ * class publint catches as B1. `src/dimension/getScrollbarSize.ts` sat unbuilt
+ * this way.
+ */
 const autoDiscoverEntries = () => {
   const entries = [
     'src/index.ts',
-    ...globSync('src/*.ts', {
+    ...globSync('src/**/*.ts', {
       ignore: ['**/*.test.ts', '**/*.spec.ts', '**/index.ts'],
     }),
   ];

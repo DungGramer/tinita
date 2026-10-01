@@ -10,7 +10,17 @@
         "./file/truncateFileNameParts",
         "./uuid/generateUUID",
         "./html",
-        "./html/plugin/entities"
+        "./html/plugin/entities",
+        "./converter/bytesToBase64",
+        "./converter/base64ToBytes",
+        "./converter/stringToBase64",
+        "./converter/base64ToString",
+        "./converter/blobToUint8Array",
+        "./converter/blobToBase64",
+        "./converter/base64ToBlob",
+        "./converter/blobToDataUrl",
+        "./converter/dataUrlToBlob",
+        "./converter/objectToFormData"
       ],
       "namedExports": {
         ".": [
@@ -41,6 +51,36 @@
         ],
         "./html/plugin/entities": [
           "default"
+        ],
+        "./converter/bytesToBase64": [
+          "bytesToBase64"
+        ],
+        "./converter/base64ToBytes": [
+          "base64ToBytes"
+        ],
+        "./converter/stringToBase64": [
+          "stringToBase64"
+        ],
+        "./converter/base64ToString": [
+          "base64ToString"
+        ],
+        "./converter/blobToUint8Array": [
+          "blobToUint8Array"
+        ],
+        "./converter/blobToBase64": [
+          "blobToBase64"
+        ],
+        "./converter/base64ToBlob": [
+          "base64ToBlob"
+        ],
+        "./converter/blobToDataUrl": [
+          "blobToDataUrl"
+        ],
+        "./converter/dataUrlToBlob": [
+          "dataUrlToBlob"
+        ],
+        "./converter/objectToFormData": [
+          "objectToFormData"
         ]
       },
       "requiredFiles": [
@@ -150,7 +190,10 @@
       "specifiers": [
         ".",
         "./smooth-scroll",
-        "./wheel-source"
+        "./wheel-source",
+        "./converter/blobToFile",
+        "./converter/base64ToFile",
+        "./converter/uint8ArrayToFile"
       ],
       "namedExports": {
         ".": [
@@ -165,6 +208,15 @@
           "decisiveWheelSource",
           "provisionalWheelSource",
           "WHEEL_SAMPLE_COUNT"
+        ],
+        "./converter/blobToFile": [
+          "blobToFile"
+        ],
+        "./converter/base64ToFile": [
+          "base64ToFile"
+        ],
+        "./converter/uint8ArrayToFile": [
+          "uint8ArrayToFile"
         ]
       },
       "requiredFiles": [

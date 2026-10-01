@@ -42,6 +42,36 @@
       ],
       "html/plugin/entities": [
         "dist/html/plugin/entities.d.ts"
+      ],
+      "converter/bytesToBase64": [
+        "dist/converter/bytesToBase64.d.ts"
+      ],
+      "converter/base64ToBytes": [
+        "dist/converter/base64ToBytes.d.ts"
+      ],
+      "converter/stringToBase64": [
+        "dist/converter/stringToBase64.d.ts"
+      ],
+      "converter/base64ToString": [
+        "dist/converter/base64ToString.d.ts"
+      ],
+      "converter/blobToUint8Array": [
+        "dist/converter/blobToUint8Array.d.ts"
+      ],
+      "converter/blobToBase64": [
+        "dist/converter/blobToBase64.d.ts"
+      ],
+      "converter/base64ToBlob": [
+        "dist/converter/base64ToBlob.d.ts"
+      ],
+      "converter/blobToDataUrl": [
+        "dist/converter/blobToDataUrl.d.ts"
+      ],
+      "converter/dataUrlToBlob": [
+        "dist/converter/dataUrlToBlob.d.ts"
+      ],
+      "converter/objectToFormData": [
+        "dist/converter/objectToFormData.d.ts"
       ]
     }
   },
@@ -140,6 +170,106 @@
       "require": {
         "types": "./dist/html/plugin/entities.d.ts",
         "default": "./dist/html/plugin/entities.cjs"
+      }
+    },
+    "./converter/bytesToBase64": {
+      "import": {
+        "types": "./dist/converter/bytesToBase64.d.mts",
+        "default": "./dist/converter/bytesToBase64.mjs"
+      },
+      "require": {
+        "types": "./dist/converter/bytesToBase64.d.ts",
+        "default": "./dist/converter/bytesToBase64.cjs"
+      }
+    },
+    "./converter/base64ToBytes": {
+      "import": {
+        "types": "./dist/converter/base64ToBytes.d.mts",
+        "default": "./dist/converter/base64ToBytes.mjs"
+      },
+      "require": {
+        "types": "./dist/converter/base64ToBytes.d.ts",
+        "default": "./dist/converter/base64ToBytes.cjs"
+      }
+    },
+    "./converter/stringToBase64": {
+      "import": {
+        "types": "./dist/converter/stringToBase64.d.mts",
+        "default": "./dist/converter/stringToBase64.mjs"
+      },
+      "require": {
+        "types": "./dist/converter/stringToBase64.d.ts",
+        "default": "./dist/converter/stringToBase64.cjs"
+      }
+    },
+    "./converter/base64ToString": {
+      "import": {
+        "types": "./dist/converter/base64ToString.d.mts",
+        "default": "./dist/converter/base64ToString.mjs"
+      },
+      "require": {
+        "types": "./dist/converter/base64ToString.d.ts",
+        "default": "./dist/converter/base64ToString.cjs"
+      }
+    },
+    "./converter/blobToUint8Array": {
+      "import": {
+        "types": "./dist/converter/blobToUint8Array.d.mts",
+        "default": "./dist/converter/blobToUint8Array.mjs"
+      },
+      "require": {
+        "types": "./dist/converter/blobToUint8Array.d.ts",
+        "default": "./dist/converter/blobToUint8Array.cjs"
+      }
+    },
+    "./converter/blobToBase64": {
+      "import": {
+        "types": "./dist/converter/blobToBase64.d.mts",
+        "default": "./dist/converter/blobToBase64.mjs"
+      },
+      "require": {
+        "types": "./dist/converter/blobToBase64.d.ts",
+        "default": "./dist/converter/blobToBase64.cjs"
+      }
+    },
+    "./converter/base64ToBlob": {
+      "import": {
+        "types": "./dist/converter/base64ToBlob.d.mts",
+        "default": "./dist/converter/base64ToBlob.mjs"
+      },
+      "require": {
+        "types": "./dist/converter/base64ToBlob.d.ts",
+        "default": "./dist/converter/base64ToBlob.cjs"
+      }
+    },
+    "./converter/blobToDataUrl": {
+      "import": {
+        "types": "./dist/converter/blobToDataUrl.d.mts",
+        "default": "./dist/converter/blobToDataUrl.mjs"
+      },
+      "require": {
+        "types": "./dist/converter/blobToDataUrl.d.ts",
+        "default": "./dist/converter/blobToDataUrl.cjs"
+      }
+    },
+    "./converter/dataUrlToBlob": {
+      "import": {
+        "types": "./dist/converter/dataUrlToBlob.d.mts",
+        "default": "./dist/converter/dataUrlToBlob.mjs"
+      },
+      "require": {
+        "types": "./dist/converter/dataUrlToBlob.d.ts",
+        "default": "./dist/converter/dataUrlToBlob.cjs"
+      }
+    },
+    "./converter/objectToFormData": {
+      "import": {
+        "types": "./dist/converter/objectToFormData.d.mts",
+        "default": "./dist/converter/objectToFormData.mjs"
+      },
+      "require": {
+        "types": "./dist/converter/objectToFormData.d.ts",
+        "default": "./dist/converter/objectToFormData.cjs"
       }
     }
   },

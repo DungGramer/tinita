@@ -1,3 +1,5 @@
+import { base64ToBytes } from './base64ToBytes';
+
 /**
  * Decode base64 into a `Blob`.
  *
@@ -7,7 +9,6 @@
  *
  * Takes the payload only. Pass a whole `data:` URL to `dataUrlToBlob` instead.
  *
- * @param base64 the base64 payload, with or without padding.
  * @param type media type for the resulting blob. Empty by default, matching what
  *   `new Blob([...])` does when no type is given.
  *
@@ -21,15 +22,5 @@
  * ```
  */
 export function base64ToBlob(base64: string, type = ''): Blob {
-  let binary: string;
-  try {
-    binary = atob(base64);
-  } catch {
-    throw new TypeError(
-      'base64ToBlob() received a string that is not valid base64'
-    );
-  }
-
-  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
-  return new Blob([bytes], { type });
+  return new Blob([base64ToBytes(base64) as BlobPart], { type });
 }

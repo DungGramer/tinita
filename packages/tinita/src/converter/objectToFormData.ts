@@ -37,20 +37,31 @@ export interface ObjectToFormDataOptions {
 /**
  * Converts a nested plain object into `FormData`.
  *
- * Supports:
- * - nested objects
- * - arrays and nested arrays
- * - strings, numbers, booleans and bigint
- * - `Date`
- * - `Blob` and `File`
- * - `FileList`
- * - `null` and `undefined`
+ * Supports nested objects, arrays and nested arrays, strings, numbers, booleans,
+ * bigint, `Date`, `Blob`, `File`, `FileList`, `null` and `undefined`. Objects and
+ * arrays use bracket notation by default.
  *
- * Objects and arrays use bracket notation by default.
+ * Runs anywhere, Node included. `FileList` exists in no version of Node, so it is
+ * reached through a `typeof` guard rather than a bare `instanceof`, which would
+ * throw `ReferenceError` during SSR.
+ *
+ * Three behaviours worth knowing before you rely on them:
+ *
+ * - **An invalid `Date` is skipped**, not serialised and not thrown on.
+ *   `new Date('nonsense')` has a `getTime()` of `NaN`, and `toISOString()` throws
+ *   on it, so the field is simply absent. Check your dates before calling if a
+ *   missing field would be worse than a loud failure.
+ * - **Everything else goes through `String(value)`.** A symbol becomes
+ *   `'Symbol(x)'`, a function becomes its source text. Neither is likely what you
+ *   meant, and neither is rejected.
+ * - **Only own enumerable properties are read**, so a class instance arrives as
+ *   whatever `Object.entries` sees of it - usually nothing.
  *
  * @param obj Source object to convert.
  * @param options Serialization options.
  * @returns A new `FormData` containing the serialized values.
+ *
+ * @throws {TypeError} if `obj` contains a cycle.
  *
  * @example
  * ```ts
@@ -86,6 +97,11 @@ export function objectToFormData<T extends Record<string, unknown>>(
   } = options;
 
   const formData = new FormData();
+
+  // Guards against a cycle. Without it, `const o = {}; o.self = o` recurses until
+  // the stack overflows with a RangeError that names neither the function nor the
+  // key - measured.
+  const seen = new WeakSet<object>();
 
   const appendValue = (key: string, value: unknown): void => {
     if (value == null) {
@@ -150,6 +166,13 @@ export function objectToFormData<T extends Record<string, unknown>>(
     }
 
     if (typeof value === 'object') {
+      if (seen.has(value)) {
+        throw new TypeError(
+          `objectToFormData() found a cycle at "${key}"; the same object appears inside itself`
+        );
+      }
+      seen.add(value);
+
       const entries = Object.entries(value);
 
       if (entries.length === 0) {
@@ -170,6 +193,7 @@ export function objectToFormData<T extends Record<string, unknown>>(
     formData.append(key, String(value));
   };
 
+  seen.add(obj);
   Object.entries(obj).forEach(([key, value]) => {
     appendValue(key, value);
   });

@@ -24,6 +24,15 @@
       ],
       "wheel-source": [
         "dist/wheel-source.d.ts"
+      ],
+      "converter/blobToFile": [
+        "dist/converter/blobToFile.d.ts"
+      ],
+      "converter/base64ToFile": [
+        "dist/converter/base64ToFile.d.ts"
+      ],
+      "converter/uint8ArrayToFile": [
+        "dist/converter/uint8ArrayToFile.d.ts"
       ]
     }
   },
@@ -60,6 +69,36 @@
       "require": {
         "types": "./dist/wheel-source.d.ts",
         "default": "./dist/wheel-source.cjs"
+      }
+    },
+    "./converter/blobToFile": {
+      "import": {
+        "types": "./dist/converter/blobToFile.d.mts",
+        "default": "./dist/converter/blobToFile.mjs"
+      },
+      "require": {
+        "types": "./dist/converter/blobToFile.d.ts",
+        "default": "./dist/converter/blobToFile.cjs"
+      }
+    },
+    "./converter/base64ToFile": {
+      "import": {
+        "types": "./dist/converter/base64ToFile.d.mts",
+        "default": "./dist/converter/base64ToFile.mjs"
+      },
+      "require": {
+        "types": "./dist/converter/base64ToFile.d.ts",
+        "default": "./dist/converter/base64ToFile.cjs"
+      }
+    },
+    "./converter/uint8ArrayToFile": {
+      "import": {
+        "types": "./dist/converter/uint8ArrayToFile.d.mts",
+        "default": "./dist/converter/uint8ArrayToFile.mjs"
+      },
+      "require": {
+        "types": "./dist/converter/uint8ArrayToFile.d.ts",
+        "default": "./dist/converter/uint8ArrayToFile.cjs"
       }
     }
   },
