@@ -1,4 +1,7 @@
 import { execFileSync, spawn } from 'node:child_process';
+import { createServer } from 'node:http';
+import { extname, join } from 'node:path';
+import { createReadStream } from 'node:fs';
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -250,6 +253,129 @@ for (const reactVersion of REACT_VERSIONS) {
     await browser.close();
   } finally {
     server.kill('SIGTERM');
+  }
+}
+
+
+// ---------- tinita-dom trong browser thật ----------
+//
+// Ba hợp đồng của `tinita-dom` chỉ quan sát được ở đây. jsdom không đủ, và một ca
+// jsdom sẽ XANH GIẢ - đúng lớp lỗi "ca báo xanh mà không kiểm thứ nó nói đang kiểm"
+// repo đã gặp bốn lần:
+//
+//   XSS           jsdom KHÔNG tải resource, nên `<img onerror>` nằm im dù dùng
+//                 innerHTML. Đo 2026-10-01.
+//   scrollbar     jsdom không layout, `offsetHeight` luôn 0, nên getScrollbarSize
+//                 luôn ra [0, 0] bất kể OS.
+//   device pixel  không có devicePixelRatio thật để nhân.
+{
+  const work = createConsumer({
+    level: 'l4',
+    name: 'dom-browser',
+    deps: [],
+    tarballs: [tarballFor('tinita-dom')],
+    files: {
+      'index.html':
+        '<!doctype html><meta charset="utf-8"><body><script type="module" src="./probe.mjs"></script></body>\n',
+      'probe.mjs':
+        "import { isBlockLevelHtml } from './node_modules/tinita-dom/dist/html/isBlockLevelHtml.mjs';\n" +
+        "import { jsonToHtml } from './node_modules/tinita-dom/dist/html/jsonToHtml.mjs';\n" +
+        "import { htmlToJson } from './node_modules/tinita-dom/dist/html/htmlToJson.mjs';\n" +
+        "import { getScrollbarSize } from './node_modules/tinita-dom/dist/dimension/getScrollbarSize.mjs';\n" +
+        "import { toDevicePixels } from './node_modules/tinita-dom/dist/unit/toDevicePixels.mjs';\n" +
+        "\n" +
+        "// Payload chạy được NẾU chuỗi đi qua innerHTML: ảnh bắt đầu tải, fail, onerror chạy.\n" +
+        "const PAYLOAD = '<img src=\"/does-not-exist.png\" onerror=\"window.__pwned = 1\">';\n" +
+        "const result = {\n" +
+        "  blockForP: isBlockLevelHtml('<p>x</p>'),\n" +
+        "  blockForSpan: isBlockLevelHtml('<span>x</span>'),\n" +
+        "  payloadVerdict: isBlockLevelHtml(PAYLOAD),\n" +
+        "  domNodesBefore: document.querySelectorAll('*').length,\n" +
+        "  escaped: jsonToHtml({ nodeName: 'div', attributes: {}, children: ['<script>alert(1)</scr' + 'ipt>'] }),\n" +
+        "  roundTrip: jsonToHtml(htmlToJson('<p id=\"a\">hi</p>')),\n" +
+        "  scrollbar: getScrollbarSize(),\n" +
+        "  devicePixelRatio: window.devicePixelRatio,\n" +
+        "  oneInchCss: toDevicePixels(1, 'in'),\n" +
+        "};\n" +
+        "// Cho ảnh đủ thời gian fail trước khi chốt.\n" +
+        "await new Promise((r) => setTimeout(r, 600));\n" +
+        "result.pwned = window.__pwned ?? null;\n" +
+        "result.domNodesAfter = document.querySelectorAll('*').length;\n" +
+        "window.__probe = result;\n",
+    },
+  });
+
+  const MIME = { '.html': 'text/html', '.mjs': 'text/javascript', '.js': 'text/javascript', '.json': 'application/json' };
+  const port = 4420;
+  const statik = createServer((request, response) => {
+    const path = join(work, decodeURIComponent((request.url ?? '/').split('?')[0]));
+    const stream = createReadStream(path);
+    stream.on('error', () => {
+      response.writeHead(404).end();
+    });
+    stream.on('open', () => {
+      response.writeHead(200, { 'content-type': MIME[extname(path)] ?? 'application/octet-stream' });
+      stream.pipe(response);
+    });
+  });
+  await new Promise((r) => statik.listen(port, '127.0.0.1', r));
+
+  try {
+    const browser = await chromium.launch();
+    // deviceScaleFactor 2: dựng ra một màn hình retina để toDevicePixels có gì mà nhân.
+    const page = await browser.newPage({ viewport: { width: 800, height: 600 }, deviceScaleFactor: 2 });
+    const consoleErrors = [];
+    page.on('pageerror', (e) => consoleErrors.push(String(e)));
+    await page.goto(`http://127.0.0.1:${port}/index.html`, { waitUntil: 'networkidle' });
+    await page.waitForFunction('window.__probe !== undefined', null, { timeout: 15_000 }).catch(() => undefined);
+    const probe = await page.evaluate('window.__probe ?? null');
+
+    if (!probe) {
+      add('dom:probe-loaded', false, `probe không chạy: ${consoleErrors[0]?.slice(0, 200) ?? 'không rõ'}`);
+    } else {
+      add('dom:probe-loaded', true, `module load được qua HTTP, ${consoleErrors.length} pageerror`);
+
+      // GUARD CHÍNH. isBlockLevelHtml dùng DOMParser, không innerHTML: tài liệu sinh
+      // ra là inert nên không script nào chạy và không resource nào được fetch.
+      // Phá bằng cách đổi lại về innerHTML thì ca này phải ĐỎ.
+      add('dom:isBlockLevelHtml-does-not-execute', probe.pwned === null,
+        probe.pwned === null
+          ? 'payload <img onerror> KHÔNG chạy: window.__pwned vẫn undefined sau 600ms'
+          : `XSS: window.__pwned = ${probe.pwned} - chuỗi đầu vào đã đi qua innerHTML`);
+
+      add('dom:isBlockLevelHtml-does-not-touch-document',
+        probe.domNodesBefore === probe.domNodesAfter,
+        `số node trong document không đổi (${probe.domNodesBefore})`);
+
+      add('dom:isBlockLevelHtml-classifies',
+        probe.blockForP === true && probe.blockForSpan === false && probe.payloadVerdict === false,
+        `p=${probe.blockForP} span=${probe.blockForSpan} img=${probe.payloadVerdict}`);
+
+      add('dom:jsonToHtml-escapes',
+        probe.escaped.includes('&lt;script&gt;') && !probe.escaped.includes('<script'),
+        `serializer của DOM escape text node: ${probe.escaped.slice(0, 60)}`);
+
+      add('dom:html-json-round-trip', probe.roundTrip === '<p id="a">hi</p>',
+        `jsonToHtml(htmlToJson(x)) === x: ${probe.roundTrip}`);
+
+      // Chỉ browser thật trả số này. Trên máy CI Linux thường là 15px, macOS overlay
+      // là 0 - nên ca chỉ khẳng định HÌNH DẠNG và việc nó không âm.
+      add('dom:getScrollbarSize-shape',
+        Array.isArray(probe.scrollbar) && probe.scrollbar.length === 2 &&
+          probe.scrollbar.every((n) => typeof n === 'number' && n >= 0),
+        `[${probe.scrollbar.join(', ')}] - phụ thuộc OS, nên chỉ kiểm hình dạng`);
+
+      // devicePixelRatio là thứ DUY NHẤT thay đổi theo màn hình. Đo 2026-10-01: probe
+      // một <div> 100mm ra 378 layout px ở mọi deviceScaleFactor, nên nó không bao
+      // giờ phát hiện được màn hình; đây mới là chỗ màn hình xuất hiện.
+      add('dom:toDevicePixels-tracks-the-display',
+        probe.devicePixelRatio === 2 && probe.oneInchCss === 192,
+        `devicePixelRatio=${probe.devicePixelRatio}, toDevicePixels(1,'in')=${probe.oneInchCss} (mong đợi 2 và 192)`);
+    }
+
+    await browser.close();
+  } finally {
+    await new Promise((r) => statik.close(r));
   }
 }
 

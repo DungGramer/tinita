@@ -18,6 +18,14 @@ export interface ResizeImageOptions {
  *   same-origin URL. A cross-origin URL without CORS headers taints the canvas and
  *   makes `toDataURL` throw a `SecurityError`.
  *
+ * **EXIF orientation is ignored.** A photo from a phone carries an orientation tag,
+ * and `drawImage` paints the raw pixels: a portrait photo stored as landscape plus
+ * a rotate tag comes back rotated. Browsers apply the tag when *displaying* an
+ * `<img>` but canvas sees the stored pixels, so this is the canvas's behaviour, not
+ * a bug here - and fixing it would mean parsing EXIF, which is a different library.
+ * Pass the image through `createImageBitmap(blob, { imageOrientation: 'from-image' })`
+ * first if orientation matters.
+ *
  * @throws {TypeError} if `scale` is not a positive finite number, or if the
  *   browser gives no 2D canvas context.
  * @returns a promise rejecting with an `Error` if the image fails to load. The

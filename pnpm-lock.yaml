@@ -83,6 +83,9 @@ importers:
       react-dom:
         specifier: ^19.2.0
         version: 19.2.0(react@19.2.0)
+      tinita:
+        specifier: workspace:*
+        version: link:../../packages/tinita
       tinita-dom:
         specifier: workspace:*
         version: link:../../packages/tinita-dom
@@ -224,6 +227,9 @@ importers:
       jsdom:
         specifier: ^27.0.0
         version: 27.2.0
+      tinita:
+        specifier: workspace:*
+        version: link:../tinita
 
   packages/tinita-react:
     devDependencies:

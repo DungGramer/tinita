@@ -9,7 +9,8 @@
 
 ## Overview
 
-**Ngày:** 2026-10-01 · **Ưu tiên:** P1 · **Trạng thái:** chưa làm · **Review:** chưa
+**Ngày:** 2026-10-01 · **Ưu tiên:** P1 · **Trạng thái:** XONG 2026-10-01 ·
+**Review:** chưa
 
 Owner chốt 2026-10-01: **"Viết lại cover mọi edge case."** Ba nhóm (storage,
 download, html-JSON) có lỗi làm hỏng dữ liệu người dùng, không chỉ thiếu test.
@@ -298,6 +299,135 @@ production`), không phải `TypeError`, và không khai ở đâu. Phải bọc
 
 Một điều KHÔNG làm: `cookieStore` không nhận `HttpOnly`. JS không đặt được nó, và
 một option bị trình duyệt bỏ qua im lặng là tệ hơn không có option.
+
+## Kết quả đo được
+
+| Chỉ số                      | Trước pha | Sau pha |
+| --------------------------- | --------: | ------: |
+| `tinita-dom` subpath        |         6 |  **23** |
+| `typesVersions` key         |         5 |  **22** |
+| Test `tinita-dom`           |        17 | **102** |
+| Story                       |         2 |  **10** |
+| Ca L4                       |        16 |  **24** |
+| `engines`                   | `undefined` | `>=18.0.0` |
+| EXEMPT mới trong check-stories |      - |   **0** |
+
+`check-stories`: 23/23 subpath có story thật, không thêm entry miễn nào.
+
+## Lỗi THẬT tìm được, mỗi cái có số đo
+
+| Hàm                      | Lỗi                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------- |
+| `cookieStorage.clear()`  | ghi `expire=` thay vì `expires=` nên **không xoá gì** mà vẫn trông như thành công      |
+| `cookieStorage.set()`    | thiếu `encodeURIComponent`: giá trị chứa `;` phá **cả** cookie jar                      |
+| `cookieStorage.set()`    | không `path` nên cookie ghi ở `/a/b` vô hình ở `/`                                     |
+| `cookieStorage.get()`    | `split('=')` một lần nên giá trị base64 mất phần sau padding                            |
+| `localStorageAction.get` | `JSON.parse` không `try`: một giá trị lạ trên cùng key làm nó **ném** đúng chỗ `defaultValue` đang hứa fallback |
+| `isBlockTag`             | `innerHTML` trên chuỗi đầu vào -> **XSS thật**, chứng minh trong Chromium (xem dưới)   |
+| `elementToJson`          | map comment thành `''` nên tree có comment so sánh khác tree cùng markup không comment |
+| `jsonToHtml`             | `nodeName` không hợp lệ ném `DOMException` thô, không khai ở đâu                        |
+| `isChrome`               | báo **Edge 131 là Chrome** (Edge có `Chrome` + vendor `Google Inc`)                     |
+| `isEdge`                 | test `/Edge/`, mà Chromium Edge dùng `Edg/` từ 2020 -> **bỏ sót mọi Edge hiện đại**     |
+| `isIE`                   | test `MSIE`, mà IE 11 dùng `Trident/` -> **bản IE cuối cùng không được nhận ra**        |
+| `isTouchDevice`          | `navigator.maxTouchPoints > 0` khai kiểu `number` nhưng thật ra có thể `undefined`      |
+| `DownloadFile`           | `setTimeout(100)` là con số phỏng đoán, không đổi được; trả về `<a>` không dùng được gì |
+| `setObjectAsCSSVariables`| `setProperty` **bỏ qua im lặng** tên không hợp lệ, nên typo trông như ghi thành công    |
+| `LengthConverter`        | xem mục QĐ-G dưới - cả thiết kế sai, không chỉ tên                                     |
+
+## QĐ-G: `LengthConverter` - owner chất vấn, và số đo giải quyết
+
+Owner nêu 2026-10-01: *"Đo DPI có thể khác nhau tuỳ thuộc vào màn hình của end-user
+nên tôi mới cần đo lại chứ không set hằng số."*
+
+Đúng về thế giới thật: DPI vật lý khác nhau theo màn hình. Nhưng đo trong **Chromium
+thật** cho thấy thuật toán cũ không đo được nó. Chạy chính thuật toán đó ở 4
+`deviceScaleFactor` x 2 viewport:
+
+```
+deviceScaleFactor   "DPI" suy ra    devicePixelRatio   offsetHeight(100mm)
+1                   96.012000       1                  378
+1.5                 96.012000       1.5                378
+2                   96.012000       2                  378
+3                   96.012000       3                  378
+```
+
+Cùng một số ở mọi cấu hình, cả 1280x720 và 3840x2160. Lý do: CSS Values and Units
+**định nghĩa** `1in = 96px = 25.4mm`, nên `100mm` luôn layout thành 377.95 CSS px;
+`offsetHeight` làm tròn lên 378 và `378/100*25.4 = 96.012`. Nó đang đo **sai số làm
+tròn**, và hằng số fallback `96.01199999999999` chính là sai số đó.
+
+Ba hệ quả nữa, mỗi cái đo được:
+
+- Phép đo chạy lúc **định nghĩa class**, nên **import** module là append 4 div vào
+  `document.body` - side effect trong package khai `sideEffects: false`.
+- Trong môi trường không layout, `offsetHeight` là 0 nên **mọi** phép đổi sang `px`
+  âm thầm ra `0`. Đo trong jsdom.
+- Bảng tỉ lệ là `private static` mà constructor ghi đè, nên tạo converter thứ hai
+  làm hỏng converter thứ nhất.
+
+**Nhưng nhu cầu của owner là thật, và có một thứ ĐÚNG là thay đổi theo màn hình:**
+`devicePixelRatio` - 1, 1.5, 2, 3 trong chính bảng trên. Code cũ chưa bao giờ đọc nó.
+
+Nên tách làm hai, theo đúng câu hỏi mỗi hàm trả lời:
+
+| Hàm                           | Ở đâu        | Trả lời                                     | Thay đổi theo màn hình |
+| ----------------------------- | ------------ | ------------------------------------------- | ---------------------- |
+| `convertLength`               | `tinita`     | CSS absolute unit, tỉ lệ spec cố định       | **không**              |
+| `toDevicePixels` / `fromDevicePixels` | `tinita-dom` | bao nhiêu pixel phần cứng                   | **có**                 |
+
+Ca L4 `dom:toDevicePixels-tracks-the-display` chạy ở `deviceScaleFactor: 2` và
+khẳng định `toDevicePixels(1, 'in') === 192`. Đó là chỗ màn hình xuất hiện.
+
+Giới hạn phải khai thẳng: **ngay cả `devicePixelRatio` cũng không cho kích thước vật
+lý.** Không API trình duyệt nào báo kích thước thật của màn hình, nên "vẽ đúng một
+inch thật" là không làm được trên web - cố ý, vì fingerprinting.
+
+## Ca XSS: chứng minh bằng cách phá, trong Chromium thật
+
+jsdom không đủ và một ca jsdom sẽ **xanh giả**: jsdom không tải resource nên
+`<img onerror>` nằm im dù dùng `innerHTML`. Vì vậy ca này là L4.
+
+```
+DOMParser    PASS   window.__pwned vẫn undefined sau 600ms
+innerHTML    FAIL   XSS: window.__pwned = 1
+```
+
+Lỗ hổng là **thật**, không phải lý thuyết. Và ca `dom:isBlockLevelHtml-does-not-touch-document`
+vẫn PASS với `innerHTML` (div detached không nằm trong document) - nên một mình nó
+không bắt được. Chỉ ca `__pwned` bắt. Đó là lý do viết cả hai.
+
+## Guard khác chứng minh bằng cách phá
+
+| Phá                                         | Kết quả     |
+| ------------------------------------------- | ----------- |
+| bỏ `encodeURIComponent` trong `cookieJar`   | **2 failed** |
+| `expire=` thay `Max-Age=0`                  | **1 failed** |
+| bỏ `try` quanh `JSON.parse`                 | **2 failed** |
+| đổi `DOMParser` về `innerHTML`              | **L4 failed** |
+| gỡ hết                                      | 102 pass, L4 24/24 |
+
+## Đính chính
+
+Plan bản đầu nói `jsonToHtml` nối chuỗi HTML nên cần escape thủ công bằng
+`html.encode` của `tinita`. **Sai.** Nó dựng qua `createElement`/`setAttribute`/
+`createTextNode` rồi lấy `outerHTML`, nên serializer của DOM tự escape - đo
+2026-10-01:
+
+```
+text node  '<script>alert(1)</script>'  ->  &lt;script&gt;alert(1)&lt;/script&gt;
+attribute  '"><img src=x onerror=1>'    ->  title="&quot;><img src=x onerror=1>"
+```
+
+Hai lỗi thật thay thế đã ghi ở bảng trên. Và plan nói `htmlToJson` cũng dùng
+`innerHTML` - nó đã dùng `DOMParser` từ pha 02; chỉ `isBlockLevelHtml` còn.
+
+## `tinita-dom` giờ phụ thuộc `tinita` lúc build
+
+`toDevicePixels` import `tinita/unit/convertLength`. Khai `"tinita": "workspace:*"`
+làm **devDependency**, đúng khuôn `tinita-react` đã dùng cho `getFileNameParts`:
+`bundle: true` inline code nên bản publish không có runtime dependency nào. Kiểm:
+`dist/unit/toDevicePixels.mjs` có **0** import `tinita`, và bảng hằng số
+`{px:1,in:96,cm:37.795...}` nằm inline trong đó.
 
 ## Next steps
 

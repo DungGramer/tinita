@@ -63,6 +63,9 @@ export * from './string/snakeToTitleCase';
 export * from './string/stringToSelector';
 export * from './string/titleCase';
 
+// Unit
+export * from './unit/convertLength';
+
 // Uuid
 export * from './uuid/generateUuid';
 

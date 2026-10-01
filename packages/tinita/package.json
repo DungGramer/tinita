@@ -171,6 +171,9 @@
       ],
       "validation/isUrl": [
         "./dist/validation/isUrl.d.ts"
+      ],
+      "unit/convertLength": [
+        "./dist/unit/convertLength.d.ts"
       ]
     }
   },
@@ -699,6 +702,16 @@
       "require": {
         "types": "./dist/validation/isUrl.d.ts",
         "default": "./dist/validation/isUrl.cjs"
+      }
+    },
+    "./unit/convertLength": {
+      "import": {
+        "types": "./dist/unit/convertLength.d.mts",
+        "default": "./dist/unit/convertLength.mjs"
+      },
+      "require": {
+        "types": "./dist/unit/convertLength.d.ts",
+        "default": "./dist/unit/convertLength.cjs"
       }
     }
   },

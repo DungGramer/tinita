@@ -53,7 +53,8 @@
         "./validation/isAsciiLetters",
         "./validation/isEmail",
         "./validation/isNumericString",
-        "./validation/isUrl"
+        "./validation/isUrl",
+        "./unit/convertLength"
       ],
       "namedExports": {
         ".": [
@@ -213,6 +214,9 @@
         ],
         "./validation/isUrl": [
           "isUrl"
+        ],
+        "./unit/convertLength": [
+          "convertLength"
         ]
       },
       "requiredFiles": [
@@ -325,7 +329,24 @@
         "./wheel-source",
         "./converter/blobToFile",
         "./converter/base64ToFile",
-        "./converter/uint8ArrayToFile"
+        "./converter/uint8ArrayToFile",
+        "./dimension/getScrollbarSize",
+        "./file/downloadBlob",
+        "./html/elementToJson",
+        "./html/htmlToJson",
+        "./html/isBlockLevelHtml",
+        "./html/jsonToHtml",
+        "./image/resizeImage",
+        "./storage/cookieJar",
+        "./storage/createJsonStore",
+        "./storage/localStorageJson",
+        "./storage/sessionStorageJson",
+        "./style/setCssVariables",
+        "./validation/browser",
+        "./validation/isCoarsePointer",
+        "./validation/isTouchDevice",
+        "./validation/platform",
+        "./unit/toDevicePixels"
       ],
       "namedExports": {
         ".": [
@@ -349,6 +370,57 @@
         ],
         "./converter/uint8ArrayToFile": [
           "uint8ArrayToFile"
+        ],
+        "./dimension/getScrollbarSize": [
+          "getScrollbarSize"
+        ],
+        "./file/downloadBlob": [
+          "downloadBlob"
+        ],
+        "./html/elementToJson": [
+          "elementToJson"
+        ],
+        "./html/htmlToJson": [
+          "htmlToJson"
+        ],
+        "./html/isBlockLevelHtml": [
+          "isBlockLevelHtml"
+        ],
+        "./html/jsonToHtml": [
+          "jsonToHtml"
+        ],
+        "./image/resizeImage": [
+          "resizeImage"
+        ],
+        "./storage/cookieJar": [
+          "cookieJar"
+        ],
+        "./storage/createJsonStore": [
+          "createJsonStore"
+        ],
+        "./storage/localStorageJson": [
+          "localStorageJson"
+        ],
+        "./storage/sessionStorageJson": [
+          "sessionStorageJson"
+        ],
+        "./style/setCssVariables": [
+          "setCssVariables"
+        ],
+        "./validation/browser": [
+          "isChrome"
+        ],
+        "./validation/isCoarsePointer": [
+          "isCoarsePointer"
+        ],
+        "./validation/isTouchDevice": [
+          "isTouchDevice"
+        ],
+        "./validation/platform": [
+          "isIOS"
+        ],
+        "./unit/toDevicePixels": [
+          "toDevicePixels"
         ]
       },
       "requiredFiles": [

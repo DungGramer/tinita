@@ -33,6 +33,57 @@
       ],
       "converter/uint8ArrayToFile": [
         "dist/converter/uint8ArrayToFile.d.ts"
+      ],
+      "dimension/getScrollbarSize": [
+        "./dist/dimension/getScrollbarSize.d.ts"
+      ],
+      "file/downloadBlob": [
+        "./dist/file/downloadBlob.d.ts"
+      ],
+      "html/elementToJson": [
+        "./dist/html/elementToJson.d.ts"
+      ],
+      "html/htmlToJson": [
+        "./dist/html/htmlToJson.d.ts"
+      ],
+      "html/isBlockLevelHtml": [
+        "./dist/html/isBlockLevelHtml.d.ts"
+      ],
+      "html/jsonToHtml": [
+        "./dist/html/jsonToHtml.d.ts"
+      ],
+      "image/resizeImage": [
+        "./dist/image/resizeImage.d.ts"
+      ],
+      "storage/cookieJar": [
+        "./dist/storage/cookieJar.d.ts"
+      ],
+      "storage/createJsonStore": [
+        "./dist/storage/createJsonStore.d.ts"
+      ],
+      "storage/localStorageJson": [
+        "./dist/storage/localStorageJson.d.ts"
+      ],
+      "storage/sessionStorageJson": [
+        "./dist/storage/sessionStorageJson.d.ts"
+      ],
+      "style/setCssVariables": [
+        "./dist/style/setCssVariables.d.ts"
+      ],
+      "validation/browser": [
+        "./dist/validation/browser.d.ts"
+      ],
+      "validation/isCoarsePointer": [
+        "./dist/validation/isCoarsePointer.d.ts"
+      ],
+      "validation/isTouchDevice": [
+        "./dist/validation/isTouchDevice.d.ts"
+      ],
+      "validation/platform": [
+        "./dist/validation/platform.d.ts"
+      ],
+      "unit/toDevicePixels": [
+        "./dist/unit/toDevicePixels.d.ts"
       ]
     }
   },
@@ -100,6 +151,176 @@
         "types": "./dist/converter/uint8ArrayToFile.d.ts",
         "default": "./dist/converter/uint8ArrayToFile.cjs"
       }
+    },
+    "./dimension/getScrollbarSize": {
+      "import": {
+        "types": "./dist/dimension/getScrollbarSize.d.mts",
+        "default": "./dist/dimension/getScrollbarSize.mjs"
+      },
+      "require": {
+        "types": "./dist/dimension/getScrollbarSize.d.ts",
+        "default": "./dist/dimension/getScrollbarSize.cjs"
+      }
+    },
+    "./file/downloadBlob": {
+      "import": {
+        "types": "./dist/file/downloadBlob.d.mts",
+        "default": "./dist/file/downloadBlob.mjs"
+      },
+      "require": {
+        "types": "./dist/file/downloadBlob.d.ts",
+        "default": "./dist/file/downloadBlob.cjs"
+      }
+    },
+    "./html/elementToJson": {
+      "import": {
+        "types": "./dist/html/elementToJson.d.mts",
+        "default": "./dist/html/elementToJson.mjs"
+      },
+      "require": {
+        "types": "./dist/html/elementToJson.d.ts",
+        "default": "./dist/html/elementToJson.cjs"
+      }
+    },
+    "./html/htmlToJson": {
+      "import": {
+        "types": "./dist/html/htmlToJson.d.mts",
+        "default": "./dist/html/htmlToJson.mjs"
+      },
+      "require": {
+        "types": "./dist/html/htmlToJson.d.ts",
+        "default": "./dist/html/htmlToJson.cjs"
+      }
+    },
+    "./html/isBlockLevelHtml": {
+      "import": {
+        "types": "./dist/html/isBlockLevelHtml.d.mts",
+        "default": "./dist/html/isBlockLevelHtml.mjs"
+      },
+      "require": {
+        "types": "./dist/html/isBlockLevelHtml.d.ts",
+        "default": "./dist/html/isBlockLevelHtml.cjs"
+      }
+    },
+    "./html/jsonToHtml": {
+      "import": {
+        "types": "./dist/html/jsonToHtml.d.mts",
+        "default": "./dist/html/jsonToHtml.mjs"
+      },
+      "require": {
+        "types": "./dist/html/jsonToHtml.d.ts",
+        "default": "./dist/html/jsonToHtml.cjs"
+      }
+    },
+    "./image/resizeImage": {
+      "import": {
+        "types": "./dist/image/resizeImage.d.mts",
+        "default": "./dist/image/resizeImage.mjs"
+      },
+      "require": {
+        "types": "./dist/image/resizeImage.d.ts",
+        "default": "./dist/image/resizeImage.cjs"
+      }
+    },
+    "./storage/cookieJar": {
+      "import": {
+        "types": "./dist/storage/cookieJar.d.mts",
+        "default": "./dist/storage/cookieJar.mjs"
+      },
+      "require": {
+        "types": "./dist/storage/cookieJar.d.ts",
+        "default": "./dist/storage/cookieJar.cjs"
+      }
+    },
+    "./storage/createJsonStore": {
+      "import": {
+        "types": "./dist/storage/createJsonStore.d.mts",
+        "default": "./dist/storage/createJsonStore.mjs"
+      },
+      "require": {
+        "types": "./dist/storage/createJsonStore.d.ts",
+        "default": "./dist/storage/createJsonStore.cjs"
+      }
+    },
+    "./storage/localStorageJson": {
+      "import": {
+        "types": "./dist/storage/localStorageJson.d.mts",
+        "default": "./dist/storage/localStorageJson.mjs"
+      },
+      "require": {
+        "types": "./dist/storage/localStorageJson.d.ts",
+        "default": "./dist/storage/localStorageJson.cjs"
+      }
+    },
+    "./storage/sessionStorageJson": {
+      "import": {
+        "types": "./dist/storage/sessionStorageJson.d.mts",
+        "default": "./dist/storage/sessionStorageJson.mjs"
+      },
+      "require": {
+        "types": "./dist/storage/sessionStorageJson.d.ts",
+        "default": "./dist/storage/sessionStorageJson.cjs"
+      }
+    },
+    "./style/setCssVariables": {
+      "import": {
+        "types": "./dist/style/setCssVariables.d.mts",
+        "default": "./dist/style/setCssVariables.mjs"
+      },
+      "require": {
+        "types": "./dist/style/setCssVariables.d.ts",
+        "default": "./dist/style/setCssVariables.cjs"
+      }
+    },
+    "./validation/browser": {
+      "import": {
+        "types": "./dist/validation/browser.d.mts",
+        "default": "./dist/validation/browser.mjs"
+      },
+      "require": {
+        "types": "./dist/validation/browser.d.ts",
+        "default": "./dist/validation/browser.cjs"
+      }
+    },
+    "./validation/isCoarsePointer": {
+      "import": {
+        "types": "./dist/validation/isCoarsePointer.d.mts",
+        "default": "./dist/validation/isCoarsePointer.mjs"
+      },
+      "require": {
+        "types": "./dist/validation/isCoarsePointer.d.ts",
+        "default": "./dist/validation/isCoarsePointer.cjs"
+      }
+    },
+    "./validation/isTouchDevice": {
+      "import": {
+        "types": "./dist/validation/isTouchDevice.d.mts",
+        "default": "./dist/validation/isTouchDevice.mjs"
+      },
+      "require": {
+        "types": "./dist/validation/isTouchDevice.d.ts",
+        "default": "./dist/validation/isTouchDevice.cjs"
+      }
+    },
+    "./validation/platform": {
+      "import": {
+        "types": "./dist/validation/platform.d.mts",
+        "default": "./dist/validation/platform.mjs"
+      },
+      "require": {
+        "types": "./dist/validation/platform.d.ts",
+        "default": "./dist/validation/platform.cjs"
+      }
+    },
+    "./unit/toDevicePixels": {
+      "import": {
+        "types": "./dist/unit/toDevicePixels.d.mts",
+        "default": "./dist/unit/toDevicePixels.mjs"
+      },
+      "require": {
+        "types": "./dist/unit/toDevicePixels.d.ts",
+        "default": "./dist/unit/toDevicePixels.cjs"
+      }
     }
   },
   "scripts": {
@@ -112,6 +333,10 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
-    "jsdom": "^27.0.0"
+    "jsdom": "^27.0.0",
+    "tinita": "workspace:*"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
