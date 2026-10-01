@@ -5,12 +5,12 @@
 
 ## Bốn việc owner đã chốt
 
-| | Việc | Quyết định |
-| --- | --- | --- |
-| V1 | Port `installSmoothScroll` thành package thứ ba `tinita-dom` | subpath `tinita-dom/smooth-scroll` |
-| V2 | Tier 2 từ **38 phút** xuống dưới 20 | áp 4 cách cắt, #2 có điều kiện |
-| V3 | QĐ-1 hai bản publish gãy | bump + publish bản vá + `npm deprecate` |
-| V4 | QĐ-2 support TS cũ | thêm `typesVersions` cho cả 3 package |
+|     | Việc                                                         | Quyết định                              |
+| --- | ------------------------------------------------------------ | --------------------------------------- |
+| V1  | Port `installSmoothScroll` thành package thứ ba `tinita-dom` | subpath `tinita-dom/smooth-scroll`      |
+| V2  | Tier 2 từ **38 phút** xuống dưới 20                          | áp 4 cách cắt, #2 có điều kiện          |
+| V3  | QĐ-1 hai bản publish gãy                                     | bump + publish bản vá + `npm deprecate` |
+| V4  | QĐ-2 support TS cũ                                           | thêm `typesVersions` cho cả 3 package   |
 
 ## Ba điều số đo nói, khác với dự đoán ban đầu
 
@@ -26,13 +26,13 @@
 
 ## Phân pha - theo phụ thuộc
 
-| # | Pha | Phụ thuộc | Status | Progress |
-| --- | --- | --- | --- | --- |
-| 01 | [V2 tối ưu tier 2](./phase-01-tier2-optimization.md) | không | **Done** - 2284s -> 509s | 100% |
-| 02 | [V1 package `tinita-dom`](./phase-02-tinita-dom-package.md) | 01 | **Done** | 100% |
-| 03 | [V4 `typesVersions` cho 3 package](./phase-03-typesversions.md) | 02 | **Done** | 100% |
-| 04 | [V3 bump + publish + deprecate](./phase-04-publish-and-deprecate.md) | **03** | **Chuẩn bị xong, chờ owner** - cần `npm login` + xác nhận | 80% |
-| 05 | [Docs + 2 vấn đề lab còn treo](./phase-05-docs-and-lab-debt.md) | 01-04 | **Done** | 100% |
+| #   | Pha                                                                  | Phụ thuộc | Status                                                    | Progress |
+| --- | -------------------------------------------------------------------- | --------- | --------------------------------------------------------- | -------- |
+| 01  | [V2 tối ưu tier 2](./phase-01-tier2-optimization.md)                 | không     | **Done** - 2284s -> 509s                                  | 100%     |
+| 02  | [V1 package `tinita-dom`](./phase-02-tinita-dom-package.md)          | 01        | **Done**                                                  | 100%     |
+| 03  | [V4 `typesVersions` cho 3 package](./phase-03-typesversions.md)      | 02        | **Done**                                                  | 100%     |
+| 04  | [V3 bump + publish + deprecate](./phase-04-publish-and-deprecate.md) | **03**    | **Chuẩn bị xong, chờ owner** - cần `npm login` + xác nhận | 80%      |
+| 05  | [Docs + 2 vấn đề lab còn treo](./phase-05-docs-and-lab-debt.md)      | 01-04     | **Done**                                                  | 100%     |
 
 Pha 01 đi trước vì nó rút ngắn mọi lần chạy lab sau đó. Pha 04 **phải** sau 03: publish bản chưa có
 `typesVersions` là publish sai và không thu hồi được.
@@ -63,10 +63,10 @@ nào được tự chạy chúng.
 
 ## Số đo mục tiêu
 
-| Tier | Trước | Mục tiêu | **Đo lại 2026-09-26** |
-| --- | --- | --- | --- |
-| 1 (L1+L2 local) | 174s | dưới 60s | **63s** - sát trần, đạt về thực chất |
-| 2 (+ L3 tier<=2) | 2284s = 38 phút | dưới 1200s | **509s = 8.5 phút** |
+| Tier             | Trước           | Mục tiêu   | **Đo lại 2026-09-26**                |
+| ---------------- | --------------- | ---------- | ------------------------------------ |
+| 1 (L1+L2 local)  | 174s            | dưới 60s   | **63s** - sát trần, đạt về thực chất |
+| 2 (+ L3 tier<=2) | 2284s = 38 phút | dưới 1200s | **509s = 8.5 phút**                  |
 
 **Tiền đề của plan SAI và đã được sửa.** Plan (và báo cáo nghiên cứu) nói chi phí ở `npm install`.
 Đo phân tách: `docker build` 2s, `npm install` **5s**, còn `cp -r /lab` trong container **195s** vì

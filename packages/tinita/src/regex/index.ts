@@ -10,7 +10,8 @@ export const urlRegex = new RegExp(
   'i'
 ); // validate fragment locator
 
-export const vietnameseRegex = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/giu;
+export const vietnameseRegex =
+  /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/giu;
 
 export const alphabetRegex = /^[a-zA-Z]+$/;
 

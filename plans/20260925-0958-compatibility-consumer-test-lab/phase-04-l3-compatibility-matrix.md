@@ -29,8 +29,7 @@
    resolver kiểm từng import theo khai báo. Một package dùng dependency mà không khai (phantom
    dependency) sẽ pass npm và pnpm nhưng fail PnP. Với `tinita-react` vừa chuyển sang optional peer,
    đây đúng là chỗ lộ ra nếu có lib nào bị dùng mà chưa khai.
-3. **Node cũ trả lời một câu hỏi khác Node mới.** `engines` khai `>=18` nhưng chưa ai chạy thử trên
-   18. Nếu `dist` dùng syntax hoặc API chỉ có từ 20 trở lên thì hiện không có gì phát hiện.
+3. **Node cũ trả lời một câu hỏi khác Node mới.** `engines` khai `>=18` nhưng chưa ai chạy thử trên 18. Nếu `dist` dùng syntax hoặc API chỉ có từ 20 trở lên thì hiện không có gì phát hiện.
 4. **Không dùng alpine.** musl libc gây rủi ro với native dep và esbuild. `node:*-slim` là Debian
    glibc, an toàn cho chuỗi build hiện tại (tsup/esbuild + postcss).
 5. **yarn bị chặn ở local nên Docker không phải lựa chọn mà là điều kiện.** Root `package.json` có
@@ -61,27 +60,27 @@ compatibility/docker/
 
 Matrix đã chọn, kèm lý do. **Bỏ** mọi cell không trả lời câu hỏi mới:
 
-| # | Node | PM | Level chạy | Tier | Câu hỏi cell này trả lời |
-| --- | --- | --- | --- | --- | --- |
-| 1 | 24-slim | npm | L1+L2 | 2 | baseline khớp local, phát hiện lệch giữa host và container |
-| 2 | 22-slim | npm | L1+L2 | 2 | LTS hiện tại của phần lớn người dùng |
-| 3 | 20-slim | npm | L1 | 2 | LTS cũ còn support |
-| 4 | 18-slim | npm | L1 | 3 | sàn của `engines: >=18`; chưa ai từng chạy thử |
-| 5 | 22-slim | pnpm | L1 | 2 | resolver strict, không hoist - bắt dependency khai thiếu |
-| 6 | 22-slim | yarn classic | L1 | 3 | resolution khác npm/pnpm; không chạy được ở local |
-| 7 | 22-slim | **yarn PnP** | L1 | 3 | **phantom dependency - cell đáng giá nhất** |
-| 8 | bun latest | bun | L1 | 3 | runtime khác; chưa cài ở local |
+| #   | Node       | PM           | Level chạy | Tier | Câu hỏi cell này trả lời                                   |
+| --- | ---------- | ------------ | ---------- | ---- | ---------------------------------------------------------- |
+| 1   | 24-slim    | npm          | L1+L2      | 2    | baseline khớp local, phát hiện lệch giữa host và container |
+| 2   | 22-slim    | npm          | L1+L2      | 2    | LTS hiện tại của phần lớn người dùng                       |
+| 3   | 20-slim    | npm          | L1         | 2    | LTS cũ còn support                                         |
+| 4   | 18-slim    | npm          | L1         | 3    | sàn của `engines: >=18`; chưa ai từng chạy thử             |
+| 5   | 22-slim    | pnpm         | L1         | 2    | resolver strict, không hoist - bắt dependency khai thiếu   |
+| 6   | 22-slim    | yarn classic | L1         | 3    | resolution khác npm/pnpm; không chạy được ở local          |
+| 7   | 22-slim    | **yarn PnP** | L1         | 3    | **phantom dependency - cell đáng giá nhất**                |
+| 8   | bun latest | bun          | L1         | 3    | runtime khác; chưa cài ở local                             |
 
 **Đã cân nhắc và BỎ:**
 
-| Cell bỏ | Lý do bỏ |
-| --- | --- |
-| Node 20/18 × pnpm | Cell 5 đã trả lời câu hỏi "resolver strict"; đổi Node không đổi câu trả lời |
-| Node 24 × yarn/bun | Cell 6-8 đã phủ PM; đổi Node không thêm thông tin về PM |
-| L2 trên mọi Node | `next build`/`vite build` tốn phút, mà lỗi bundler không phụ thuộc Node patch. Chỉ cell 1-2 chạy L2 |
-| L3 × 3 React version | React version là trục của consumer, không phải của môi trường - thuộc pha 05 |
-| npm version cũ | `engines` không khai npm; lockfile v3 đã ổn định. Thêm cell này không trả lời câu hỏi nào đang mở |
-| macOS/Windows runner | Không có hạ tầng; `.gitattributes` đã ép `eol=lf`. Ghi là rủi ro chưa phủ, không giả vờ phủ |
+| Cell bỏ              | Lý do bỏ                                                                                            |
+| -------------------- | --------------------------------------------------------------------------------------------------- |
+| Node 20/18 × pnpm    | Cell 5 đã trả lời câu hỏi "resolver strict"; đổi Node không đổi câu trả lời                         |
+| Node 24 × yarn/bun   | Cell 6-8 đã phủ PM; đổi Node không thêm thông tin về PM                                             |
+| L2 trên mọi Node     | `next build`/`vite build` tốn phút, mà lỗi bundler không phụ thuộc Node patch. Chỉ cell 1-2 chạy L2 |
+| L3 × 3 React version | React version là trục của consumer, không phải của môi trường - thuộc pha 05                        |
+| npm version cũ       | `engines` không khai npm; lockfile v3 đã ổn định. Thêm cell này không trả lời câu hỏi nào đang mở   |
+| macOS/Windows runner | Không có hạ tầng; `.gitattributes` đã ép `eol=lf`. Ghi là rủi ro chưa phủ, không giả vờ phủ         |
 
 `verdaccio`: **không dùng ở pha này.** Nó trả lời câu hỏi về registry metadata (dist-tag, version
 resolution), mà ca 07 của pha 02 (`npm pack tinita@0.0.1`) đã phủ phần quan trọng nhất là "bản đã
@@ -90,13 +89,13 @@ tin mới. Ghi vào Next steps như việc cân nhắc lại nếu sau này có 
 
 ## Related code files
 
-| File | Vai trò |
-| --- | --- |
-| `packages/*/package.json` | `engines: >=18` - cell 4 kiểm đúng claim này |
+| File                                 | Vai trò                                                                        |
+| ------------------------------------ | ------------------------------------------------------------------------------ |
+| `packages/*/package.json`            | `engines: >=18` - cell 4 kiểm đúng claim này                                   |
 | `packages/tinita-react/package.json` | `peerDependenciesMeta` optional - cell 5, 7 kiểm cách resolver khác nhau xử lý |
-| `package.json` (root) | `packageManager: pnpm@9.0.0` - nguyên nhân yarn không chạy được ở local |
-| `.gitattributes` | `eol=lf` mặc định - lý do rủi ro CRLF thấp, nhưng vẫn chưa phủ Windows |
-| `compatibility/docker/matrix.json` | nguồn duy nhất của danh sách cell; pha 06 đọc để chia tier |
+| `package.json` (root)                | `packageManager: pnpm@9.0.0` - nguyên nhân yarn không chạy được ở local        |
+| `.gitattributes`                     | `eol=lf` mặc định - lý do rủi ro CRLF thấp, nhưng vẫn chưa phủ Windows         |
+| `compatibility/docker/matrix.json`   | nguồn duy nhất của danh sách cell; pha 06 đọc để chia tier                     |
 
 ## Implementation Steps
 
@@ -161,15 +160,15 @@ tin mới. Ghi vào Next steps như việc cân nhắc lại nếu sau này có 
 
 ## Risk Assessment
 
-| Rủi ro | Xác suất | Ảnh hưởng | Giảm thiểu |
-| --- | --- | --- | --- |
-| Matrix phình dần tới Cartesian, tier 2 vượt ngân sách | Cao theo thời gian | Cao | Trường `why` bắt buộc + tiêu chí 10; bảng "đã cân nhắc và BỎ" trong pha này là tiền lệ |
-| `docker build` chậm, tier 2 không dùng nổi | Cao lần đầu | Trung bình | Một Dockerfile dùng chung với ARG, layer cài PM được cache; đo ở tiêu chí 8 rồi quyết ở pha 06 |
-| Cell PnP không thật đi qua resolver PnP, pass giả | Trung bình | Nghiêm trọng | Tiêu chí 6 (kiểm `nodeLinker` và không có `node_modules`) + tiêu chí 7 (ca chứng minh) |
-| Mount cache của host vào container để cho nhanh, làm mất cô lập | Trung bình | Nghiêm trọng | `entry.sh` không nhận mount cache; chỉ mount `/artifacts` read-only |
-| Node 18 fail và không rõ nên hạ `engines` hay sửa build | Trung bình | Trung bình | Tiêu chí 4 buộc report nêu specifier cụ thể; quyết định để pha 06 |
-| bun fail vì bun, không vì package, gây nhiễu | Cao | Thấp | Cell 8 ở tier 3 và được đánh dấu `advisory: true` - fail của nó không làm đỏ tier 2 |
-| Windows/macOS chưa phủ, lỗi path/case không ai thấy | Trung bình | Trung bình | Ghi tường minh là rủi ro chưa phủ trong report và ở pha 06; `.gitattributes` `eol=lf` giảm một phần |
+| Rủi ro                                                          | Xác suất           | Ảnh hưởng    | Giảm thiểu                                                                                          |
+| --------------------------------------------------------------- | ------------------ | ------------ | --------------------------------------------------------------------------------------------------- |
+| Matrix phình dần tới Cartesian, tier 2 vượt ngân sách           | Cao theo thời gian | Cao          | Trường `why` bắt buộc + tiêu chí 10; bảng "đã cân nhắc và BỎ" trong pha này là tiền lệ              |
+| `docker build` chậm, tier 2 không dùng nổi                      | Cao lần đầu        | Trung bình   | Một Dockerfile dùng chung với ARG, layer cài PM được cache; đo ở tiêu chí 8 rồi quyết ở pha 06      |
+| Cell PnP không thật đi qua resolver PnP, pass giả               | Trung bình         | Nghiêm trọng | Tiêu chí 6 (kiểm `nodeLinker` và không có `node_modules`) + tiêu chí 7 (ca chứng minh)              |
+| Mount cache của host vào container để cho nhanh, làm mất cô lập | Trung bình         | Nghiêm trọng | `entry.sh` không nhận mount cache; chỉ mount `/artifacts` read-only                                 |
+| Node 18 fail và không rõ nên hạ `engines` hay sửa build         | Trung bình         | Trung bình   | Tiêu chí 4 buộc report nêu specifier cụ thể; quyết định để pha 06                                   |
+| bun fail vì bun, không vì package, gây nhiễu                    | Cao                | Thấp         | Cell 8 ở tier 3 và được đánh dấu `advisory: true` - fail của nó không làm đỏ tier 2                 |
+| Windows/macOS chưa phủ, lỗi path/case không ai thấy             | Trung bình         | Trung bình   | Ghi tường minh là rủi ro chưa phủ trong report và ở pha 06; `.gitattributes` `eol=lf` giảm một phần |
 
 ## Security Considerations
 

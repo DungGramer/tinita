@@ -26,10 +26,10 @@
 1. **Static tool là CẦN nhưng KHÔNG ĐỦ - đã đo, không phải phỏng đoán.** Dựng lại B1 (bỏ
    `outExtension`) và B2 (`bundle: false`) rồi chạy tool:
 
-   | Bug | publint | attw | thực thi `require`/`import` |
-   | --- | --- | --- | --- |
-   | B1 exports trỏ file không tồn tại | **bắt, chính xác cả 7 đường dẫn** | không nhắm | bắt |
-   | B2 import ESM thiếu đuôi | **KHÔNG bắt** | **KHÔNG bắt** | **DUY NHẤT bắt được** |
+   | Bug                               | publint                           | attw          | thực thi `require`/`import` |
+   | --------------------------------- | --------------------------------- | ------------- | --------------------------- |
+   | B1 exports trỏ file không tồn tại | **bắt, chính xác cả 7 đường dẫn** | không nhắm    | bắt                         |
+   | B2 import ESM thiếu đuôi          | **KHÔNG bắt**                     | **KHÔNG bắt** | **DUY NHẤT bắt được**       |
 
    Nếu pha này chỉ dùng publint + attw thì B2 sẽ tái diễn và không ai biết.
 
@@ -91,38 +91,54 @@ compatibility/
 ```json
 {
   "tinita": {
-    "specifiers": [".", "./file/fileSize", "./file/getFileNameParts",
-                   "./file/truncateFileName", "./file/truncateFileNameParts", "./uuid/generateUUID"],
+    "specifiers": [
+      ".",
+      "./file/fileSize",
+      "./file/getFileNameParts",
+      "./file/truncateFileName",
+      "./file/truncateFileNameParts",
+      "./uuid/generateUUID"
+    ],
     "namedExports": { "./file/truncateFileName": ["truncateFileName"] },
     "accepted": [
-      { "tool": "attw", "problem": "FalseCJS", "scope": "all", "since": "2026-09-25",
-        "reason": "exports.types trỏ .d.ts trong khi import trỏ .mjs; sửa ở pha 06" }
+      {
+        "tool": "attw",
+        "problem": "FalseCJS",
+        "scope": "all",
+        "since": "2026-09-25",
+        "reason": "exports.types trỏ .d.ts trong khi import trỏ .mjs; sửa ở pha 06"
+      }
     ]
   },
-  "tinita-react": { "specifiers": ["...", "./ui/file-tree"], "optionalPeers": { "./ui/file-tree": ["@radix-ui/react-accordion", "lucide-react"] } }
+  "tinita-react": {
+    "specifiers": ["...", "./ui/file-tree"],
+    "optionalPeers": {
+      "./ui/file-tree": ["@radix-ui/react-accordion", "lucide-react"]
+    }
+  }
 }
 ```
 
 Ma trận optional peer (ca 04):
 
-| Đường nhập | peer VẮNG | peer CÓ |
-| --- | --- | --- |
-| `tinita-react/ui/ping` | load được | load được |
-| `tinita-react/ui/carousel-ticker` | load được | load được |
-| `tinita-react/hooks/useToggle` | load được | load được |
-| `tinita-react/utils/autoInjectStyles` | load được | load được |
-| `tinita-react/ui/file-tree` | **fail, nêu tên module thiếu** | load được |
+| Đường nhập                            | peer VẮNG                      | peer CÓ   |
+| ------------------------------------- | ------------------------------ | --------- |
+| `tinita-react/ui/ping`                | load được                      | load được |
+| `tinita-react/ui/carousel-ticker`     | load được                      | load được |
+| `tinita-react/hooks/useToggle`        | load được                      | load được |
+| `tinita-react/utils/autoInjectStyles` | load được                      | load được |
+| `tinita-react/ui/file-tree`           | **fail, nêu tên module thiếu** | load được |
 
 ## Related code files
 
-| File | Vai trò |
-| --- | --- |
-| `packages/tinita/package.json` | 6 subpath × 3 condition + `main`/`module`/`types`; thiếu `sideEffects` và `type` |
-| `packages/tinita-react/package.json` | 9 subpath + 3 CSS; `peerDependenciesMeta` optional cho 2 lib |
-| `packages/tinita/tsup.config.ts` | `bundle: true` + `outExtension` - hai thứ đã vá B1/B2, ca 03 chứng minh chúng cần thiết |
-| `packages/tinita-react/tsup.config.ts` | `external` 4 lib; `clsx`/`tailwind-merge` bị inline |
-| `CLAUDE.md` | nguồn của claim `tinita-react/hooks` + `/ui` bắt buộc - claim này SAI, ca 05 sẽ bắt |
-| `compatibility/scripts/consumer.mjs` | cổng duy nhất dựng project (pha 01) |
+| File                                   | Vai trò                                                                                 |
+| -------------------------------------- | --------------------------------------------------------------------------------------- |
+| `packages/tinita/package.json`         | 6 subpath × 3 condition + `main`/`module`/`types`; thiếu `sideEffects` và `type`        |
+| `packages/tinita-react/package.json`   | 9 subpath + 3 CSS; `peerDependenciesMeta` optional cho 2 lib                            |
+| `packages/tinita/tsup.config.ts`       | `bundle: true` + `outExtension` - hai thứ đã vá B1/B2, ca 03 chứng minh chúng cần thiết |
+| `packages/tinita-react/tsup.config.ts` | `external` 4 lib; `clsx`/`tailwind-merge` bị inline                                     |
+| `CLAUDE.md`                            | nguồn của claim `tinita-react/hooks` + `/ui` bắt buộc - claim này SAI, ca 05 sẽ bắt     |
+| `compatibility/scripts/consumer.mjs`   | cổng duy nhất dựng project (pha 01)                                                     |
 
 ## Implementation Steps
 
@@ -151,7 +167,7 @@ Ma trận optional peer (ca 04):
    `dist/styles/globals.css`, `dist/styles/animations.css`, `dist/ui/*/index.{mjs,cjs}`.
 8. Ca 07 registry vs local: `npm pack tinita@0.0.1 --pack-destination <cache>` (tải bản đã publish)
    rồi chạy ca 01+03 trên nó. **Kỳ vọng: nó FAIL** vì publish trước khi vá B1/B2. Ca này ghi kết quả
-   vào report như một *finding*, không làm đỏ toàn bộ run - đánh dấu `expectedFailure: true` kèm lý
+   vào report như một _finding_, không làm đỏ toàn bộ run - đánh dấu `expectedFailure: true` kèm lý
    do, và pha 06 dùng kết quả này để owner quyết bump/deprecate. Cần mạng; khi offline thì skip với
    exit 0 và ghi `skipped: no-network`, không fail.
 9. **Ca chứng minh lab thật sự bắt được** (bắt buộc, theo pattern tiêu chí 5-6 của pha 01): dựng
@@ -201,14 +217,14 @@ Ma trận optional peer (ca 04):
 
 ## Risk Assessment
 
-| Rủi ro | Xác suất | Ảnh hưởng | Giảm thiểu |
-| --- | --- | --- | --- |
-| Lab đỏ ngay ngày đầu vì 4 khiếm khuyết sẵn có, rồi bị bỏ không dùng | Cao nếu không xử lý | Nghiêm trọng | `accepted` allowlist tường minh kèm lý do + ngày; `findings` tách khỏi `failures` |
-| Allowlist thành thùng rác, vấn đề thật bị chôn trong đó | Trung bình theo thời gian | Cao | Mỗi entry bắt buộc có `since` và `reason`; pha 06 thêm quy tắc review allowlist khi bump version |
-| Sinh ca từ `exports` thay vì `contract.json`, xoá export là mất ca | Trung bình | Cao | Ca 05 đối chiếu hai chiều; tiêu chí 7 chứng minh |
-| Ca 07 cần mạng, làm run không tái lập | Cao | Trung bình | Skip sạch khi offline, exit 0, ghi `skipped: no-network`; ca 07 chỉ thuộc tier 2 |
-| `attw` và `publint` đổi format output giữa các version, parse vỡ | Trung bình | Trung bình | Pin version chính xác trong `compatibility/package.json`; ca 02 fail exit 2 (hạ tầng) nếu parse thất bại, không exit 1 |
-| Gộp nhiều specifier vào một process, lỗi đầu che phần sau | Trung bình | Cao | Bước 4 bắt buộc process con riêng từng specifier |
+| Rủi ro                                                              | Xác suất                  | Ảnh hưởng    | Giảm thiểu                                                                                                             |
+| ------------------------------------------------------------------- | ------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| Lab đỏ ngay ngày đầu vì 4 khiếm khuyết sẵn có, rồi bị bỏ không dùng | Cao nếu không xử lý       | Nghiêm trọng | `accepted` allowlist tường minh kèm lý do + ngày; `findings` tách khỏi `failures`                                      |
+| Allowlist thành thùng rác, vấn đề thật bị chôn trong đó             | Trung bình theo thời gian | Cao          | Mỗi entry bắt buộc có `since` và `reason`; pha 06 thêm quy tắc review allowlist khi bump version                       |
+| Sinh ca từ `exports` thay vì `contract.json`, xoá export là mất ca  | Trung bình                | Cao          | Ca 05 đối chiếu hai chiều; tiêu chí 7 chứng minh                                                                       |
+| Ca 07 cần mạng, làm run không tái lập                               | Cao                       | Trung bình   | Skip sạch khi offline, exit 0, ghi `skipped: no-network`; ca 07 chỉ thuộc tier 2                                       |
+| `attw` và `publint` đổi format output giữa các version, parse vỡ    | Trung bình                | Trung bình   | Pin version chính xác trong `compatibility/package.json`; ca 02 fail exit 2 (hạ tầng) nếu parse thất bại, không exit 1 |
+| Gộp nhiều specifier vào một process, lỗi đầu che phần sau           | Trung bình                | Cao          | Bước 4 bắt buộc process con riêng từng specifier                                                                       |
 
 ## Security Considerations
 

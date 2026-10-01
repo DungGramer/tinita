@@ -4,12 +4,12 @@ Số đo thật trên repo, không suy luận. Planner dùng luôn.
 
 ## Quyết định owner đã chốt (KHÔNG hỏi lại)
 
-| # | Quyết định |
-|---|---|
-| Plan | Tạo plan MỚI (plan lab cũ đã Done 6/6, giữ làm hồ sơ) |
-| QĐ-1 | **Bump + publish bản vá + `npm deprecate` bản cũ.** Đề nghị `tinita@0.1.0`, `tinita-react@0.1.0` |
-| QĐ-2 | **SUPPORT TS cũ - thêm `typesVersions`** (owner chọn khác khuyến nghị của tôi; tôn trọng) |
-| Tier 2 | Áp **cả 4** cách cắt, gồm cả #2 (mount `node_modules`) là cách rủi ro nhất |
+| #      | Quyết định                                                                                       |
+| ------ | ------------------------------------------------------------------------------------------------ |
+| Plan   | Tạo plan MỚI (plan lab cũ đã Done 6/6, giữ làm hồ sơ)                                            |
+| QĐ-1   | **Bump + publish bản vá + `npm deprecate` bản cũ.** Đề nghị `tinita@0.1.0`, `tinita-react@0.1.0` |
+| QĐ-2   | **SUPPORT TS cũ - thêm `typesVersions`** (owner chọn khác khuyến nghị của tôi; tôn trọng)        |
+| Tier 2 | Áp **cả 4** cách cắt, gồm cả #2 (mount `node_modules`) là cách rủi ro nhất                       |
 
 **`npm publish` và `npm deprecate` là hành động RA NGOÀI, không hoàn tác được.** Plan phải tách
 chúng thành cổng riêng cần owner xác nhận lúc chạy, không được để script tự chạy.
@@ -18,11 +18,11 @@ chúng thành cổng riêng cần owner xác nhận lúc chạy, không được
 
 Nguồn (đã snapshot vào `reports/source-*.txt` của plan này):
 
-| File | Dòng | Phụ thuộc |
-|---|---|---|
-| `smooth-scroll.ts` | 422 | CHỈ `./wheel-source` |
-| `wheel-source.ts` | 168 | **zero import** - không phụ thuộc gì |
-| `wheel-source.test.ts` | 112 | **đã có sẵn**, port kèm |
+| File                   | Dòng | Phụ thuộc                            |
+| ---------------------- | ---- | ------------------------------------ |
+| `smooth-scroll.ts`     | 422  | CHỈ `./wheel-source`                 |
+| `wheel-source.ts`      | 168  | **zero import** - không phụ thuộc gì |
+| `wheel-source.test.ts` | 112  | **đã có sẵn**, port kèm              |
 
 Đường dẫn gốc:
 `/Users/dungnc10/Documents/CODE/deepstream-v2/deepstream/apps/iva-service/web/src/lib/`
@@ -40,6 +40,7 @@ Export của `wheel-source.ts` (11): `WHEEL_SAMPLE_COUNT`, `WHEEL_CONTINUOUS_GAP
 **Đặc tính quan trọng:** code chạm `document`, `window.matchMedia`, `requestAnimationFrame`,
 `getComputedStyle`, `WeakMap`. Nó **browser-only về bản chất**. JSDoc của nó nói rõ "Call once,
 outside React". Nên:
+
 - `tinita-dom` cần `vitest` với `environment: jsdom` (như `tinita-react`), không phải `node`.
 - Ca SSR của L2 trong lab sẽ bắt nếu import nó ở môi trường không có `document` mà không guard.
   Plan phải quyết: có SSR guard hay khai rõ là browser-only và ca L2 bỏ qua nó.
@@ -65,13 +66,13 @@ Package mới PHẢI có ngay từ đầu, nếu không sẽ lặp đúng 2 bug 
 
 Nếu bỏ qua, lab sẽ không kiểm `tinita-dom` và ca 05 sẽ fail:
 
-| File | Sửa gì |
-|---|---|
-| `compatibility/scripts/paths.mjs` | `PACKAGES` thêm `tinita-dom` |
-| `compatibility/scripts/pack.mjs` | `REQUIRED_DIST` thêm entry cho `tinita-dom` |
-| `compatibility/contract.json` | thêm khối `tinita-dom`: `specifiers`, `namedExports`, `requiredFiles`, `forbiddenFiles`, `accepted` |
-| `compatibility/cases/l2/index.mjs` | ca SSR: quyết định `tinita-dom` có nằm trong đó không |
-| `docs/codebase-summary.md`, `README.md`, `docs/code-standards.md` | bảng package, bảng component->dependency |
+| File                                                              | Sửa gì                                                                                              |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `compatibility/scripts/paths.mjs`                                 | `PACKAGES` thêm `tinita-dom`                                                                        |
+| `compatibility/scripts/pack.mjs`                                  | `REQUIRED_DIST` thêm entry cho `tinita-dom`                                                         |
+| `compatibility/contract.json`                                     | thêm khối `tinita-dom`: `specifiers`, `namedExports`, `requiredFiles`, `forbiddenFiles`, `accepted` |
+| `compatibility/cases/l2/index.mjs`                                | ca SSR: quyết định `tinita-dom` có nằm trong đó không                                               |
+| `docs/codebase-summary.md`, `README.md`, `docs/code-standards.md` | bảng package, bảng component->dependency                                                            |
 
 Quy tắc đã ghi trong `docs/code-standards.md`: **export mới phải có ca L1**. Ca
 `05-contract-drift` đối chiếu HAI CHIỀU nên thêm export mà quên contract sẽ fail, và ngược lại.
@@ -80,11 +81,11 @@ Quy tắc đã ghi trong `docs/code-standards.md`: **export mới phải có ca 
 
 Đo 2026-09-25, macOS 15 Apple Silicon, Docker 29.7.2, Node 24.18.0:
 
-| Tier | Mục tiêu | Đo thật |
-|---|---|---|
-| 1 (L1+L2 local) | < 4 phút | **174s** (L1 21s + L2 153s) |
-| 2 (+ L3 cell tier<=2) | < 20 phút | **2284s = 38 phút** |
-| 3 (toàn bộ + L4) | < 45 phút | 5504s = 92 phút; L4 riêng 329s |
+| Tier                  | Mục tiêu  | Đo thật                        |
+| --------------------- | --------- | ------------------------------ |
+| 1 (L1+L2 local)       | < 4 phút  | **174s** (L1 21s + L2 153s)    |
+| 2 (+ L3 cell tier<=2) | < 20 phút | **2284s = 38 phút**            |
+| 3 (toàn bộ + L4)      | < 45 phút | 5504s = 92 phút; L4 riêng 329s |
 
 Chi phí KHÔNG ở ca test mà ở hạ tầng: mỗi cell `docker build` riêng + `npm install` lại trong
 container. 4 cell × (build + install + ca).
@@ -127,6 +128,7 @@ Hiện trạng đo được: `moduleResolution: node` fail **10 import** (ca `ts
 `bundler` và `nodenext` sạch. `attw` báo `node10: Resolution failed` 5/6 subpath.
 
 Owner chọn **SUPPORT**. Hệ quả plan phải xử:
+
 - Thêm `typesVersions` vào `package.json` của cả 3 package.
 - `typesVersions` phải **đồng bộ với `exports`** mỗi lần thêm subpath. Đây là nguồn lệch mới -
   plan nên thêm ca L1 kiểm đồng bộ hai chiều giữa `typesVersions` và `exports`, giống ca 05.
@@ -146,6 +148,7 @@ Owner chọn **SUPPORT**. Hệ quả plan phải xử:
 Plan nên quyết #2 và #3 nằm trong hay ngoài phạm vi lần này.
 
 ## Trạng thái hiện tại
+
 Branch `docs/verified-rewrite-and-arch-constraints`, HEAD `be2281a`, đã push.
 Gate repo `check-types`/`lint`/`build`/`test` đều EXIT 0. Lab `l1` và `l2` đều EXIT 0.
 
@@ -159,16 +162,17 @@ binary. **Đo lại thì KHÔNG phải vậy** - nhưng có điều kiện.
 `compatibility/node_modules`: 61 gói, 3 devDependency (`publint`, `@arethetypeswrong/cli`,
 `playwright`).
 
-| Kiểm | Kết quả |
-|---|---|
-| `*.node`, `*.dylib`, `*.so` | **0 file** |
-| Gói platform-specific (`@esbuild/darwin-arm64`, `@rollup/rollup-darwin-*`) | **không có** |
-| File thực thi không phải JS | 15, và `file` cho thấy **tất cả** là shell script hoặc `#!/usr/bin/env node` |
-| Field `cpu`/`os` trong `package-lock.json` | **không có** |
+| Kiểm                                                                       | Kết quả                                                                      |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `*.node`, `*.dylib`, `*.so`                                                | **0 file**                                                                   |
+| Gói platform-specific (`@esbuild/darwin-arm64`, `@rollup/rollup-darwin-*`) | **không có**                                                                 |
+| File thực thi không phải JS                                                | 15, và `file` cho thấy **tất cả** là shell script hoặc `#!/usr/bin/env node` |
+| Field `cpu`/`os` trong `package-lock.json`                                 | **không có**                                                                 |
 
 => Bộ dependency này **platform-independent**, mount được vào container Linux.
 
 **Nhưng nó mong manh, và plan phải xử:**
+
 - Nếu sau này ai thêm dependency có native binary (esbuild, swc, sharp, better-sqlite3...) thì mount
   sẽ gãy **âm thầm** hoặc tệ hơn là chạy sai.
 - `playwright` browser KHÔNG nằm trong `node_modules`, nó ở `~/Library/Caches/ms-playwright` và là
@@ -176,6 +180,7 @@ binary. **Đo lại thì KHÔNG phải vậy** - nhưng có điều kiện.
   không launch được (đã kiểm: container báo `13 ca, 0 fail, 5 skip`).
 
 **Vậy cách cắt #2 cần HAI guardrail, không phải một:**
+
 1. Assertion mount KHÔNG chứa `tinita*` (owner và tôi đã nêu) - nếu lọt thì lab xanh giả.
 2. **Assertion mount platform-independent**: quét `*.node`/`*.dylib`/`*.so` và field `cpu`/`os`
    trong lockfile, fail nếu có. Nếu thiếu assertion này thì lần thêm dependency sau sẽ làm matrix
@@ -195,10 +200,10 @@ không đụng gì tới cô lập. Plan nên đọc báo cáo researcher trư�
 
 Cả hai không mâu thuẫn, chúng nói về hai phạm vi khác nhau. Planner phải đọc mục này trước khi chốt.
 
-| | Kết luận | Phạm vi |
-|---|---|---|
+|                  | Kết luận                                                                                                              | Phạm vi                                                                                                                    |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | researcher-02 Q1 | mount **bất khả thi**, binary darwin-arm64 gãy trên linux/arm64; liệt kê `esbuild`, `playwright`, `bcrypt`, `sqlite3` | **Trường hợp tổng quát.** Đúng như một nguyên tắc. Nhưng `bcrypt` và `sqlite3` KHÔNG có trong lab, và `esbuild` cũng không |
-| Tôi đo trực tiếp | **khả thi** cho bộ dep hiện tại: 61 gói, 0 file `.node`/`.dylib`/`.so`, 0 gói platform-specific, 0 field `cpu`/`os` | **Bộ dependency cụ thể hôm nay**: `publint`, `@arethetypeswrong/cli`, `playwright` |
+| Tôi đo trực tiếp | **khả thi** cho bộ dep hiện tại: 61 gói, 0 file `.node`/`.dylib`/`.so`, 0 gói platform-specific, 0 field `cpu`/`os`   | **Bộ dependency cụ thể hôm nay**: `publint`, `@arethetypeswrong/cli`, `playwright`                                         |
 
 Kết luận đúng: mount chạy được **hôm nay**, và sẽ gãy im lặng vào ngày ai thêm một dependency có
 native binary. Đó chính là lý do assertion platform-independence là bắt buộc nếu áp cách cắt #2.
@@ -212,7 +217,7 @@ researcher-02 Q2 và Q4 (khớp với giả thuyết của tôi trong mục trư
 - Base image khác nhau (`node:24-slim` vs `node:22-slim`) nên **không chia sẻ layer được** - cách
   cắt #1 như owner hình dung sẽ không cho lợi ích như mong đợi.
 - **Cách cắt lớn nhất là chuyển `npm install` từ `entry.sh` vào Dockerfile** (`COPY package.json
-  package-lock.json` rồi `RUN npm ci`). Nó được cache theo layer, chỉ chạy lại khi lockfile đổi.
+package-lock.json` rồi `RUN npm ci`). Nó được cache theo layer, chỉ chạy lại khi lockfile đổi.
   Ước ~250s/cell -> tổng ~16 phút. **Đạt mục tiêu dưới 20 phút mà không đụng gì tới cô lập.**
 - BuildKit cache mount hỗ trợ được: `RUN --mount=type=cache,id=tinita-npm,target=/root/.npm npm ci`.
 

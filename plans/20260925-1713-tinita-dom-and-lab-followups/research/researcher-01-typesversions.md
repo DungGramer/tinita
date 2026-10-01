@@ -9,6 +9,7 @@
 **Câu trả lời:** Dùng wildcard pattern `"*"` với subpath mapping. Một single pattern wildcard `"*": ["dist/*"]` CÓ THỂ cover tất cả subpath - không cần liệt kê từng cái.
 
 **JSON cụ thể cho tinita:**
+
 ```json
 {
   "typesVersions": {
@@ -20,6 +21,7 @@
 ```
 
 Cách này:
+
 - `tinita` → `dist/index.d.ts`
 - `tinita/file/fileSize` → `dist/file/fileSize.d.ts`
 - Tất cả 6 subpath được cover bởi 1 pattern
@@ -33,6 +35,7 @@ Cách này:
 **Câu trả lời: CÓ - đó là GIẢI PHÁP DUY NHẤT cho node10.**
 
 **Chứng cứ:**
+
 - `moduleResolution: node` (node10) không nhận diện `exports` field - nó bỏ qua hoàn toàn
 - Không có real folder ở root cho subpath → resolution fail
 - TypeScript ĐỌC `typesVersions` ngay cả khi `exports` present (nếu exports không có type path)
@@ -47,6 +50,7 @@ Cách này:
 **Câu trả lời:** Từ TypeScript 5.0 (PR #50890), `exports` CÓ PRIORITY. Khi `exports` present, nó BLOCK non-exports keys kể cả typesVersions.
 
 **Chi tiết quan trọng:**
+
 - **Với `moduleResolution: node16/nodenext/bundler`**: TS dùng `exports.types` hoặc `exports["."].types` - **KHÔNG dùng typesVersions**
 - **Với `moduleResolution: node`**: TS KHÔNG thấy `exports` field, nên dùng typesVersions nếu có
 - **Kết luận:** Thêm typesVersions an toàn - consumer mới (node16+) không bị ảnh hưởng, consumer cũ (node10) được giải cứu
@@ -60,6 +64,7 @@ Cách này:
 **Câu trả lời: CÓ - attw sẽ ngừng báo `node10: Resolution failed` khi thêm typesVersions.**
 
 **Chứng cứ:**
+
 - attw có check riêng cho node10 resolution, nó đọc `typesVersions` để validate
 - Multiple repos (otplib, linked-fw/translation, etc.) đã fix node10 failures bằng cách thêm typesVersions
 - attw báo pass khi typesVersions map chính xác → `node10` resolution OK
@@ -72,12 +77,12 @@ Cách này:
 
 **Cạm bẫy chính:**
 
-| Cạm bẫy | Hậu quả | Phòng chống |
-|---------|---------|-----------|
-| typesVersions không sync với exports | Subpath mới export nhưng typesVersions chưa add → node10 consumer fail | Tự động update cả exports + typesVersions cùng lúc; script generator nếu có |
-| Thứ tự key typesVersions | Key đầu tiên match được dùng; nếu overlap pattern, key sau bị bỏ | Để `"*"` cuối cùng, specifics trước. Ít khi có overlap nên thường không vấn đề |
-| Double wildcard `"*/*"` | TypeScript không resolve chính xác nested wildcard [Issue #47952](https://github.com/microsoft/TypeScript/issues/47952) | Dùng explicit array `["dist/*", "dist/*/index.d.ts"]` thay vì `"*/*"` |
-| `.d.mts` vs `.d.ts` cho node10 | node10 không hiểu `.mts` suffix - cần `.d.ts` | typesVersions luôn point đến `.d.ts` riêng, không dùng `.d.mts` cho fallback |
+| Cạm bẫy                              | Hậu quả                                                                                                                 | Phòng chống                                                                    |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| typesVersions không sync với exports | Subpath mới export nhưng typesVersions chưa add → node10 consumer fail                                                  | Tự động update cả exports + typesVersions cùng lúc; script generator nếu có    |
+| Thứ tự key typesVersions             | Key đầu tiên match được dùng; nếu overlap pattern, key sau bị bỏ                                                        | Để `"*"` cuối cùng, specifics trước. Ít khi có overlap nên thường không vấn đề |
+| Double wildcard `"*/*"`              | TypeScript không resolve chính xác nested wildcard [Issue #47952](https://github.com/microsoft/TypeScript/issues/47952) | Dùng explicit array `["dist/*", "dist/*/index.d.ts"]` thay vì `"*/*"`          |
+| `.d.mts` vs `.d.ts` cho node10       | node10 không hiểu `.mts` suffix - cần `.d.ts`                                                                           | typesVersions luôn point đến `.d.ts` riêng, không dùng `.d.mts` cho fallback   |
 
 **Tự động hóa:** Chưa có tool chính thức từ TypeScript. Có thể viết script Node.js parse `exports` → generate `typesVersions` JSON. tsdown (Rolldown) có issue #252 đề nghị feature này cho build tool.
 

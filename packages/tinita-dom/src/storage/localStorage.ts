@@ -4,7 +4,8 @@ export const localStorageAction = {
 
     return value ? JSON.parse(value) : defaultValue;
   },
-  set: (key: string, value: any) => localStorage.setItem(key, JSON.stringify(value)),
+  set: (key: string, value: any) =>
+    localStorage.setItem(key, JSON.stringify(value)),
   remove: (key: string) => localStorage.removeItem(key),
   clear: () => localStorage.clear(),
 };

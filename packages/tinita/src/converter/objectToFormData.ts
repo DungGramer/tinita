@@ -76,7 +76,7 @@ export interface ObjectToFormDataOptions {
  */
 export function objectToFormData<T extends Record<string, unknown>>(
   obj: T,
-  options: ObjectToFormDataOptions = {},
+  options: ObjectToFormDataOptions = {}
 ): FormData {
   const {
     arrayFormat = 'indices',
@@ -109,10 +109,7 @@ export function objectToFormData<T extends Record<string, unknown>>(
     if (typeof FileList !== 'undefined' && value instanceof FileList) {
       if (value.length === 0) {
         if (includeEmptyArrays) {
-          formData.append(
-            arrayFormat === 'brackets' ? `${key}[]` : key,
-            '',
-          );
+          formData.append(arrayFormat === 'brackets' ? `${key}[]` : key, '');
         }
 
         return;
@@ -120,9 +117,7 @@ export function objectToFormData<T extends Record<string, unknown>>(
 
       Array.from(value).forEach((file, index) => {
         const fileKey =
-          arrayFormat === 'brackets'
-            ? `${key}[]`
-            : `${key}[${index}]`;
+          arrayFormat === 'brackets' ? `${key}[]` : `${key}[${index}]`;
 
         formData.append(fileKey, file);
       });
@@ -138,10 +133,7 @@ export function objectToFormData<T extends Record<string, unknown>>(
     if (Array.isArray(value)) {
       if (value.length === 0) {
         if (includeEmptyArrays) {
-          formData.append(
-            arrayFormat === 'brackets' ? `${key}[]` : key,
-            '',
-          );
+          formData.append(arrayFormat === 'brackets' ? `${key}[]` : key, '');
         }
 
         return;
@@ -149,9 +141,7 @@ export function objectToFormData<T extends Record<string, unknown>>(
 
       value.forEach((item, index) => {
         const itemKey =
-          arrayFormat === 'brackets'
-            ? `${key}[]`
-            : `${key}[${index}]`;
+          arrayFormat === 'brackets' ? `${key}[]` : `${key}[${index}]`;
 
         appendValue(itemKey, item);
       });

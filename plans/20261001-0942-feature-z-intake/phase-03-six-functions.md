@@ -6,6 +6,7 @@ Owner nêu: `fileToBlob`, `blobToFile`, `stringToBase64`, `base64ToString`,
 `encodeHtmlEntities`, `objectToFormData`.
 
 Hai cái không khớp thực tế:
+
 - `fileToBlob.ts` là **file rỗng 0 byte**. Không có gì để sửa - phải viết mới, và
   trước đó phải trả lời: nó dùng để làm gì? `File` **đã là** `Blob`
   (`File extends Blob`), nên `fileToBlob(f)` hoặc là no-op, hoặc là "tước metadata
@@ -16,19 +17,19 @@ Hai cái không khớp thực tế:
 
 ## Cổng vào, áp cho từng hàm
 
-| Tiêu chí | Chứng minh bằng |
-| --- | --- |
-| Type-safe | `pnpm check-types` 0 lỗi, không `any` ngầm |
+| Tiêu chí              | Chứng minh bằng                                                                            |
+| --------------------- | ------------------------------------------------------------------------------------------ |
+| Type-safe             | `pnpm check-types` 0 lỗi, không `any` ngầm                                                 |
 | Single responsibility | một hàm một việc, không cờ đổi kiểu trả về (quy tắc sẵn có trong `docs/code-standards.md`) |
-| Deterministic | cùng input ra cùng output, **kể cả thời gian** |
-| Không side effect | không chạm global, không mutate tham số |
-| Error semantics rõ | JSDoc nói **ném khi nào** và ném cái gì |
-| Unicode/boundary | test: rỗng, ngoài BMP, surrogate đơn lẻ, chuỗi dài |
-| Round-trip invariant | property test, không phải ví dụ lẻ |
-| Browser/SSR | ca L1 (Node) + ca L2 SSR |
-| JSDoc | mô tả contract, không mô tả implementation |
-| API stability | có mặt trong `contract.json`, ca L1 bắt khi đổi |
-| Dependency tối thiểu | `tinita` vẫn zero-dependency |
+| Deterministic         | cùng input ra cùng output, **kể cả thời gian**                                             |
+| Không side effect     | không chạm global, không mutate tham số                                                    |
+| Error semantics rõ    | JSDoc nói **ném khi nào** và ném cái gì                                                    |
+| Unicode/boundary      | test: rỗng, ngoài BMP, surrogate đơn lẻ, chuỗi dài                                         |
+| Round-trip invariant  | property test, không phải ví dụ lẻ                                                         |
+| Browser/SSR           | ca L1 (Node) + ca L2 SSR                                                                   |
+| JSDoc                 | mô tả contract, không mô tả implementation                                                 |
+| API stability         | có mặt trong `contract.json`, ca L1 bắt khi đổi                                            |
+| Dependency tối thiểu  | `tinita` vẫn zero-dependency                                                               |
 
 ---
 
@@ -39,6 +40,7 @@ Cặp này rõ contract nhất nên làm đầu để lập khuôn cho các hàm
 **Hiện trạng:** đúng về logic (`TextEncoder` -> `btoa`), không JSDoc, không test.
 
 **Vấn đề đo được:**
+
 - `base64ToString` gọi `atob` trên chuỗi hỏng -> ném `InvalidCharacterError`,
   **không khai báo ở đâu cả**. Đây đúng là "failure mode không rõ".
 - Không xử lý base64url (`-_`) và thiếu padding. Hiện trả kết quả sai trong im
@@ -47,6 +49,7 @@ Cặp này rõ contract nhất nên làm đầu để lập khuôn cho các hàm
   điểm nóng. Có `performance test` ở cột Production.
 
 **Contract phải chốt:**
+
 ```
 stringToBase64(s: string): string
   - đảm bảo: base64ToString(stringToBase64(s)) === s với MỌI string
@@ -72,14 +75,17 @@ có cho encoder/decoder" - đây chính là nó.
 **Hiện trạng:** 186 dòng, JSDoc đầy đủ, có options. Là file tốt nhất trong 66 file.
 
 **Lỗi phải sửa trước mọi thứ khác:**
+
 ```ts
 if (value instanceof FileList)   // ReferenceError: FileList is not defined
 ```
+
 `FileList` không tồn tại ở **bất kỳ** bản Node nào (đo 2026-10-01, node 18/20/22/24).
 Gọi hàm này trong SSR là crash, không phải degrade. Sửa:
 `typeof FileList !== 'undefined' && value instanceof FileList`.
 
 **Lỗi khác:**
+
 - Không chống chu trình. `const o={}; o.self=o; objectToFormData(o)` -> tràn stack.
 - `Date` không hợp lệ bị **bỏ im lặng**. JSDoc không nói. Phải chọn: ném, hay bỏ và
   ghi vào JSDoc.
@@ -101,25 +107,34 @@ const charactersToEncode = Object.keys(HTMLEntitiesMap).filter(...).join('');
 const regex = new RegExp(`[${charactersToEncode}]`, 'gi');
 ```
 
-Bốn lỗi độc lập:
+**Đính chính 2026-10-01.** Bản đầu của pha này liệt kê bốn lỗi; chạy thử chính
+thuật toán gốc với bảng thật cho thấy hai trong số đó là tôi suy đoán sai:
 
-1. **Nối ~1500 key vào trong `[...]` không escape.** Key có `\`, `]`, `^`, `-` -
-   đều là metachar trong character class. Kết quả: hoặc ném, hoặc khớp sai dải ký
-   tự hoàn toàn khác ý định.
-2. **Cờ `i`.** Bảng entity **phân biệt hoa thường**: `&Aacute;` và `&aacute;` là
-   hai ký tự khác nhau. Với cờ `i`, `Á` có thể khớp key `á` và sinh ra entity
-   **sai**. Đây là *phá dữ liệu*, đúng tiêu chí owner đặt ra.
-3. **Key nhiều code point** (ví dụ `<⃒`) đặt trong character class không hoạt động
-   như mong đợi.
-4. **JSDoc tự tố cáo:** ví dụ ghi `'Hòm nhĩ trái'` -> `H&ograve;m nhĩ tr&aacute;i`.
-   `ò` và `á` được mã hoá còn `ĩ` thì không. Không có lý do nào đúng để `ĩ` bị bỏ
-   qua - đó là lỗi regex lộ ra ngay trong tài liệu.
+- ~~Cờ `i` làm `Á` khớp key `á` và sinh entity sai~~ - **không**. Code tra cứu
+  theo _chuỗi khớp được_, không theo pattern, nên nó tự đúng: `Á á` ra
+  `&Aacute; &aacute;`.
+- ~~JSDoc bỏ sót `ĩ` là bằng chứng regex hỏng~~ - **không**. Thuật toán gốc encode
+  `ĩ` bình thường; ví dụ trong JSDoc chỉ viết sai.
+
+Số lượng cũng sai: bảng có **1510** entry, không phải 1126 - regex đếm ban đầu bỏ
+sót key không đặt trong nháy.
+
+Lỗi THẬT, đo được:
+
+1. **65 key nhiều code point** (`<⃒`, `=⃥`, `fj`). Character class chỉ khớp được
+   một code point, nên `<⃒` ra `&lt;` còn dấu kết hợp bị bỏ rơi phía sau - một ký
+   tự hoàn toàn khác. Đây là phá dữ liệu.
+2. **65 entity thiếu dấu `;`** trong chính dữ liệu nguồn. `&bne` nối chữ phía sau
+   thành `&bnex`, trình duyệt in nguyên văn.
+3. **Một giá trị trùng** (`&varsupsetneqq` ứng hai ký tự) làm decode nhập nhằng và
+   phá round-trip.
+4. **Regex 1510 nhánh dựng lại mỗi lần gọi.**
 
 **Khuyến nghị: viết lại, không vá.** Dùng `String.prototype.replace` với một
 callback tra map theo từng code point (`for...of` lặp theo code point, không theo
 code unit), bỏ hẳn regex động.
 
-**Quyết định cần chốt - phạm vi:** mã hoá **mọi** ký tự có trong bảng 1514 dòng, hay
+**Quyết định cần chốt - phạm vi:** mã hoá **mọi** ký tự trong bảng 1510 entry, hay
 chỉ 5 ký tự bắt buộc của HTML (`& < > " '`)? Đây là câu hỏi "contract chứng minh
 được" của owner. Mã hoá tất cả cho output to hơn nhiều lần và không an toàn hơn.
 Khuyến nghị: mặc định 5 ký tự, có option mở rộng. Và **đổi tên** cho khớp việc nó

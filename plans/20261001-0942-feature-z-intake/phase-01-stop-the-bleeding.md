@@ -27,6 +27,7 @@ packages/tinita-dom/incoming/
 
 Thêm `incoming/` vào `.gitignore`? **Không.** Nó phải được version control, nếu
 không nhánh `feature/z` bị xoá là mất code. Thay vào đó thêm vào:
+
 - `tsconfig` `exclude` để `check-types` không đọc
 - `eslint` ignores
 - `files` của `package.json` vốn đã chỉ có `["dist"]` nên tarball không dính

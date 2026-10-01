@@ -18,15 +18,15 @@ L1, 60 entry `typesVersions`. Đó là cái giá thật, trả bằng mọi lầ
 
 Trùng với thư viện chuẩn hoặc với code đã có:
 
-| File | Lý do |
-| --- | --- |
-| `object/omit.ts`, `object/pick.ts` | 10 dòng mỗi cái, người dùng tự viết nhanh hơn đọc docs |
-| `object/once.ts` | trùng ý niệm đã quá phổ biến |
-| `array/uniqueArray.ts` | `[...new Set(a)]` |
-| `array/createRange.ts` | 3 dòng |
-| `array/getArrayVal.ts` | 3 dòng |
-| `validation/isURL.ts` | 3 dòng, `URL.canParse` đã là chuẩn |
-| `validation/isNumber.ts`, `isAlphabet.ts` | 5 dòng |
+| File                                         | Lý do                                                    |
+| -------------------------------------------- | -------------------------------------------------------- |
+| `object/omit.ts`, `object/pick.ts`           | 10 dòng mỗi cái, người dùng tự viết nhanh hơn đọc docs   |
+| `object/once.ts`                             | trùng ý niệm đã quá phổ biến                             |
+| `array/uniqueArray.ts`                       | `[...new Set(a)]`                                        |
+| `array/createRange.ts`                       | 3 dòng                                                   |
+| `array/getArrayVal.ts`                       | 3 dòng                                                   |
+| `validation/isURL.ts`                        | 3 dòng, `URL.canParse` đã là chuẩn                       |
+| `validation/isNumber.ts`, `isAlphabet.ts`    | 5 dòng                                                   |
 | `converter/mapToObject.ts`, `objectToMap.ts` | `Object.fromEntries(map)` / `new Map(Object.entries(o))` |
 
 Một util chỉ đáng publish khi nó **khó viết đúng**. `truncateFileName` đáng vì nó
@@ -43,16 +43,16 @@ ba không mở - nó là lý do `tinita` tồn tại.
 
 ### Lô C - cần quyết định thiết kế trước khi sửa (8 file)
 
-| File | Câu hỏi phải trả lời |
-| --- | --- |
-| `constant/HTML_entities_map.ts` (1514 dòng) | QĐ-B: subpath riêng hay không |
-| `converter/HTMLEntitiesToString.ts` | cùng nhóm với hàm encode ở pha 03 |
-| `converter/text.ts` (63 dòng) | tên không nói gì, bên trong là gì? |
-| `converter/unit-converter.ts` | đụng `document` để đổi px; dùng `tinita-dom` |
-| `regex/index.ts` | export regex dùng chung = cam kết API cho từng pattern |
-| `converter/stringToEventCode.ts` | `KeyboardEvent.code` đã là chuẩn, còn cần không? |
-| `detect/checkMobile.ts` | user-agent sniffing là kỹ thuật đã lỗi thời |
-| `date/sortDate.ts` | hiện có lỗi cú pháp: tham số vừa `?` vừa có giá trị mặc định |
+| File                                        | Câu hỏi phải trả lời                                         |
+| ------------------------------------------- | ------------------------------------------------------------ |
+| `constant/HTML_entities_map.ts` (1514 dòng) | QĐ-B: subpath riêng hay không                                |
+| `converter/HTMLEntitiesToString.ts`         | cùng nhóm với hàm encode ở pha 03                            |
+| `converter/text.ts` (63 dòng)               | tên không nói gì, bên trong là gì?                           |
+| `converter/unit-converter.ts`               | đụng `document` để đổi px; dùng `tinita-dom`                 |
+| `regex/index.ts`                            | export regex dùng chung = cam kết API cho từng pattern       |
+| `converter/stringToEventCode.ts`            | `KeyboardEvent.code` đã là chuẩn, còn cần không?             |
+| `detect/checkMobile.ts`                     | user-agent sniffing là kỹ thuật đã lỗi thời                  |
+| `date/sortDate.ts`                          | hiện có lỗi cú pháp: tham số vừa `?` vừa có giá trị mặc định |
 
 ### Lô D - giữ, cần nâng lên chuẩn (khoảng 15 file)
 
@@ -69,9 +69,10 @@ Mỗi file qua đúng cổng ở pha 03.
 `useWindowSize`, `jsxJoin`.
 
 Khác biệt với hai package kia: **phải sống sót SSR**. `useWindowSize` đụng `window`
+
 - trong React đó là lỗi nếu không guard, vì React app có SSR. Khuôn mẫu đã có sẵn
-trong repo: `usePrefersReducedMotion` ở `CarouselTicker.tsx` (khởi tạo `false`, chỉ
-đọc `matchMedia` trong effect, nghe `change`).
+  trong repo: `usePrefersReducedMotion` ở `CarouselTicker.tsx` (khởi tạo `false`, chỉ
+  đọc `matchMedia` trong effect, nghe `change`).
 
 Thêm ràng buộc: mỗi component/hook public **phải có story**, `pnpm check-stories`
 đã canh việc này.
@@ -96,4 +97,5 @@ Lô D -> Lô C (khó nhất, để cuối khi đã quen chuẩn).
 **Mệt mỏi dẫn đến hạ chuẩn.** 60 file là nhiều, và cám dỗ là "cái này nhỏ, bỏ qua
 test cũng được". Chặn bằng: lô A xoá trước để số file giảm thấy rõ, và không có
 ngoại lệ nào cho cổng vào. Một hàm không đáng viết test thì cũng không đáng publish
+
 - đó chính là tiêu chí để xếp nó vào lô A.

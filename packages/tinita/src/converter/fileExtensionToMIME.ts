@@ -1,5 +1,5 @@
-import { MIME_TO_EXTENSION } from "../constant/mime_to_extension";
-import { getFileNameParts } from "../file/getFileNameParts";
+import { MIME_TO_EXTENSION } from '../constant/mime_to_extension';
+import { getFileNameParts } from '../file/getFileNameParts';
 
 export function getMIMEFromFileName(filename: string) {
   const [, extension] = getFileNameParts(filename);

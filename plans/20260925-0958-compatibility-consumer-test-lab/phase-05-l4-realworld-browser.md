@@ -72,31 +72,31 @@ compatibility/
 
 `leak-surfaces.json` - mỗi dòng là một bề mặt trong bảng đã đo, có file:dòng làm chứng:
 
-| id | Bề mặt | Đo trên | expected hiện tại |
-| --- | --- | --- | --- |
-| `reset-star` | `border-color` của `div[data-host]` | computed style | `leaks` |
-| `reset-body` | `background-color`, `color` của `body` | computed style | `leaks` |
-| `theme-tokens` | `--color-primary`, `--radius`, `--font-sans` trên `:root` | computed style | `leaks` |
-| `unprefixed-animate` | `animation-name` của `.animate-fade-in` chủ nhà | computed style | `leaks` |
-| `unprefixed-transition` | `transition-duration` của `.transition-fast` chủ nhà | computed style | `leaks` |
-| `unprefixed-interactive` | `opacity` của `.interactive` chủ nhà | computed style | `leaks` |
-| `dark-selector` | token đổi khi chủ nhà toggle `.dark` | computed style | `leaks` |
-| `reduced-motion-important` | `animation-duration` của element chủ nhà khi bật reduced-motion | computed style | `leaks` |
-| `component-star-boxsizing` | `box-sizing` của children chủ nhà trong `CarouselTicker` | computed style | `leaks` |
-| `layerless-component-css` | override của consumer trong `@layer host` có thắng không | computed style | `leaks` |
-| `raw-tailwind-in-jsx` | `display` của node `Ping` khi host không Tailwind | computed style | `leaks` |
+| id                         | Bề mặt                                                          | Đo trên        | expected hiện tại |
+| -------------------------- | --------------------------------------------------------------- | -------------- | ----------------- |
+| `reset-star`               | `border-color` của `div[data-host]`                             | computed style | `leaks`           |
+| `reset-body`               | `background-color`, `color` của `body`                          | computed style | `leaks`           |
+| `theme-tokens`             | `--color-primary`, `--radius`, `--font-sans` trên `:root`       | computed style | `leaks`           |
+| `unprefixed-animate`       | `animation-name` của `.animate-fade-in` chủ nhà                 | computed style | `leaks`           |
+| `unprefixed-transition`    | `transition-duration` của `.transition-fast` chủ nhà            | computed style | `leaks`           |
+| `unprefixed-interactive`   | `opacity` của `.interactive` chủ nhà                            | computed style | `leaks`           |
+| `dark-selector`            | token đổi khi chủ nhà toggle `.dark`                            | computed style | `leaks`           |
+| `reduced-motion-important` | `animation-duration` của element chủ nhà khi bật reduced-motion | computed style | `leaks`           |
+| `component-star-boxsizing` | `box-sizing` của children chủ nhà trong `CarouselTicker`        | computed style | `leaks`           |
+| `layerless-component-css`  | override của consumer trong `@layer host` có thắng không        | computed style | `leaks`           |
+| `raw-tailwind-in-jsx`      | `display` của node `Ping` khi host không Tailwind               | computed style | `leaks`           |
 
 ## Related code files
 
-| File | Vai trò |
-| --- | --- |
-| `packages/tinita-react/src/styles/globals.css` | 81-111 (token), 116-127 (reset) - nguồn 3 bề mặt đầu |
-| `packages/tinita-react/src/styles/animations.css` | 114-318 (27 class), 530-539 (reduced-motion) |
-| `packages/tinita-react/src/ui/file-tree/FileTree.css` | không `@layer`; 230,237 dùng `--radix-*` |
-| `packages/tinita-react/src/ui/carousel-ticker/CarouselTicker.css` | 15-17, 20-25 (`*` + `!important`) |
-| `packages/tinita-react/src/ui/ping/Ping.tsx` | 45-50 Tailwind thô |
-| `apps/storybook/stories/FileTree/FileTree.*.stories.tsx` | 6 story a11y/rtl/nojs/themes - tham chiếu cho ca browser, KHÔNG chạy Storybook trong lab |
-| `docs/project-roadmap.md` | mốc M1 - khi xong thì `leak-surfaces.json` đảo `expected` |
+| File                                                              | Vai trò                                                                                  |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `packages/tinita-react/src/styles/globals.css`                    | 81-111 (token), 116-127 (reset) - nguồn 3 bề mặt đầu                                     |
+| `packages/tinita-react/src/styles/animations.css`                 | 114-318 (27 class), 530-539 (reduced-motion)                                             |
+| `packages/tinita-react/src/ui/file-tree/FileTree.css`             | không `@layer`; 230,237 dùng `--radix-*`                                                 |
+| `packages/tinita-react/src/ui/carousel-ticker/CarouselTicker.css` | 15-17, 20-25 (`*` + `!important`)                                                        |
+| `packages/tinita-react/src/ui/ping/Ping.tsx`                      | 45-50 Tailwind thô                                                                       |
+| `apps/storybook/stories/FileTree/FileTree.*.stories.tsx`          | 6 story a11y/rtl/nojs/themes - tham chiếu cho ca browser, KHÔNG chạy Storybook trong lab |
+| `docs/project-roadmap.md`                                         | mốc M1 - khi xong thì `leak-surfaces.json` đảo `expected`                                |
 
 ## Implementation Steps
 
@@ -179,15 +179,15 @@ compatibility/
 
 ## Risk Assessment
 
-| Rủi ro | Xác suất | Ảnh hưởng | Giảm thiểu |
-| --- | --- | --- | --- |
-| Baseline sinh trên macOS rồi so trong Linux, đỏ toàn bộ vì font | Cao nếu không chặn | Nghiêm trọng | Tiêu chí 8: lệnh sinh baseline refuse khi không ở trong container |
-| Visual regression flaky, người ta tắt luôn ca này | Cao | Cao | Tiêu chí 9 (chạy 2 lần cùng kết quả) là cửa chặn; `animations: 'disabled'` + mask vùng động |
-| Ảnh trở thành chân chính, computed style bị coi nhẹ | Trung bình | Cao | Thiết kế: ca 01 (computed style) ở trước ca 06 (ảnh) và fail trước; ảnh là bổ trợ |
-| Sau M1, 11 ca đỏ và người sau tưởng lab hỏng | Chắc chắn xảy ra | Cao | `leak-surfaces.json` với `expected` đảo được bằng cấu hình; tiêu chí 2 và 10 |
-| `next build` + 2 React version + 2 theme làm pha này rất chậm | Cao | Trung bình | Toàn pha ở tier 3; nếu vượt ngân sách thì tách ca 06 (ảnh) thành tier riêng - quyết ở pha 06 |
-| Chuỗi cảnh báo hydration của Next đổi giữa các version | Trung bình | Trung bình | Assertion dùng `hydrat` chữ thường hoá, không so cả câu; version Next pin |
-| Entry `leak-surfaces.json` thêm bừa không truy được về source | Trung bình | Trung bình | Tiêu chí 11: `evidence` bắt buộc và phải trỏ file tồn tại |
+| Rủi ro                                                          | Xác suất           | Ảnh hưởng    | Giảm thiểu                                                                                   |
+| --------------------------------------------------------------- | ------------------ | ------------ | -------------------------------------------------------------------------------------------- |
+| Baseline sinh trên macOS rồi so trong Linux, đỏ toàn bộ vì font | Cao nếu không chặn | Nghiêm trọng | Tiêu chí 8: lệnh sinh baseline refuse khi không ở trong container                            |
+| Visual regression flaky, người ta tắt luôn ca này               | Cao                | Cao          | Tiêu chí 9 (chạy 2 lần cùng kết quả) là cửa chặn; `animations: 'disabled'` + mask vùng động  |
+| Ảnh trở thành chân chính, computed style bị coi nhẹ             | Trung bình         | Cao          | Thiết kế: ca 01 (computed style) ở trước ca 06 (ảnh) và fail trước; ảnh là bổ trợ            |
+| Sau M1, 11 ca đỏ và người sau tưởng lab hỏng                    | Chắc chắn xảy ra   | Cao          | `leak-surfaces.json` với `expected` đảo được bằng cấu hình; tiêu chí 2 và 10                 |
+| `next build` + 2 React version + 2 theme làm pha này rất chậm   | Cao                | Trung bình   | Toàn pha ở tier 3; nếu vượt ngân sách thì tách ca 06 (ảnh) thành tier riêng - quyết ở pha 06 |
+| Chuỗi cảnh báo hydration của Next đổi giữa các version          | Trung bình         | Trung bình   | Assertion dùng `hydrat` chữ thường hoá, không so cả câu; version Next pin                    |
+| Entry `leak-surfaces.json` thêm bừa không truy được về source   | Trung bình         | Trung bình   | Tiêu chí 11: `evidence` bắt buộc và phải trỏ file tồn tại                                    |
 
 ## Security Considerations
 

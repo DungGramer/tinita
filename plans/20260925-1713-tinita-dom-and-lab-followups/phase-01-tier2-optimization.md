@@ -54,12 +54,12 @@
 
 Thứ tự áp và điều kiện dừng:
 
-| Bước | Cách cắt | Rủi ro | Dừng được ở đây? |
-| --- | --- | --- | --- |
-| 1 | `npm ci` vào Dockerfile + BuildKit cache mount | thấp | đo lại |
-| 2 | #3 hạ `node20-npm` xuống tier 3 | thấp | đo lại |
-| 3 | #4 chuyển ca Next của L2 xuống tier 2 | thấp, đánh đổi đã biết | **đo lại - đạt thì DỪNG** |
-| 4 | #2 mount `node_modules` | **cao** | chỉ làm nếu bước 3 chưa đạt |
+| Bước | Cách cắt                                       | Rủi ro                 | Dừng được ở đây?            |
+| ---- | ---------------------------------------------- | ---------------------- | --------------------------- |
+| 1    | `npm ci` vào Dockerfile + BuildKit cache mount | thấp                   | đo lại                      |
+| 2    | #3 hạ `node20-npm` xuống tier 3                | thấp                   | đo lại                      |
+| 3    | #4 chuyển ca Next của L2 xuống tier 2          | thấp, đánh đổi đã biết | **đo lại - đạt thì DỪNG**   |
+| 4    | #2 mount `node_modules`                        | **cao**                | chỉ làm nếu bước 3 chưa đạt |
 
 `node.Dockerfile` sau bước 1:
 
@@ -86,16 +86,16 @@ RUN --mount=type=cache,id=tinita-npm,target=/root/.npm npm ci --no-audit --no-fu
 
 ## Related code files
 
-| File | Sửa gì |
-| --- | --- |
-| `compatibility/docker/node.Dockerfile` | thêm layer `npm ci` + BuildKit cache mount |
-| `compatibility/docker/bun.Dockerfile` | tương tự, hoặc giữ nguyên vì cell advisory |
-| `compatibility/docker/entry.sh` | bỏ `npm install`, symlink `/lab-deps/node_modules` |
-| `compatibility/docker/matrix.json` | `node20-npm` tier 2 -> 3; thêm `levels` cho cell nếu cắt #4 đổi phân bổ |
-| `compatibility/cases/l2/index.mjs` | tách ca Next thành nhóm gắn tier, để `--tier` lọc được |
-| `compatibility/cases/l3/index.mjs` | phân loại build-fail do mạng thành exit 2 |
-| `compatibility/scripts/assert-isolation.mjs` | 2 assertion mới, CHỈ nếu áp cắt #2 |
-| `compatibility/README.md` | điền số đo mới, ghi đánh đổi của cắt #4 |
+| File                                         | Sửa gì                                                                  |
+| -------------------------------------------- | ----------------------------------------------------------------------- |
+| `compatibility/docker/node.Dockerfile`       | thêm layer `npm ci` + BuildKit cache mount                              |
+| `compatibility/docker/bun.Dockerfile`        | tương tự, hoặc giữ nguyên vì cell advisory                              |
+| `compatibility/docker/entry.sh`              | bỏ `npm install`, symlink `/lab-deps/node_modules`                      |
+| `compatibility/docker/matrix.json`           | `node20-npm` tier 2 -> 3; thêm `levels` cho cell nếu cắt #4 đổi phân bổ |
+| `compatibility/cases/l2/index.mjs`           | tách ca Next thành nhóm gắn tier, để `--tier` lọc được                  |
+| `compatibility/cases/l3/index.mjs`           | phân loại build-fail do mạng thành exit 2                               |
+| `compatibility/scripts/assert-isolation.mjs` | 2 assertion mới, CHỈ nếu áp cắt #2                                      |
+| `compatibility/README.md`                    | điền số đo mới, ghi đánh đổi của cắt #4                                 |
 
 ## Implementation Steps
 
@@ -168,14 +168,14 @@ RUN --mount=type=cache,id=tinita-npm,target=/root/.npm npm ci --no-audit --no-fu
 
 ## Risk Assessment
 
-| Rủi ro | Xác suất | Ảnh hưởng | Giảm thiểu |
-| --- | --- | --- | --- |
-| Cắt #2 làm lab xanh giả nếu mount lọt `tinita*` | Trung bình | **Nghiêm trọng** - mất toàn bộ giá trị lab | Tiêu chí 7 + bước dừng sớm ở 8 để có thể không cần áp |
-| Mount gãy im lặng khi ai thêm dependency có native binary | Cao theo thời gian | Cao | Assertion platform-independence + tiêu chí 8 |
-| Symlink `node_modules` trong `entry.sh` làm assertion cũ yếu đi | Trung bình | Cao | Tiêu chí 4 kiểm tường minh, không giả định |
-| BuildKit cache mount không chia sẻ giữa base image khác nhau -> lợi ích ít hơn ước tính | Trung bình | Trung bình | Bước 1 đo phân tách trước; nếu lợi ít thì bước 6-7 vẫn còn |
-| Cắt #4 làm ca `'use client'` không chạy mỗi PR, hồi quy lọt qua | Trung bình | Trung bình | Ghi đánh đổi vào README; ca vẫn chạy ở tier 2 trước publish |
-| Cache layer khiến dependency cũ được dùng mãi | Thấp | Cao | Tiêu chí 6 chứng minh cache key theo lockfile |
+| Rủi ro                                                                                  | Xác suất           | Ảnh hưởng                                  | Giảm thiểu                                                  |
+| --------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------ | ----------------------------------------------------------- |
+| Cắt #2 làm lab xanh giả nếu mount lọt `tinita*`                                         | Trung bình         | **Nghiêm trọng** - mất toàn bộ giá trị lab | Tiêu chí 7 + bước dừng sớm ở 8 để có thể không cần áp       |
+| Mount gãy im lặng khi ai thêm dependency có native binary                               | Cao theo thời gian | Cao                                        | Assertion platform-independence + tiêu chí 8                |
+| Symlink `node_modules` trong `entry.sh` làm assertion cũ yếu đi                         | Trung bình         | Cao                                        | Tiêu chí 4 kiểm tường minh, không giả định                  |
+| BuildKit cache mount không chia sẻ giữa base image khác nhau -> lợi ích ít hơn ước tính | Trung bình         | Trung bình                                 | Bước 1 đo phân tách trước; nếu lợi ít thì bước 6-7 vẫn còn  |
+| Cắt #4 làm ca `'use client'` không chạy mỗi PR, hồi quy lọt qua                         | Trung bình         | Trung bình                                 | Ghi đánh đổi vào README; ca vẫn chạy ở tier 2 trước publish |
+| Cache layer khiến dependency cũ được dùng mãi                                           | Thấp               | Cao                                        | Tiêu chí 6 chứng minh cache key theo lockfile               |
 
 ## Security Considerations
 

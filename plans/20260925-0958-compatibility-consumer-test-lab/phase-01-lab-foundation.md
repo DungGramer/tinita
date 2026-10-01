@@ -17,7 +17,7 @@
 - **Description:** Dựng thư mục `compatibility/` ngoài pnpm workspace, cùng 3 thứ tự viết duy nhất
   của lab: script `pack` (build + `npm pack` + manifest), script `assert-isolation` (chống lab mất
   giá trị trong im lặng), và runner `run.mjs` chuẩn hoá exit code + báo cáo JSON. Chưa có ca test
-  nội dung nào ở pha này - pha này làm cho mọi pha sau *tin được*.
+  nội dung nào ở pha này - pha này làm cho mọi pha sau _tin được_.
 - **Priority:** P0 - chặn mọi pha khác
 - **Implementation status:** Done
 - **Review status:** Not reviewed
@@ -88,29 +88,29 @@ Phân biệt exit 1 và exit 2 là cần thiết: CI xử lý "package sai" khá
 
 `assert-isolation.mjs` kiểm 6 điều:
 
-| # | Assertion | Vì sao |
-| --- | --- | --- |
-| 1 | `pnpm-workspace.yaml` không có glob nào khớp `compatibility/...` | chế độ hỏng im lặng #1 |
-| 2 | Không tồn tại `compatibility/**/node_modules/tinita*` là symlink | B3 |
-| 3 | Không `package.json` nào trong `compatibility/` có `workspace:` hoặc `file:` trỏ `packages/` | B3 |
-| 4 | Không tồn tại `compatibility/**/pnpm-workspace.yaml` | tránh workspace lồng |
-| 5 | Mỗi consumer có `node_modules` thì `tinita*` trong đó phải là thư mục thật, chứa `dist/` | xác minh nội dung, không chỉ tin |
-| 6 | `manifest.json` có sha256 khớp tarball trên đĩa | tránh dùng tarball cũ |
+| #   | Assertion                                                                                    | Vì sao                           |
+| --- | -------------------------------------------------------------------------------------------- | -------------------------------- |
+| 1   | `pnpm-workspace.yaml` không có glob nào khớp `compatibility/...`                             | chế độ hỏng im lặng #1           |
+| 2   | Không tồn tại `compatibility/**/node_modules/tinita*` là symlink                             | B3                               |
+| 3   | Không `package.json` nào trong `compatibility/` có `workspace:` hoặc `file:` trỏ `packages/` | B3                               |
+| 4   | Không tồn tại `compatibility/**/pnpm-workspace.yaml`                                         | tránh workspace lồng             |
+| 5   | Mỗi consumer có `node_modules` thì `tinita*` trong đó phải là thư mục thật, chứa `dist/`     | xác minh nội dung, không chỉ tin |
+| 6   | `manifest.json` có sha256 khớp tarball trên đĩa                                              | tránh dùng tarball cũ            |
 
 Assertion 1 kiểm bằng cách khớp glob thật (dùng `glob` đã có trong devDependencies root), không
 grep chuỗi `compatibility` - vì `packages/*` không chứa chuỗi đó mà vẫn có thể bị đổi thành `*/`.
 
 ## Related code files
 
-| File | Vai trò |
-| --- | --- |
-| `pnpm-workspace.yaml` | nguồn của assertion 1. Pha 06 thêm comment cảnh báo, pha này chỉ đọc |
-| `.gitignore` | đang `*.md` + `!README.md` + `!docs/*.md`; cần ngoại lệ cho `compatibility/` |
-| `packages/tinita/package.json` | `version`, `files: ["dist"]`, `prepublishOnly` - đầu vào của `pack.mjs` |
-| `packages/tinita-react/package.json` | như trên; thêm `build:css` nên `pack` phải chạy `build` đầy đủ |
-| `packages/tinita-react/scripts/build-css.mjs` | pack phải xác minh 4 chặng CSS chạy xong (Step 1, 1.5, 2, 3, 4) |
-| `turbo.json` | 7 task hiện có; pha này KHÔNG thêm task |
-| `scripts/publish.mjs` | tham chiếu: lab phải dựng artifact giống đường publish thật |
+| File                                          | Vai trò                                                                      |
+| --------------------------------------------- | ---------------------------------------------------------------------------- |
+| `pnpm-workspace.yaml`                         | nguồn của assertion 1. Pha 06 thêm comment cảnh báo, pha này chỉ đọc         |
+| `.gitignore`                                  | đang `*.md` + `!README.md` + `!docs/*.md`; cần ngoại lệ cho `compatibility/` |
+| `packages/tinita/package.json`                | `version`, `files: ["dist"]`, `prepublishOnly` - đầu vào của `pack.mjs`      |
+| `packages/tinita-react/package.json`          | như trên; thêm `build:css` nên `pack` phải chạy `build` đầy đủ               |
+| `packages/tinita-react/scripts/build-css.mjs` | pack phải xác minh 4 chặng CSS chạy xong (Step 1, 1.5, 2, 3, 4)              |
+| `turbo.json`                                  | 7 task hiện có; pha này KHÔNG thêm task                                      |
+| `scripts/publish.mjs`                         | tham chiếu: lab phải dựng artifact giống đường publish thật                  |
 
 ## Implementation Steps
 
@@ -183,14 +183,14 @@ grep chuỗi `compatibility` - vì `packages/*` không chứa chuỗi đó mà v
 
 ## Risk Assessment
 
-| Rủi ro | Xác suất | Ảnh hưởng | Giảm thiểu |
-| --- | --- | --- | --- |
-| Ai thêm `compatibility/*` vào `pnpm-workspace.yaml`, lab xanh nhưng vô giá trị | Thấp, hậu quả im lặng | Nghiêm trọng | Assertion 1 + comment trong `pnpm-workspace.yaml` (pha 06) + tiêu chí 5 chứng minh nó bắt được |
-| `npm install` trong `compatibility/` sinh `package-lock.json` xung đột với pnpm ở root | Trung bình | Thấp | `compatibility/` có `package.json` riêng, pnpm không glob tới; commit `package-lock.json` của lab là có chủ ý, ghi rõ trong README |
-| Cache `~/.npm` giữ bản `tinita` cũ từ registry, che lỗi | Cao nếu không xử lý | Nghiêm trọng | `--cache compatibility/.npm-cache` bắt buộc trong `consumer.mjs`; không có đường nào khác để install |
-| `pack.mjs` lấy `dist/` cũ vì build cache của turbo | Trung bình | Cao | `pack.mjs` gọi `pnpm --filter <pkg> build` (script package đã có `clean` trước `tsup`), và xác minh mtime của `dist/styles.css` mới hơn lúc bắt đầu chạy |
-| `postcss-cli` thiếu trong `node_modules/.bin` khiến `build:css` fail | Thấp tại local, Cao trong container sạch | Cao | `pack.mjs` fail exit 2 với thông báo nêu rõ `build:css` chặng nào gãy; pha 04 xử lý bản container |
-| `.gitignore` `*.md` khiến tài liệu ca test không commit được, người sau không hiểu ca | Cao nếu bỏ qua | Trung bình | Bước 8 + tiêu chí 9 |
+| Rủi ro                                                                                 | Xác suất                                 | Ảnh hưởng    | Giảm thiểu                                                                                                                                               |
+| -------------------------------------------------------------------------------------- | ---------------------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ai thêm `compatibility/*` vào `pnpm-workspace.yaml`, lab xanh nhưng vô giá trị         | Thấp, hậu quả im lặng                    | Nghiêm trọng | Assertion 1 + comment trong `pnpm-workspace.yaml` (pha 06) + tiêu chí 5 chứng minh nó bắt được                                                           |
+| `npm install` trong `compatibility/` sinh `package-lock.json` xung đột với pnpm ở root | Trung bình                               | Thấp         | `compatibility/` có `package.json` riêng, pnpm không glob tới; commit `package-lock.json` của lab là có chủ ý, ghi rõ trong README                       |
+| Cache `~/.npm` giữ bản `tinita` cũ từ registry, che lỗi                                | Cao nếu không xử lý                      | Nghiêm trọng | `--cache compatibility/.npm-cache` bắt buộc trong `consumer.mjs`; không có đường nào khác để install                                                     |
+| `pack.mjs` lấy `dist/` cũ vì build cache của turbo                                     | Trung bình                               | Cao          | `pack.mjs` gọi `pnpm --filter <pkg> build` (script package đã có `clean` trước `tsup`), và xác minh mtime của `dist/styles.css` mới hơn lúc bắt đầu chạy |
+| `postcss-cli` thiếu trong `node_modules/.bin` khiến `build:css` fail                   | Thấp tại local, Cao trong container sạch | Cao          | `pack.mjs` fail exit 2 với thông báo nêu rõ `build:css` chặng nào gãy; pha 04 xử lý bản container                                                        |
+| `.gitignore` `*.md` khiến tài liệu ca test không commit được, người sau không hiểu ca  | Cao nếu bỏ qua                           | Trung bình   | Bước 8 + tiêu chí 9                                                                                                                                      |
 
 ## Security Considerations
 

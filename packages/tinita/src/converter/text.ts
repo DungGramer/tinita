@@ -1,4 +1,3 @@
-
 /**
  * @example titleCase('hello world') // Hello World
  */

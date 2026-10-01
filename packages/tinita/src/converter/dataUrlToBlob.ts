@@ -23,7 +23,9 @@ export function dataUrlToBlob(dataUrl: string): Blob {
   // `data:` and the final `;base64,` is the type.
   const match = /^data:([^,]*?);base64,(.*)$/s.exec(dataUrl);
   if (!match) {
-    throw new TypeError('dataUrlToBlob() expects a base64 data URL, e.g. "data:text/plain;base64,aGk="');
+    throw new TypeError(
+      'dataUrlToBlob() expects a base64 data URL, e.g. "data:text/plain;base64,aGk="'
+    );
   }
 
   return base64ToBlob(match[2] as string, match[1] as string);

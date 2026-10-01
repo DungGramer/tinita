@@ -1,4 +1,4 @@
-import { sortAlphaText } from "../array/sortAlphaText";
+import { sortAlphaText } from '../array/sortAlphaText';
 
 export function sortObjectKeys<T extends Record<string, any>>(obj: T): T {
   if (!obj) return obj;

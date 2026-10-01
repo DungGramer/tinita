@@ -8,6 +8,7 @@ date: 2026-09-25
 **Kết luận: BẤT KHẢ THI. Native binaries gãy ngay.**
 
 Vấn đề: `node_modules` trên macOS arm64 chứa:
+
 - `esbuild` + `@esbuild/darwin-arm64` (Mach-O binaries)
 - `playwright` browser (darwin-specific)
 - `@rollup/rollup-darwin-arm64`
@@ -18,10 +19,12 @@ Container Linux arm64 không chạy darwin/Mach-O binaries. Lỗi điển hình:
 **Cơ chế (từ Docker docs):** Khi mount host volume, nội dung được pass as-is. Không có re-compilation.
 
 **Giải pháp:** Dùng **named volume cho node_modules** (không mount từ host):
+
 ```dockerfile
 VOLUME ["/app/node_modules"]
 # Hoặc: RUN npm ci (build-time, cache layer)
 ```
+
 Host mount chỉ dùng cho source code: `mount /lab:/work/lab,readonly`
 
 Source: [node.bcrypt.js issue #917](https://github.com/kelektiv/node.bcrypt.js/issues/917), [Oneuptime Docker on Apple Silicon](https://oneuptime.com/blog/post/2026-01-16-docker-mac-apple-silicon/view)
@@ -37,6 +40,7 @@ Base images khác nhau (`node:24-slim`, `node:22-slim`, `node:20-slim`) → SHA2
 Multi-stage build vẫn không giúp vì mỗi stage khác base.
 
 **Chi phí thực tế:** 2284s ÷ 4 cell ≈ 570s/cell
+
 - `docker build` (base image pull + setup): ~50-100s
 - `npm install` (entry.sh runtime): ~300-400s ← ĐÂY là chi phí chính
 
@@ -57,11 +61,13 @@ RUN --mount=type=cache,id=tinita-npm,target=/root/.npm \
 ```
 
 **Giữ cache giữa builds?**
+
 - ✅ Same image base: YES (Docker lưu cache trên host)
 - ✅ Different base (node:24 vs node:22): **CÓ**, cache ID riêng biệt (`id=tinita-npm`) nên tái dùng được, **nhưng file lock khác → npm fetch package khác → cache hit rate thấp**
 - ❌ Không cache native binaries được (esbuild, playwright) → lần đầu vẫn phải compile/download 2-3 phút
 
 **Enable BuildKit:**
+
 ```bash
 export DOCKER_BUILDKIT=1
 docker build -t tinita:test .
@@ -80,6 +86,7 @@ Source: [Persist BuildKit Package Cache Mounts in GitHub Actions](https://oneupt
 Hiện tại: `entry.sh` chạy `npm install` **mỗi lần `docker run`** → mất caching, tuần tự, không validate lock file.
 
 **Cách mới:**
+
 ```dockerfile
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,id=tinita-npm,target=/root/.npm npm ci
@@ -87,14 +94,17 @@ COPY --chown=node:node . .
 ```
 
 **Layer cache trigger:**
+
 - Nếu `package-lock.json` không đổi → layer cached (0s)
 - Nếu thay package → npm fetch + compile native → 100-150s (lần đầu)
 
 **Cạm bẫy:**
+
 - ⚠️ `playwright install` cần `--with-deps` ngoài npm (thêm 20-30s, thường bỏ qua ở headless CI)
 - Image size: +500MB (node_modules), chấp nhận được
 
 **Giảm thời gian / cell:**
+
 - Hiện: 300-400s (npm install runtime)
 - Sau move to RUN: ~150s (first build), 0s (cache hit)
 - **Tiết kiệm ~250s/cell = 1000s total (16 phút) nếu lock file stable**
@@ -106,23 +116,27 @@ Source: [Docker Caching Strategies with npm ci](https://dev.to/sohanaakbar7/dock
 ## Q5: Đo timing Docker
 
 **Cách 1: Shell `time`**
+
 ```bash
 time docker build -t tinita:test .     # docker build duration
 time docker run --rm tinita:test sh -c "npm install"  # runtime install (nếu còn)
 ```
 
 **Cách 2: BuildKit output (chi tiết nhất)**
+
 ```bash
 DOCKER_BUILDKIT=1 docker build --progress=plain .
 # Output: [stage name] RUN npm ci  250.3s
 ```
 
 **Cách 3: Per-step với flag**
+
 ```bash
 docker build --no-cache -v -t tinita:test .  # -v = verbose, show each layer time
 ```
 
 **Cách 4: Python script (parse docker build JSON)**
+
 ```python
 import subprocess
 result = subprocess.run(
@@ -133,6 +147,7 @@ result = subprocess.run(
 ```
 
 **Đo chính xác trên lab:**
+
 ```bash
 for i in {1..3}; do
   echo "=== Run $i ==="

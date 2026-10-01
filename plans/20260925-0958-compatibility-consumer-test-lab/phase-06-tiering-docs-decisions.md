@@ -56,37 +56,37 @@ Không có cấu trúc mới. Pha này sửa file sẵn có và điền số.
 
 Ánh xạ tier sau khi có số đo:
 
-| Tier | Gồm | Lệnh | Mục tiêu | Số đo thật |
-| --- | --- | --- | --- | --- |
-| 1 | `turbo test` + L1 + L2 | `run.mjs all --tier=1` | < 4 phút | điền sau pha 03 |
-| 2 | Tier 1 + L3 cell tier 2 | `run.mjs all --tier=2` | < 20 phút | điền sau pha 04 |
-| 3 | Tier 2 + L3 tier 3 + L4 | `run.mjs all --tier=3` | < 45 phút | điền sau pha 05 |
+| Tier | Gồm                     | Lệnh                   | Mục tiêu  | Số đo thật      |
+| ---- | ----------------------- | ---------------------- | --------- | --------------- |
+| 1    | `turbo test` + L1 + L2  | `run.mjs all --tier=1` | < 4 phút  | điền sau pha 03 |
+| 2    | Tier 1 + L3 cell tier 2 | `run.mjs all --tier=2` | < 20 phút | điền sau pha 04 |
+| 3    | Tier 2 + L3 tier 3 + L4 | `run.mjs all --tier=3` | < 45 phút | điền sau pha 05 |
 
 Nếu tier 1 vượt 4 phút, thứ tự cắt: ca Next của pha 03 xuống tier 2 trước (nó là ca chậm nhất của
 L2), rồi mới tới ca `tsc-matrix`. Không cắt ca L1 - nó là tầng có tỷ lệ bắt bug cao nhất.
 
 Gán xử lý cho 4 khiếm khuyết:
 
-| Khiếm khuyết | Bằng chứng | Gán |
-| --- | --- | --- |
-| `attw` FalseCJS 6/6 subpath của `tinita` | `exports[x].types` trỏ `.d.ts` còn `import` trỏ `.mjs`; tsup có emit `.d.mts` | Sửa trong pha này: tách `types` theo condition `import`/`require`. Nhỏ, rủi ro thấp, và nó đang ảnh hưởng mọi consumer TS dùng ESM |
-| `tinita` thiếu `sideEffects` | publint suggestion; `tinita-react` có, `tinita` không | Sửa trong pha này: thêm `"sideEffects": false` cho `tinita`. Nó zero-dep và không có side effect |
-| `node10` resolution failed 5/6 | `attw`; TS cũ không resolve subpath exports | **Quyết định của owner** - xem mục Next steps. Nếu không support TS cũ thì đưa vào allowlist với lý do, không sửa |
-| `tinita-react/hooks` + `/ui` documented-but-missing | `CLAUDE.md` nói bắt buộc; không có trong `exports` lẫn `dist` | Sửa trong pha này, nhưng chỉ sửa **tài liệu**: `CLAUDE.md` đang sai. Thêm export là mở rộng API, thuộc quyết định khác |
+| Khiếm khuyết                                        | Bằng chứng                                                                    | Gán                                                                                                                                |
+| --------------------------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `attw` FalseCJS 6/6 subpath của `tinita`            | `exports[x].types` trỏ `.d.ts` còn `import` trỏ `.mjs`; tsup có emit `.d.mts` | Sửa trong pha này: tách `types` theo condition `import`/`require`. Nhỏ, rủi ro thấp, và nó đang ảnh hưởng mọi consumer TS dùng ESM |
+| `tinita` thiếu `sideEffects`                        | publint suggestion; `tinita-react` có, `tinita` không                         | Sửa trong pha này: thêm `"sideEffects": false` cho `tinita`. Nó zero-dep và không có side effect                                   |
+| `node10` resolution failed 5/6                      | `attw`; TS cũ không resolve subpath exports                                   | **Quyết định của owner** - xem mục Next steps. Nếu không support TS cũ thì đưa vào allowlist với lý do, không sửa                  |
+| `tinita-react/hooks` + `/ui` documented-but-missing | `CLAUDE.md` nói bắt buộc; không có trong `exports` lẫn `dist`                 | Sửa trong pha này, nhưng chỉ sửa **tài liệu**: `CLAUDE.md` đang sai. Thêm export là mở rộng API, thuộc quyết định khác             |
 
 ## Related code files
 
-| File | Sửa gì |
-| --- | --- |
-| `docs/project-roadmap.md` | đóng phần kiểm tự động của M2; ghi M1 phải đảo `leak-surfaces.json`; ghi M4 gọi lại `run.mjs` |
-| `docs/code-standards.md` | thêm quy tắc "export mới phải có ca L1" |
-| `docs/codebase-summary.md` | thêm `compatibility/` vào cây + thống kê |
-| `pnpm-workspace.yaml` | comment cảnh báo |
-| `.gitignore` | xác minh lại ngoại lệ của pha 01 |
-| `CLAUDE.md` | sửa claim sai về `tinita-react/hooks` và `/ui` |
-| `packages/tinita/package.json` | thêm `sideEffects: false`; tách `types` theo condition |
-| `compatibility/README.md` | điền bảng tier bằng số đo thật |
-| `compatibility/contract.json` | cập nhật allowlist sau khi sửa FalseCJS |
+| File                           | Sửa gì                                                                                        |
+| ------------------------------ | --------------------------------------------------------------------------------------------- |
+| `docs/project-roadmap.md`      | đóng phần kiểm tự động của M2; ghi M1 phải đảo `leak-surfaces.json`; ghi M4 gọi lại `run.mjs` |
+| `docs/code-standards.md`       | thêm quy tắc "export mới phải có ca L1"                                                       |
+| `docs/codebase-summary.md`     | thêm `compatibility/` vào cây + thống kê                                                      |
+| `pnpm-workspace.yaml`          | comment cảnh báo                                                                              |
+| `.gitignore`                   | xác minh lại ngoại lệ của pha 01                                                              |
+| `CLAUDE.md`                    | sửa claim sai về `tinita-react/hooks` và `/ui`                                                |
+| `packages/tinita/package.json` | thêm `sideEffects: false`; tách `types` theo condition                                        |
+| `compatibility/README.md`      | điền bảng tier bằng số đo thật                                                                |
+| `compatibility/contract.json`  | cập nhật allowlist sau khi sửa FalseCJS                                                       |
 
 ## Implementation Steps
 
@@ -170,14 +170,14 @@ Gán xử lý cho 4 khiếm khuyết:
 
 ## Risk Assessment
 
-| Rủi ro | Xác suất | Ảnh hưởng | Giảm thiểu |
-| --- | --- | --- | --- |
-| Sửa `exports` để hết FalseCJS lại làm vỡ consumer khác | Trung bình | Cao | Tiêu chí 11 (gate) + chạy lại L1 và L2 đầy đủ, đặc biệt `tsc-matrix` 3 `moduleResolution` |
-| Bảng tier điền bằng ước lượng thay vì số đo | Trung bình | Trung bình | Tiêu chí 1 buộc ghi ngày + máy đo; số không có ngày là số vô nghĩa |
-| Allowlist phình thay vì thu hẹp | Cao theo thời gian | Cao | Tiêu chí 4 làm tiền lệ: sửa xong thì xoá entry. Quy tắc review allowlist khi bump version vào `code-standards.md` |
-| Lab dựng xong rồi không ai chạy vì chưa có CI | Cao | Nghiêm trọng | Bước 5, 7 (quy tắc + M4 ghi rõ lệnh); đây là lý do pha này là P1 chứ không phải P3 |
-| `docs/codebase-summary.md` không cập nhật, `/plan:hard` sau này không biết lab tồn tại | Trung bình | Cao | Bước 6 + tiêu chí 7; file này được đọc như sự thật và bỏ qua scouting khi mới hơn 3 ngày |
-| Sửa `CLAUDE.md` mà quên rằng nó là instruction file luôn nạp | Thấp | Trung bình | `CLAUDE.md` chỉ sửa phần claim sai về subpath; thay đổi instruction file không verify được trong session đang chạy - phải kiểm bằng session mới |
+| Rủi ro                                                                                 | Xác suất           | Ảnh hưởng    | Giảm thiểu                                                                                                                                      |
+| -------------------------------------------------------------------------------------- | ------------------ | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sửa `exports` để hết FalseCJS lại làm vỡ consumer khác                                 | Trung bình         | Cao          | Tiêu chí 11 (gate) + chạy lại L1 và L2 đầy đủ, đặc biệt `tsc-matrix` 3 `moduleResolution`                                                       |
+| Bảng tier điền bằng ước lượng thay vì số đo                                            | Trung bình         | Trung bình   | Tiêu chí 1 buộc ghi ngày + máy đo; số không có ngày là số vô nghĩa                                                                              |
+| Allowlist phình thay vì thu hẹp                                                        | Cao theo thời gian | Cao          | Tiêu chí 4 làm tiền lệ: sửa xong thì xoá entry. Quy tắc review allowlist khi bump version vào `code-standards.md`                               |
+| Lab dựng xong rồi không ai chạy vì chưa có CI                                          | Cao                | Nghiêm trọng | Bước 5, 7 (quy tắc + M4 ghi rõ lệnh); đây là lý do pha này là P1 chứ không phải P3                                                              |
+| `docs/codebase-summary.md` không cập nhật, `/plan:hard` sau này không biết lab tồn tại | Trung bình         | Cao          | Bước 6 + tiêu chí 7; file này được đọc như sự thật và bỏ qua scouting khi mới hơn 3 ngày                                                        |
+| Sửa `CLAUDE.md` mà quên rằng nó là instruction file luôn nạp                           | Thấp               | Trung bình   | `CLAUDE.md` chỉ sửa phần claim sai về subpath; thay đổi instruction file không verify được trong session đang chạy - phải kiểm bằng session mới |
 
 ## Security Considerations
 
@@ -195,19 +195,21 @@ Hai quyết định trình owner, plan **không** tự chốt:
 
 **QĐ-1: `tinita@0.0.1` và `tinita-react@0.0.2` đã publish với exports gãy.**
 Ca 07 của pha 02 sẽ cho số liệu chính xác bản published gãy ở đâu.
-- *Bump version và publish bản vá:* người dùng mới nhận bản đúng; bản cũ vẫn gãy trên registry nhưng
+
+- _Bump version và publish bản vá:_ người dùng mới nhận bản đúng; bản cũ vẫn gãy trên registry nhưng
   không ai bị buộc dùng. Rẻ nhất. `truncateFileName` vừa đổi breaking nên dù sao cũng phải bump.
-- *Thêm `npm deprecate` cho version cũ:* người cài bản cũ thấy cảnh báo. Thêm một bước, không phá gì.
-- *Unpublish:* trong cửa sổ 72 giờ thì được, quá thì npm không cho. Đã quá lâu nên loại.
-Khuyến nghị nghiêng về bump + deprecate, nhưng owner chốt.
+- _Thêm `npm deprecate` cho version cũ:_ người cài bản cũ thấy cảnh báo. Thêm một bước, không phá gì.
+- _Unpublish:_ trong cửa sổ 72 giờ thì được, quá thì npm không cho. Đã quá lâu nên loại.
+  Khuyến nghị nghiêng về bump + deprecate, nhưng owner chốt.
 
 **QĐ-2: có cam kết support TypeScript cũ (`moduleResolution: node`) hay không.**
 `attw` báo `node10: Resolution failed` 5/6 subpath; consumer `tsc-matrix` của pha 03 sẽ xác nhận
 người dùng TS cũ không compile được.
-- *Không support:* đưa vào allowlist kèm lý do, khai `engines`/README rõ là cần
+
+- _Không support:_ đưa vào allowlist kèm lý do, khai `engines`/README rõ là cần
   `moduleResolution: bundler` hoặc `nodenext`. Không phải sửa gì.
-- *Support:* thêm `typesVersions` hoặc đổi layout `dist`. Việc thật, và làm phức tạp `package.json`.
-Quyết định này ảnh hưởng ca `tsc-matrix` là `expectedFailure` hay là failure thật.
+- _Support:_ thêm `typesVersions` hoặc đổi layout `dist`. Việc thật, và làm phức tạp `package.json`.
+  Quyết định này ảnh hưởng ca `tsc-matrix` là `expectedFailure` hay là failure thật.
 
 Sau pha này, việc còn lại thuộc M4 (dựng CI) và M1 (bịt rò rỉ CSS) trong `docs/project-roadmap.md`.
 Lab không cần thay đổi gì để M4 dùng được - chỉ cần gọi `run.mjs` theo tier.

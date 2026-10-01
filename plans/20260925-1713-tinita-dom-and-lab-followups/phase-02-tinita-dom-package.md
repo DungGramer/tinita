@@ -87,8 +87,14 @@ packages/tinita-dom/
 ```json
 {
   "./smooth-scroll": {
-    "import": { "types": "./dist/smooth-scroll.d.mts", "default": "./dist/smooth-scroll.mjs" },
-    "require": { "types": "./dist/smooth-scroll.d.ts", "default": "./dist/smooth-scroll.cjs" }
+    "import": {
+      "types": "./dist/smooth-scroll.d.mts",
+      "default": "./dist/smooth-scroll.mjs"
+    },
+    "require": {
+      "types": "./dist/smooth-scroll.d.ts",
+      "default": "./dist/smooth-scroll.cjs"
+    }
   }
 }
 ```
@@ -106,17 +112,17 @@ Hệ quả cho lab: ca SSR của L2 (`ssr:node-esm`, `ssr:node-cjs`) **không** 
 
 ## Related code files
 
-| File | Vai trò |
-| --- | --- |
-| `reports/source-*.ts.txt` | nguồn để port, đã snapshot nên không phụ thuộc repo khác còn nguyên |
-| `packages/tinita/package.json` | khuôn `exports`, `sideEffects`, `files`, `scripts` |
-| `packages/tinita/tsup.config.ts` | khuôn `bundle:true` + `outExtension` - copy đúng |
-| `packages/tinita-react/vitest.config.ts` | khuôn `environment: jsdom` |
-| `compatibility/scripts/paths.mjs` | `PACKAGES` thêm `tinita-dom` |
-| `compatibility/scripts/pack.mjs` | `REQUIRED_DIST` thêm entry |
-| `compatibility/contract.json` | khối `tinita-dom` + cờ `browserOnly` |
-| `compatibility/cases/l2/index.mjs` | ca SSR bỏ qua package `browserOnly` |
-| `pnpm-workspace.yaml` | `packages/*` đã glob sẵn, không cần sửa - nhưng phải xác minh |
+| File                                     | Vai trò                                                             |
+| ---------------------------------------- | ------------------------------------------------------------------- |
+| `reports/source-*.ts.txt`                | nguồn để port, đã snapshot nên không phụ thuộc repo khác còn nguyên |
+| `packages/tinita/package.json`           | khuôn `exports`, `sideEffects`, `files`, `scripts`                  |
+| `packages/tinita/tsup.config.ts`         | khuôn `bundle:true` + `outExtension` - copy đúng                    |
+| `packages/tinita-react/vitest.config.ts` | khuôn `environment: jsdom`                                          |
+| `compatibility/scripts/paths.mjs`        | `PACKAGES` thêm `tinita-dom`                                        |
+| `compatibility/scripts/pack.mjs`         | `REQUIRED_DIST` thêm entry                                          |
+| `compatibility/contract.json`            | khối `tinita-dom` + cờ `browserOnly`                                |
+| `compatibility/cases/l2/index.mjs`       | ca SSR bỏ qua package `browserOnly`                                 |
+| `pnpm-workspace.yaml`                    | `packages/*` đã glob sẵn, không cần sửa - nhưng phải xác minh       |
 
 ## Implementation Steps
 
@@ -169,7 +175,7 @@ Hệ quả cho lab: ca SSR của L2 (`ssr:node-esm`, `ssr:node-cjs`) **không** 
    - `node -e "require('tinita-dom/smooth-scroll')"` EXIT 0
    - `node --input-type=module -e "await import('tinita-dom/smooth-scroll')"` EXIT 0
    - tương tự cho `tinita-dom/wheel-source` và barrel `tinita-dom`
-   Sáu lần thực thi, tất cả EXIT 0. Đây là ca bắt B1 và B2.
+     Sáu lần thực thi, tất cả EXIT 0. Đây là ca bắt B1 và B2.
 3. `require('tinita-dom/wheel-source').WHEEL_STEP_MIN_PIXELS === 48` và
    `typeof require('tinita-dom/smooth-scroll').installSmoothScroll === 'function'`.
 4. `npx vitest run` trong `packages/tinita-dom` EXIT 0, và số test **bằng hoặc lớn hơn** số test
@@ -192,14 +198,14 @@ Hệ quả cho lab: ca SSR của L2 (`ssr:node-esm`, `ssr:node-cjs`) **không** 
 
 ## Risk Assessment
 
-| Rủi ro | Xác suất | Ảnh hưởng | Giảm thiểu |
-| --- | --- | --- | --- |
-| `bundle: false` hoặc thiếu `outExtension` -> lặp lại B1/B2 trên package thứ ba | Trung bình (dễ quên) | **Nghiêm trọng** - publish ra là gãy | Tiêu chí 2 và 6; copy khuôn từ `packages/tinita` chứ đừng viết mới |
-| Port làm mất comment chứa số đo và ngày | Trung bình | Cao - thông tin không tái tạo được | Tiêu chí 12; snapshot trong `reports/` để đối chiếu |
-| Quên cập nhật 3 file của lab -> `05-contract-drift` đỏ và bị tưởng là lỗi lab | Cao | Trung bình | Bước 9 trong cùng commit; tiêu chí 8 chứng minh drift check hoạt động |
-| Quyết định SSR không chốt -> ca SSR của L2 đỏ | Cao nếu bỏ qua | Trung bình | Đã chốt trong Architecture: browser-only, không guard, cờ `browserOnly` |
-| Test port vào fail và bị "sửa test cho pass" | Trung bình | Cao | Tiêu chí 4 nói rõ: fail nghĩa là port sai, không phải test sai |
-| `wheel-source` public làm mọi đổi constant thành breaking | Trung bình theo thời gian | Trung bình | Chấp nhận có chủ ý, ghi lý do trong `README.md` của package |
+| Rủi ro                                                                         | Xác suất                  | Ảnh hưởng                            | Giảm thiểu                                                              |
+| ------------------------------------------------------------------------------ | ------------------------- | ------------------------------------ | ----------------------------------------------------------------------- |
+| `bundle: false` hoặc thiếu `outExtension` -> lặp lại B1/B2 trên package thứ ba | Trung bình (dễ quên)      | **Nghiêm trọng** - publish ra là gãy | Tiêu chí 2 và 6; copy khuôn từ `packages/tinita` chứ đừng viết mới      |
+| Port làm mất comment chứa số đo và ngày                                        | Trung bình                | Cao - thông tin không tái tạo được   | Tiêu chí 12; snapshot trong `reports/` để đối chiếu                     |
+| Quên cập nhật 3 file của lab -> `05-contract-drift` đỏ và bị tưởng là lỗi lab  | Cao                       | Trung bình                           | Bước 9 trong cùng commit; tiêu chí 8 chứng minh drift check hoạt động   |
+| Quyết định SSR không chốt -> ca SSR của L2 đỏ                                  | Cao nếu bỏ qua            | Trung bình                           | Đã chốt trong Architecture: browser-only, không guard, cờ `browserOnly` |
+| Test port vào fail và bị "sửa test cho pass"                                   | Trung bình                | Cao                                  | Tiêu chí 4 nói rõ: fail nghĩa là port sai, không phải test sai          |
+| `wheel-source` public làm mọi đổi constant thành breaking                      | Trung bình theo thời gian | Trung bình                           | Chấp nhận có chủ ý, ghi lý do trong `README.md` của package             |
 
 ## Security Considerations
 

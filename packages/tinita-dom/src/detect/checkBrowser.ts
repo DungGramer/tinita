@@ -5,9 +5,14 @@ export function isChrome() {
 }
 
 export function isFirefox() {
-  return (
-    /Firefox/.test(navigator.userAgent) || typeof InstallTrigger !== 'undefined'
-  );
+  // `InstallTrigger` was Firefox's old tell. It is not a declared global, and
+  // Firefox removed it in 2023, so it is read off `globalThis` as a fallback
+  // rather than referenced bare - a bare reference is a ReferenceError under
+  // TypeScript's `noImplicitAny` and does nothing for current Firefox anyway.
+  const hasInstallTrigger =
+    (globalThis as { InstallTrigger?: unknown }).InstallTrigger !== undefined;
+
+  return /Firefox/.test(navigator.userAgent) || hasInstallTrigger;
 }
 
 export function isSafari() {

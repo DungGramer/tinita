@@ -22,7 +22,9 @@ function escapeForRegExp(literal: string): string {
 
 function assertString(value: unknown, method: string): asserts value is string {
   if (typeof value !== 'string') {
-    throw new TypeError(`html.${method}() expects a string, received ${typeof value}`);
+    throw new TypeError(
+      `html.${method}() expects a string, received ${typeof value}`
+    );
   }
 }
 
@@ -90,19 +92,26 @@ export function createHtml(): Html {
       encodeMatcher ??= buildEncodeMatcher();
       // `replace` with a global regex resets lastIndex itself, so the cached
       // matcher is safe to share across calls.
-      return input.replace(encodeMatcher, (match) => encodeEntities.get(match) ?? match);
+      return input.replace(
+        encodeMatcher,
+        (match) => encodeEntities.get(match) ?? match
+      );
     },
 
     decode(input) {
       assertString(input, 'decode');
       return input.replace(ENTITY_SHAPE, (match) => {
-        const named = decodeEntities.get(match) ?? decodeEntities.get(`${match};`);
+        const named =
+          decodeEntities.get(match) ?? decodeEntities.get(`${match};`);
         if (named !== undefined) return named;
 
         const numeric = /^&#(x)?([0-9a-f]+);?$/i.exec(match);
         if (!numeric) return match;
 
-        const codePoint = Number.parseInt(numeric[2] as string, numeric[1] ? 16 : 10);
+        const codePoint = Number.parseInt(
+          numeric[2] as string,
+          numeric[1] ? 16 : 10
+        );
         // Lone surrogates and anything past the Unicode range would make
         // fromCodePoint throw. An unrecognised reference is left as written.
         if (!Number.isFinite(codePoint) || codePoint > 0x10ffff) return match;

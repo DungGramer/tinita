@@ -75,29 +75,29 @@ compatibility/cases/l2/
 `host-fixture.html` mang các element mà bảng rò rỉ chỉ ra là bị ảnh hưởng, mỗi cái có giá trị chủ
 nhà đặt tường minh:
 
-| Element | Chủ nhà đặt | Bề mặt rò rỉ tương ứng |
-| --- | --- | --- |
-| `body` | `background`, `color` | reset `body { @apply bg-background text-foreground }` |
-| `div[data-host]` | `border-color` | reset `* { @apply border-border }` |
-| `:root` | `--color-primary`, `--radius`, `--font-sans` | 22 token không prefix trong `@theme inline` |
-| `.animate-fade-in` của chủ nhà | `animation-name` riêng | 18 class `.animate-*` không prefix |
-| `.transition-fast` của chủ nhà | `transition-duration` riêng | 8 class `.transition-*` không prefix |
-| `.interactive` của chủ nhà | `opacity` riêng | class `.interactive` không prefix |
-| `[data-host] > *` trong `CarouselTicker` | `box-sizing: content-box` | `.tinita-carousel-ticker * { box-sizing: border-box }` |
-| `@layer host { .tinita-filetree { ... } }` | override có chủ ý | CSS component ngoài mọi `@layer` |
+| Element                                    | Chủ nhà đặt                                  | Bề mặt rò rỉ tương ứng                                 |
+| ------------------------------------------ | -------------------------------------------- | ------------------------------------------------------ |
+| `body`                                     | `background`, `color`                        | reset `body { @apply bg-background text-foreground }`  |
+| `div[data-host]`                           | `border-color`                               | reset `* { @apply border-border }`                     |
+| `:root`                                    | `--color-primary`, `--radius`, `--font-sans` | 22 token không prefix trong `@theme inline`            |
+| `.animate-fade-in` của chủ nhà             | `animation-name` riêng                       | 18 class `.animate-*` không prefix                     |
+| `.transition-fast` của chủ nhà             | `transition-duration` riêng                  | 8 class `.transition-*` không prefix                   |
+| `.interactive` của chủ nhà                 | `opacity` riêng                              | class `.interactive` không prefix                      |
+| `[data-host] > *` trong `CarouselTicker`   | `box-sizing: content-box`                    | `.tinita-carousel-ticker * { box-sizing: border-box }` |
+| `@layer host { .tinita-filetree { ... } }` | override có chủ ý                            | CSS component ngoài mọi `@layer`                       |
 
 ## Related code files
 
-| File | Vai trò |
-| --- | --- |
-| `packages/tinita-react/src/styles/globals.css` | dòng 81-111 (22 token), 116-127 (reset `*`/`body`) |
-| `packages/tinita-react/src/styles/animations.css` | dòng 114-318 (27 class), 530-539 (`*` + `!important`) |
-| `packages/tinita-react/src/ui/file-tree/FileTree.css` | không `@layer`; dòng 230,237 dùng `--radix-*` |
-| `packages/tinita-react/src/ui/carousel-ticker/CarouselTicker.css` | dòng 15-17, 20-25 (`*` trong component) |
-| `packages/tinita-react/src/ui/ping/Ping.tsx` | dòng 45-50 Tailwind thô trong JSX |
-| `packages/tinita-react/src/ui/carousel-ticker/CarouselTicker.tsx` | dòng 211-291 Tailwind thô |
-| `packages/tinita-react/src/utils/autoInjectStyles.ts` | dòng 12 SSR guard, 22-25 `document.head` |
-| `packages/tinita/package.json` | `exports.types` trỏ `.d.ts` - nguồn của ca `tsc-matrix` |
+| File                                                              | Vai trò                                                 |
+| ----------------------------------------------------------------- | ------------------------------------------------------- |
+| `packages/tinita-react/src/styles/globals.css`                    | dòng 81-111 (22 token), 116-127 (reset `*`/`body`)      |
+| `packages/tinita-react/src/styles/animations.css`                 | dòng 114-318 (27 class), 530-539 (`*` + `!important`)   |
+| `packages/tinita-react/src/ui/file-tree/FileTree.css`             | không `@layer`; dòng 230,237 dùng `--radix-*`           |
+| `packages/tinita-react/src/ui/carousel-ticker/CarouselTicker.css` | dòng 15-17, 20-25 (`*` trong component)                 |
+| `packages/tinita-react/src/ui/ping/Ping.tsx`                      | dòng 45-50 Tailwind thô trong JSX                       |
+| `packages/tinita-react/src/ui/carousel-ticker/CarouselTicker.tsx` | dòng 211-291 Tailwind thô                               |
+| `packages/tinita-react/src/utils/autoInjectStyles.ts`             | dòng 12 SSR guard, 22-25 `document.head`                |
+| `packages/tinita/package.json`                                    | `exports.types` trỏ `.d.ts` - nguồn của ca `tsc-matrix` |
 
 ## Implementation Steps
 
@@ -180,14 +180,14 @@ nhà đặt tường minh:
 
 ## Risk Assessment
 
-| Rủi ro | Xác suất | Ảnh hưởng | Giảm thiểu |
-| --- | --- | --- | --- |
-| Lấy chuỗi lỗi Next từ báo cáo nghiên cứu (nguồn yếu) làm assertion, ca sai mà vẫn xanh | Cao nếu bỏ qua | Nghiêm trọng | Bước 4 bắt buộc đo nguyên văn trước; chỉ 2 chuỗi đã đo thật được dùng trực tiếp |
-| `css-probe` không thấy gì và bảng rò rỉ trống, bị hiểu là library sạch | Trung bình | Nghiêm trọng | Tiêu chí 10 (ca chứng minh) là cửa chặn |
-| Next/Vite version drift làm ca vỡ không liên quan tới library | Cao theo thời gian | Trung bình | Pin version chính xác trong từng consumer `package.json`; lỗi build framework trả exit 2 (hạ tầng) không phải exit 1 |
-| Ca cascade layer sẽ đảo chiều khi M1 xong, người sau tưởng lab hỏng | Chắc chắn xảy ra | Trung bình | Tiêu chí 8 ghi rõ; ca mang comment trỏ tới M1 |
-| Chromium local khác Chromium container, kết quả `getComputedStyle` lệch | Thấp cho computed style, Cao cho ảnh | Thấp ở pha này | Pha này KHÔNG chụp ảnh; ảnh và baseline để pha 05 trong container |
-| `next build` chậm, kéo tier 1 vượt ngân sách | Cao | Trung bình | Nếu vượt, chuyển riêng ca Next sang tier 2, giữ Vite ở tier 1 - quyết ở pha 06 theo số đo tiêu chí 12 |
+| Rủi ro                                                                                 | Xác suất                             | Ảnh hưởng      | Giảm thiểu                                                                                                           |
+| -------------------------------------------------------------------------------------- | ------------------------------------ | -------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Lấy chuỗi lỗi Next từ báo cáo nghiên cứu (nguồn yếu) làm assertion, ca sai mà vẫn xanh | Cao nếu bỏ qua                       | Nghiêm trọng   | Bước 4 bắt buộc đo nguyên văn trước; chỉ 2 chuỗi đã đo thật được dùng trực tiếp                                      |
+| `css-probe` không thấy gì và bảng rò rỉ trống, bị hiểu là library sạch                 | Trung bình                           | Nghiêm trọng   | Tiêu chí 10 (ca chứng minh) là cửa chặn                                                                              |
+| Next/Vite version drift làm ca vỡ không liên quan tới library                          | Cao theo thời gian                   | Trung bình     | Pin version chính xác trong từng consumer `package.json`; lỗi build framework trả exit 2 (hạ tầng) không phải exit 1 |
+| Ca cascade layer sẽ đảo chiều khi M1 xong, người sau tưởng lab hỏng                    | Chắc chắn xảy ra                     | Trung bình     | Tiêu chí 8 ghi rõ; ca mang comment trỏ tới M1                                                                        |
+| Chromium local khác Chromium container, kết quả `getComputedStyle` lệch                | Thấp cho computed style, Cao cho ảnh | Thấp ở pha này | Pha này KHÔNG chụp ảnh; ảnh và baseline để pha 05 trong container                                                    |
+| `next build` chậm, kéo tier 1 vượt ngân sách                                           | Cao                                  | Trung bình     | Nếu vượt, chuyển riêng ca Next sang tier 2, giữ Vite ở tier 1 - quyết ở pha 06 theo số đo tiêu chí 12                |
 
 ## Security Considerations
 

@@ -3,7 +3,7 @@
  */
 export function enumKeys<
   T extends Record<string, unknown>,
-  Keys extends keyof T
+  Keys extends keyof T,
 >(obj: T): Keys[] {
   return Object.keys(obj).filter((k) => isNaN(Number(k))) as Keys[];
 }

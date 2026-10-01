@@ -1,4 +1,4 @@
-import type { JSON_HTMLElement } from "./elementToJSON";
+import type { JSON_HTMLElement } from './elementToJSON';
 
 export function jsonToHTML(json: JSON_HTMLElement): string {
   function jsonToElement(json: JSON_HTMLElement): HTMLElement {

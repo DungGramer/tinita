@@ -52,33 +52,33 @@
 
 Không cấu trúc mới. Bảng ánh xạ việc -> docs cần sửa:
 
-| Việc | Docs phải đổi |
-| --- | --- |
+| Việc            | Docs phải đổi                                                                                                               |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | V1 `tinita-dom` | `README.md`, `CLAUDE.md`, `codebase-summary.md`, `system-architecture.md`, `code-standards.md` (bảng package -> dependency) |
-| V2 tier 2 | `compatibility/README.md` (bảng tier), `plan.md` của plan lab cũ, `project-roadmap.md` M4 |
-| V3 QĐ-1 | `compatibility/README.md`, `project-roadmap.md` |
-| V4 QĐ-2 | `code-standards.md` (quy tắc mới), `compatibility/README.md`, `project-roadmap.md` |
+| V2 tier 2       | `compatibility/README.md` (bảng tier), `plan.md` của plan lab cũ, `project-roadmap.md` M4                                   |
+| V3 QĐ-1         | `compatibility/README.md`, `project-roadmap.md`                                                                             |
+| V4 QĐ-2         | `code-standards.md` (quy tắc mới), `compatibility/README.md`, `project-roadmap.md`                                          |
 
 Quyết định phạm vi 2 vấn đề treo:
 
-| Vấn đề | Trong phạm vi? | Lý do |
-| --- | --- | --- |
-| `node22-yarn-classic` fail do Docker Hub timeout | **CÓ**, đã sửa ở pha 01 | Chỉ là phân loại exit code, rẻ |
+| Vấn đề                                                 | Trong phạm vi?          | Lý do                                                            |
+| ------------------------------------------------------ | ----------------------- | ---------------------------------------------------------------- |
+| `node22-yarn-classic` fail do Docker Hub timeout       | **CÓ**, đã sửa ở pha 01 | Chỉ là phân loại exit code, rẻ                                   |
 | `node22-yarn-pnp` fail ở `corepack prepare yarn@4.5.0` | **CÓ, nhưng việc cuối** | Cell đáng giá nhất; nếu dò quá lâu thì tách ra, ghi rõ đã thử gì |
 
 ## Related code files
 
-| File | Sửa gì |
-| --- | --- |
-| `docs/codebase-summary.md` | cây thư mục + thống kê + bảng 3 package |
-| `CLAUDE.md` | mục package + quy tắc import `tinita-dom` |
-| `README.md` | 3 package + ví dụ `installSmoothScroll` + cảnh báo browser-only |
-| `docs/code-standards.md` | quy tắc `typesVersions`; bảng package -> dependency thêm `tinita-dom` (zero dep) |
-| `docs/project-roadmap.md` | đóng QĐ-1, QĐ-2; M4 lệnh CI; nợ đã xong |
-| `docs/system-architecture.md` | dependency graph + mục đóng gói |
-| `compatibility/README.md` | bảng tier, QĐ-1/QĐ-2, trạng thái 3 vấn đề |
-| `compatibility/docker/node.Dockerfile` | thử sửa corepack cho cell PnP |
-| `compatibility/docker/matrix.json` | ghi trạng thái cell PnP nếu vẫn không chạy |
+| File                                   | Sửa gì                                                                           |
+| -------------------------------------- | -------------------------------------------------------------------------------- |
+| `docs/codebase-summary.md`             | cây thư mục + thống kê + bảng 3 package                                          |
+| `CLAUDE.md`                            | mục package + quy tắc import `tinita-dom`                                        |
+| `README.md`                            | 3 package + ví dụ `installSmoothScroll` + cảnh báo browser-only                  |
+| `docs/code-standards.md`               | quy tắc `typesVersions`; bảng package -> dependency thêm `tinita-dom` (zero dep) |
+| `docs/project-roadmap.md`              | đóng QĐ-1, QĐ-2; M4 lệnh CI; nợ đã xong                                          |
+| `docs/system-architecture.md`          | dependency graph + mục đóng gói                                                  |
+| `compatibility/README.md`              | bảng tier, QĐ-1/QĐ-2, trạng thái 3 vấn đề                                        |
+| `compatibility/docker/node.Dockerfile` | thử sửa corepack cho cell PnP                                                    |
+| `compatibility/docker/matrix.json`     | ghi trạng thái cell PnP nếu vẫn không chạy                                       |
 
 ## Implementation Steps
 
@@ -151,14 +151,14 @@ Quyết định phạm vi 2 vấn đề treo:
 
 ## Risk Assessment
 
-| Rủi ro | Xác suất | Ảnh hưởng | Giảm thiểu |
-| --- | --- | --- | --- |
-| `docs/codebase-summary.md` không cập nhật -> `/plan:hard` sau này lập kế hoạch cho repo 2 package | Trung bình | Cao | Tiêu chí 1; file này được đọc như sự thật và bỏ qua scouting khi mới |
-| `CLAUDE.md` nêu subpath không tồn tại, lặp lại lỗi `tinita-react/hooks` | Trung bình | Cao | Tiêu chí 2 đối chiếu với `exports` qua ca `05-contract-drift` |
-| Điền số tier cũ vào bảng vì tiện | Trung bình | Trung bình | Bước 1 bắt buộc đo lại; tiêu chí 4 đòi ngày và máy |
-| Dò `yarn-pnp` không có giới hạn, ngốn hết thời gian pha | Cao | Trung bình | Bước 10 giới hạn 2-3 lần thử rồi dừng, ghi lại |
-| Sửa `CLAUDE.md` mà không verify được trong session đang chạy | Chắc chắn | Thấp | Bước 9 spawn session mới |
-| Ba vấn đề tier 3 lại để lửng sang lần sau | Trung bình | Trung bình | Tiêu chí 7 đòi trạng thái dứt khoát cho cả 3 |
+| Rủi ro                                                                                            | Xác suất   | Ảnh hưởng  | Giảm thiểu                                                           |
+| ------------------------------------------------------------------------------------------------- | ---------- | ---------- | -------------------------------------------------------------------- |
+| `docs/codebase-summary.md` không cập nhật -> `/plan:hard` sau này lập kế hoạch cho repo 2 package | Trung bình | Cao        | Tiêu chí 1; file này được đọc như sự thật và bỏ qua scouting khi mới |
+| `CLAUDE.md` nêu subpath không tồn tại, lặp lại lỗi `tinita-react/hooks`                           | Trung bình | Cao        | Tiêu chí 2 đối chiếu với `exports` qua ca `05-contract-drift`        |
+| Điền số tier cũ vào bảng vì tiện                                                                  | Trung bình | Trung bình | Bước 1 bắt buộc đo lại; tiêu chí 4 đòi ngày và máy                   |
+| Dò `yarn-pnp` không có giới hạn, ngốn hết thời gian pha                                           | Cao        | Trung bình | Bước 10 giới hạn 2-3 lần thử rồi dừng, ghi lại                       |
+| Sửa `CLAUDE.md` mà không verify được trong session đang chạy                                      | Chắc chắn  | Thấp       | Bước 9 spawn session mới                                             |
+| Ba vấn đề tier 3 lại để lửng sang lần sau                                                         | Trung bình | Trung bình | Tiêu chí 7 đòi trạng thái dứt khoát cho cả 3                         |
 
 ## Security Considerations
 

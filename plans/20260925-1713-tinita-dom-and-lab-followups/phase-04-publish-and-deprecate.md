@@ -90,14 +90,14 @@ xác nhận. Lý do: bản gãy lần trước qua được vì không có gì k
 
 ## Related code files
 
-| File | Sửa gì |
-| --- | --- |
-| `scripts/update-package-versions.mjs` | biết 3 package; hiện hardcode 2 |
-| `scripts/publish.mjs` | biết 3 package; thêm cửa chặn L1 trước khi hỏi xác nhận |
-| `packages/*/package.json` | `version` lên `0.1.0` |
-| `compatibility/cases/l1/index.mjs` | ca `07` sau publish phải PASS, không đổi code - chỉ đổi kết quả |
-| `compatibility/README.md` | mục QĐ-1: ghi đã thực hiện, kèm version và ngày |
-| `docs/project-roadmap.md` | đóng QĐ-1 |
+| File                                  | Sửa gì                                                          |
+| ------------------------------------- | --------------------------------------------------------------- |
+| `scripts/update-package-versions.mjs` | biết 3 package; hiện hardcode 2                                 |
+| `scripts/publish.mjs`                 | biết 3 package; thêm cửa chặn L1 trước khi hỏi xác nhận         |
+| `packages/*/package.json`             | `version` lên `0.1.0`                                           |
+| `compatibility/cases/l1/index.mjs`    | ca `07` sau publish phải PASS, không đổi code - chỉ đổi kết quả |
+| `compatibility/README.md`             | mục QĐ-1: ghi đã thực hiện, kèm version và ngày                 |
+| `docs/project-roadmap.md`             | đóng QĐ-1                                                       |
 
 ## Implementation Steps
 
@@ -156,14 +156,14 @@ xác nhận. Lý do: bản gãy lần trước qua được vì không có gì k
 
 ## Risk Assessment
 
-| Rủi ro | Xác suất | Ảnh hưởng | Giảm thiểu |
-| --- | --- | --- | --- |
-| Publish version sai, không thu hồi được | Thấp nhưng vĩnh viễn | **Nghiêm trọng** | Bước 6 dừng chờ owner; publish từng package một; `--dry-run` trước |
-| Publish bản vẫn gãy (lặp lại đúng sự cố) | Trung bình nếu không có cửa chặn | **Nghiêm trọng** | Cửa chặn L1 trong `publish.mjs` + tiêu chí 3 chứng minh nó chặn được |
-| Publish trước pha 03 -> bản mới thiếu `typesVersions`, phải bump lần nữa | Trung bình | Cao | Phụ thuộc pha 03 ghi rõ trong Context links và plan.md |
-| Script bỏ quên `tinita-dom` | Cao nếu giữ hardcode | Cao | Đọc động + tiêu chí 1 kiểm bằng package thứ tư giả |
-| `npm deprecate` với thông điệp vô ích ("deprecated") | Trung bình | Thấp | Thông điệp đã soạn sẵn nêu vấn đề + đường ra |
-| Owner không có quyền publish / chưa `npm login` | Trung bình | Thấp | `publish.mjs` đã có `npm whoami` chặn sẵn |
+| Rủi ro                                                                   | Xác suất                         | Ảnh hưởng        | Giảm thiểu                                                           |
+| ------------------------------------------------------------------------ | -------------------------------- | ---------------- | -------------------------------------------------------------------- |
+| Publish version sai, không thu hồi được                                  | Thấp nhưng vĩnh viễn             | **Nghiêm trọng** | Bước 6 dừng chờ owner; publish từng package một; `--dry-run` trước   |
+| Publish bản vẫn gãy (lặp lại đúng sự cố)                                 | Trung bình nếu không có cửa chặn | **Nghiêm trọng** | Cửa chặn L1 trong `publish.mjs` + tiêu chí 3 chứng minh nó chặn được |
+| Publish trước pha 03 -> bản mới thiếu `typesVersions`, phải bump lần nữa | Trung bình                       | Cao              | Phụ thuộc pha 03 ghi rõ trong Context links và plan.md               |
+| Script bỏ quên `tinita-dom`                                              | Cao nếu giữ hardcode             | Cao              | Đọc động + tiêu chí 1 kiểm bằng package thứ tư giả                   |
+| `npm deprecate` với thông điệp vô ích ("deprecated")                     | Trung bình                       | Thấp             | Thông điệp đã soạn sẵn nêu vấn đề + đường ra                         |
+| Owner không có quyền publish / chưa `npm login`                          | Trung bình                       | Thấp             | `publish.mjs` đã có `npm whoami` chặn sẵn                            |
 
 ## Security Considerations
 

@@ -29,7 +29,7 @@
    `bundler`, TS ưu tiên `exports` và **bỏ qua** `typesVersions`. Nên ca `tsc:bundler` và
    `tsc:nodenext` (đang PASS, 11 specifier sạch) phải vẫn PASS sau thay đổi - và đó là tiêu chí.
 3. **Hình dạng researcher đề xuất chưa được đo.** `"typesVersions": { "*": { "*": ["dist/*.d.ts",
-   "dist/*/index.d.ts"] } }`. Nó hợp lý nhưng phải ĐO: `tinita` có subpath dạng `./file/fileSize` ->
+"dist/*/index.d.ts"] } }`. Nó hợp lý nhưng phải ĐO: `tinita` có subpath dạng `./file/fileSize` ->
    `dist/file/fileSize.d.ts`, còn `tinita-react` có dạng `./ui/file-tree` -> `dist/ui/file-tree/index.d.ts`.
    Hai hình dạng khác nhau nên một pattern có thể không phủ cả hai. **Đo trước, khai sau.**
 4. **Dùng `.d.ts` không `.d.mts` trong `typesVersions`.** Consumer TS cũ không hiểu `.d.mts`.
@@ -56,11 +56,11 @@
 
 Hai hình dạng subpath khác nhau, nên `typesVersions` có thể cần 2 pattern:
 
-| Package | Subpath ví dụ | File type đích |
-| --- | --- | --- |
-| `tinita` | `./file/fileSize` | `dist/file/fileSize.d.ts` |
-| `tinita-dom` | `./smooth-scroll` | `dist/smooth-scroll.d.ts` |
-| `tinita-react` | `./ui/file-tree` | `dist/ui/file-tree/index.d.ts` |
+| Package        | Subpath ví dụ     | File type đích                 |
+| -------------- | ----------------- | ------------------------------ |
+| `tinita`       | `./file/fileSize` | `dist/file/fileSize.d.ts`      |
+| `tinita-dom`   | `./smooth-scroll` | `dist/smooth-scroll.d.ts`      |
+| `tinita-react` | `./ui/file-tree`  | `dist/ui/file-tree/index.d.ts` |
 
 Hình dạng khởi điểm để ĐO (không phải để tin ngay):
 
@@ -82,15 +82,15 @@ Ca L1 mới `08-typesversions-sync`:
 
 ## Related code files
 
-| File | Sửa gì |
-| --- | --- |
-| `packages/tinita/package.json` | thêm `typesVersions` |
-| `packages/tinita-dom/package.json` | thêm `typesVersions` |
+| File                                 | Sửa gì                                                |
+| ------------------------------------ | ----------------------------------------------------- |
+| `packages/tinita/package.json`       | thêm `typesVersions`                                  |
+| `packages/tinita-dom/package.json`   | thêm `typesVersions`                                  |
 | `packages/tinita-react/package.json` | thêm `typesVersions`; chú ý subpath CSS không có type |
-| `compatibility/cases/l1/index.mjs` | ca `08-typesversions-sync` |
-| `compatibility/cases/l2/index.mjs` | ca `tsc:node` bỏ `expectedFailure`, thành PASS thật |
-| `compatibility/contract.json` | xoá entry `accepted` `NoResolution` |
-| `docs/code-standards.md` | quy tắc đồng bộ `exports` + `typesVersions` |
+| `compatibility/cases/l1/index.mjs`   | ca `08-typesversions-sync`                            |
+| `compatibility/cases/l2/index.mjs`   | ca `tsc:node` bỏ `expectedFailure`, thành PASS thật   |
+| `compatibility/contract.json`        | xoá entry `accepted` `NoResolution`                   |
+| `docs/code-standards.md`             | quy tắc đồng bộ `exports` + `typesVersions`           |
 
 ## Implementation Steps
 
@@ -152,14 +152,14 @@ Ca L1 mới `08-typesversions-sync`:
 
 ## Risk Assessment
 
-| Rủi ro | Xác suất | Ảnh hưởng | Giảm thiểu |
-| --- | --- | --- | --- |
-| Hình dạng researcher đề xuất không phủ cả 2 kiểu subpath (phẳng vs thư mục) | **Cao** | Trung bình | Bước 1 đo trên 1 package trước; bước 4 xử riêng `tinita-react` |
-| `typesVersions` lệch `exports` âm thầm sau này | Cao theo thời gian | Cao | Ca `08` + tiêu chí 6, 7 + quy tắc trong docs |
-| Thêm `typesVersions` làm hồi quy consumer mới | Thấp (TS ưu tiên `exports`) | Cao | Tiêu chí 2 kiểm tường minh thay vì tin vào lý thuyết |
-| `attw` pass nhưng `tsc` thật vẫn fail, hoặc ngược lại | Trung bình | Trung bình | Bước 1-2 đo **cả hai** riêng biệt, không suy từ một cái sang cái kia |
-| Map cả subpath CSS -> lỗi lạ | Trung bình | Thấp | Tiêu chí 8 |
-| Allowlist không được thu hẹp, `NoResolution` nằm lại | Trung bình | Trung bình | Tiêu chí 4 |
+| Rủi ro                                                                      | Xác suất                    | Ảnh hưởng  | Giảm thiểu                                                           |
+| --------------------------------------------------------------------------- | --------------------------- | ---------- | -------------------------------------------------------------------- |
+| Hình dạng researcher đề xuất không phủ cả 2 kiểu subpath (phẳng vs thư mục) | **Cao**                     | Trung bình | Bước 1 đo trên 1 package trước; bước 4 xử riêng `tinita-react`       |
+| `typesVersions` lệch `exports` âm thầm sau này                              | Cao theo thời gian          | Cao        | Ca `08` + tiêu chí 6, 7 + quy tắc trong docs                         |
+| Thêm `typesVersions` làm hồi quy consumer mới                               | Thấp (TS ưu tiên `exports`) | Cao        | Tiêu chí 2 kiểm tường minh thay vì tin vào lý thuyết                 |
+| `attw` pass nhưng `tsc` thật vẫn fail, hoặc ngược lại                       | Trung bình                  | Trung bình | Bước 1-2 đo **cả hai** riêng biệt, không suy từ một cái sang cái kia |
+| Map cả subpath CSS -> lỗi lạ                                                | Trung bình                  | Thấp       | Tiêu chí 8                                                           |
+| Allowlist không được thu hẹp, `NoResolution` nằm lại                        | Trung bình                  | Trung bình | Tiêu chí 4                                                           |
 
 ## Security Considerations
 

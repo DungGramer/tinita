@@ -33,7 +33,9 @@ describe('html - core, no plugin', () => {
   });
 
   it('leaves an unknown entity exactly as written', () => {
-    expect(base().decode('&notareal; &#x110000; &#xD800;')).toBe('&notareal; &#x110000; &#xD800;');
+    expect(base().decode('&notareal; &#x110000; &#xD800;')).toBe(
+      '&notareal; &#x110000; &#xD800;'
+    );
   });
 
   it('empty string in, empty string out', () => {
@@ -53,7 +55,9 @@ describe('html - core, no plugin', () => {
 
 describe('html - entities plugin', () => {
   it('encodes the full named table once extended', () => {
-    expect(full().encode('Hòm nhĩ trái')).toBe('H&ograve;m nh&itilde; tr&aacute;i');
+    expect(full().encode('Hòm nhĩ trái')).toBe(
+      'H&ograve;m nh&itilde; tr&aacute;i'
+    );
   });
 
   it('is case-sensitive: an uppercase letter never borrows the lowercase entity', () => {

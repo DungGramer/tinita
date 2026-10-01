@@ -25,7 +25,9 @@ export function base64ToBlob(base64: string, type = ''): Blob {
   try {
     binary = atob(base64);
   } catch {
-    throw new TypeError('base64ToBlob() received a string that is not valid base64');
+    throw new TypeError(
+      'base64ToBlob() received a string that is not valid base64'
+    );
   }
 
   const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));

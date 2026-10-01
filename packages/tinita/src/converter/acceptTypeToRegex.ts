@@ -1,5 +1,5 @@
-import type { MIME_TO_EXTENSION } from "../constant/mime_to_extension";
-import { getExtensionFromMIME } from "./MIMEToFileExtension";
+import type { MIME_TO_EXTENSION } from '../constant/mime_to_extension';
+import { getExtensionFromMIME } from './MIMEToFileExtension';
 
 /**
  * Convert Accept type input to regex for check extension file name
