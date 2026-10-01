@@ -8,7 +8,9 @@
         "./file/getFileNameParts",
         "./file/truncateFileName",
         "./file/truncateFileNameParts",
-        "./uuid/generateUUID"
+        "./uuid/generateUUID",
+        "./html",
+        "./html/plugin/entities"
       ],
       "namedExports": {
         ".": [
@@ -32,6 +34,13 @@
         ],
         "./uuid/generateUUID": [
           "generateUUID"
+        ],
+        "./html": [
+          "html",
+          "createHtml"
+        ],
+        "./html/plugin/entities": [
+          "default"
         ]
       },
       "requiredFiles": [

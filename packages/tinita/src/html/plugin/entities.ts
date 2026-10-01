@@ -1,6 +1,34 @@
-// https://github.com/Masterminds/html5-php/blob/973bc37a6f8a9c72b46be6f3cdce698270532b83/src/HTML5/Serializer/HTML5Entities.php
+import type { HtmlPlugin } from '../types';
 
-export const HTMLEntitiesMap = {
+/**
+ * The full HTML named-entity table, 1510 characters.
+ *
+ * Opt-in because it is large: 30,074 bytes minified, 9,015 gzipped, against a
+ * 5,292 byte library. `bundle: true` inlines imports into every entry, so a
+ * statically imported table would be paid for by everyone who touches the
+ * encoder, whether they need it or not. As a plugin it is paid for only by the
+ * code that imports this module.
+ *
+ * @example
+ * ```ts
+ * import { html } from 'tinita/html';
+ * import entities from 'tinita/html/plugin/entities';
+ *
+ * html.extend(entities);
+ * html.encode('Hòm nhĩ trái'); // 'H&ograve;m nh&itilde; tr&aacute;i'
+ * ```
+ *
+ * Two things the source table gets wrong, both corrected on registration rather
+ * than in the data, so the table stays a faithful copy of its upstream:
+ *
+ * 1. 65 entries ship without the trailing `;` (`&bne`, `&nvlt`, `&ThickSpace`).
+ *    Emitting those produces output a browser cannot parse once any text follows.
+ * 2. `&varsupsetneqq` is listed for two different characters. The first wins; the
+ *    second is left unencoded so that `decode(encode(s)) === s` keeps holding.
+ *
+ * Source: https://github.com/Masterminds/html5-php/blob/973bc37a6f8a9c72b46be6f3cdce698270532b83/src/HTML5/Serializer/HTML5Entities.php
+ */
+const NAMED_ENTITIES: Readonly<Record<string, string>> = {
   '	': '&Tab;',
   '\n': '&NewLine;',
   '!': '&excl;',
@@ -1512,3 +1540,9 @@ export const HTMLEntitiesMap = {
   '𝕪': '&yopf;',
   '𝕫': '&zopf;',
 };
+
+const entities: HtmlPlugin = (api) => {
+  api.addEntities(NAMED_ENTITIES);
+};
+
+export default entities;

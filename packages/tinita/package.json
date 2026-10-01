@@ -36,6 +36,12 @@
       ],
       "uuid/generateUUID": [
         "dist/uuid/generateUUID.d.ts"
+      ],
+      "html": [
+        "dist/html/html.d.ts"
+      ],
+      "html/plugin/entities": [
+        "dist/html/plugin/entities.d.ts"
       ]
     }
   },
@@ -114,6 +120,26 @@
       "require": {
         "types": "./dist/uuid/generateUUID.d.ts",
         "default": "./dist/uuid/generateUUID.cjs"
+      }
+    },
+    "./html": {
+      "import": {
+        "types": "./dist/html/html.d.mts",
+        "default": "./dist/html/html.mjs"
+      },
+      "require": {
+        "types": "./dist/html/html.d.ts",
+        "default": "./dist/html/html.cjs"
+      }
+    },
+    "./html/plugin/entities": {
+      "import": {
+        "types": "./dist/html/plugin/entities.d.mts",
+        "default": "./dist/html/plugin/entities.mjs"
+      },
+      "require": {
+        "types": "./dist/html/plugin/entities.d.ts",
+        "default": "./dist/html/plugin/entities.cjs"
       }
     }
   },
