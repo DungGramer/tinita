@@ -9,7 +9,7 @@ import {
 
 /**
  * Builds a stream from a magnitude list and a fixed cadence. Written this way so
- * a case reads as the SHAPE it is describing — "eight detents, 60ms apart" —
+ * a case reads as the SHAPE it is describing - "eight detents, 60ms apart" -
  * rather than as a table of numbers.
  */
 function stream(
@@ -61,7 +61,7 @@ describe('classifyWheelSource', () => {
   });
 
   it('calls a small but perfectly repeated quantum stepped', () => {
-    // Dense AND small — both other signals say "smoothed". Only the fact that a
+    // Dense AND small - both other signals say "smoothed". Only the fact that a
     // physical detent emits the SAME number every time separates them. This is
     // the case that exists to be caught: a fine encoder, or line-mode scaled to
     // pixels, spun quickly.
@@ -75,7 +75,7 @@ describe('classifyWheelSource', () => {
 
   it('reads magnitude, not signed delta, so scrolling up classifies the same', () => {
     // Deliberately the detent shape and not the ramp. Negating the ramp proves
-    // nothing — small negative numbers are still below the size threshold, so
+    // nothing - small negative numbers are still below the size threshold, so
     // dropping the `Math.abs` leaves that version of this test green. Negating
     // detents is what exposes it: -120 also reads as "below 48" once the
     // absolute value is gone, and the stream flips to smoothed.
@@ -99,7 +99,7 @@ describe('classifyWheelSource', () => {
   });
 
   it.todo(
-    'decides what a sparse stream of small deltas is — a slow smoother throttled ' +
+    'decides what a sparse stream of small deltas is - a slow smoother throttled ' +
       'by a background tab and a fine-encoder wheel nudged one notch at a time ' +
       'produce the same shape, and nothing in the requirement says which wins'
   );

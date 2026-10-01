@@ -16,21 +16,20 @@ Nguyên tắc trung tâm **[ĐỊNH HƯỚNG]**: _Own the contract, borrow the m
 documentation. Mượn (không tự viết) ARIA implementation, focus management, keyboard
 navigation, positioning, portal, dismissable layer.
 
-Phạm vi hiện tại của package (v0.0.2-alpha.1): 3 UI component (`file-tree`, `ping`,
-`carousel-ticker`), 2 hook (`useToggle`, `useIsomorphicLayoutEffect`).
+Phạm vi hiện tại của package (`0.1.0`, chưa publish): **4 UI component**
+(`file-tree`, `ping`, `tree`, `carousel-ticker`), **7 hook** (`useToggle`,
+`useIsomorphicLayoutEffect`, `useDoubleTap`, `usePagination`, `useRefreshComponent`,
+`useRequiredContext`, `useWindowSize`), **2 util** (`autoInjectStyles`, `jsxJoin`).
+Tổng 13 subpath cộng 4 entry CSS. 89 test, 23 story file toàn repo.
 
 <!-- doc-links-ignore -->
 
 Import path thật (không có `tinita-react/ui` hay `tinita-react/hooks` dạng barrel):
 
 ```ts
-<!-- doc-links-ignore -->
 import { FileTree } from 'tinita-react/ui/file-tree';
-<!-- doc-links-ignore -->
 import { Ping } from 'tinita-react/ui/ping';
-<!-- doc-links-ignore -->
 import { CarouselTicker } from 'tinita-react/ui/carousel-ticker';
-<!-- doc-links-ignore -->
 import { useToggle } from 'tinita-react/hooks/useToggle';
 import 'tinita-react/styles.css'; // bundle đầy đủ
 import 'tinita-react/styles/globals.css'; // chỉ token + theme

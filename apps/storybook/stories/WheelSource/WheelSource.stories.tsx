@@ -100,8 +100,8 @@ function Probe() {
             <tr key={i} style={{ borderTop: '1px solid #eee' }}>
               <td style={{ padding: '4px 8px' }}>{r.delta}</td>
               <td style={{ padding: '4px 8px' }}>{r.gap}</td>
-              <td style={{ padding: '4px 8px' }}>{r.verdict ?? '—'}</td>
-              <td style={{ padding: '4px 8px' }}>{r.decisive ?? '—'}</td>
+              <td style={{ padding: '4px 8px' }}>{r.verdict ?? '-'}</td>
+              <td style={{ padding: '4px 8px' }}>{r.decisive ?? '-'}</td>
             </tr>
           ))}
         </tbody>

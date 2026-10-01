@@ -77,9 +77,9 @@ Xem `compatibility/README.md`.
 
 ```
 tinita/
-├── packages/tinita                v0.1.0 - 5 utilities
-├── packages/tinita-react          v0.1.0 - 2 hooks + 3 components + CSS
-├── packages/tinita-dom            v0.1.0 - installSmoothScroll + wheel-source, browser-only
+├── packages/tinita                v0.1.0 - 51 subpath, chạy mọi nơi
+├── packages/tinita-react          v0.1.0 - 7 hook + 4 component + 2 util + 4 CSS
+├── packages/tinita-dom            v0.1.0 - 22 subpath, browser-only
 ├── apps/storybook                 @tinita/storybook private - Storybook 10.1.4
 ├── config/eslint-config           @repo/eslint-config
 ├── config/typescript-config       @repo/typescript-config
@@ -92,7 +92,12 @@ tinita/
 
 ### tinita (v0.1.0)
 
-**4 Utilities** - Framework-agnostic, zero dependencies.
+**51 subpath** - chạy ở **mọi nơi** (Node + browser), zero dependency, zero peer.
+
+Thư mục: `array/`, `converter/`, `date/`, `file/`, `html/`, `mime/`, `object/`,
+`print/`, `string/`, `unit/`, `uuid/`, `validation/`. Hai bảng lớn là opt-in qua
+`.extend()`: `html/plugin/entities` (1510 entity) và `mime/plugin/full` (1015 media
+type, 71KB output) - vì `bundle: true` inline mọi thứ được import vào từng entry.
 
 | Utility            | File                           | Mục đích                               |
 | ------------------ | ------------------------------ | -------------------------------------- |

@@ -10,7 +10,7 @@ import {
 
 /**
  * One delegated wheel listener for the whole app, so a scroller does not have to
- * ask for smoothing — 26 elements in `src/` carry an `overflow-*-auto` class
+ * ask for smoothing - 26 elements in `src/` carry an `overflow-*-auto` class
  * today and every one of them is covered by installing this once.
  *
  * Two behaviours, and they are separate things:
@@ -19,8 +19,8 @@ import {
  *      have scrolled anyway. Nothing else changes: same element, same distance,
  *      same end position.
  *   2. A vertical wheel over an element that can only scroll SIDEWAYS scrolls it
- *      sideways. Browsers do not do this — measured on this app's filmstrip,
- *      where a plain wheel moved nothing at all — and Shift+wheel is an answer
+ *      sideways. Browsers do not do this - measured on this app's filmstrip,
+ *      where a plain wheel moved nothing at all - and Shift+wheel is an answer
  *      most people never think to ask for.
  *
  * Input that is already smooth (Mos, SmoothScroll, Mac Mouse Fix, or a
@@ -38,7 +38,7 @@ import {
  *     mapbox's scroll-zoom both sit on inner elements and both preventDefault,
  *     so both run first and this steps aside. Capture would have overridden them.
  *   - Ctrl+wheel, which is the browser's zoom.
- *   - A wheel that already carries `deltaX` — a trackpad swiping sideways is
+ *   - A wheel that already carries `deltaX` - a trackpad swiping sideways is
  *     scrolling sideways already, and moving it again would double the distance.
  *   - Any subtree marked `data-no-smooth-scroll`, the explicit opt-out.
  *   - Readers who asked their machine for reduced motion.
@@ -58,7 +58,7 @@ const WHEEL_LINE_HEIGHT_PX = 16;
 // its velocity is highest at t=0: the motion snaps into existence from rest,
 // measured at 16px on the very first frame of a 100px notch and 49px of a 300px
 // one, which is the jolt at the start of every gesture. A critically damped
-// spring starts at zero velocity, accelerates, then decelerates — and because it
+// spring starts at zero velocity, accelerates, then decelerates - and because it
 // carries velocity as state, a second notch mid-flight blends into the motion
 // already happening instead of restarting a curve.
 const SPRING_RATE_PER_SECOND = 20;
@@ -68,10 +68,10 @@ const SPRING_RATE_PER_SECOND = 20;
 // one pixel of travel left is nothing a screen can show, so the last fraction is
 // written out in one go rather than spread over frames that each paint the same
 // offset. Ending at half a pixel instead left `99, 99, 100, 100` on the end of
-// every gesture — two frames of nothing, which is the stutter this whole
+// every gesture - two frames of nothing, which is the stutter this whole
 // constant exists to remove.
 //
-// Scroll offsets are integers — assigning 10.4 and reading it back returns 10 —
+// Scroll offsets are integers - assigning 10.4 and reading it back returns 10 -
 // so once the spring's per-frame step falls under a pixel, frame after frame
 // paints the SAME position. Measured on the decay this replaces: 9 of 31 frames
 // moved nothing, and a 100px notch ended `98, 98, 99, 99, 99, 99, 99, 99, 100`.
@@ -83,8 +83,8 @@ const SPRING_RATE_PER_SECOND = 20;
 // to some trouble to keep it out: a pixel per FRAME is not a pixel per unit
 // time, so the tail is covered twice as fast on a 120Hz screen. Measured on a
 // 100px notch: 320ms at 60Hz against 264ms at 120Hz. The spring itself is exact
-// — same measurement at a matched 176ms of simulated time put both rates on
-// 866px of a 1000px scroll, to the pixel — and the difference is confined to the
+// - same measurement at a matched 176ms of simulated time put both rates on
+// 866px of a 1000px scroll, to the pixel - and the difference is confined to the
 // last handful of pixels, where nobody can see it.
 const SPRING_MIN_RENDERED_STEP_PX = 1;
 
@@ -107,8 +107,8 @@ interface Animation {
    *
    * NOT read back from the element, whose scroll offset is measured to round:
    * assigning 10.4 and reading it back returns 10. A loop that reads its own
-   * output back loses the fraction every frame, and near the target — where each
-   * step is well under a pixel — it stops moving while never getting close
+   * output back loses the fraction every frame, and near the target - where each
+   * step is well under a pixel - it stops moving while never getting close
    * enough to finish. Measured before this field existed: a 100px notch parked
    * at 98 with the frame callback rescheduling forever.
    */
@@ -183,7 +183,7 @@ function scrollTargetFor(
   //
   // The case: a wide table sits in an `overflow-x-auto` card whose body is the
   // vertical scroller. Scroll the body to its end and, without this, the next
-  // wheel would find the card — which can only move sideways — and slide the
+  // wheel would find the card - which can only move sideways - and slide the
   // table across. Sideways is the right answer for a filmstrip, where nothing
   // scrolls vertically at all; it is a surprise anywhere the reader was already
   // scrolling down.
@@ -195,8 +195,8 @@ function scrollTargetFor(
     const style = getComputedStyle(node);
     // Whether the element SCROLLS on an axis, which is not what the overflow
     // property says. Setting `overflow-x: auto` alone makes the computed
-    // `overflow-y` resolve to `auto` as well — the spec turns `visible` into
-    // `auto` when the other axis is not visible — so a strip that can only move
+    // `overflow-y` resolve to `auto` as well - the spec turns `visible` into
+    // `auto` when the other axis is not visible - so a strip that can only move
     // sideways reports a scrollable Y. Reading the property alone is what broke
     // the filmstrip: it looked vertically scrollable, took the vertical branch,
     // found nothing to scroll, and the sideways branch was never reached.
@@ -206,7 +206,7 @@ function scrollTargetFor(
       SCROLLABLE_OVERFLOW.test(style.overflowX) && maxOffsetOf(node, 'x') > 0;
 
     if (scrollsY && canScroll(node, 'y', delta)) return { el: node, axis: 'y' };
-    // Sideways ONLY when there is no vertical scrolling to compete with — not on
+    // Sideways ONLY when there is no vertical scrolling to compete with - not on
     // this element, and not on anything already passed. An element that scrolls
     // both ways keeps the conventional meaning of a wheel.
     if (
@@ -246,7 +246,7 @@ function animate(el: Element, axis: Axis, to: number): void {
     return;
   }
   // A different axis, or nothing in flight: start from where the element
-  // actually is. Mid-flight on the SAME axis this must not happen — `position`
+  // actually is. Mid-flight on the SAME axis this must not happen - `position`
   // is ahead of the rounded offset, and resampling would drop the fraction.
   stopAnimation(el);
   const from = offsetOf(el, axis);
@@ -270,7 +270,7 @@ function tick(el: Element, now: number): void {
   // Frame-rate independent, and exactly so: this is the CLOSED FORM of a
   // critically damped spring, not a step of numerical integration. Integrating
   // by hand would make the result depend on how the frame times happened to fall
-  // and could go unstable on a long frame — a hidden tab handing back a 5-second
+  // and could go unstable on a long frame - a hidden tab handing back a 5-second
   // gap is a real case. The analytic solution simply lands where the spring
   // would have been after that long.
   //
@@ -313,7 +313,7 @@ function tick(el: Element, now: number): void {
 }
 
 /**
- * Installs the listener. Call once, outside React — this is a document-level
+ * Installs the listener. Call once, outside React - this is a document-level
  * concern with no component to own it, and StrictMode's double-invoked effects
  * would otherwise install it twice.
  *
@@ -362,7 +362,7 @@ export function installSmoothScroll(): () => void {
       e.deltaMode === WHEEL_DELTA_MODE_LINE
         ? WHEEL_LINE_HEIGHT_PX
         : e.deltaMode === WHEEL_DELTA_MODE_PAGE
-          ? null // resolved once the element is known — a page is that element's height
+          ? null // resolved once the element is known - a page is that element's height
           : 1;
 
     // A first pass in raw units is enough to pick the element; PAGE is the only
@@ -404,7 +404,7 @@ export function installSmoothScroll(): () => void {
     const source = gestureSource;
 
     // Case 1 with an already-smooth input: hands off completely. Not
-    // "preventDefault and assign" — letting the browser scroll it natively is
+    // "preventDefault and assign" - letting the browser scroll it natively is
     // both cheaper and the only way overscroll, rubber-banding and scroll
     // anchoring keep working.
     if (found.axis === 'y' && (source === 'smoothed' || reducedMotion.matches))

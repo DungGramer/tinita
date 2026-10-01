@@ -7,7 +7,7 @@
  * no permission to ask for. What those apps DO leak is the shape of the event
  * stream they synthesise, and that is a thing the page can measure. So this
  * module answers "is what I am receiving already smooth", which is also the
- * question that actually matters — a trackpad gives the same answer for the same
+ * question that actually matters - a trackpad gives the same answer for the same
  * reason, and double-smoothing a trackpad is exactly as wrong as
  * double-smoothing Mos.
  *
@@ -116,7 +116,7 @@ function topShare(values: number[]): number {
 /**
  * Classifies the tail of a wheel stream.
  *
- * @returns `null` when there is not enough evidence yet — the caller keeps
+ * @returns `null` when there is not enough evidence yet - the caller keeps
  *          whatever it was already doing rather than flip-flopping on two events.
  */
 export function classifyWheelSource(
