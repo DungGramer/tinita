@@ -41,6 +41,9 @@ yarn-error.log*
 !docs/*.md
 # Tài liệu ca test của compatibility lab phải commit được, nếu không người sau không hiểu ca
 !compatibility/**/*.md
+# Plan phải commit được. `.claude/active-plan` được track và trỏ vào plans/, nên nếu
+# plans/ bị ignore thì con trỏ đó trỏ vào thư mục không tồn tại trên máy khác.
+!plans/**/*.md
 
 # Compatibility lab: artifact/cache/report/workdir là sản phẩm phụ, không commit.
 # Baseline ảnh (__screenshots__) THÌ commit - xem compatibility/README.md
