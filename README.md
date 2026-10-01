@@ -2,7 +2,7 @@
 
 A monorepo of framework-agnostic utilities, React hooks and UI components, with Storybook.
 
-**Packages:** `tinita` (v0.1.0, 51 subpaths) · `tinita-dom` (v0.1.0, 22 subpaths, browser-only) · `tinita-react` (v0.1.0, 13 subpaths + 4 CSS entries)
+**Packages:** `tinita` (v0.1.0, 52 subpaths) · `tinita-dom` (v0.1.0, 22 subpaths, browser-only) · `tinita-react` (v0.1.0, 13 subpaths + 4 CSS entries)
 
 ---
 
@@ -22,24 +22,24 @@ pnpm gate         # format, lint, types, build, test, stories, L1 (~90s)
 
 ### tinita (v0.1.0)
 
-**51 subpaths.** It runs everywhere - Node and browser - and that is the rule that decides what
+**52 subpaths.** It runs everywhere - Node and browser - and that is the rule that decides what
 belongs here rather than in `tinita-dom`: ask whether the function means anything without a document.
 `stringToBase64` on a server does; `getScrollbarSize` does not.
 
-| Folder        | What is in it                                                                                                      |
-| ------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `array/`      | `createRange`, `getArrayValue`, `prependUnique`, `sortAlphaText`, `uniqueArray`                                    |
-| `converter/`  | base64 and Blob conversions, `objectToFormData`, `parseKeyCombination`, the Map/object pair                        |
-| `date/`       | `sortDates`                                                                                                        |
-| `file/`       | `fileSize`, `getFileNameParts`, `truncateFileName`, `truncateFileNameParts`                                        |
-| `html/`       | `html.encode` / `html.decode` / `html.extend`, plus the 1510-entity plugin                                         |
-| `mime/`       | `mime.fromExtension`, `.toExtension`, `.acceptToRegExp`, plus the full table plugin                                |
-| `object/`     | `pick`, `omit`, `once`, `enumKeys`, `sortObjectKeys`, `conditionalEntry`, `omitEmptyValues`                        |
-| `print/`      | `PAGE_SIZES` (ISO 216/217), `PHOTO_PRINT_SIZES`, `DEFAULT_PRINT_MARGINS`                                           |
-| `string/`     | `titleCase`, `sentenceCase`, `snakeToTitleCase`, `collapseWhitespace`, `insertTextEveryNWords`, `stringToSelector` |
-| `unit/`       | `convertLength` - CSS absolute units, exact spec ratios, no DOM                                                    |
-| `uuid/`       | `generateUuid`                                                                                                     |
-| `validation/` | `isEmail`, `isUrl`, `isNumericString`, `isAsciiLetters`, `hasVietnameseDiacritics`                                 |
+| Folder        | What is in it                                                                                                                     |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `array/`      | `createRange`, `getArrayValue`, `prependUnique`, `sortAlphaText`, `uniqueArray`                                                   |
+| `converter/`  | base64 and Blob conversions, `objectToFormData`, `parseKeyCombination`, the Map/object pair                                       |
+| `date/`       | `sortDates`                                                                                                                       |
+| `file/`       | `fileSize`, `getFileNameParts`, `truncateFileName`, `truncateFileNameParts`                                                       |
+| `html/`       | `html.encode` / `html.decode` / `html.extend`, plus the 1510-entity plugin                                                        |
+| `mime/`       | `mime.fromExtension`, `.toExtension`, `.acceptToRegExp`, plus the full table plugin                                               |
+| `object/`     | `pick`, `omit`, `once`, `enumKeys`, `sortObjectKeys`, `conditionalEntry`, `omitEmptyValues`                                       |
+| `print/`      | `PAGE_SIZES` (ISO 216/217), `PHOTO_PRINT_SIZES`, `DEFAULT_PRINT_MARGINS`                                                          |
+| `string/`     | `titleCase`, `sentenceCase`, `snakeToTitleCase`, `collapseWhitespace`, `insertTextEveryNWords`, `stringToSelector`                |
+| `unit/`       | `convertLength` - CSS absolute units, exact spec ratios, no DOM; `printPixels` - physical length to raster pixels at a chosen DPI |
+| `uuid/`       | `generateUuid`                                                                                                                    |
+| `validation/` | `isEmail`, `isUrl`, `isNumericString`, `isAsciiLetters`, `hasVietnameseDiacritics`                                                |
 
 ```typescript
 import { truncateFileName } from 'tinita/file/truncateFileName';
@@ -197,6 +197,125 @@ Details: [`packages/tinita-dom/README.md`](./packages/tinita-dom/README.md).
 
 ---
 
+## Printing
+
+**You do not need to measure anything, and you should not convert to pixels.** Write
+physical units in CSS and the browser maps them to paper using the printer's
+resolution - a number it knows and JavaScript never does.
+
+Measured with Chromium's PDF output on 2026-10-01. `@page { size: 100mm 50mm }`
+produced a MediaBox of `282.96 x 142.08 pt`, which is `99.82 x 50.12 mm`, and it was
+**identical at `devicePixelRatio` 1, 2 and 3**. The screen plays no part in printing.
+
+```css
+@page {
+  size: A4; /* or `210mm 297mm`, or `A4 landscape` */
+  margin: 10mm;
+}
+
+@media print {
+  /* Physical units, end to end. No px, no conversion. */
+  .label {
+    width: 63.5mm;
+    height: 38.1mm;
+  }
+
+  /* Keep a block off a page boundary. */
+  .invoice-row {
+    break-inside: avoid;
+  }
+
+  /* Backgrounds are dropped by default; ask for them when they carry meaning. */
+  .status-badge {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+```
+
+### The one thing that will break your layout
+
+The browser's print dialog has a scale control - "Fit to page", or a percentage. **If
+the user does not print at 100%, every millimetre you specified is multiplied, and no
+JavaScript can detect it.** There is no API for the print scale, and no event that
+reports it.
+
+So if exact size matters - a label sheet, a form that must line up with a
+pre-printed one, anything cut to a template - say so on the page, next to the print
+button:
+
+> Print at **100%** scale. Turn off "Fit to page".
+
+This is a limitation of printing from a browser, not of this library. The usual
+alternative is to generate a PDF server-side, where the scale is yours to set.
+
+### Page sizes, as physical arithmetic
+
+`PAGE_SIZES` is ISO 216/217 plus five North American sizes, in millimetres, verified
+against the standards. `convertLength` is for the arithmetic between physical units -
+no DPI appears anywhere in it:
+
+```typescript
+import { PAGE_SIZES } from 'tinita/print/pageSizes';
+import { DEFAULT_PRINT_MARGINS } from 'tinita/print/defaultPrintMargins';
+import { convertLength } from 'tinita/unit/convertLength';
+
+const [pageWidth] = PAGE_SIZES.A4; // 210
+const [marginX] = DEFAULT_PRINT_MARGINS; // 10
+const contentWidth = pageWidth - 2 * marginX; // 190 mm
+
+Math.floor(contentWidth / 63.5); // 2 label columns fit
+convertLength(63.5, 'mm', 'pt'); // 180, if a tool wants points
+```
+
+### When a DPI number IS the right answer
+
+Only when you generate a **raster** that will be printed: a canvas exported as PNG, or
+an image embedded in a PDF. The resolution then is the one the press asked you for - a
+requirement you were given, never a property of the user's screen.
+
+```typescript
+import { PRINT_DPI, toPrintPixels } from 'tinita/unit/printPixels';
+
+const [widthMm, heightMm] = PAGE_SIZES.A4;
+const canvas = document.createElement('canvas');
+canvas.width = Math.ceil(toPrintPixels(widthMm, 'mm', PRINT_DPI.offset)); // 2481
+canvas.height = Math.ceil(toPrintPixels(heightMm, 'mm', PRINT_DPI.offset)); // 3508
+```
+
+`PRINT_DPI` is `{ draft: 72, photo: 150, offset: 300, lineArt: 600 }`. The result is
+deliberately **not** rounded, because the right direction depends on the job: `ceil`
+so a page never loses its last pixel row, `round` for a photo, `floor` when tiling.
+
+The inverse answers "will this scan fit":
+
+```typescript
+import { fromPrintPixels } from 'tinita/unit/printPixels';
+
+fromPrintPixels(2480, 'mm', 300); // 209.97 - fits A4's 210mm
+```
+
+### Why there is no `measureScreenDpi()`
+
+Because it cannot be written. `DPI = sqrt(w² + h²) / diagonal in inches`, and a
+browser gives you `w` and `h` - `screen.width * devicePixelRatio` - but never the
+diagonal. Measured, each ruled out:
+
+| Attempt                                          | Result                                                                                   |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `<div style="height:100mm">` then `offsetHeight` | `377.94px` at every `devicePixelRatio`, print media included - CSS **defines** the ratio |
+| The whole `screen` API                           | 9 properties, none physical; `screen.width` is CSS px                                    |
+| `@media (resolution: Xdpi)`                      | just `devicePixelRatio * 96` - the same information                                      |
+| `getScreenDetails()` (Window Management API)     | not implemented here, and its spec has no physical field                                 |
+| `userAgentData.getHighEntropyValues()`           | platform, version, model - no dimensions                                                 |
+
+A 24" 1080p monitor and a 27" 4K monitor differ in no number a browser will report
+except `devicePixelRatio`, and that is hardware pixels, not inches. The omission is
+deliberate: physical screen size is a strong fingerprinting signal.
+
+`tinita-dom/unit/toDevicePixels` covers the part that genuinely does vary per display,
+which is what you want for a sharp canvas **on screen** - not for print.
+
 ## Root scripts
 
 | Script                    | Purpose                                            |
@@ -232,7 +351,7 @@ hand - see [CLAUDE.md](./CLAUDE.md).
 
 ```
 tinita/
-  ├── packages/tinita          # 51 subpaths, runs everywhere, zero deps
+  ├── packages/tinita          # 52 subpaths, runs everywhere, zero deps
   ├── packages/tinita-react    # 1 hook + 4 components + CSS
   ├── packages/tinita-dom      # 22 subpaths, browser-only
   ├── apps/storybook           # Storybook 10

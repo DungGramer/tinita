@@ -54,7 +54,8 @@
         "./validation/isEmail",
         "./validation/isNumericString",
         "./validation/isUrl",
-        "./unit/convertLength"
+        "./unit/convertLength",
+        "./unit/printPixels"
       ],
       "namedExports": {
         ".": [
@@ -217,6 +218,9 @@
         ],
         "./unit/convertLength": [
           "convertLength"
+        ],
+        "./unit/printPixels": [
+          "toPrintPixels"
         ]
       },
       "requiredFiles": [

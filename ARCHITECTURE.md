@@ -79,7 +79,7 @@ For critical dependencies in foundation packages:
 
 tinita is a monorepo with three published packages. Names are **unscoped**:
 
-- **`tinita`** - runs everywhere, Node and browser. 51 public subpaths.
+- **`tinita`** - runs everywhere, Node and browser. 52 public subpaths.
 - **`tinita-dom`** - browser minimum: needs a document to do its job. 22 subpaths.
 - **`tinita-react`** - React minimum, and must survive SSR. 13 subpaths plus 4 CSS entries.
 

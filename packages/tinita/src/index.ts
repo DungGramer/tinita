@@ -65,6 +65,7 @@ export * from './string/titleCase';
 
 // Unit
 export * from './unit/convertLength';
+export * from './unit/printPixels';
 
 // Uuid
 export * from './uuid/generateUuid';

@@ -25,7 +25,7 @@ tiên bên dưới.
 ## Điểm xuất phát (đã ship)
 
 > **Mục này là LỊCH SỬ, không phải hiện tại.** Nó chụp lại trạng thái lúc nhận repo.
-> Số hiện tại: `tinita` 51 subpath, `tinita-dom` 22, `tinita-react` 13 + 4 CSS; 453 test;
+> Số hiện tại: `tinita` 52 subpath, `tinita-dom` 22, `tinita-react` 13 + 4 CSS; 465 test;
 > cả ba ở `0.1.0` **chưa publish**. npm vẫn chỉ có `tinita@0.0.1` và `tinita-react@0.0.2`
 > (cả hai gãy), `tinita-dom` chưa từng publish. Xem `CHANGELOG.md`.
 

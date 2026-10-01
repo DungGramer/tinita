@@ -70,7 +70,7 @@ Provide production-ready utility packages that:
 
 **Current State (v0.0.x)**:
 
-- **`tinita`** (`0.1.0`, unpublished): runs everywhere, Node and browser. **51 public subpaths** across
+- **`tinita`** (`0.1.0`, unpublished): runs everywhere, Node and browser. **52 public subpaths** across
   `array/`, `converter/`, `date/`, `file/`, `html/`, `mime/`, `object/`, `print/`, `string/`, `unit/`,
   `uuid/`, `validation/`. 262 tests.
 - **`tinita-react`** (`0.1.0`, unpublished): React minimum, must survive SSR. **13 subpaths** plus 4 CSS

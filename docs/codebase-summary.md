@@ -77,7 +77,7 @@ Xem `compatibility/README.md`.
 
 ```
 tinita/
-├── packages/tinita                v0.1.0 - 51 subpath, chạy mọi nơi
+├── packages/tinita                v0.1.0 - 52 subpath, chạy mọi nơi
 ├── packages/tinita-react          v0.1.0 - 7 hook + 4 component + 2 util + 4 CSS
 ├── packages/tinita-dom            v0.1.0 - 22 subpath, browser-only
 ├── apps/storybook                 @tinita/storybook private - Storybook 10.1.4
@@ -92,10 +92,11 @@ tinita/
 
 ### tinita (v0.1.0)
 
-**51 subpath** - chạy ở **mọi nơi** (Node + browser), zero dependency, zero peer.
+**52 subpath** - chạy ở **mọi nơi** (Node + browser), zero dependency, zero peer.
 
 Thư mục: `array/`, `converter/`, `date/`, `file/`, `html/`, `mime/`, `object/`,
-`print/`, `string/`, `unit/`, `uuid/`, `validation/`. Hai bảng lớn là opt-in qua
+`print/`, `string/`, `unit/`, `uuid/`, `validation/`. Mục "Printing" trong `README.md`
+giải thích vì sao in ấn **không** cần đo DPI màn hình, kèm số đo từ PDF của Chromium. Hai bảng lớn là opt-in qua
 `.extend()`: `html/plugin/entities` (1510 entity) và `mime/plugin/full` (1015 media
 type, 71KB output) - vì `bundle: true` inline mọi thứ được import vào từng entry.
 
@@ -106,7 +107,7 @@ type, 71KB output) - vì `bundle: true` inline mọi thứ được import vào 
 | `truncateFileName` | `src/file/truncateFileName.ts` | Shorten long filenames                 |
 | `generateUuid`     | `src/uuid/generateUuid.ts`     | Cross-platform UUID v4                 |
 
-**Exports (51 subpath):**
+**Exports (52 subpath):**
 
 ```json
 {
