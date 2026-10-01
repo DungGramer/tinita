@@ -241,7 +241,13 @@
         "./ui/carousel-ticker",
         "./ui/file-tree",
         "./ui/tree",
-        "./utils/autoInjectStyles"
+        "./utils/autoInjectStyles",
+        "./hooks/useDoubleTap",
+        "./hooks/usePagination",
+        "./hooks/useRefreshComponent",
+        "./hooks/useRequiredContext",
+        "./hooks/useWindowSize",
+        "./utils/jsxJoin"
       ],
       "cssSpecifiers": [
         "./styles.css",
@@ -264,6 +270,24 @@
         ],
         "./utils/autoInjectStyles": [
           "autoInjectStyles"
+        ],
+        "./hooks/useDoubleTap": [
+          "useDoubleTap"
+        ],
+        "./hooks/usePagination": [
+          "usePagination"
+        ],
+        "./hooks/useRefreshComponent": [
+          "useRefreshComponent"
+        ],
+        "./hooks/useRequiredContext": [
+          "useRequiredContext"
+        ],
+        "./hooks/useWindowSize": [
+          "useWindowSize"
+        ],
+        "./utils/jsxJoin": [
+          "jsxJoin"
         ]
       },
       "requiredPeers": [

@@ -302,42 +302,42 @@ một option bị trình duyệt bỏ qua im lặng là tệ hơn không có opt
 
 ## Kết quả đo được
 
-| Chỉ số                      | Trước pha | Sau pha |
-| --------------------------- | --------: | ------: |
-| `tinita-dom` subpath        |         6 |  **23** |
-| `typesVersions` key         |         5 |  **22** |
-| Test `tinita-dom`           |        17 | **102** |
-| Story                       |         2 |  **10** |
-| Ca L4                       |        16 |  **24** |
-| `engines`                   | `undefined` | `>=18.0.0` |
-| EXEMPT mới trong check-stories |      - |   **0** |
+| Chỉ số                         |   Trước pha |    Sau pha |
+| ------------------------------ | ----------: | ---------: |
+| `tinita-dom` subpath           |           6 |     **23** |
+| `typesVersions` key            |           5 |     **22** |
+| Test `tinita-dom`              |          17 |    **102** |
+| Story                          |           2 |     **10** |
+| Ca L4                          |          16 |     **24** |
+| `engines`                      | `undefined` | `>=18.0.0` |
+| EXEMPT mới trong check-stories |           - |      **0** |
 
 `check-stories`: 23/23 subpath có story thật, không thêm entry miễn nào.
 
 ## Lỗi THẬT tìm được, mỗi cái có số đo
 
-| Hàm                      | Lỗi                                                                                   |
-| ------------------------ | ------------------------------------------------------------------------------------- |
-| `cookieStorage.clear()`  | ghi `expire=` thay vì `expires=` nên **không xoá gì** mà vẫn trông như thành công      |
-| `cookieStorage.set()`    | thiếu `encodeURIComponent`: giá trị chứa `;` phá **cả** cookie jar                      |
-| `cookieStorage.set()`    | không `path` nên cookie ghi ở `/a/b` vô hình ở `/`                                     |
-| `cookieStorage.get()`    | `split('=')` một lần nên giá trị base64 mất phần sau padding                            |
-| `localStorageAction.get` | `JSON.parse` không `try`: một giá trị lạ trên cùng key làm nó **ném** đúng chỗ `defaultValue` đang hứa fallback |
-| `isBlockTag`             | `innerHTML` trên chuỗi đầu vào -> **XSS thật**, chứng minh trong Chromium (xem dưới)   |
-| `elementToJson`          | map comment thành `''` nên tree có comment so sánh khác tree cùng markup không comment |
-| `jsonToHtml`             | `nodeName` không hợp lệ ném `DOMException` thô, không khai ở đâu                        |
-| `isChrome`               | báo **Edge 131 là Chrome** (Edge có `Chrome` + vendor `Google Inc`)                     |
-| `isEdge`                 | test `/Edge/`, mà Chromium Edge dùng `Edg/` từ 2020 -> **bỏ sót mọi Edge hiện đại**     |
-| `isIE`                   | test `MSIE`, mà IE 11 dùng `Trident/` -> **bản IE cuối cùng không được nhận ra**        |
-| `isTouchDevice`          | `navigator.maxTouchPoints > 0` khai kiểu `number` nhưng thật ra có thể `undefined`      |
-| `DownloadFile`           | `setTimeout(100)` là con số phỏng đoán, không đổi được; trả về `<a>` không dùng được gì |
-| `setObjectAsCSSVariables`| `setProperty` **bỏ qua im lặng** tên không hợp lệ, nên typo trông như ghi thành công    |
-| `LengthConverter`        | xem mục QĐ-G dưới - cả thiết kế sai, không chỉ tên                                     |
+| Hàm                       | Lỗi                                                                                                             |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `cookieStorage.clear()`   | ghi `expire=` thay vì `expires=` nên **không xoá gì** mà vẫn trông như thành công                               |
+| `cookieStorage.set()`     | thiếu `encodeURIComponent`: giá trị chứa `;` phá **cả** cookie jar                                              |
+| `cookieStorage.set()`     | không `path` nên cookie ghi ở `/a/b` vô hình ở `/`                                                              |
+| `cookieStorage.get()`     | `split('=')` một lần nên giá trị base64 mất phần sau padding                                                    |
+| `localStorageAction.get`  | `JSON.parse` không `try`: một giá trị lạ trên cùng key làm nó **ném** đúng chỗ `defaultValue` đang hứa fallback |
+| `isBlockTag`              | `innerHTML` trên chuỗi đầu vào -> **XSS thật**, chứng minh trong Chromium (xem dưới)                            |
+| `elementToJson`           | map comment thành `''` nên tree có comment so sánh khác tree cùng markup không comment                          |
+| `jsonToHtml`              | `nodeName` không hợp lệ ném `DOMException` thô, không khai ở đâu                                                |
+| `isChrome`                | báo **Edge 131 là Chrome** (Edge có `Chrome` + vendor `Google Inc`)                                             |
+| `isEdge`                  | test `/Edge/`, mà Chromium Edge dùng `Edg/` từ 2020 -> **bỏ sót mọi Edge hiện đại**                             |
+| `isIE`                    | test `MSIE`, mà IE 11 dùng `Trident/` -> **bản IE cuối cùng không được nhận ra**                                |
+| `isTouchDevice`           | `navigator.maxTouchPoints > 0` khai kiểu `number` nhưng thật ra có thể `undefined`                              |
+| `DownloadFile`            | `setTimeout(100)` là con số phỏng đoán, không đổi được; trả về `<a>` không dùng được gì                         |
+| `setObjectAsCSSVariables` | `setProperty` **bỏ qua im lặng** tên không hợp lệ, nên typo trông như ghi thành công                            |
+| `LengthConverter`         | xem mục QĐ-G dưới - cả thiết kế sai, không chỉ tên                                                              |
 
 ## QĐ-G: `LengthConverter` - owner chất vấn, và số đo giải quyết
 
-Owner nêu 2026-10-01: *"Đo DPI có thể khác nhau tuỳ thuộc vào màn hình của end-user
-nên tôi mới cần đo lại chứ không set hằng số."*
+Owner nêu 2026-10-01: _"Đo DPI có thể khác nhau tuỳ thuộc vào màn hình của end-user
+nên tôi mới cần đo lại chứ không set hằng số."_
 
 Đúng về thế giới thật: DPI vật lý khác nhau theo màn hình. Nhưng đo trong **Chromium
 thật** cho thấy thuật toán cũ không đo được nó. Chạy chính thuật toán đó ở 4
@@ -370,10 +370,10 @@ Ba hệ quả nữa, mỗi cái đo được:
 
 Nên tách làm hai, theo đúng câu hỏi mỗi hàm trả lời:
 
-| Hàm                           | Ở đâu        | Trả lời                                     | Thay đổi theo màn hình |
-| ----------------------------- | ------------ | ------------------------------------------- | ---------------------- |
-| `convertLength`               | `tinita`     | CSS absolute unit, tỉ lệ spec cố định       | **không**              |
-| `toDevicePixels` / `fromDevicePixels` | `tinita-dom` | bao nhiêu pixel phần cứng                   | **có**                 |
+| Hàm                                   | Ở đâu        | Trả lời                               | Thay đổi theo màn hình |
+| ------------------------------------- | ------------ | ------------------------------------- | ---------------------- |
+| `convertLength`                       | `tinita`     | CSS absolute unit, tỉ lệ spec cố định | **không**              |
+| `toDevicePixels` / `fromDevicePixels` | `tinita-dom` | bao nhiêu pixel phần cứng             | **có**                 |
 
 Ca L4 `dom:toDevicePixels-tracks-the-display` chạy ở `deviceScaleFactor: 2` và
 khẳng định `toDevicePixels(1, 'in') === 192`. Đó là chỗ màn hình xuất hiện.
@@ -398,13 +398,13 @@ không bắt được. Chỉ ca `__pwned` bắt. Đó là lý do viết cả hai
 
 ## Guard khác chứng minh bằng cách phá
 
-| Phá                                         | Kết quả     |
-| ------------------------------------------- | ----------- |
-| bỏ `encodeURIComponent` trong `cookieJar`   | **2 failed** |
-| `expire=` thay `Max-Age=0`                  | **1 failed** |
-| bỏ `try` quanh `JSON.parse`                 | **2 failed** |
-| đổi `DOMParser` về `innerHTML`              | **L4 failed** |
-| gỡ hết                                      | 102 pass, L4 24/24 |
+| Phá                                       | Kết quả            |
+| ----------------------------------------- | ------------------ |
+| bỏ `encodeURIComponent` trong `cookieJar` | **2 failed**       |
+| `expire=` thay `Max-Age=0`                | **1 failed**       |
+| bỏ `try` quanh `JSON.parse`               | **2 failed**       |
+| đổi `DOMParser` về `innerHTML`            | **L4 failed**      |
+| gỡ hết                                    | 102 pass, L4 24/24 |
 
 ## Đính chính
 

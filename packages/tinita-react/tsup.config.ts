@@ -11,16 +11,20 @@ const autoDiscoverEntries = () => {
     'src/index.ts', // Main barrel export
 
     // Auto-discover hooks
-    ...globSync('src/hooks/**/*.ts', {
-      ignore: ['**/*.test.ts', '**/*.stories.ts', '**/index.ts'],
+    // `{ts,tsx}`, not `ts`. A hook or util written as .tsx was silently excluded:
+    // `utils/jsxJoin.tsx` was never built, and its declared exports pointed at files
+    // that did not exist. Same defect class as the flat `src/*.ts` glob in
+    // tinita-dom, caught in phase 03.
+    ...globSync('src/hooks/**/*.{ts,tsx}', {
+      ignore: ['**/*.test.{ts,tsx}', '**/*.stories.{ts,tsx}', '**/index.{ts,tsx}'],
     }),
 
     // Auto-discover UI components (folder-based with index.ts/tsx)
     ...globSync('src/ui/*/index.{ts,tsx}'),
 
     // Auto-discover utils
-    ...globSync('src/utils/**/*.ts', {
-      ignore: ['**/*.test.ts'],
+    ...globSync('src/utils/**/*.{ts,tsx}', {
+      ignore: ['**/*.test.{ts,tsx}'],
     }),
   ];
 

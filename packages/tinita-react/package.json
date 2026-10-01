@@ -40,6 +40,24 @@
       ],
       "ui/tree": [
         "./dist/ui/tree/index.d.ts"
+      ],
+      "hooks/useDoubleTap": [
+        "./dist/hooks/useDoubleTap.d.ts"
+      ],
+      "hooks/usePagination": [
+        "./dist/hooks/usePagination.d.ts"
+      ],
+      "hooks/useRefreshComponent": [
+        "./dist/hooks/useRefreshComponent.d.ts"
+      ],
+      "hooks/useRequiredContext": [
+        "./dist/hooks/useRequiredContext.d.ts"
+      ],
+      "hooks/useWindowSize": [
+        "./dist/hooks/useWindowSize.d.ts"
+      ],
+      "utils/jsxJoin": [
+        "./dist/utils/jsxJoin.d.ts"
       ]
     }
   },
@@ -86,6 +104,66 @@
       "types": "./dist/utils/autoInjectStyles.d.ts",
       "import": "./dist/utils/autoInjectStyles.mjs",
       "require": "./dist/utils/autoInjectStyles.cjs"
+    },
+    "./hooks/useDoubleTap": {
+      "import": {
+        "types": "./dist/hooks/useDoubleTap.d.mts",
+        "default": "./dist/hooks/useDoubleTap.mjs"
+      },
+      "require": {
+        "types": "./dist/hooks/useDoubleTap.d.ts",
+        "default": "./dist/hooks/useDoubleTap.cjs"
+      }
+    },
+    "./hooks/usePagination": {
+      "import": {
+        "types": "./dist/hooks/usePagination.d.mts",
+        "default": "./dist/hooks/usePagination.mjs"
+      },
+      "require": {
+        "types": "./dist/hooks/usePagination.d.ts",
+        "default": "./dist/hooks/usePagination.cjs"
+      }
+    },
+    "./hooks/useRefreshComponent": {
+      "import": {
+        "types": "./dist/hooks/useRefreshComponent.d.mts",
+        "default": "./dist/hooks/useRefreshComponent.mjs"
+      },
+      "require": {
+        "types": "./dist/hooks/useRefreshComponent.d.ts",
+        "default": "./dist/hooks/useRefreshComponent.cjs"
+      }
+    },
+    "./hooks/useRequiredContext": {
+      "import": {
+        "types": "./dist/hooks/useRequiredContext.d.mts",
+        "default": "./dist/hooks/useRequiredContext.mjs"
+      },
+      "require": {
+        "types": "./dist/hooks/useRequiredContext.d.ts",
+        "default": "./dist/hooks/useRequiredContext.cjs"
+      }
+    },
+    "./hooks/useWindowSize": {
+      "import": {
+        "types": "./dist/hooks/useWindowSize.d.mts",
+        "default": "./dist/hooks/useWindowSize.mjs"
+      },
+      "require": {
+        "types": "./dist/hooks/useWindowSize.d.ts",
+        "default": "./dist/hooks/useWindowSize.cjs"
+      }
+    },
+    "./utils/jsxJoin": {
+      "import": {
+        "types": "./dist/utils/jsxJoin.d.mts",
+        "default": "./dist/utils/jsxJoin.mjs"
+      },
+      "require": {
+        "types": "./dist/utils/jsxJoin.d.ts",
+        "default": "./dist/utils/jsxJoin.cjs"
+      }
     }
   },
   "sideEffects": [

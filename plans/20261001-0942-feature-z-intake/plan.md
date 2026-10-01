@@ -72,7 +72,7 @@ thẳng, không alias. QĐ-A/B/C đã chốt và đã làm (xem reports/00).
 | 04  | Chốt tên, vị trí, hình dạng export  | **XONG**   | [phase-04](./phase-04-naming-and-placement.md) |
 | 05  | 29 file của `tinita`                | **XONG**   | [phase-05](./phase-05-tinita-pure.md)          |
 | 06  | 15 file của `tinita-dom`            | **XONG**   | [phase-06](./phase-06-tinita-dom.md)           |
-| 07  | 6 file của `tinita-react`           | chưa làm   | [phase-07](./phase-07-tinita-react.md)         |
+| 07  | 6 file của `tinita-react`           | **XONG**   | [phase-07](./phase-07-tinita-react.md)         |
 | 08  | Docs, guard, cổng publish của owner | chưa làm   | [phase-08](./phase-08-publish-readiness.md)    |
 
 Pha 04 chặn 05/06/07. Ba pha đó **song song được** (khác package, khác file). Pha 08

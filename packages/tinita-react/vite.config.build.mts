@@ -27,9 +27,17 @@ const SRC = resolve(import.meta.dirname, 'src');
 function discoverEntries(): Record<string, string> {
   const entries: Record<string, string> = { index: resolve(SRC, 'index.ts') };
 
+  // `.ts` AND `.tsx`. The version this replaced matched only `.ts`, so a hook or
+  // util written as `.tsx` was silently left out of the JS build while tsup still
+  // emitted its `.d.ts` - `exports` then pointed at a `.mjs` that did not exist.
+  // `utils/jsxJoin.tsx` hit exactly that. Same defect class as the flat `src/*.ts`
+  // glob in tinita-dom, caught in phase 03, and as the `src/*/**` glob in tinita.
+  const isEntry = (file: string) =>
+    /\.tsx?$/.test(file) && !/^index\.tsx?$/.test(file) && !file.includes('.test.');
+
   for (const file of readdirSync(resolve(SRC, 'hooks'))) {
-    if (!file.endsWith('.ts') || file === 'index.ts' || file.includes('.test.')) continue;
-    entries[`hooks/${file.replace(/\.ts$/, '')}`] = resolve(SRC, 'hooks', file);
+    if (!isEntry(file)) continue;
+    entries[`hooks/${file.replace(/\.tsx?$/, '')}`] = resolve(SRC, 'hooks', file);
   }
 
   for (const dir of readdirSync(resolve(SRC, 'ui'))) {
@@ -46,8 +54,8 @@ function discoverEntries(): Record<string, string> {
   }
 
   for (const file of readdirSync(resolve(SRC, 'utils'))) {
-    if (!file.endsWith('.ts') || file.includes('.test.')) continue;
-    entries[`utils/${file.replace(/\.ts$/, '')}`] = resolve(SRC, 'utils', file);
+    if (!isEntry(file)) continue;
+    entries[`utils/${file.replace(/\.tsx?$/, '')}`] = resolve(SRC, 'utils', file);
   }
 
   return entries;

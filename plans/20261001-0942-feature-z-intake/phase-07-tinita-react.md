@@ -11,7 +11,8 @@
 
 ## Overview
 
-**Ngày:** 2026-10-01 · **Ưu tiên:** P1 · **Trạng thái:** chưa làm · **Review:** chưa
+**Ngày:** 2026-10-01 · **Ưu tiên:** P1 · **Trạng thái:** XONG 2026-10-01 ·
+**Review:** chưa
 
 6 file: `createContextHook`, `useDoubleTap`, `usePagination`, `useRefreshComponent`,
 `useWindowSize`, `jsxJoin`. Pha nhỏ nhất nhưng có ràng buộc gắt nhất: **phải sống
@@ -225,6 +226,140 @@ hàm. Không cần guard; chỉ cần không khuyến khích trong `@example`.
 
 `createContextHook` ném thông báo chứa tên context. Tên context là hằng số do lập
 trình viên viết, không phải dữ liệu người dùng, nên không có rò thông tin.
+
+## Kết quả đo được
+
+| Chỉ số                  | Trước pha | Sau pha |
+| ----------------------- | --------: | ------: |
+| `tinita-react` subpath  |        11 |  **17** |
+| `typesVersions` key     |         6 |  **12** |
+| Test `tinita-react`     |        49 |  **89** |
+| Story file toàn repo    |        10 |  **23** |
+| EXEMPT mới              |         - |   **0** |
+
+49 đường dẫn trong `exports` của `tinita-react` đều resolve, 0 thiếu.
+
+## `usePagination` tệ hơn plan mô tả: 5 lỗi, không phải 1
+
+Plan ghi "giữ logic, thêm chuẩn hoá đầu vào". Đọc thật thì không giữ được:
+
+1. **So trang với số item ở HAI chỗ**: `initialPage >= totalItems` và
+   `if (currentPage > totalItems)`. Với 100 item, pageSize 10, chỉ có trang 0-9 tồn
+   tại - nhưng trang 99 đi qua cả hai phép kiểm.
+2. **Bốn `useEffect` đồng bộ state từ props, trong đó HAI cái cùng ghi
+   `currentPage` từ `initialPage`** - một có kiểm biên, một không. Cái không kiểm
+   chạy sau, nên đổi `initialPage` là bỏ qua biên hoàn toàn.
+3. **Trả `setConditionCanNext` / `setConditionCanPrev`**, cho caller ghi đè chính
+   `canNext`/`canPrev` mà hook tự tính - và `goToPage` cũng ghi vào chúng. Một khi
+   đã set thì không có đường về giá trị tính được, nên hai cờ đó lúc thì suy ra lúc
+   thì là override cũ, và không có cách nào biết đang là cái nào.
+4. `initialPageSize` mặc định `1`.
+5. `PaginationOptions` và `Pagination` **không export**, nên consumer không gọi tên
+   được giá trị nó nhận về.
+
+Viết lại: chỉ `page` và `pageSize` là state, mọi thứ khác tính lúc render, **không
+còn `useEffect` nào**. Trang **1-based** vì đó là số UI hiển thị, và lệch một giữa
+hook với nhãn chính là lỗi hình dạng này tồn tại để chặn. Clamp lúc **đọc** chứ
+không trong effect - effect sẽ render một frame với trang ngoài biên.
+
+Invariant, đúng với mọi đầu vào kể cả `NaN` và `Infinity`, khoá bằng property test
+2000 mẫu có seed:
+
+```
+totalPages    === items === 0 ? 0 : ceil(items / pageSize)
+page          in [1, max(1, totalPages)]
+firstIndex    === (page - 1) * pageSize
+lastIndex     === min(firstIndex + pageSize, items)
+canGoNext     === page < totalPages
+canGoPrevious === page > 1
+```
+
+## `useWindowSize`: comment nói ngược lại code
+
+```ts
+// Initialize state with undefined width/height so server and client renders match
+const [windowSize, setWindowSize] = useState({
+  width: window.innerWidth,   // đọc window NGAY trong initializer
+  height: window.innerHeight,
+});
+```
+
+Trên server đó là `ReferenceError`, không phải mismatch. Nó còn dùng
+`useLayoutEffect` chứ không dùng `useIsomorphicLayoutEffect` **vốn có sẵn trong
+package**, nên React log thêm một cảnh báo khi SSR; và gọi `setState` trên **mỗi**
+event `resize`, khoảng 60 lần/giây suốt thao tác kéo cửa sổ, không gộp gì.
+
+Viết lại bằng `useSyncExternalStore`. Hai chi tiết quyết định, cả hai có test:
+
+- **Snapshot là CHUỖI** (`"1440x900"`), không phải object. `useSyncExternalStore` so
+  bằng `Object.is`, nên trả `{width, height}` mới mỗi lần làm nó thấy thay đổi liên
+  tục và render vô hạn. Ca test đếm số render.
+- Kết quả **memo trên chuỗi snapshot**, nên object trả về ổn định theo tham chiếu -
+  nếu không, `useEffect(..., [size])` của consumer chạy lại mỗi render. Ca test
+  so `toBe`.
+
+Gộp burst bằng `requestAnimationFrame`, không `setTimeout`: `rAF` tự dừng khi tab
+ẩn. Ca test phát **100 event `resize`** trong một frame và đòi `<= 2` render.
+
+Ca SSR chạy thật qua `renderToString`, đòi output chứa `0x0`.
+
+## `useDoubleTap`: 3 lỗi
+
+- **Không dọn timer khi unmount**, nên component unmount trong threshold vẫn chạy
+  `onSingleTap` - callback bắn vào component không còn tồn tại.
+- `useRef<NodeJS.Timeout>` - kiểu của Node trong code browser. Thành
+  `ReturnType<typeof setTimeout>`.
+- **`options` nằm trong deps của `useCallback`**, nên caller viết
+  `useDoubleTap(fn, 300, { onSingleTap })` inline - cách gọi thông thường - tạo
+  object mới mỗi render và vô hiệu hoá toàn bộ memo. Thay bằng latest-value ref, và
+  có test khẳng định ref **được cập nhật** (gọi callback mới, không phải callback
+  bắt được ở render đầu) - vì đó là cái giá của handler ổn định.
+
+Signature đổi từ `(callback, threshold, options)` thành `(callback, options)` với
+`threshold` nằm trong options: một object cho mọi tuỳ chọn.
+
+## Lỗi hạ tầng: glob bỏ sót `.tsx`, lần thứ ba
+
+Khai `./utils/jsxJoin` xong thì 4 đường dẫn trỏ file không tồn tại. Nguyên nhân:
+**hai** nơi quét entry đều chỉ khớp `.ts`:
+
+```
+tsup.config.ts            globSync('src/utils/**/*.ts')
+vite.config.build.mts     if (!file.endsWith('.ts')) continue;
+```
+
+`tinita-react` dựng JS bằng **vite** và chỉ dựng types bằng tsup, nên `jsxJoin.tsx`
+có `.d.ts`/`.d.mts` mà **không** có `.mjs`/`.cjs` - đúng hình dạng khó thấy nhất.
+
+Cùng lớp lỗi với glob phẳng `src/*.ts` của `tinita-dom` (bắt ở pha 03) và
+`src/*/**/*.ts` của `tinita`. Ba lần, ba package. Sửa cả hai nơi thành `{ts,tsx}`,
+và ghi lý do ngay tại chỗ.
+
+## Story: 6 subpath mới, 0 EXEMPT
+
+Hook không vẽ gì, nhưng mỗi cái có một thứ **chỉ story cho thấy được**:
+
+- `usePagination` - nút "break it" đặt `totalItems: 0, pageSize: 0, initialPage: 500`
+  và bảng invariant tính lại **live** từ giá trị trả về, nên người xem thấy nó giữ
+  chứ không đọc một lời hứa.
+- `useWindowSize` - kéo cửa sổ và xem bộ đếm render; cộng bộ đếm
+  `useEffect([size])` riêng, hai số phải đi gần nhau, nếu lệch ra thì hook đang trả
+  object mới mỗi render.
+- `useDoubleTap` - tick bỏ "mounted" trong lúc chờ threshold và thấy `onSingleTap`
+  **không** bắn.
+- `useRequiredContext` - bấm đọc context ngoài Provider và đọc chính thông báo lỗi;
+  đó là toàn bộ giá trị của hook so với `useContext` trần.
+- `jsxJoin` - separator là một element có style riêng, thứ `Array.join` không làm được.
+- `useRefreshComponent` - một box `resize: horizontal`: kéo nó thì React không biết
+  gì, chỉ refresh tường minh mới đo lại. Đúng ca hẹp mà hook này dành cho.
+
+## Đính chính plan
+
+Plan ghi `usePagination` sinh dãy số trang + ellipsis và cần hằng số `DOTS` với
+property test trên `(totalPages, currentPage, siblingCount)`. **Nó không làm việc
+đó** - không có dãy trang nào. Tôi đoán sai từ cái tên. Property test thay vào đó
+khoá 6 invariant thật ở trên; thêm tính năng `DOTS` chưa từng có sẽ là mở rộng phạm
+vi, không phải lên chuẩn.
 
 ## Next steps
 
