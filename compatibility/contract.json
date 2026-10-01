@@ -20,7 +20,40 @@
         "./converter/base64ToBlob",
         "./converter/blobToDataUrl",
         "./converter/dataUrlToBlob",
-        "./converter/objectToFormData"
+        "./converter/objectToFormData",
+        "./array/createRange",
+        "./array/getArrayValue",
+        "./array/prependUnique",
+        "./array/sortAlphaText",
+        "./array/uniqueArray",
+        "./converter/createBlobObjectUrl",
+        "./converter/mapToObject",
+        "./converter/objectToMap",
+        "./converter/parseKeyCombination",
+        "./date/sortDates",
+        "./mime",
+        "./mime/plugin/full",
+        "./object/conditionalEntry",
+        "./object/enumKeys",
+        "./object/omit",
+        "./object/omitEmptyValues",
+        "./object/once",
+        "./object/pick",
+        "./object/sortObjectKeys",
+        "./print/defaultPrintMargins",
+        "./print/pageSizes",
+        "./print/photoPrintSizes",
+        "./string/collapseWhitespace",
+        "./string/insertTextEveryNWords",
+        "./string/sentenceCase",
+        "./string/snakeToTitleCase",
+        "./string/stringToSelector",
+        "./string/titleCase",
+        "./validation/hasVietnameseDiacritics",
+        "./validation/isAsciiLetters",
+        "./validation/isEmail",
+        "./validation/isNumericString",
+        "./validation/isUrl"
       ],
       "namedExports": {
         ".": [
@@ -81,6 +114,105 @@
         ],
         "./converter/objectToFormData": [
           "objectToFormData"
+        ],
+        "./array/createRange": [
+          "createRange"
+        ],
+        "./array/getArrayValue": [
+          "getArrayValue"
+        ],
+        "./array/prependUnique": [
+          "prependUnique"
+        ],
+        "./array/sortAlphaText": [
+          "sortAlphaText"
+        ],
+        "./array/uniqueArray": [
+          "uniqueArray"
+        ],
+        "./converter/createBlobObjectUrl": [
+          "createBlobObjectUrl"
+        ],
+        "./converter/mapToObject": [
+          "mapToObject"
+        ],
+        "./converter/objectToMap": [
+          "objectToMap"
+        ],
+        "./converter/parseKeyCombination": [
+          "parseKeyCombination"
+        ],
+        "./date/sortDates": [
+          "sortDates"
+        ],
+        "./mime": [
+          "mime"
+        ],
+        "./mime/plugin/full": [
+          "full"
+        ],
+        "./object/conditionalEntry": [
+          "conditionalEntry"
+        ],
+        "./object/enumKeys": [
+          "enumKeys"
+        ],
+        "./object/omit": [
+          "omit"
+        ],
+        "./object/omitEmptyValues": [
+          "omitEmptyValues"
+        ],
+        "./object/once": [
+          "once"
+        ],
+        "./object/pick": [
+          "pick"
+        ],
+        "./object/sortObjectKeys": [
+          "sortObjectKeys"
+        ],
+        "./print/defaultPrintMargins": [
+          "DEFAULT_PRINT_MARGINS"
+        ],
+        "./print/pageSizes": [
+          "PAGE_SIZES"
+        ],
+        "./print/photoPrintSizes": [
+          "PHOTO_PRINT_SIZES"
+        ],
+        "./string/collapseWhitespace": [
+          "collapseWhitespace"
+        ],
+        "./string/insertTextEveryNWords": [
+          "insertTextEveryNWords"
+        ],
+        "./string/sentenceCase": [
+          "sentenceCase"
+        ],
+        "./string/snakeToTitleCase": [
+          "snakeToTitleCase"
+        ],
+        "./string/stringToSelector": [
+          "stringToSelector"
+        ],
+        "./string/titleCase": [
+          "titleCase"
+        ],
+        "./validation/hasVietnameseDiacritics": [
+          "hasVietnameseDiacritics"
+        ],
+        "./validation/isAsciiLetters": [
+          "isAsciiLetters"
+        ],
+        "./validation/isEmail": [
+          "isEmail"
+        ],
+        "./validation/isNumericString": [
+          "isNumericString"
+        ],
+        "./validation/isUrl": [
+          "isUrl"
         ]
       },
       "requiredFiles": [

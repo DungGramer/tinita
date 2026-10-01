@@ -1,5 +1,23 @@
-//? unit: mm
-export const PAGE_SIZES = {
+/**
+ * Page sizes in millimetres: ISO 216 (A, B, C), ISO 217 (RA, SRA), and five North
+ * American sizes.
+ *
+ * This **is** a standard, verified against it. Checked 2026-10-01: `A4` 210x297
+ * (ISO 216), `C5` 162x229 (ISO 269), `SRA3` 320x450 (ISO 217), `LETTER`
+ * 215.9x279.4 (8.5x11 in), `LEGAL` 215.9x355.6, `TABLOID` 279.4x431.8,
+ * `EXECUTIVE` 184.15x266.7 (7.25x10.5 in) - 7 of 7 exact.
+ *
+ * Each value is `[width, height]` in portrait orientation. Swap them for landscape.
+ *
+ * `DEFAULT_MARGIN_PRINT` used to live in this file; it is one application's choice,
+ * not a standard, so it moved to `print/defaultPrintMargins`.
+ *
+ * @example
+ * ```ts
+ * const [width, height] = PAGE_SIZES.A4;  // [210, 297]
+ * ```
+ */
+export const PAGE_SIZES: Readonly<Record<string, readonly [number, number]>> = {
   '4A0': [1682, 2378],
   '2A0': [1189, 1682],
   'A0': [841, 1189],

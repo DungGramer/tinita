@@ -1,4 +1,4 @@
-export interface FilterValidValueOptions {
+export interface OmitEmptyValuesOptions {
   /**
    * Values to drop. Compared with `includes`, so `NaN` is matched too.
    *
@@ -41,7 +41,7 @@ export interface FilterValidValueOptions {
  */
 export function omitEmptyValues<T extends Record<string, unknown>>(
   obj: T,
-  options: FilterValidValueOptions = {}
+  options: OmitEmptyValuesOptions = {}
 ): Partial<T> {
   const invalidValues = options.invalidValues ?? [null, undefined];
   const omitKeys = options.omitKeys ?? [];

@@ -72,6 +72,105 @@
       ],
       "converter/objectToFormData": [
         "dist/converter/objectToFormData.d.ts"
+      ],
+      "array/createRange": [
+        "./dist/array/createRange.d.ts"
+      ],
+      "array/getArrayValue": [
+        "./dist/array/getArrayValue.d.ts"
+      ],
+      "array/prependUnique": [
+        "./dist/array/prependUnique.d.ts"
+      ],
+      "array/sortAlphaText": [
+        "./dist/array/sortAlphaText.d.ts"
+      ],
+      "array/uniqueArray": [
+        "./dist/array/uniqueArray.d.ts"
+      ],
+      "converter/createBlobObjectUrl": [
+        "./dist/converter/createBlobObjectUrl.d.ts"
+      ],
+      "converter/mapToObject": [
+        "./dist/converter/mapToObject.d.ts"
+      ],
+      "converter/objectToMap": [
+        "./dist/converter/objectToMap.d.ts"
+      ],
+      "converter/parseKeyCombination": [
+        "./dist/converter/parseKeyCombination.d.ts"
+      ],
+      "date/sortDates": [
+        "./dist/date/sortDates.d.ts"
+      ],
+      "mime": [
+        "./dist/mime/mime.d.ts"
+      ],
+      "mime/plugin/full": [
+        "./dist/mime/plugin/full.d.ts"
+      ],
+      "object/conditionalEntry": [
+        "./dist/object/conditionalEntry.d.ts"
+      ],
+      "object/enumKeys": [
+        "./dist/object/enumKeys.d.ts"
+      ],
+      "object/omit": [
+        "./dist/object/omit.d.ts"
+      ],
+      "object/omitEmptyValues": [
+        "./dist/object/omitEmptyValues.d.ts"
+      ],
+      "object/once": [
+        "./dist/object/once.d.ts"
+      ],
+      "object/pick": [
+        "./dist/object/pick.d.ts"
+      ],
+      "object/sortObjectKeys": [
+        "./dist/object/sortObjectKeys.d.ts"
+      ],
+      "print/defaultPrintMargins": [
+        "./dist/print/defaultPrintMargins.d.ts"
+      ],
+      "print/pageSizes": [
+        "./dist/print/pageSizes.d.ts"
+      ],
+      "print/photoPrintSizes": [
+        "./dist/print/photoPrintSizes.d.ts"
+      ],
+      "string/collapseWhitespace": [
+        "./dist/string/collapseWhitespace.d.ts"
+      ],
+      "string/insertTextEveryNWords": [
+        "./dist/string/insertTextEveryNWords.d.ts"
+      ],
+      "string/sentenceCase": [
+        "./dist/string/sentenceCase.d.ts"
+      ],
+      "string/snakeToTitleCase": [
+        "./dist/string/snakeToTitleCase.d.ts"
+      ],
+      "string/stringToSelector": [
+        "./dist/string/stringToSelector.d.ts"
+      ],
+      "string/titleCase": [
+        "./dist/string/titleCase.d.ts"
+      ],
+      "validation/hasVietnameseDiacritics": [
+        "./dist/validation/hasVietnameseDiacritics.d.ts"
+      ],
+      "validation/isAsciiLetters": [
+        "./dist/validation/isAsciiLetters.d.ts"
+      ],
+      "validation/isEmail": [
+        "./dist/validation/isEmail.d.ts"
+      ],
+      "validation/isNumericString": [
+        "./dist/validation/isNumericString.d.ts"
+      ],
+      "validation/isUrl": [
+        "./dist/validation/isUrl.d.ts"
       ]
     }
   },
@@ -270,6 +369,336 @@
       "require": {
         "types": "./dist/converter/objectToFormData.d.ts",
         "default": "./dist/converter/objectToFormData.cjs"
+      }
+    },
+    "./array/createRange": {
+      "import": {
+        "types": "./dist/array/createRange.d.mts",
+        "default": "./dist/array/createRange.mjs"
+      },
+      "require": {
+        "types": "./dist/array/createRange.d.ts",
+        "default": "./dist/array/createRange.cjs"
+      }
+    },
+    "./array/getArrayValue": {
+      "import": {
+        "types": "./dist/array/getArrayValue.d.mts",
+        "default": "./dist/array/getArrayValue.mjs"
+      },
+      "require": {
+        "types": "./dist/array/getArrayValue.d.ts",
+        "default": "./dist/array/getArrayValue.cjs"
+      }
+    },
+    "./array/prependUnique": {
+      "import": {
+        "types": "./dist/array/prependUnique.d.mts",
+        "default": "./dist/array/prependUnique.mjs"
+      },
+      "require": {
+        "types": "./dist/array/prependUnique.d.ts",
+        "default": "./dist/array/prependUnique.cjs"
+      }
+    },
+    "./array/sortAlphaText": {
+      "import": {
+        "types": "./dist/array/sortAlphaText.d.mts",
+        "default": "./dist/array/sortAlphaText.mjs"
+      },
+      "require": {
+        "types": "./dist/array/sortAlphaText.d.ts",
+        "default": "./dist/array/sortAlphaText.cjs"
+      }
+    },
+    "./array/uniqueArray": {
+      "import": {
+        "types": "./dist/array/uniqueArray.d.mts",
+        "default": "./dist/array/uniqueArray.mjs"
+      },
+      "require": {
+        "types": "./dist/array/uniqueArray.d.ts",
+        "default": "./dist/array/uniqueArray.cjs"
+      }
+    },
+    "./converter/createBlobObjectUrl": {
+      "import": {
+        "types": "./dist/converter/createBlobObjectUrl.d.mts",
+        "default": "./dist/converter/createBlobObjectUrl.mjs"
+      },
+      "require": {
+        "types": "./dist/converter/createBlobObjectUrl.d.ts",
+        "default": "./dist/converter/createBlobObjectUrl.cjs"
+      }
+    },
+    "./converter/mapToObject": {
+      "import": {
+        "types": "./dist/converter/mapToObject.d.mts",
+        "default": "./dist/converter/mapToObject.mjs"
+      },
+      "require": {
+        "types": "./dist/converter/mapToObject.d.ts",
+        "default": "./dist/converter/mapToObject.cjs"
+      }
+    },
+    "./converter/objectToMap": {
+      "import": {
+        "types": "./dist/converter/objectToMap.d.mts",
+        "default": "./dist/converter/objectToMap.mjs"
+      },
+      "require": {
+        "types": "./dist/converter/objectToMap.d.ts",
+        "default": "./dist/converter/objectToMap.cjs"
+      }
+    },
+    "./converter/parseKeyCombination": {
+      "import": {
+        "types": "./dist/converter/parseKeyCombination.d.mts",
+        "default": "./dist/converter/parseKeyCombination.mjs"
+      },
+      "require": {
+        "types": "./dist/converter/parseKeyCombination.d.ts",
+        "default": "./dist/converter/parseKeyCombination.cjs"
+      }
+    },
+    "./date/sortDates": {
+      "import": {
+        "types": "./dist/date/sortDates.d.mts",
+        "default": "./dist/date/sortDates.mjs"
+      },
+      "require": {
+        "types": "./dist/date/sortDates.d.ts",
+        "default": "./dist/date/sortDates.cjs"
+      }
+    },
+    "./mime": {
+      "import": {
+        "types": "./dist/mime/mime.d.mts",
+        "default": "./dist/mime/mime.mjs"
+      },
+      "require": {
+        "types": "./dist/mime/mime.d.ts",
+        "default": "./dist/mime/mime.cjs"
+      }
+    },
+    "./mime/plugin/full": {
+      "import": {
+        "types": "./dist/mime/plugin/full.d.mts",
+        "default": "./dist/mime/plugin/full.mjs"
+      },
+      "require": {
+        "types": "./dist/mime/plugin/full.d.ts",
+        "default": "./dist/mime/plugin/full.cjs"
+      }
+    },
+    "./object/conditionalEntry": {
+      "import": {
+        "types": "./dist/object/conditionalEntry.d.mts",
+        "default": "./dist/object/conditionalEntry.mjs"
+      },
+      "require": {
+        "types": "./dist/object/conditionalEntry.d.ts",
+        "default": "./dist/object/conditionalEntry.cjs"
+      }
+    },
+    "./object/enumKeys": {
+      "import": {
+        "types": "./dist/object/enumKeys.d.mts",
+        "default": "./dist/object/enumKeys.mjs"
+      },
+      "require": {
+        "types": "./dist/object/enumKeys.d.ts",
+        "default": "./dist/object/enumKeys.cjs"
+      }
+    },
+    "./object/omit": {
+      "import": {
+        "types": "./dist/object/omit.d.mts",
+        "default": "./dist/object/omit.mjs"
+      },
+      "require": {
+        "types": "./dist/object/omit.d.ts",
+        "default": "./dist/object/omit.cjs"
+      }
+    },
+    "./object/omitEmptyValues": {
+      "import": {
+        "types": "./dist/object/omitEmptyValues.d.mts",
+        "default": "./dist/object/omitEmptyValues.mjs"
+      },
+      "require": {
+        "types": "./dist/object/omitEmptyValues.d.ts",
+        "default": "./dist/object/omitEmptyValues.cjs"
+      }
+    },
+    "./object/once": {
+      "import": {
+        "types": "./dist/object/once.d.mts",
+        "default": "./dist/object/once.mjs"
+      },
+      "require": {
+        "types": "./dist/object/once.d.ts",
+        "default": "./dist/object/once.cjs"
+      }
+    },
+    "./object/pick": {
+      "import": {
+        "types": "./dist/object/pick.d.mts",
+        "default": "./dist/object/pick.mjs"
+      },
+      "require": {
+        "types": "./dist/object/pick.d.ts",
+        "default": "./dist/object/pick.cjs"
+      }
+    },
+    "./object/sortObjectKeys": {
+      "import": {
+        "types": "./dist/object/sortObjectKeys.d.mts",
+        "default": "./dist/object/sortObjectKeys.mjs"
+      },
+      "require": {
+        "types": "./dist/object/sortObjectKeys.d.ts",
+        "default": "./dist/object/sortObjectKeys.cjs"
+      }
+    },
+    "./print/defaultPrintMargins": {
+      "import": {
+        "types": "./dist/print/defaultPrintMargins.d.mts",
+        "default": "./dist/print/defaultPrintMargins.mjs"
+      },
+      "require": {
+        "types": "./dist/print/defaultPrintMargins.d.ts",
+        "default": "./dist/print/defaultPrintMargins.cjs"
+      }
+    },
+    "./print/pageSizes": {
+      "import": {
+        "types": "./dist/print/pageSizes.d.mts",
+        "default": "./dist/print/pageSizes.mjs"
+      },
+      "require": {
+        "types": "./dist/print/pageSizes.d.ts",
+        "default": "./dist/print/pageSizes.cjs"
+      }
+    },
+    "./print/photoPrintSizes": {
+      "import": {
+        "types": "./dist/print/photoPrintSizes.d.mts",
+        "default": "./dist/print/photoPrintSizes.mjs"
+      },
+      "require": {
+        "types": "./dist/print/photoPrintSizes.d.ts",
+        "default": "./dist/print/photoPrintSizes.cjs"
+      }
+    },
+    "./string/collapseWhitespace": {
+      "import": {
+        "types": "./dist/string/collapseWhitespace.d.mts",
+        "default": "./dist/string/collapseWhitespace.mjs"
+      },
+      "require": {
+        "types": "./dist/string/collapseWhitespace.d.ts",
+        "default": "./dist/string/collapseWhitespace.cjs"
+      }
+    },
+    "./string/insertTextEveryNWords": {
+      "import": {
+        "types": "./dist/string/insertTextEveryNWords.d.mts",
+        "default": "./dist/string/insertTextEveryNWords.mjs"
+      },
+      "require": {
+        "types": "./dist/string/insertTextEveryNWords.d.ts",
+        "default": "./dist/string/insertTextEveryNWords.cjs"
+      }
+    },
+    "./string/sentenceCase": {
+      "import": {
+        "types": "./dist/string/sentenceCase.d.mts",
+        "default": "./dist/string/sentenceCase.mjs"
+      },
+      "require": {
+        "types": "./dist/string/sentenceCase.d.ts",
+        "default": "./dist/string/sentenceCase.cjs"
+      }
+    },
+    "./string/snakeToTitleCase": {
+      "import": {
+        "types": "./dist/string/snakeToTitleCase.d.mts",
+        "default": "./dist/string/snakeToTitleCase.mjs"
+      },
+      "require": {
+        "types": "./dist/string/snakeToTitleCase.d.ts",
+        "default": "./dist/string/snakeToTitleCase.cjs"
+      }
+    },
+    "./string/stringToSelector": {
+      "import": {
+        "types": "./dist/string/stringToSelector.d.mts",
+        "default": "./dist/string/stringToSelector.mjs"
+      },
+      "require": {
+        "types": "./dist/string/stringToSelector.d.ts",
+        "default": "./dist/string/stringToSelector.cjs"
+      }
+    },
+    "./string/titleCase": {
+      "import": {
+        "types": "./dist/string/titleCase.d.mts",
+        "default": "./dist/string/titleCase.mjs"
+      },
+      "require": {
+        "types": "./dist/string/titleCase.d.ts",
+        "default": "./dist/string/titleCase.cjs"
+      }
+    },
+    "./validation/hasVietnameseDiacritics": {
+      "import": {
+        "types": "./dist/validation/hasVietnameseDiacritics.d.mts",
+        "default": "./dist/validation/hasVietnameseDiacritics.mjs"
+      },
+      "require": {
+        "types": "./dist/validation/hasVietnameseDiacritics.d.ts",
+        "default": "./dist/validation/hasVietnameseDiacritics.cjs"
+      }
+    },
+    "./validation/isAsciiLetters": {
+      "import": {
+        "types": "./dist/validation/isAsciiLetters.d.mts",
+        "default": "./dist/validation/isAsciiLetters.mjs"
+      },
+      "require": {
+        "types": "./dist/validation/isAsciiLetters.d.ts",
+        "default": "./dist/validation/isAsciiLetters.cjs"
+      }
+    },
+    "./validation/isEmail": {
+      "import": {
+        "types": "./dist/validation/isEmail.d.mts",
+        "default": "./dist/validation/isEmail.mjs"
+      },
+      "require": {
+        "types": "./dist/validation/isEmail.d.ts",
+        "default": "./dist/validation/isEmail.cjs"
+      }
+    },
+    "./validation/isNumericString": {
+      "import": {
+        "types": "./dist/validation/isNumericString.d.mts",
+        "default": "./dist/validation/isNumericString.mjs"
+      },
+      "require": {
+        "types": "./dist/validation/isNumericString.d.ts",
+        "default": "./dist/validation/isNumericString.cjs"
+      }
+    },
+    "./validation/isUrl": {
+      "import": {
+        "types": "./dist/validation/isUrl.d.mts",
+        "default": "./dist/validation/isUrl.mjs"
+      },
+      "require": {
+        "types": "./dist/validation/isUrl.d.ts",
+        "default": "./dist/validation/isUrl.cjs"
       }
     }
   },

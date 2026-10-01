@@ -9,7 +9,8 @@
 
 ## Overview
 
-**Ngày:** 2026-10-01 · **Ưu tiên:** P1 · **Trạng thái:** chưa làm · **Review:** chưa
+**Ngày:** 2026-10-01 · **Ưu tiên:** P1 · **Trạng thái:** XONG 2026-10-01 ·
+**Review:** chưa
 
 Owner chốt 2026-10-01: **giữ hết, nâng chuẩn.** Không có lô xoá. 29 file của
 `tinita` đi qua cổng vào của pha 03 rồi được export.
@@ -241,6 +242,104 @@ này. Sau pha này con số phải khớp nhau.
 - **`insertTextEveryNWords` mặc định chèn `'<br>'`.** Một hàm string trả HTML là
   bẫy: kết quả trông như text nhưng chỉ đúng khi đi qua `innerHTML`. Đổi mặc định
   thành `'\n'` và để người gọi truyền `'<br>'` khi họ biết họ đang dựng HTML.
+
+## Kết quả đo được
+
+| Chỉ số                        | Trước pha | Sau pha  |
+| ----------------------------- | --------: | -------: |
+| `tinita` subpath công khai    |        18 |   **51** |
+| `typesVersions` key           |        17 |   **50** |
+| `contract.json` specifier     |        18 |   **51** |
+| Test `tinita`                 |        90 |  **253** |
+| Entry build / export được     |   49 / 18 |  **55 / 51** |
+| Đường chết trong dist         |        31 |    **4** |
+| Cast `<any>` trong `src`      |       149 |    **0** |
+| `console.*` trong `src`       |         1 |    **0** |
+
+204 đường dẫn trong `exports` đều resolve tới file dist có thật (0 thiếu).
+`typesVersions` 50 key khớp đúng 50 subpath non-root của `exports`, 0 lệch hai chiều.
+
+Bốn file build nhưng không export được là bốn module nội bộ **có chủ ý**:
+`html/types`, `mime/types`, `mime/defaultTypes`, `validation/patterns`. Tốn ~13KB
+trong 487.8KB unpacked (tarball 142.9KB).
+
+## Lỗi THẬT tìm được, mỗi cái có số đo
+
+Danh sách này là lý do pha này không phải "thêm JSDoc và test".
+
+| Hàm                     | Lỗi, và số đo                                                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `isVietnamese`          | **không xác định**. Cờ `g` + `.test()` đẩy `lastIndex`: 6 lần cùng input ra `true false true false true false`      |
+| `stringToEventCode`     | **không parse được `Ctrl+Shift+A`** - `ctrlKey` ra `false`. `Cmd+Alt+Shift+K` chỉ còn `shiftKey`. `Ctrl+Ctrl+A` tất cả `false` |
+| `acceptTypeToRegex`     | **ném `SyntaxError`** trên `accept="image/*"`, giá trị accept phổ biến nhất. Regex không neo dấu chấm nên NHẬN `notapng`, `bigpng`. `accept=""` nhận cả `.exe` |
+| `sortAlphaText`         | **mutate** tham số; `localeCompare` không locale sắp sai tiếng Việt (`Ẩn Anh Ánh Ba` thay vì `Anh Ánh Ẩn Ba`)        |
+| `uniqueArray`           | comment nói Set chậm hơn; đo ra reduce chậm hơn **13x-218x** (n=10000: 219.50ms vs 1.005ms)                         |
+| `urlRegex`              | từ chối `https://localhost:3000`; nhận `999.999.999.999`                                                            |
+| `emailRegex`            | TLD `{2,4}` nên từ chối `.museum`, `.online`, `.technology`                                                         |
+| `titleCase`             | `iPhone SDK` -> `Iphone Sdk`, `HTML and CSS` -> `Html And Css`, `McDonald` -> `Mcdonald`                             |
+| `stringToSelector`      | sai 4/7 pattern Tailwind thực tế: `hover:bg-red-500` -> `.hover:bg-red-500` (parse thành `.hover` + pseudo-class)   |
+| `Pick` / `Omit`         | PascalCase **trùng tên utility type có sẵn của TypeScript**                                                         |
+| `mimeTypeToFileExtension` | fallback `split('/').pop()` trả `'vnd.ms-excel'` như thể là extension                                            |
+| `snakeToTitleCase`      | `console.error` rồi trả nguyên input - side effect vào global + silent failure                                      |
+| `insertTextAfterWords`  | mặc định separator `'<br>'`: hàm string trả HTML                                                                    |
+| `getArrayValue`         | khai kiểu `T` trong khi trả `undefined` ngoài khoảng                                                                |
+| `PRINT_TYPE.ratio`      | tính trên **ba cơ sở** trong bảng 12 dòng: inch, pixel@300dpi, hằng số viết tay                                     |
+
+## Năm hàm đổi tên vì tên nói sai việc
+
+`isNumber` -> `isNumericString` (regex là `/^\d+$/`, nên `'1.5'` là `false`).
+`isAlphabet` -> `isAsciiLetters` (`[a-zA-Z]`, nên `'Đèn'` là `false`).
+`isVietnamese` -> `hasVietnameseDiacritics` (không ký tự test nào trả lời được "đây có
+phải tiếng Việt": `Xin chao` không dấu, `à` là tiếng Pháp).
+`stringToEventCode` -> `parseKeyCombination` (nó không sinh `event.code` như `'KeyA'`,
+nó sinh cờ `KeyboardEvent`). `removeEmptySpace` -> `collapseWhitespace`.
+
+## QĐ-F: bảng MIME tách hai, đo trên dist thật
+
+Plan bản đầu nói "sinh từ `mime-db` rồi commit". Đo xong thì không làm đơn giản thế
+được: bảng đầy đủ là 1015 type / 72KB, và `bundle: true` inline nó vào **mọi** entry
+import nó - 216KB trong tarball để thay một bảng 5.8KB.
+
+Owner chốt tách theo đúng khuôn QĐ-B (plugin + `.extend()` kiểu dayjs). Đo trên dist:
+
+```
+mime/mime.mjs          6.8 KB   bảng mặc định 67 type / 140 extension, inline sẵn
+mime/plugin/full.mjs  71.3 KB   1015 type / 1239 extension, chỉ ai import mới trả
+index.mjs             21.2 KB   barrel KHÔNG chứa bảng full
+```
+
+Inline đầy đủ sẽ cho `mime.mjs` ~78KB. Cả hai bảng sinh bằng
+`scripts/generate-mime-table.mjs` đọc `mime-db 1.54.0`, ghi phiên bản và ngày vào
+đầu file, nên không nửa nào copy tay. Script có guard: một type được nêu trong
+`DEFAULT_TYPES` mà `mime-db` không có extension sẽ **ném**, không âm thầm biến mất -
+nó đã bắt ngay `audio/flac` (tên đúng là `audio/x-flac`).
+
+## Lỗ hổng SSR của L2 đã vá
+
+`SSR_ESM`/`SSR_CJS` giờ **sinh từ `contract.json`** thay vì liệt kê import tay, nên
+chúng import mọi specifier của package không `browserOnly` ở top level và assert
+binding không `undefined`. Trước đó hai fixture chỉ chạm `tinita-react`: thêm một
+export dùng `document` vào `tinita` thì ca SSR vẫn xanh.
+
+## `pnpm lint` giờ mới là cổng
+
+Ghi ở pha 04 nhưng hệ quả thuộc pha này: `--max-warnings 0` cộng với việc dọn 149
+warning nghĩa là 0 cast `<any>` còn lại trong `src` của `tinita`. Dòng
+`eslint-disable` cả file ở `mime/mimeTypeTable.ts` đã **xoá** cùng với chính file đó
+khi bảng được sinh lại.
+
+## Đính chính
+
+JSDoc tôi viết cho `titleCase('iPhone SDK')` ghi `'iPhone SDK'` - sai. `titleCase`
+**phải** viết hoa chữ đầu mỗi từ nên kết quả là `'IPhone SDK'`; cải thiện thật là giữ
+phần sau (`Phone`, `SDK`) chứ bản cũ ra `'Iphone Sdk'`. Sửa cả JSDoc lẫn test.
+
+JSDoc `parseKeyCombination` ghi `'Ctrl++'` trả `key: '+'` - lúc đó **sai**, hàm ném.
+`'Ctrl++'.split('+')` là `['Ctrl','','']` nên `pop()` lấy `''` làm key. Đã sửa code
+cho khớp JSDoc chứ không sửa JSDoc cho khớp code.
+
+Test tôi viết đoán `omitEmptyValues` bỏ `''` - sai. Contract thật là `invalidValues`
+mặc định `[null, undefined]`, nên `''` **được giữ**. Sửa test và khoá mặc định đó lại.
 
 ## Next steps
 
