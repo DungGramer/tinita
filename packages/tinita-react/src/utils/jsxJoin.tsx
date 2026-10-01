@@ -38,5 +38,3 @@ export function jsxJoin(nodes: ReactNode[], separator: ReactNode): ReactNode {
     </Fragment>
   ));
 }
-
-export default jsxJoin;

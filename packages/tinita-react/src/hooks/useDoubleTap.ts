@@ -55,5 +55,3 @@ export function useDoubleTap<
       : {}
   ) as DoubleTapResult<Target, Callback>;
 }
-
-export default useDoubleTap;

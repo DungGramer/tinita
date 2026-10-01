@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createHtml, html } from '../src/html/html';
-import entities from '../src/html/plugin/entities';
+import { entities } from '../src/html/plugin/entities';
 
 /** A fresh instance per test: `extend` mutates, so sharing would leak across tests. */
 const base = () => createHtml();

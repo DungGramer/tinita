@@ -40,7 +40,7 @@ packages/tinita/
 │   │   ├── getFileNameParts.ts
 │   │   └── truncateFileName.ts
 │   ├── uuid/
-│   │   └── generateUUID.ts
+│   │   └── generateUuid.ts
 │   └── index.ts                       # Barrel export (re-exports tất cả)
 ├── dist/
 ├── package.json
@@ -106,7 +106,7 @@ packages/tinita-react/
 
 | Loại                    | Quy Tắc                              | Ví Dụ                                            |
 | ----------------------- | ------------------------------------ | ------------------------------------------------ |
-| Utilities (tinita)      | camelCase.ts                         | `fileSize.ts`, `generateUUID.ts`                 |
+| Utilities (tinita)      | camelCase.ts                         | `fileSize.ts`, `generateUuid.ts`                 |
 | Hooks                   | `use` + PascalCase.ts                | `useToggle.ts`, `useIsomorphicLayoutEffect.ts`   |
 | Components (Main)       | PascalCase.tsx                       | `FileTree.tsx`, `Ping.tsx`                       |
 | Components (Private)    | camelCase.tsx                        | `fileLabel.tsx`, `folderNode.tsx`                |
@@ -203,7 +203,7 @@ src/ui/FileTree/
     'src/file/fileSize.ts',
     'src/file/getFileNameParts.ts',
     'src/file/truncateFileName.ts',
-    'src/uuid/generateUUID.ts'
+    'src/uuid/generateUuid.ts'
   ],
   format: ['cjs', 'esm'],
   dts: true,
@@ -403,7 +403,7 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 
 - Mỗi utility = 1 file
 - `fileSize.ts` = `fileSize()` function
-- `generateUUID.ts` = `generateUUID()` function
+- `generateUuid.ts` = `generateUuid()` function
 
 **tinita-react hooks:**
 
@@ -426,6 +426,85 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 
 ---
 
+## Quy Tắc Đặt Tên (QĐ-E, chốt 2026-10-01)
+
+Ba quy tắc, mỗi cái có một guard chạy được.
+
+### 1. Acronym viết như một từ thường
+
+`Url`, `Html`, `Json`, `Mime`, `Uuid`, `Css` - **không** `URL`, `HTML`, `JSON`.
+Nền tảng web dùng chữ hoa (`URL`, `JSON.parse`, `crypto.randomUUID`), nhưng lối đó
+sinh ra những tên không đọc được khi acronym đứng đầu: `JSONToHTML`,
+`MIMEToFileExtension`, `CSSVariable`. Đọc `JSONToHTML` phải dò xem ranh giới từ nằm
+đâu. `jsonToHtml` thì không.
+
+Đây là quy ước của Google TypeScript Style Guide ("treat abbreviations like acronyms
+in names as whole words"), và nó là lối duy nhất không cần thêm luật phụ cho trường
+hợp acronym ở đầu tên.
+
+Giá đã trả: `generateUUID` -> `generateUuid`, breaking cho `tinita@0.0.1`. Chấp nhận
+vì `0.0.1` bị `npm deprecate` cùng lúc, và vì để lại một ngoại lệ là tái lập đúng sự
+bất nhất mà quy tắc này sinh ra để xoá.
+
+### 2. Tên file == tên export
+
+Một file một export công khai, và hai tên phải khớp (so sánh bỏ qua hoa thường và
+`_`/`-`, nên `pageSizes.ts` export `PAGE_SIZES` là khớp).
+
+Lớp lỗi này đã trả giá: `stringToHTMLEntities.ts` export `encodeToHTMLEntities` và
+owner gọi nó `encodeHtmlEntities` - **ba tên cho một hàm**, phát hiện ra lúc phải
+viết docs. Rà soát 2026-10-01 tìm thêm **9** ca nữa, trong đó
+`fileExtensionToMIME.ts` export `getMIMEFromFileName` và `MIMEToFileExtension.ts`
+export `getExtensionFromMIME` - tên file và tên export không chung một chữ nào.
+
+Ba carve-out, mỗi cái một lý do:
+
+| Dạng                                  | Ví dụ                                             | Vì sao                                                |
+| ------------------------------------- | ------------------------------------------------- | ----------------------------------------------------- |
+| **Entry module** kebab-case ở `src/`  | `smooth-scroll.ts`, `wheel-source.ts`             | tên file CHÍNH LÀ subpath công khai; được export nhóm |
+| **Module nhóm** nhiều export cùng vai | `validation/browser.ts`, `validation/patterns.ts` | nhóm là đơn vị API, subpath là folder hoặc file đó    |
+| **Helper nội bộ component**           | `ui/*/utils/parser.ts`, `ui/*/store.ts`           | không bao giờ là subpath publish; gom theo vai trò    |
+
+Kiểm: script so tên file với tên export, mã hoá đúng ba carve-out trên. Đo
+2026-10-01: 81 file 1-export, **0 lệch**.
+
+### 3. Không `export default` trong `src/`
+
+Lý do đo được, không phải sở thích: với `bundle: true` + `outExtension` của repo,
+`require('tinita-dom/x')` trên một module chỉ có default trả `{ default: fn }` chứ
+không trả hàm - đúng hình dạng interop mà bug B1 đã phải vá một lần. Và `attw` báo
+sai hình dạng CJS/ESM khi default lẫn với named.
+
+Nguy hiểm nhất là plugin: `html.extend(require('tinita/html/plugin/entities'))` với
+default export truyền `{ default: fn }` vào `extend()` rồi gãy **im lặng**. Vì vậy
+`entities` là named export, dù dayjs (mẫu mà API `.extend()` này học theo) dùng
+default cho plugin của họ.
+
+`*.d.ts` được miễn: `css-modules.d.ts` khai đúng cái default export mà CSS Modules
+thật sự có, và đó không phải thứ của repo này.
+
+Guard: rule `no-restricted-syntax` selector `ExportDefaultDeclaration` trong
+`config/eslint-config/base.js`.
+
+### Vì sao `lint` mới thật sự là cổng từ 2026-10-01
+
+`eslint-plugin-only-warn` hạ **mọi** rule thành warning, và ba script `lint` của
+package không có `--max-warnings`. Đo 2026-10-01: `pnpm --filter=tinita run lint` in
+ra **149 warning** và exit **0**. Nghĩa là bước `lint` trong `pnpm gate` là bản báo
+cáo, không phải cổng - mọi rule thêm vào đều vô tác dụng.
+
+Đã sửa: cả ba script thêm `--max-warnings 0` (`apps/storybook` đã có từ trước).
+149 warning được dọn: 139 cast `<any>` của `mime/mimeTypeTable.ts` tắt cả file kèm
+hạn chót (pha 05 sinh lại bảng từ `mime-db` thì cast biến mất), 4 file của
+`tinita-dom` tắt một dòng kèm tên pha sẽ viết lại, phần còn lại sửa thẳng sang
+`unknown`/generic.
+
+Ca tự phá, đo 2026-10-01: thêm `export default probe;` vào
+`packages/tinita/src/__probe.ts` -> `pnpm --filter=tinita run lint` exit **1** và in
+`Use a named export`. Gỡ ra -> exit **0**.
+
+---
+
 ## Export Management
 
 ### tinita
@@ -437,7 +516,7 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 export * from './file/fileSize';
 export * from './file/getFileNameParts';
 export * from './file/truncateFileName';
-export * from './uuid/generateUUID';
+export * from './uuid/generateUuid';
 
 // Usage
 import { fileSize } from 'tinita'; // Barrel
@@ -577,7 +656,7 @@ Hình dạng phải dùng - mỗi subpath một key, đích lấy từ chính `e
 "typesVersions": {
   "*": {
     "file/fileSize": ["dist/file/fileSize.d.ts"],
-    "uuid/generateUUID": ["dist/uuid/generateUUID.d.ts"]
+    "uuid/generateUuid": ["dist/uuid/generateUuid.d.ts"]
   }
 }
 ```

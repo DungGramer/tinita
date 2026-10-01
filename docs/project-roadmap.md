@@ -26,7 +26,7 @@ tiên bên dưới.
 
 ### packages/tinita v0.0.1
 
-4 utility: `fileSize`, `getFileNameParts`, `truncateFileName` (dưới `file/`), `generateUUID`
+4 utility: `fileSize`, `getFileNameParts`, `truncateFileName` (dưới `file/`), `generateUuid`
 (dưới `uuid/`). Build bằng tsup, `bundle: true` với một entry cho mỗi utility nên tree-shaking theo subpath vẫn nguyên,
 xuất cả CJS/ESM/`.d.ts`. Không có dependency ngoài.
 

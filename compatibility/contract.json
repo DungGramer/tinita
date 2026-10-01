@@ -8,7 +8,7 @@
         "./file/getFileNameParts",
         "./file/truncateFileName",
         "./file/truncateFileNameParts",
-        "./uuid/generateUUID",
+        "./uuid/generateUuid",
         "./html",
         "./html/plugin/entities",
         "./converter/bytesToBase64",
@@ -28,7 +28,7 @@
           "getFileNameParts",
           "truncateFileName",
           "truncateFileNameParts",
-          "generateUUID"
+          "generateUuid"
         ],
         "./file/fileSize": [
           "fileSize"
@@ -42,15 +42,15 @@
         "./file/truncateFileNameParts": [
           "truncateFileNameParts"
         ],
-        "./uuid/generateUUID": [
-          "generateUUID"
+        "./uuid/generateUuid": [
+          "generateUuid"
         ],
         "./html": [
           "html",
           "createHtml"
         ],
         "./html/plugin/entities": [
-          "default"
+          "entities"
         ],
         "./converter/bytesToBase64": [
           "bytesToBase64"

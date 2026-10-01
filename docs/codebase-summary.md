@@ -98,7 +98,7 @@ tinita/
 | `fileSize`         | `src/file/fileSize.ts`         | Format bytes to human-readable (KB/MB) |
 | `getFileNameParts` | `src/file/getFileNameParts.ts` | Parse filename into name + extension   |
 | `truncateFileName` | `src/file/truncateFileName.ts` | Shorten long filenames                 |
-| `generateUUID`     | `src/uuid/generateUUID.ts`     | Cross-platform UUID v4                 |
+| `generateUuid`     | `src/uuid/generateUuid.ts`     | Cross-platform UUID v4                 |
 
 **Exports (4 subpath):**
 
@@ -108,7 +108,7 @@ tinita/
   "./file/fileSize": "./dist/file/fileSize.{cjs,mjs}",
   "./file/getFileNameParts": "./dist/file/getFileNameParts.{cjs,mjs}",
   "./file/truncateFileName": "./dist/file/truncateFileName.{cjs,mjs}",
-  "./uuid/generateUUID": "./dist/uuid/generateUUID.{cjs,mjs}"
+  "./uuid/generateUuid": "./dist/uuid/generateUuid.{cjs,mjs}"
 }
 ```
 
@@ -320,7 +320,7 @@ nên mọi thứ trông như chạy): `node_modules` chỉ có `react` + `tinita
 | Loại             | Quy tắc             | Ví dụ                                             |
 | ---------------- | ------------------- | ------------------------------------------------- |
 | Directory        | kebab-case          | `src/ui/file-tree/`, `src/file/`                  |
-| File (utility)   | camelCase.ts        | `fileSize.ts`, `generateUUID.ts`                  |
+| File (utility)   | camelCase.ts        | `fileSize.ts`, `generateUuid.ts`                  |
 | File (component) | PascalCase.tsx      | `FileTree.tsx`, `Ping.tsx`                        |
 | File (private)   | camelCase.ts        | `utils.ts`, `parser.ts`                           |
 | CSS Class        | BEM + `tnt-` prefix | `tnt-filetree__label--folder`, `tnt-ping__pulse`  |

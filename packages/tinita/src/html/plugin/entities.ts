@@ -12,7 +12,7 @@ import type { HtmlPlugin } from '../types';
  * @example
  * ```ts
  * import { html } from 'tinita/html';
- * import entities from 'tinita/html/plugin/entities';
+ * import { entities } from 'tinita/html/plugin/entities';
  *
  * html.extend(entities);
  * html.encode('Hòm nhĩ trái'); // 'H&ograve;m nh&itilde; tr&aacute;i'
@@ -1541,8 +1541,6 @@ const NAMED_ENTITIES: Readonly<Record<string, string>> = {
   '𝕫': '&zopf;',
 };
 
-const entities: HtmlPlugin = (api) => {
+export const entities: HtmlPlugin = (api) => {
   api.addEntities(NAMED_ENTITIES);
 };
-
-export default entities;

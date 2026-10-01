@@ -34,8 +34,8 @@
       "file/truncateFileNameParts": [
         "dist/file/truncateFileNameParts.d.ts"
       ],
-      "uuid/generateUUID": [
-        "dist/uuid/generateUUID.d.ts"
+      "uuid/generateUuid": [
+        "dist/uuid/generateUuid.d.ts"
       ],
       "html": [
         "dist/html/html.d.ts"
@@ -85,7 +85,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "build": "pnpm run clean && tsup",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src --ext .ts --max-warnings 0",
     "test": "vitest run",
     "check-types": "tsc --noEmit",
     "prepublishOnly": "pnpm run build",
@@ -142,14 +142,14 @@
         "default": "./dist/file/truncateFileNameParts.cjs"
       }
     },
-    "./uuid/generateUUID": {
+    "./uuid/generateUuid": {
       "import": {
-        "types": "./dist/uuid/generateUUID.d.mts",
-        "default": "./dist/uuid/generateUUID.mjs"
+        "types": "./dist/uuid/generateUuid.d.mts",
+        "default": "./dist/uuid/generateUuid.mjs"
       },
       "require": {
-        "types": "./dist/uuid/generateUUID.d.ts",
-        "default": "./dist/uuid/generateUUID.cjs"
+        "types": "./dist/uuid/generateUuid.d.ts",
+        "default": "./dist/uuid/generateUuid.cjs"
       }
     },
     "./html": {

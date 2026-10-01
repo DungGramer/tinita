@@ -469,7 +469,6 @@ const TreeItem = React.memo(function TreeItem({
     descriptionScope,
     showArrow,
     overflow,
-    animate,
     renderNode,
     onToggle,
     onSelectedChange,

@@ -1,4 +1,4 @@
-import { emailRegex } from '../regex';
+import { emailRegex } from './patterns';
 
 /**
  * Whether `value` looks like an email address.

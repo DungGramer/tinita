@@ -69,7 +69,7 @@ Provide production-ready utility packages that:
 
 **Current State (v0.0.x)**:
 
-- **`tinita`** (v0.0.1): Framework-agnostic utilities - 4 files (fileSize, getFileNameParts, truncateFileName, generateUUID)
+- **`tinita`** (v0.0.1): Framework-agnostic utilities - 4 files (fileSize, getFileNameParts, truncateFileName, generateUuid)
 - **`tinita-react`** (v0.0.2-alpha.1): React hooks (2) + UI components (3) + CSS
   - Hooks: useToggle, useIsomorphicLayoutEffect
   - Components: FileTree, Ping, CarouselTicker

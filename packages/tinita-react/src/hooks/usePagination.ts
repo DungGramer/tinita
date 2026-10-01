@@ -22,7 +22,7 @@ interface Pagination {
   setConditionCanNext: React.Dispatch<React.SetStateAction<boolean | undefined>>;
 }
 
-const usePagination = ({
+export const usePagination = ({
   totalItems = 0,
   initialPage = 0,
   initialPageSize = 1,
@@ -45,6 +45,10 @@ const usePagination = ({
     if (currentPage > totalItems) {
       setCurrentPage(totalItems);
     }
+    // deps miss `currentPage`, and the condition compares a page number against an
+    // item count. Both are real bugs; plan phase 07 fixes them. Kept as-is here so
+    // the rename phase changes no behaviour.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalItems]);
 
   const totalPages = useMemo(() => Math.ceil(totalItems / pageSize), [totalItems, pageSize]);
@@ -104,5 +108,3 @@ const usePagination = ({
     setConditionCanNext,
   };
 };
-
-export default usePagination;

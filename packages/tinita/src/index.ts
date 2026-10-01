@@ -5,4 +5,4 @@ export * from './file/truncateFileName';
 export * from './file/truncateFileNameParts';
 
 // Uuid
-export * from './uuid/generateUUID';
+export * from './uuid/generateUuid';

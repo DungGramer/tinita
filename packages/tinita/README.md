@@ -52,7 +52,7 @@ All utilities follow consistent patterns:
 Import multiple utilities from the main entry point:
 
 ```typescript
-import { isNumber, isPositive, generateUUID } from 'tinita';
+import { isNumber, isPositive, generateUuid } from 'tinita';
 ```
 
 ### Subpath Import (Optimal Tree-Shaking)
@@ -60,7 +60,7 @@ import { isNumber, isPositive, generateUUID } from 'tinita';
 Import directly from utility paths for guaranteed minimal bundle size:
 
 ```typescript
-import { generateUUID } from 'tinita/uuid/generateUUID';
+import { generateUuid } from 'tinita/uuid/generateUuid';
 import { fileSize } from 'tinita/file/fileSize';
 ```
 

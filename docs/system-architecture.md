@@ -29,7 +29,7 @@ tinita/ (root)
 │   │   │   │   ├── getFileNameParts.ts
 │   │   │   │   └── truncateFileName.ts
 │   │   │   ├── uuid/
-│   │   │   │   └── generateUUID.ts
+│   │   │   │   └── generateUuid.ts
 │   │   │   └── index.ts (barrel)
 │   │   ├── dist/                  (ESM + CJS)
 │   │   ├── package.json
@@ -168,7 +168,7 @@ All packages:
     'src/file/fileSize.ts',
     'src/file/getFileNameParts.ts',
     'src/file/truncateFileName.ts',
-    'src/uuid/generateUUID.ts'
+    'src/uuid/generateUuid.ts'
   ],
   format: ['cjs', 'esm'],
   dts: true,
@@ -357,13 +357,13 @@ turbo lint --filter=tinita-react
 ```typescript
 // src/index.ts - barrel export
 export * from './file/fileSize';
-export * from './uuid/generateUUID';
+export * from './uuid/generateUuid';
 
 // package.json exports
 {
   ".": "./dist/index.{mjs,cjs}",
   "./file/fileSize": "./dist/file/fileSize.{mjs,cjs}",
-  "./uuid/generateUUID": "./dist/uuid/generateUUID.{mjs,cjs}"
+  "./uuid/generateUuid": "./dist/uuid/generateUuid.{mjs,cjs}"
 }
 
 // Usage

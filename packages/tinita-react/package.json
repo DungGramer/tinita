@@ -103,7 +103,7 @@
     "build:js": "TNT_FORMAT=es vite build -c vite.config.build.mts && TNT_FORMAT=cjs vite build -c vite.config.build.mts",
     "build:css": "node scripts/build-css.mjs",
     "build": "pnpm run build:js && pnpm run build:types && pnpm run build:css",
-    "lint": "eslint src --ext .ts,.tsx",
+    "lint": "eslint src --ext .ts,.tsx --max-warnings 0",
     "test": "vitest run",
     "check-types": "tsc --noEmit",
     "prepublishOnly": "pnpm run build",

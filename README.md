@@ -29,7 +29,7 @@ import { fileSize } from 'tinita/file/fileSize';
 import { getFileNameParts } from 'tinita/file/getFileNameParts';
 import { truncateFileName } from 'tinita/file/truncateFileName';
 import { truncateFileNameParts } from 'tinita/file/truncateFileNameParts';
-import { generateUUID } from 'tinita/uuid/generateUUID';
+import { generateUuid } from 'tinita/uuid/generateUuid';
 ```
 
 Zero dependencies, zero peer dependencies. The barrel import (`from 'tinita'`) works too.

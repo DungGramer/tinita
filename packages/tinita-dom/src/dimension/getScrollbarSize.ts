@@ -1,4 +1,4 @@
-export default function getScrollbarSize(): [number, number] {
+export function getScrollbarSize(): [number, number] {
   const inner = document.createElement('p');
   inner.style.width = '100%';
   inner.style.height = '100%';

@@ -145,7 +145,7 @@ export function createHtml(): Html {
  *
  * ```ts
  * import { html } from 'tinita/html';
- * import entities from 'tinita/html/plugin/entities';
+ * import { entities } from 'tinita/html/plugin/entities';
  * html.extend(entities);
  * ```
  *
