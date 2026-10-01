@@ -245,16 +245,16 @@ này. Sau pha này con số phải khớp nhau.
 
 ## Kết quả đo được
 
-| Chỉ số                        | Trước pha | Sau pha  |
-| ----------------------------- | --------: | -------: |
-| `tinita` subpath công khai    |        18 |   **51** |
-| `typesVersions` key           |        17 |   **50** |
-| `contract.json` specifier     |        18 |   **51** |
-| Test `tinita`                 |        90 |  **253** |
-| Entry build / export được     |   49 / 18 |  **55 / 51** |
-| Đường chết trong dist         |        31 |    **4** |
-| Cast `<any>` trong `src`      |       149 |    **0** |
-| `console.*` trong `src`       |         1 |    **0** |
+| Chỉ số                     | Trước pha |     Sau pha |
+| -------------------------- | --------: | ----------: |
+| `tinita` subpath công khai |        18 |      **51** |
+| `typesVersions` key        |        17 |      **50** |
+| `contract.json` specifier  |        18 |      **51** |
+| Test `tinita`              |        90 |     **253** |
+| Entry build / export được  |   49 / 18 | **55 / 51** |
+| Đường chết trong dist      |        31 |       **4** |
+| Cast `<any>` trong `src`   |       149 |       **0** |
+| `console.*` trong `src`    |         1 |       **0** |
 
 204 đường dẫn trong `exports` đều resolve tới file dist có thật (0 thiếu).
 `typesVersions` 50 key khớp đúng 50 subpath non-root của `exports`, 0 lệch hai chiều.
@@ -267,23 +267,23 @@ trong 487.8KB unpacked (tarball 142.9KB).
 
 Danh sách này là lý do pha này không phải "thêm JSDoc và test".
 
-| Hàm                     | Lỗi, và số đo                                                                                                      |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `isVietnamese`          | **không xác định**. Cờ `g` + `.test()` đẩy `lastIndex`: 6 lần cùng input ra `true false true false true false`      |
-| `stringToEventCode`     | **không parse được `Ctrl+Shift+A`** - `ctrlKey` ra `false`. `Cmd+Alt+Shift+K` chỉ còn `shiftKey`. `Ctrl+Ctrl+A` tất cả `false` |
-| `acceptTypeToRegex`     | **ném `SyntaxError`** trên `accept="image/*"`, giá trị accept phổ biến nhất. Regex không neo dấu chấm nên NHẬN `notapng`, `bigpng`. `accept=""` nhận cả `.exe` |
-| `sortAlphaText`         | **mutate** tham số; `localeCompare` không locale sắp sai tiếng Việt (`Ẩn Anh Ánh Ba` thay vì `Anh Ánh Ẩn Ba`)        |
-| `uniqueArray`           | comment nói Set chậm hơn; đo ra reduce chậm hơn **13x-218x** (n=10000: 219.50ms vs 1.005ms)                         |
-| `urlRegex`              | từ chối `https://localhost:3000`; nhận `999.999.999.999`                                                            |
-| `emailRegex`            | TLD `{2,4}` nên từ chối `.museum`, `.online`, `.technology`                                                         |
-| `titleCase`             | `iPhone SDK` -> `Iphone Sdk`, `HTML and CSS` -> `Html And Css`, `McDonald` -> `Mcdonald`                             |
-| `stringToSelector`      | sai 4/7 pattern Tailwind thực tế: `hover:bg-red-500` -> `.hover:bg-red-500` (parse thành `.hover` + pseudo-class)   |
-| `Pick` / `Omit`         | PascalCase **trùng tên utility type có sẵn của TypeScript**                                                         |
-| `mimeTypeToFileExtension` | fallback `split('/').pop()` trả `'vnd.ms-excel'` như thể là extension                                            |
-| `snakeToTitleCase`      | `console.error` rồi trả nguyên input - side effect vào global + silent failure                                      |
-| `insertTextAfterWords`  | mặc định separator `'<br>'`: hàm string trả HTML                                                                    |
-| `getArrayValue`         | khai kiểu `T` trong khi trả `undefined` ngoài khoảng                                                                |
-| `PRINT_TYPE.ratio`      | tính trên **ba cơ sở** trong bảng 12 dòng: inch, pixel@300dpi, hằng số viết tay                                     |
+| Hàm                       | Lỗi, và số đo                                                                                                                                                  |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `isVietnamese`            | **không xác định**. Cờ `g` + `.test()` đẩy `lastIndex`: 6 lần cùng input ra `true false true false true false`                                                 |
+| `stringToEventCode`       | **không parse được `Ctrl+Shift+A`** - `ctrlKey` ra `false`. `Cmd+Alt+Shift+K` chỉ còn `shiftKey`. `Ctrl+Ctrl+A` tất cả `false`                                 |
+| `acceptTypeToRegex`       | **ném `SyntaxError`** trên `accept="image/*"`, giá trị accept phổ biến nhất. Regex không neo dấu chấm nên NHẬN `notapng`, `bigpng`. `accept=""` nhận cả `.exe` |
+| `sortAlphaText`           | **mutate** tham số; `localeCompare` không locale sắp sai tiếng Việt (`Ẩn Anh Ánh Ba` thay vì `Anh Ánh Ẩn Ba`)                                                  |
+| `uniqueArray`             | comment nói Set chậm hơn; đo ra reduce chậm hơn **13x-218x** (n=10000: 219.50ms vs 1.005ms)                                                                    |
+| `urlRegex`                | từ chối `https://localhost:3000`; nhận `999.999.999.999`                                                                                                       |
+| `emailRegex`              | TLD `{2,4}` nên từ chối `.museum`, `.online`, `.technology`                                                                                                    |
+| `titleCase`               | `iPhone SDK` -> `Iphone Sdk`, `HTML and CSS` -> `Html And Css`, `McDonald` -> `Mcdonald`                                                                       |
+| `stringToSelector`        | sai 4/7 pattern Tailwind thực tế: `hover:bg-red-500` -> `.hover:bg-red-500` (parse thành `.hover` + pseudo-class)                                              |
+| `Pick` / `Omit`           | PascalCase **trùng tên utility type có sẵn của TypeScript**                                                                                                    |
+| `mimeTypeToFileExtension` | fallback `split('/').pop()` trả `'vnd.ms-excel'` như thể là extension                                                                                          |
+| `snakeToTitleCase`        | `console.error` rồi trả nguyên input - side effect vào global + silent failure                                                                                 |
+| `insertTextAfterWords`    | mặc định separator `'<br>'`: hàm string trả HTML                                                                                                               |
+| `getArrayValue`           | khai kiểu `T` trong khi trả `undefined` ngoài khoảng                                                                                                           |
+| `PRINT_TYPE.ratio`        | tính trên **ba cơ sở** trong bảng 12 dòng: inch, pixel@300dpi, hằng số viết tay                                                                                |
 
 ## Năm hàm đổi tên vì tên nói sai việc
 
@@ -327,6 +327,20 @@ Ghi ở pha 04 nhưng hệ quả thuộc pha này: `--max-warnings 0` cộng v�
 warning nghĩa là 0 cast `<any>` còn lại trong `src` của `tinita`. Dòng
 `eslint-disable` cả file ở `mime/mimeTypeTable.ts` đã **xoá** cùng với chính file đó
 khi bảng được sinh lại.
+
+## Guard SSR chứng minh bằng cách phá, 2026-10-01
+
+Quy tắc của repo, áp cho guard mới của pha này. Dùng chính `createConsumer` và
+`ssrEsm` của lab nên nó đi qua đúng cơ chế ca thật dùng, không phải bản mô phỏng:
+
+```
+chưa phá                                EXIT=0   51 specifier import được
+thêm `document.createElement` top level  EXIT=1   ReferenceError: document is not defined
+     vào src/string/titleCase.ts
+gỡ ra, build + pack lại                  EXIT=0   xanh lại
+```
+
+Trước khi vá, ca này **không thể** đỏ vì hai fixture chỉ import `tinita-react`.
 
 ## Đính chính
 

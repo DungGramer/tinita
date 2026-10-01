@@ -42,11 +42,18 @@ không try/catch. Một giá trị do code khác (hoặc một thư viện khác
 dùng) ghi vào cùng key làm hàm ném thay vì trả `defaultValue` - đúng ngược lại điều
 tên `defaultValue` hứa. Và `defaultValue = null` làm kiểu trả về ngầm `any`.
 
-**`isBlockTag` và `htmlToJson` dùng `innerHTML` trên chuỗi đầu vào.** `innerHTML`
-không chạy `<script>`, nhưng nó **có** chạy `<img src=x onerror=...>`. Nghĩa là
-`isBlockTag(untrusted)` thực thi code của kẻ tấn công. Đây là lỗ XSS thật, không
-phải lý thuyết. Thay bằng `DOMParser` (không chạy script, không fetch) hoặc
-`<template>`, và khai rõ trong JSDoc.
+**`isBlockLevelHtml` dùng `innerHTML` trên chuỗi đầu vào.** `innerHTML` không chạy
+`<script>`, nhưng nó **có** chạy `<img src=x onerror=...>`. Thay bằng `DOMParser`:
+nó không chạy script và không fetch resource.
+
+Đính chính phạm vi: `htmlToJson` **đã** dùng `DOMParser` từ pha 02, chỉ
+`isBlockLevelHtml` còn `innerHTML`.
+
+Và lưu ý về cách chứng minh: **jsdom không tải resource**, nên
+`isBlockLevelHtml('<img src=x onerror="globalThis.__pwned=1">')` trong jsdom để
+`__pwned` là `undefined` dù vẫn dùng `innerHTML` - đo 2026-10-01. Ca chứng minh
+XSS **phải** là L4 trong Chromium thật; một ca jsdom sẽ xanh giả, đúng lớp lỗi
+"ca báo xanh mà không kiểm thứ nó nói đang kiểm" mà repo đã gặp bốn lần.
 
 **`downloadBlob` có race.** `setTimeout(revoke, 100)` - 100ms là phỏng đoán, không
 phải hợp đồng. Firefox cần delay; con số đúng không tồn tại. `link.remove()` cũng
@@ -264,10 +271,25 @@ Pha này có **ba** bề mặt an toàn thật, nhiều nhất trong cả plan.
    đầu vào vào `innerHTML`. `<img src=x onerror=...>` chạy ngay. Tiêu chí 7 đo
    chính điều này, và ca tự phá 11 chứng minh guard hoạt động. Đây là lý do nhóm
    `html/` không được "vá tại chỗ".
-2. **HTML injection qua `jsonToHtml`.** Hàm dựng chuỗi HTML nên nó là điểm inject
-   theo thiết kế. Escape bằng `html.encode` của `tinita`, và JSDoc khai rằng output
-   chỉ an toàn khi input đi qua `htmlToJson` - không khai thì người dùng sẽ cho JSON
-   từ API vào.
+2. **`jsonToHtml` KHÔNG cần escape - đo 2026-10-01, claim này của tôi sai.** Hàm
+   dựng qua `document.createElement` + `setAttribute` + `createTextNode` rồi lấy
+   `outerHTML`, nên serializer của DOM tự escape:
+
+   ```
+   text node  '<script>alert(1)</script>'  ->  &lt;script&gt;alert(1)&lt;/script&gt;
+   attribute  '"><img src=x onerror=1>'    ->  title="&quot;><img src=x onerror=1>"
+   ```
+
+   Nên **bỏ** ý định import `html.encode` của `tinita` vào đây: nó dư thừa.
+
+   Hai lỗi thật thay thế:
+   - `jsonToHtml({ nodeName: 'img', attributes: { onerror: '...' } })` ra
+     `<img src="x" onerror="window.__p=1">`. Serializer trung thực, nghĩa là **cho
+     JSON không tin cậy vào thì ra markup nguy hiểm**. Đây là contract phải khai,
+     không phải bug phải vá - một serializer âm thầm bỏ attribute còn tệ hơn.
+   - `nodeName` không hợp lệ ném `DOMException` (`"a b" did not match the Name
+production`), không phải `TypeError`, và không khai ở đâu. Phải bọc lại.
+
 3. **Cookie.** `path`, `SameSite`, `Secure` là thuộc tính **an toàn**, không phải
    tiện ích. Mặc định `path='/'` + `sameSite='Lax'`; `secure` mặc định `true` khi
    `location.protocol === 'https:'`. Và JSDoc phải nói: cookie đi theo **mọi**

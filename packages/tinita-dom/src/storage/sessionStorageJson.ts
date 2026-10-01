@@ -1,12 +1,20 @@
-/* eslint-disable @typescript-eslint/no-explicit-any -- phase 06 rewrites this file (JsonStore contract). */
-export const sessionStorageJson = {
-  get: (key: string, defaultValue = null) => {
-    const value = sessionStorage.getItem(key);
+import { createJsonStore } from './createJsonStore';
+import type { JsonStore } from './types';
 
-    return value ? JSON.parse(value) : defaultValue;
-  },
-  set: (key: string, value: any) =>
-    sessionStorage.setItem(key, JSON.stringify(value)),
-  remove: (key: string) => sessionStorage.removeItem(key),
-  clear: () => sessionStorage.clear(),
-};
+/**
+ * `sessionStorage` with JSON on the way in and out. Cleared when the tab closes, and
+ * never shared between tabs.
+ *
+ * Same contract as `localStorageJson`; only the lifetime differs. Prefer this for
+ * anything that should not outlive the visit - a draft, a wizard step, a scroll
+ * position.
+ *
+ * @example
+ * ```ts
+ * sessionStorageJson.set('draft', { title: 'untitled' });
+ * sessionStorageJson.get('draft', null);
+ * ```
+ */
+export const sessionStorageJson: JsonStore = createJsonStore(
+  () => sessionStorage
+);
