@@ -91,7 +91,7 @@ từng subpath, KHÔNG wildcard**; xem `docs/code-standards.md`.
 
 ## Đường nhập
 
-**102 subpath công khai** (tính cả root của mỗi package). Danh sách thật nằm trong `exports` của từng
+**103 subpath công khai** (tính cả root của mỗi package). Danh sách thật nằm trong `exports` của từng
 `package.json`; `pnpm check-doc-links` làm đỏ nếu một `.md` nào nhắc tới đường
 không tồn tại, nên đừng liệt kê lại ở đây.
 
@@ -104,8 +104,8 @@ mọi module phải **import** sạch khi không có DOM. Thư mục: `converter
 `dimension/`, `file/`, `html/`, `image/`, `storage/`, `style/`, `unit/`,
 `validation/`, cộng `smooth-scroll` và `wheel-source`.
 
-`tinita-react` (18, trong đó 4 là CSS) - dùng **subpath cụ thể**. 7 hook,
-4 component, 2 util.
+`tinita-react` (19, trong đó 4 là CSS) - dùng **subpath cụ thể**. 7 hook,
+5 component, 2 util.
 
 <!-- doc-links-ignore -->
 
@@ -225,10 +225,13 @@ client. Mọi quy tắc dưới đây có số đo và có guard.
 
 - **Prefix `tnt-`** cho mọi class, custom property, và `@keyframes`. Không chỉ
   class: `@keyframes accordion-down` trùng thẳng tên keyframes của shadcn.
-  CSS Modules đã cân nhắc và **owner chốt không dùng** (2026-09-26): hash tên thì
-  người dùng mất khả năng override bằng CSS, còn CSS Modules tên ổn định thì trả
-  hết chi phí migration mà nhận lại đúng mức chống trùng đang có. Lý do đầy đủ ở
-  `docs/system-architecture.md`. Đừng mở lại mà không có lý do mới.
+  **Cách làm là CSS Modules với tên LOCAL, không phải hash.** Cả 5 component đều
+  `import styles from './<Tên>.module.css'` và viết `.root`, `.header`; build sinh
+  `tnt-ping-root`, `tnt-floating-window-header` - vẫn đọc được, vẫn override được
+  bằng CSS. Cái owner chốt không dùng (2026-09-26) là **hash tên**: nó lấy mất khả
+  năng override của người dùng. CLAUDE.md từng ghi gọn thành "không dùng CSS
+  Modules", trái hẳn với code - đo 2026-10-02: 5/5 component dùng. Lý do đầy đủ ở
+  `docs/system-architecture.md`.
 - **Không** rule nào nhắm `body`, `html`, hay `*`. Không `color-scheme`.
 - **Dark mode ĐỌC quy ước của host**, không định nghĩa nó:
   `:where(.dark, [data-theme='dark'])`. `:where()` cho specificity 0 nên host luôn
@@ -298,6 +301,56 @@ thể đụng biến cùng tên của host, và guard dò biến third-party kh�
 tiền tố nhà cung cấp - phải liệt kê tên thật. Bọc nó sau token của tinita ngay tại
 chỗ dùng, đúng một lần.
 
+## FloatingWindow: controlled, và prop là hàm nên RSC cần `'use client'` của consumer
+
+`'use client'` mà library tự khai (banner của tsup) đủ cho `Ping`, `FileTree`,
+`CarouselTicker` - consumer đặt chúng thẳng vào Server Component được. **`FloatingWindow`
+thì không**, vì nó nhận prop là hàm (`onOpenChange`). Đo thật 2026-10-02 bằng
+`next build`:
+
+```
+Error: Event handlers cannot be passed to Client Component props.
+  {open: true, onOpenChange: function onOpenChange, title: ..., children: ...}
+```
+
+Consumer phải tự bọc `'use client'`. Hai ca L2 khoá đúng cặp này:
+`next:rsc-floatingwindow-no-directive` (mong đợi FAIL, **và** khớp đúng chuỗi lỗi trên)
+và `next:rsc-floatingwindow-app-directive` (PASS). Ca mong đợi fail phải khớp cả exit
+code lẫn lý do - chỉ đòi `exit != 0` thì nó xanh y nguyên khi nguyên nhân đổi sang thứ
+khác.
+
+Component **không giữ state nào**: `open`, `mode`, `geometry`, vị trí bubble đều là
+prop, có fallback nội bộ khi không truyền. Bản từ app dùng store `zustand` + `persist`
+ở module scope, nên chỉ cần import là library dựng một singleton và ghi vào
+`localStorage` của consumer dưới key mang tên ứng dụng gốc. Lưu trữ là quyết định của
+consumer, nên nó là `onGeometryChange` và không gì khác.
+
+**Minimize KHÔNG unmount.** Window thu nhỏ bằng `transform: scale`, giữ nguyên
+`width`/`height` thật, nên body không reflow về 48px - `<iframe>` bên trong giữ state
+và không reload. Body bị gỡ khỏi hit-testing lúc thu nhỏ, vì `pointer-events: auto`
+của chính iframe thắng `none` đặt trên tổ tiên và sẽ ăn hết click dành cho bubble.
+
+**Icon là SVG inline, không `lucide-react`.** `lucide-react` là peer **optional**, nên
+import nó ở đây sẽ làm component throw ở consumer không cài. `Tree` cũng chọn vậy (nhận
+`ReactNode`); chỉ `FileTree` phụ thuộc thư viện icon.
+
+`react-dom` giờ là **peer bắt buộc** (`createPortal`). Nó đã nằm trong `external` của
+vite từ trước mà chưa được khai peer - comment ở đó nói "PHẢI khớp `peerDependencies`",
+nên đây là bịt lệch cũ chứ không phải thêm phụ thuộc mới.
+
+### React 18 là sàn CỨNG, và chỉ L4 đo nó
+
+`ui/tree/store.ts` và `hooks/useWindowSize.ts` dùng `useSyncExternalStore` - API của
+React 18. `FloatingWindow` dùng `useWindowSize` nên thừa hưởng sàn đó. Hạ xuống React
+17 không phải nới một con số, mà là viết lại hai chỗ kia.
+
+Nhưng `peerDependencies` khai `>=18` trong khi **L1 và L2 chỉ cài `react@19`**; chỉ L4
+chạy cả `['18', '19']`. Đo 2026-10-02. Từ 2026-10-02 L4 mount `FloatingWindow` trong
+Chromium thật ở cả hai phiên bản (`react18:floating-window-mounts`,
+`react19:...`), nên component này có coverage 18 thật; phần L1/L2 còn thiếu nằm ở nợ
+kỹ thuật #20. **Đừng khai một sàn peer rộng hơn thứ lab đo được** mà không ghi lại
+khoảng trống.
+
 ## Reduced motion: tắt hẳn
 
 `@media (prefers-reduced-motion: reduce)` phải `animation: none` /
@@ -313,9 +366,18 @@ tự viết. Những cái đó phải tự tắt ở JS qua `matchMedia` + liste
 
 ## Thêm component mới
 
-1. Folder trong `src/ui/<tên>/`: `<Tên>.tsx` (logic), `<Tên>.css` nếu có style,
-   `index.tsx` chỉ re-export. Logic KHÔNG nằm trong `index.tsx`.
-2. CSS thật, prefix `tnt-`, BEM, biến thể qua `data-*`. Không Tailwind trong JSX.
+1. Folder trong `src/ui/<tên>/`: `<Tên>.tsx` (logic), `<Tên>.module.css` nếu có
+   style, `index.ts` chỉ re-export. Logic KHÔNG nằm trong `index.ts`.
+   (Tên file: `.module.css` và `index.ts`, không phải `.css`/`index.tsx` - đo
+   2026-10-02, cả 5 component đều vậy, và vite chỉ quét `ui/<dir>/index.{ts,tsx}`.)
+2. CSS thật, prefix `tnt-`, biến thể qua `data-*`. **Không class Tailwind trong
+   JSX** - và từ 2026-10-02 việc này CÓ guard: ca
+   `NO className in src/ui receives a literal string` trong
+   `tests/styles/variant-contract.test.ts`. Mọi `className` phải đi qua `styles.*`
+   hoặc prop `className` được chuyển tiếp. Guard dò "không literal" chứ không dò từ
+   điển Tailwind, vì 5 component có sẵn đều 0 literal nên quy tắc chính xác không
+   cần từ điển phải bảo trì, và nó bắt mọi framework utility.
+   Đường lẻn thứ hai cũng bị canh: `@apply`/`@tailwind` trong `.module.css`.
 3. Thêm subpath vào `package.json` `exports` **và** `typesVersions`, thêm
    specifier vào `compatibility/contract.json`.
 4. **Story trong `apps/storybook/stories/<Tên>/<Tên>.stories.tsx`** - bắt buộc,
@@ -327,11 +389,29 @@ tự viết. Những cái đó phải tự tắt ở JS qua `matchMedia` + liste
 ## Quy tắc làm việc trong repo này
 
 **Guard mới phải được chứng minh bằng cách phá đúng thứ nó canh**, không phải bằng
-việc nó xanh. Đã có bốn lần một ca báo xanh mà không kiểm thứ nó nói đang kiểm:
+việc nó xanh. Đã có **năm** lần một ca báo xanh mà không kiểm thứ nó nói đang kiểm:
 cell `bun` advisory PASS khi chưa chạy được; ca `08-typesversions-sync` bản đầu
 không thể fail; ca `reduced-motion-scope` dò một hằng số nên mù khi cơ chế đổi;
-cell `yarn-pnp` pass 19 ca mà chưa từng đi qua PnP. Mẫu lặp lại, và đây là cách
-chặn duy nhất đã dùng được.
+cell `yarn-pnp` pass 19 ca mà chưa từng đi qua PnP; và `check-stories` PASS trên
+`feature/snap-corner` vì nó đọc `exports`, mà component mới chưa khai subpath - khai
+xong là nó đỏ ngay. Mẫu lặp lại, và đây là cách chặn duy nhất đã dùng được.
+
+### `expectedFailure` làm một ca đỏ thành XFAIL, và XFAIL KHÔNG làm suite đỏ
+
+`compatibility/scripts/report.mjs:18` in `XFAIL` thay vì `FAIL` khi meta có
+`expectedFailure`, và `:25` loại nó khỏi danh sách fail. Nên một ca truyền
+`expectedFailure` sẽ **xanh bất kể nó phán quyết gì**.
+
+Đo 2026-10-02: ca `next:rsc-floatingwindow-no-directive` khẳng định `next build` phải
+fail kèm đúng chuỗi `Event handlers cannot be passed to Client Component props`. Đổi
+chuỗi đó thành một chuỗi không tồn tại -> ca in `XFAIL` ... `lý do khớp: KHÔNG` và
+suite vẫn **exit 0**. Đã bỏ `expectedFailure` khỏi nhóm ca này; phán quyết nằm trong
+tham số `ok` của `add()`.
+
+Dùng `expectedFailure` chỉ cho thứ **đã biết hỏng và tạm chấp nhận** (như
+`07-registry-vs-local` chờ publish). Một ca khẳng định "việc này PHẢI fail" thì không
+dùng nó - encode vào `ok`, nếu không ca chỉ đang canh "có fail", và nó sẽ xanh y
+nguyên khi nguyên nhân đổi sang thứ khác.
 
 Khi bịt xong một rò rỉ thì **đảo `expected`** trong ca của lab, đừng viết lại ca -
 ca là cửa chặn hồi quy, không phải bản báo cáo một lần.

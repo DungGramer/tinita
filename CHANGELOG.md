@@ -43,6 +43,25 @@ of the bundler in front of it.
   `stepped` verdict that a real detent burst settled instead of overwriting it.
 - `tinita-react`: `useDoubleTap`, `usePagination`, `useRefreshComponent`,
   `useRequiredContext`, `useWindowSize`, `useIsomorphicLayoutEffect`, `jsxJoin`.
+- `tinita-react/ui/floating-window`: a draggable, resizable window portalled into
+  `document.body`, with a collapsed edge-snapping bubble. Controlled - `open`, `mode`,
+  `geometry` and the bubble position are props - so persistence is the consumer's
+  decision. Minimize animates a `transform` instead of unmounting, so an `<iframe>`
+  child keeps its state and does not reload. Motion is CSS, which is what lets
+  `prefers-reduced-motion` switch it off.
+  Unlike the other three components, the library's own `'use client'` is **not enough**
+  for a React Server Component: `onOpenChange` is a function prop, and
+  `next build` reports `Event handlers cannot be passed to Client Component props`.
+  The consumer wraps it. Two L2 cases lock both halves.
+- `react-dom >=18` is now a **required** peer, for `createPortal`. It was already in
+  vite's `external` list without being declared, next to a comment saying that list
+  must match `peerDependencies` - so this closes an existing mismatch rather than
+  adding a dependency.
+- React 18 support is now measured, not just claimed. The lab builds and mounts the
+  components in a real Chromium on **both 18 and 19** and fails on a hydration error;
+  `FloatingWindow` was added to that case, so the component with the newest code has
+  coverage on the oldest supported React. 18 is a hard floor either way, because
+  `Tree` and `useWindowSize` are built on `useSyncExternalStore`.
 - `tinita/html` and `tinita/mime`: a small default table plus an opt-in plugin applied
   with `.extend()`, after dayjs. The full MIME table is 71KB of output and
   `bundle: true` would have inlined it into every call site.

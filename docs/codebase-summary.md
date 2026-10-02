@@ -136,20 +136,24 @@ type, 71KB output) - vì `bundle: true` inline mọi thứ được import vào 
 
 #### Components (3)
 
-| Component        | Folder                    | Mô tả                                           |
-| ---------------- | ------------------------- | ----------------------------------------------- |
-| `FileTree`       | `src/ui/file-tree/`       | File/folder tree view với icon, expand/collapse |
-| `Ping`           | `src/ui/ping/`            | Activity/loading indicator (Ping animation)     |
-| `CarouselTicker` | `src/ui/carousel-ticker/` | Auto-scroll carousel                            |
+| Component        | Folder                    | Mô tả                                                            |
+| ---------------- | ------------------------- | ---------------------------------------------------------------- |
+| `Tree`           | `src/ui/tree/`            | Tree primitive, nhận `nodes`, không phụ thuộc thư viện icon      |
+| `FileTree`       | `src/ui/file-tree/`       | Adapter: đọc chuỗi cây CLI/thụt lề rồi đưa cho `Tree`            |
+| `Ping`           | `src/ui/ping/`            | Activity/loading indicator (Ping animation)                      |
+| `CarouselTicker` | `src/ui/carousel-ticker/` | Auto-scroll carousel                                             |
+| `FloatingWindow` | `src/ui/floating-window/` | Window kéo/resize được qua portal, thu nhỏ thành bubble bám cạnh |
 
-#### Colocation Pattern (3/3 ✓)
+Bảng này từng liệt kê 3 trong 5 - thiếu `Tree` và `FloatingWindow`. Đo 2026-10-02.
+
+#### Colocation Pattern (5/5 ✓)
 
 **Mẫu chuẩn (được tuân thủ):**
 
 ```
 src/ui/FileTree/
   ├── FileTree.tsx           # Main component (đúng, tên file riêng)
-  ├── FileTree.css           # Styles (CSS variables + Tailwind)
+  ├── FileTree.module.css           # CSS Modules (biến CSS, KHÔNG Tailwind)
   ├── types.ts               # Type definitions
   ├── utils/                 # Component utilities
   ├── components/            # Private subcomponents (FileLabel, FolderNode, TreeNodes, etc.)
@@ -341,7 +345,7 @@ nên mọi thứ trông như chạy): `node_modules` chỉ có `react` + `tinita
 
 - `src/styles/globals.css` - `@theme inline`, `@apply border-border`
 - `src/styles/animations.css` - @keyframes (tnt-fade-in, tnt-slide-up, etc.)
-- Component CSS (`CarouselTicker.css`, `FileTree.css`) - CSS variables, không @apply
+- Component CSS (`CarouselTicker.module.css`, `FileTree.module.css`) - CSS variables, không @apply
 
 **Token Prefix:** `tnt-` xuyên suốt
 

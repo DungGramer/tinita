@@ -1,296 +1,405 @@
-import { useEffect, useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
-import { Minus, Maximize2, Minimize2, RefreshCw, ExternalLink, X } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import {
-  useFloatingWindowStore,
-  type WindowId,
-  type FloatingWindow as FW,
-} from './stores/floatingWindowStore';
-import { useFloatingWindowDrag } from './use-floating-window-drag';
-import { BUBBLE_SIZE, bubbleRestPosition } from './floating-window-config';
+'use client';
 
-// z-45: above ChatBubble (z-40), below shadcn modals (z-50).
-// Maximized window fills viewport at z-50.
-const BASE_Z = 45;
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
-// Spring for maximize/restore + minimize/expand + close transitions.
-const SPRING = { type: 'spring' as const, stiffness: 380, damping: 32 };
+import { useWindowSize } from '../../hooks/useWindowSize';
+import { cn } from '../../utils/cn';
+import { variantAttributes } from '../../utils/variantAttributes';
+import {
+  BUBBLE_SIZE,
+  bubbleRestPosition,
+  centredGeometry,
+  clampWindow,
+  type Point,
+  type WindowGeometry,
+} from './geometry';
+import { CloseIcon, MaximizeIcon, MinimizeIcon, RestoreIcon, WindowIcon } from './icons';
+import styles from './FloatingWindow.module.css';
+import { useDragSnap } from './useDragSnap';
+import { useWindowDrag } from './useWindowDrag';
+
+export type { Point, SnapSide, WindowGeometry } from './geometry';
+export { BUBBLE_SIZE, MIN_HEIGHT, MIN_WIDTH } from './geometry';
+
+/** Windowed, filling the viewport, or collapsed to an edge bubble. */
+export type FloatingWindowMode = 'windowed' | 'maximized' | 'minimized';
+
+export interface FloatingWindowLabels {
+  minimize: string;
+  maximize: string;
+  restore: string;
+  close: string;
+}
 
 /**
- * A single open floating window — stays MOUNTED for its whole open lifetime so the
- * embedded <iframe> keeps its state across minimize/restore (no reload).
- *
- * - Minimize does NOT unmount: the window animates (transform-scale + translate) down
- *   to the bubble spot and hides (opacity 0, pointer-events none). Because width/height
- *   stay at the visible size and only the CSS transform scales, the iframe never reflows
- *   to 48px — restore grows it back with zero layout flash.
- * - Maximize/restore animates real width/height (iframe re-layouts to fullscreen res, as
- *   wanted for a dashboard).
- * - Close is an AnimatePresence exit (fade + slight shrink), handled by the manager.
+ * English, because a default has to be in some language and the package ships no
+ * translation layer. Override through `labels` - the version this replaces called
+ * `react-i18next` directly, which forced every consumer onto one i18n framework to
+ * use a window.
  */
-export function FloatingWindow({
-  id,
-  win,
-  slot,
-  stack,
-  isActive,
-}: {
-  id: WindowId;
-  win: FW;
-  slot: number;
-  stack: number;
-  isActive: boolean;
-}) {
-  const { t } = useTranslation('common');
-  const reduce = useReducedMotion();
+const DEFAULT_LABELS: FloatingWindowLabels = {
+  minimize: 'Minimize',
+  maximize: 'Maximize',
+  restore: 'Restore',
+  close: 'Close',
+};
 
-  // Local reload key — incrementing forces iframe remount (cross-origin reload workaround).
-  const [reloadKey, setReloadKey] = useState(0);
+/**
+ * Stable stand-in while the viewport is still unmeasured.
+ *
+ * Must be a module constant, not an inline literal. `useWindowDrag` syncs from
+ * `geometry` in an effect keyed on its identity, so a fresh object every render
+ * re-ran the effect, which set state, which rendered again - an infinite loop on the
+ * first render, before any geometry exists.
+ */
+const EMPTY_GEOMETRY: WindowGeometry = { x: 0, y: 0, width: 0, height: 0 };
 
-  // Actions via getState() are stable references (no re-sub on each render).
-  const { close, minimize, toggleMaximize, focus } = useFloatingWindowStore.getState();
+/** Highest z-index the window will take. Stays below the 50 most modals use. */
+const Z_CEILING = 49;
+const Z_BASE = 45;
 
-  const {
-    box,
-    isInteracting,
-    onHeaderPointerDown,
-    onResizePointerDown,
-    onPointerMove,
-    onPointerUp,
-    onPointerCancel,
-  } = useFloatingWindowDrag(id, win);
+export interface FloatingWindowProps {
+  /** Mounted and visible while true. Nothing renders when false. */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  /** Header text. Also the bubble's accessible name, so prefer a plain string. */
+  title: string;
+  /** The window body. An `<iframe>` is a valid child - see the notes on shielding. */
+  children: ReactNode;
+  /** Icon in the header and in the collapsed bubble. */
+  icon?: ReactNode;
+  /** Controlled mode. Managed internally when omitted. */
+  mode?: FloatingWindowMode;
+  onModeChange?: (mode: FloatingWindowMode) => void;
+  /**
+   * Controlled geometry, in CSS pixels. Managed internally when omitted; pass it to
+   * remember size and position across reloads. Committed once per gesture, on
+   * release, never on every pointer move.
+   */
+  geometry?: WindowGeometry;
+  onGeometryChange?: (geometry: WindowGeometry) => void;
+  /** Remembered resting place of the collapsed bubble. */
+  bubblePosition?: Point | null;
+  onBubblePositionChange?: (position: Point) => void;
+  /**
+   * False puts the focus shield over the body. Leave unset for a single window;
+   * pass it when several are open so only one is interactive at a time.
+   */
+  active?: boolean;
+  onFocus?: () => void;
+  /** Stacking offset for multiple windows. Clamped below the modal range. */
+  stack?: number;
+  /** Extra header controls, placed before the built-in ones. */
+  actions?: ReactNode;
+  /** Overrides for the control labels. Each is both `aria-label` and `title`. */
+  labels?: Partial<FloatingWindowLabels>;
+  /** Vertical slot for the default bubble spot, so several never overlap. */
+  bubbleSlot?: number;
+  /** Forces the colour scheme. Unset follows the host's dark-mode convention. */
+  theme?: 'light' | 'dark';
+  /** Portal target. Defaults to `document.body`. */
+  container?: Element | null;
+  className?: string;
+}
 
-  // meta is guaranteed present: the manager only renders when w.meta is set.
-  const meta = win.meta!;
-  const Icon = meta.icon;
+/**
+ * A draggable, resizable window that floats above the page, with a collapsed
+ * edge-snapping bubble.
+ *
+ * Rendered through a portal into `document.body`, because a window positioned inside
+ * the app's own tree is trapped by any ancestor that creates a stacking context -
+ * `position: fixed` does not escape a transformed parent.
+ *
+ * **Controlled, and it holds no global state.** `open`, `mode`, `geometry` and the
+ * bubble position are all props with optional internal fallbacks. The version this
+ * replaces kept a module-level `zustand` store with `persist`, which made a library
+ * import install a singleton and write to the consumer's `localStorage` under a key
+ * named after the application it came from. Persistence is the consumer's decision,
+ * so it is `onGeometryChange` and nothing else.
+ *
+ * ### Minimize does not unmount
+ *
+ * The collapsed window keeps its real `width`/`height` and only its CSS transform
+ * scales, so the body never reflows to bubble size. An `<iframe>` child therefore
+ * keeps its state and does not reload, and restoring costs no layout pass. The body
+ * is taken out of hit-testing while collapsed, because an iframe's own
+ * `pointer-events: auto` beats a `none` on an ancestor and would otherwise eat every
+ * click meant for the bubble.
+ *
+ * ### Two shields, both for cross-origin iframes
+ *
+ * A cross-origin iframe swallows pointer events and never lets them reach this
+ * document. The **pointer shield** removes the body from hit-testing for the length
+ * of a drag or resize, so the gesture is not killed when the pointer crosses the
+ * frame. The **focus shield** is a transparent layer over an inactive window's body,
+ * which catches the first pointer-down and raises the window, since a click inside
+ * the frame cannot. It unmounts once `active` is true.
+ *
+ * ### Motion is CSS
+ *
+ * Position, size and collapse scale are handed to the stylesheet as `--tnt-fw-*`
+ * custom properties and transitioned there, so `prefers-reduced-motion` switches
+ * them off. A JavaScript spring, which is what this replaces, cannot be reached by a
+ * media query.
+ *
+ * @example
+ * ```tsx
+ * const [open, setOpen] = useState(false);
+ *
+ * <FloatingWindow open={open} onOpenChange={setOpen} title="Dashboard">
+ *   <iframe src="https://example.com" title="Dashboard" />
+ * </FloatingWindow>
+ * ```
+ */
+export const FloatingWindow = ({
+  open,
+  onOpenChange,
+  title,
+  children,
+  icon,
+  mode: modeProp,
+  onModeChange,
+  geometry: geometryProp,
+  onGeometryChange,
+  bubblePosition = null,
+  onBubblePositionChange,
+  active = true,
+  onFocus,
+  stack = 0,
+  actions,
+  labels: labelOverrides,
+  bubbleSlot = 0,
+  theme,
+  container,
+  className,
+}: FloatingWindowProps) => {
+  const { width: viewportWidth, height: viewportHeight } = useWindowSize();
 
-  // Track viewport so maximized geometry (numeric, for smooth tweening) refits on resize.
-  const [vp, setVp] = useState({ w: window.innerWidth, h: window.innerHeight });
+  // Memoised, so the effects below can depend on `viewport` itself rather than on
+  // its two fields. Depending on the fields while reading the object is what
+  // `react-hooks/exhaustive-deps` flags, and it is a real hazard: the object the
+  // effect closes over and the values in the dependency list can disagree.
+  const viewport = useMemo(
+    () => ({ width: viewportWidth, height: viewportHeight }),
+    [viewportWidth, viewportHeight]
+  );
+
+  // `useWindowSize` reports 0x0 on the server and for the first client render by
+  // design, so there is no hydration mismatch. A window cannot be placed without a
+  // viewport, and `createPortal` needs a DOM node, so nothing renders until then.
+  // This is also what makes the module safe to import in a server component.
+  const measured = viewportWidth > 0 && viewportHeight > 0;
+
+  const [modeState, setModeState] = useState<FloatingWindowMode>('windowed');
+  const mode = modeProp ?? modeState;
+  const setMode = useCallback(
+    (next: FloatingWindowMode) => {
+      if (modeProp === undefined) setModeState(next);
+      onModeChange?.(next);
+    },
+    [modeProp, onModeChange]
+  );
+
+  const [geometryState, setGeometryState] = useState<WindowGeometry | null>(null);
+  const geometry = geometryProp ?? geometryState;
+  const setGeometry = useCallback(
+    (next: WindowGeometry) => {
+      if (geometryProp === undefined) setGeometryState(next);
+      onGeometryChange?.(next);
+    },
+    [geometryProp, onGeometryChange]
+  );
+
+  // Seed the uncontrolled geometry once the viewport is known. Done in an effect
+  // rather than a `useState` initialiser: an initialiser runs during render, where
+  // `window` does not exist on a server. That exact line, in this component's
+  // previous form, is the defect `useWindowSize` was rewritten to remove.
   useEffect(() => {
-    const onResize = () => setVp({ w: window.innerWidth, h: window.innerHeight });
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
+    if (geometryProp !== undefined || geometryState || !measured) return;
+    setGeometryState(centredGeometry(viewport));
+  }, [geometryProp, geometryState, measured, viewport]);
 
-  // Keep a windowed box on-screen after the viewport shrinks (read fresh from the
-  // store so deps stay minimal; the drag hook resyncs local `box` from the store).
+  // Keep a window inside a viewport that shrank under it - a rotated phone, a
+  // resized browser - so the header, and therefore the drag handle, stays reachable.
   useEffect(() => {
-    const s = useFloatingWindowStore.getState();
-    const w = s.windows[id];
-    if (!w || w.isMaximized) return;
-    const width = Math.min(w.width, vp.w);
-    const height = Math.min(w.height, vp.h);
-    const x = Math.max(0, Math.min(w.x, vp.w - width));
-    const y = Math.max(0, Math.min(w.y, vp.h - 40));
-    if (width !== w.width || height !== w.height) s.setSize(id, width, height);
-    if (x !== w.x || y !== w.y) s.setPosition(id, x, y);
-  }, [vp.w, vp.h, id]);
+    if (!geometry || !measured) return;
+    const fitted = clampWindow(geometry, viewport);
+    if (
+      fitted.x !== geometry.x ||
+      fitted.y !== geometry.y ||
+      fitted.width !== geometry.width ||
+      fitted.height !== geometry.height
+    ) {
+      setGeometry(fitted);
+    }
+  }, [geometry, measured, viewport, setGeometry]);
 
-  const maximized = win.isMaximized;
-  const minimized = win.isMinimized;
-  // Multi-window stacking: z = base + compact stack rank (0,1,2…) from the manager,
-  // hard-capped below 50 (modal z-index). Using the rank instead of the raw, ever-
-  // growing `order` keeps z from saturating so click-to-focus always raises windows.
-  const z = maximized ? 50 : Math.min(BASE_Z + stack, 49);
-
-  // Visible LAYOUT geometry (real iframe size). Maximized = full viewport.
-  const visW = maximized ? vp.w : box.width;
-  const visH = maximized ? vp.h : box.height;
-  const visX = maximized ? 0 : box.x;
-  const visY = maximized ? 0 : box.y;
-
-  // Bubble spot (persisted/snapped or slot-offset default, clamped for corners).
-  const bubbleRest = bubbleRestPosition(win, vp.w, vp.h, slot);
-
-  // Minimize collapses via transform-scale (origin top-left) so width/height — and thus
-  // the iframe layout — stay fixed (no reflow). Scaled corner lands on the bubble spot.
-  const animateTo = minimized
-    ? {
-        x: bubbleRest.x,
-        y: bubbleRest.y,
-        width: visW,
-        height: visH,
-        scaleX: BUBBLE_SIZE / visW,
-        scaleY: BUBBLE_SIZE / visH,
-        opacity: 0,
-        borderRadius: 12,
+  // Internal fallback, same pattern as `mode` and `geometry`. Without it a consumer
+  // who does not wire `onBubblePositionChange` cannot move the bubble at all: the
+  // snap result went nowhere, `bubblePosition` never changed, and the bubble jumped
+  // straight back to its default spot on release.
+  const [bubbleState, setBubbleState] = useState<Point | null>(null);
+  const rememberedBubble = bubblePosition ?? bubbleState;
+  const setBubble = useCallback(
+    (next: Point) => {
+      if (bubblePosition === undefined || bubblePosition === null) {
+        setBubbleState(next);
       }
-    : {
-        x: visX,
-        y: visY,
-        width: visW,
-        height: visH,
-        scaleX: 1,
-        scaleY: 1,
-        opacity: 1,
-        borderRadius: maximized ? 0 : 12,
-      };
+      onBubblePositionChange?.(next);
+    },
+    [bubblePosition, onBubblePositionChange]
+  );
 
-  // Reduced motion or live drag/resize → instant; otherwise spring.
-  const transition = reduce || isInteracting ? { duration: 0 } : SPRING;
+  const bubbleRest = measured
+    ? bubbleRestPosition(rememberedBubble, viewport, bubbleSlot)
+    : { x: 0, y: 0 };
 
-  return (
-    <motion.div
-      style={{
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        transformOrigin: '0 0',
-        zIndex: z,
-        touchAction: 'none',
-        // Collapsed window is invisible + click-through so the bubble/page beneath work.
-        pointerEvents: minimized ? 'none' : 'auto',
-      }}
-      initial={{ opacity: 0, scaleX: 0.94, scaleY: 0.94 }}
-      animate={animateTo}
-      exit={{ opacity: 0, scaleX: 0.92, scaleY: 0.92 }}
-      transition={transition}
-      // Raise to front on any pointer-down within the window chrome (capture phase
-      // fires before drag/resize begin and before button handlers stop propagation).
-      onPointerDownCapture={() => focus(id)}
-      // Pointer handlers on the outer container so pointer capture (set on drag/resize
-      // initiators) keeps delivering events here even when the pointer is over the iframe.
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerCancel}
-      className={`flex flex-col overflow-hidden border bg-background transition-shadow ${
-        isActive
-          ? 'border-border shadow-2xl ring-1 ring-primary/30'
-          : 'border-border/60 shadow-lg'
-      }`}
-    >
-      {/* Header — drag handle in windowed mode; double-click toggles maximize. */}
+  const drag = useWindowDrag({
+    geometry: geometry ?? EMPTY_GEOMETRY,
+    viewport,
+    onGeometryChange: setGeometry,
+    onFocus,
+  });
+
+  const snap = useDragSnap({
+    viewport,
+    position: bubbleRest,
+    onSnap: setBubble,
+    onTap: () => setMode('windowed'),
+  });
+
+  if (!open || !measured || !geometry) return null;
+
+  const maximized = mode === 'maximized';
+  const minimized = mode === 'minimized';
+
+  // Visible layout box. Maximized fills the viewport; the body re-lays-out to that
+  // size on purpose, which is what a dashboard in an iframe wants.
+  const box = maximized ? { x: 0, y: 0, width: viewport.width, height: viewport.height } : drag.box;
+
+  // Collapse target. Scale, not width/height, so the body keeps its layout - see the
+  // note on minimize above. Guarded against a zero box, which would divide by zero
+  // and emit `scale(Infinity)`.
+  const scaleX = minimized && box.width > 0 ? BUBBLE_SIZE / box.width : 1;
+  const scaleY = minimized && box.height > 0 ? BUBBLE_SIZE / box.height : 1;
+
+  const style = {
+    '--tnt-fw-x': `${minimized ? bubbleRest.x : box.x}px`,
+    '--tnt-fw-y': `${minimized ? bubbleRest.y : box.y}px`,
+    '--tnt-fw-width': `${box.width}px`,
+    '--tnt-fw-height': `${box.height}px`,
+    '--tnt-fw-scale-x': scaleX,
+    '--tnt-fw-scale-y': scaleY,
+    zIndex: maximized ? Z_CEILING + 1 : Math.min(Z_BASE + stack, Z_CEILING),
+  } as CSSProperties;
+
+  const labels = { ...DEFAULT_LABELS, ...labelOverrides };
+
+  const headerIcon = icon ?? <WindowIcon />;
+
+  const tree = (
+    <>
       <div
-        onPointerDown={maximized ? undefined : onHeaderPointerDown}
-        onDoubleClick={() => toggleMaximize(id)}
-        className={`flex h-10 shrink-0 items-center justify-between gap-2 border-b px-3 select-none ${
-          maximized ? '' : 'cursor-grab active:cursor-grabbing'
-        }`}
+        className={cn(styles.root, className)}
+        style={style}
+        {...variantAttributes({
+          mode,
+          active,
+          dragging: drag.interacting,
+          theme,
+        })}
+        // Capture phase, so the window is raised before the drag handler begins and
+        // before a control button stops propagation.
+        onPointerDownCapture={onFocus}
+        // The move and release handlers belong here, not on the header: pointer
+        // capture is taken by the element that starts the gesture, and these keep
+        // receiving the events even while the pointer is over the body.
+        onPointerMove={drag.onPointerMove}
+        onPointerUp={drag.onPointerUp}
+        onPointerCancel={drag.onPointerCancel}
       >
-        <div className="flex min-w-0 items-center gap-2 text-sm font-medium">
-          <Icon className={`h-4 w-4 shrink-0 ${meta.iconClassName ?? ''}`} />
-          <span className="truncate">{meta.title}</span>
+        <div
+          className={styles.header}
+          {...variantAttributes({ mode })}
+          onPointerDown={maximized ? undefined : drag.onHeaderPointerDown}
+          onDoubleClick={() => setMode(maximized ? 'windowed' : 'maximized')}
+        >
+          <div className={styles.title}>
+            <span className={styles.icon}>{headerIcon}</span>
+            <span className={styles.titleText}>{title}</span>
+          </div>
+
+          {/* Stops a press on a control from also starting a header drag. */}
+          <div className={styles.actions} onPointerDown={(event) => event.stopPropagation()}>
+            {actions}
+            <button
+              type="button"
+              className={styles.button}
+              aria-label={labels.minimize}
+              title={labels.minimize}
+              onClick={() => setMode('minimized')}
+            >
+              <MinimizeIcon />
+            </button>
+            <button
+              type="button"
+              className={styles.button}
+              aria-label={maximized ? labels.restore : labels.maximize}
+              title={maximized ? labels.restore : labels.maximize}
+              onClick={() => setMode(maximized ? 'windowed' : 'maximized')}
+            >
+              {maximized ? <RestoreIcon /> : <MaximizeIcon />}
+            </button>
+            <button
+              type="button"
+              className={styles.button}
+              aria-label={labels.close}
+              title={labels.close}
+              onClick={() => onOpenChange(false)}
+            >
+              <CloseIcon />
+            </button>
+          </div>
         </div>
 
-        {/* Control buttons: stopPropagation prevents header drag from triggering. */}
-        <TooltipProvider delayDuration={300}>
-          <div
-            className="flex shrink-0 items-center gap-0.5"
-            onPointerDown={(e) => e.stopPropagation()}
-          >
-            <IconBtn label={t('window.reload')} onClick={() => setReloadKey((k) => k + 1)}>
-              <RefreshCw className="h-3.5 w-3.5" />
-            </IconBtn>
+        <div
+          className={styles.body}
+          {...variantAttributes({ inert: drag.interacting || minimized })}
+        >
+          {children}
+          {!active && !minimized && !maximized && (
+            <div className={styles.shield} onPointerDown={onFocus} aria-hidden />
+          )}
+        </div>
 
-            <IconBtn
-              label={t('window.newTab')}
-              onClick={() => window.open(meta.url, '_blank', 'noopener,noreferrer')}
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-            </IconBtn>
-
-            <IconBtn label={t('window.minimize')} onClick={() => minimize(id)}>
-              <Minus className="h-3.5 w-3.5" />
-            </IconBtn>
-
-            {/* Toggle label/icon based on current maximize state. */}
-            <IconBtn
-              label={maximized ? t('window.restore') : t('window.maximize')}
-              onClick={() => toggleMaximize(id)}
-            >
-              {maximized ? (
-                <Minimize2 className="h-3.5 w-3.5" />
-              ) : (
-                <Maximize2 className="h-3.5 w-3.5" />
-              )}
-            </IconBtn>
-
-            <IconBtn label={t('window.close')} onClick={() => close(id)}>
-              <X className="h-3.5 w-3.5" />
-            </IconBtn>
-          </div>
-        </TooltipProvider>
-      </div>
-
-      {/* Iframe container — flex-1 fills remaining height. Never remounted on minimize. */}
-      <div className="relative flex-1">
-        {/*
-         * Pointer shield: during drag/resize the cross-origin iframe would swallow
-         * pointer events, breaking the drag. pointer-events:none while interacting lets
-         * the outer container's onPointerMove/Up keep receiving events via pointer capture.
-         * ALSO none while minimized — the collapsed (but still-mounted) iframe overlays
-         * the bubble; without this the iframe re-enables itself (pointer-events:auto beats
-         * the outer div's `none`) and eats the bubble's hover/click.
-         */}
-        <iframe
-          key={reloadKey}
-          src={meta.url}
-          title={meta.title}
-          allow="fullscreen; clipboard-read; clipboard-write"
-          className="absolute inset-0 h-full w-full border-0"
-          style={{ pointerEvents: isInteracting || minimized ? 'none' : 'auto' }}
-        />
-
-        {/*
-         * Focus shield: a click on the cross-origin iframe never bubbles to the parent
-         * document, so it can't raise this window. While INACTIVE, a transparent
-         * parent-DOM layer overlays the iframe and intercepts the first pointer-down to
-         * bring the window forward; once active it unmounts, leaving the iframe fully
-         * interactive. (The header/border use the outer onPointerDownCapture instead.)
-         */}
-        {!isActive && !minimized && !maximized && (
-          <div
-            className="absolute inset-0 z-20"
-            onPointerDown={() => focus(id)}
-            aria-hidden
-          />
+        {!maximized && !minimized && (
+          <div className={styles.resize} onPointerDown={drag.onResizePointerDown} aria-hidden />
         )}
       </div>
 
-      {/* Resize handle — bottom-right, windowed only. */}
-      {!maximized && !minimized && (
-        <div
-          onPointerDown={onResizePointerDown}
-          className="absolute right-0 bottom-0 z-10 h-4 w-4 cursor-nwse-resize"
-          aria-hidden
-        />
-      )}
-    </motion.div>
-  );
-}
-
-// Icon button with a shadcn tooltip (matches the rest of the app; keeps aria-label).
-function IconBtn({
-  label,
-  onClick,
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          size="icon"
-          variant="ghost"
-          className="h-7 w-7"
-          aria-label={label}
-          onClick={onClick}
+      {minimized && (
+        <button
+          type="button"
+          className={styles.bubble}
+          style={
+            {
+              '--tnt-fw-x': `${snap.rendered.x}px`,
+              '--tnt-fw-y': `${snap.rendered.y}px`,
+              zIndex: Z_CEILING,
+            } as CSSProperties
+          }
+          {...variantAttributes({ dragging: snap.dragging, theme })}
+          aria-label={title}
+          title={title}
+          {...snap.handlers}
         >
-          {children}
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
-    </Tooltip>
+          {headerIcon}
+        </button>
+      )}
+    </>
   );
-}
+
+  return createPortal(tree, container ?? document.body);
+};

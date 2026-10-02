@@ -65,7 +65,7 @@ mime.extend(full);
 
 ### tinita-react (v0.1.0)
 
-One hook and four UI components, CSS included. **Import specific subpaths rather than the barrel** -
+Seven hooks and five UI components, CSS included. **Import specific subpaths rather than the barrel** -
 see the note under the peer table for why.
 
 ```typescript
@@ -77,6 +77,7 @@ import { Tree } from 'tinita-react/ui/tree';
 import { FileTree } from 'tinita-react/ui/file-tree';
 import { Ping } from 'tinita-react/ui/ping';
 import { CarouselTicker } from 'tinita-react/ui/carousel-ticker';
+import { FloatingWindow } from 'tinita-react/ui/floating-window';
 
 // Utility
 import { autoInjectStyles } from 'tinita-react/utils/autoInjectStyles';
@@ -94,12 +95,21 @@ import 'tinita-react/styles.css';
 | --------------------------------- | --------------------------------- |
 | `tinita-react/ui/ping`            | nothing                           |
 | `tinita-react/ui/carousel-ticker` | nothing                           |
+| `tinita-react/ui/floating-window` | nothing                           |
 | `tinita-react/hooks/*`            | nothing                           |
 | `tinita-react/utils/*`            | nothing                           |
 | `tinita-react/ui/tree`            | `@base-ui/react`                  |
 | `tinita-react/ui/file-tree`       | `@base-ui/react` + `lucide-react` |
 
-`react >=18` is a required peer for every entry point.
+`react >=18` and `react-dom >=18` are required peers for every entry point. `react-dom` is there
+for `FloatingWindow`, which portals into `document.body` - a window rendered inside the app's own
+tree is trapped by any ancestor that creates a stacking context, and `position: fixed` does not
+escape a transformed parent.
+
+**React 18 is a hard floor, not a preference.** `Tree` and `useWindowSize` are built on
+`useSyncExternalStore`, which React added in 18, so there is no version of this package that runs on 17. React 18 and 19 are both built and exercised in a real Chromium by the compatibility lab
+(`compatibility/cases/l4`): a production `next build`, a mounted page, and a check that the browser
+console reports no hydration error. Measured on 18.3.1 and 19.
 
 ```bash
 npm install tinita-react                                # Ping, CarouselTicker, hooks

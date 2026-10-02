@@ -330,7 +330,7 @@ createRoot(document.getElementById('root')).render(
 // chạy trước publish. Ghi trong compatibility/README.md.
 const tierFlag = flags.tier ? Number(flags.tier) : 3;
 if (tierFlag < 2) {
-  for (const id of ['next:rsc-ping-no-directive', 'next:rsc-filetree-no-directive', 'next:rsc-ticker-no-directive', 'next:rsc-filetree-app-directive']) {
+  for (const id of ['next:rsc-ping-no-directive', 'next:rsc-filetree-no-directive', 'next:rsc-ticker-no-directive', 'next:rsc-filetree-app-directive', 'next:rsc-floatingwindow-no-directive', 'next:rsc-floatingwindow-app-directive']) {
     add(id, true, 'skip: ca Next thuộc tier 2 (next build chậm)', { skipped: true, reason: 'tier' });
   }
 }
@@ -345,25 +345,47 @@ if (tierFlag >= 2) {
       'app/layout.tsx': 'export default function L({ children }: { children: React.ReactNode }) {\n  return (<html lang="en"><body>{children}</body></html>);\n}\n',
     },
   };
-  const page = (directive, imp, jsx) => `${directive}import { ${imp} } from 'tinita-react/ui/${imp === 'FileTree' ? 'file-tree' : imp === 'Ping' ? 'ping' : 'carousel-ticker'}';\n\nconst TREE = ['src', '  a.ts'].join('\\n');\n\nexport default function Page() {\n  return ${jsx};\n}\n`;
+  // `path` per variant, not a ternary on the component name: the ternary had to be
+  // edited for every component added and its fall-through branch silently sent an
+  // unknown name to `carousel-ticker`.
+  const page = (directive, imp, path, jsx) => `${directive}import { ${imp} } from 'tinita-react/ui/${path}';\n\nconst TREE = ['src', '  a.ts'].join('\\n');\n\nexport default function Page() {\n  return ${jsx};\n}\n`;
 
   const variants = [
-    { id: 'rsc-ping-no-directive', directive: '', imp: 'Ping', jsx: '<Ping count={1} />', expectOk: true, why: 'Ping không dùng hook nên Server Component chịu được' },
+    { id: 'rsc-ping-no-directive', directive: '', imp: 'Ping', path: 'ping', jsx: '<Ping count={1} />', expectOk: true, why: 'Ping không dùng hook nên Server Component chịu được' },
     // ĐẢO 2026-09-26. Trước: `expectOk: false` - FileTree trong Server Component throw
     // `(0 , e.useState) is not a function` vì library không khai 'use client' ở đâu, và
     // mọi consumer phải tự bọc. Giờ library tự khai (tsup `banner`, vì esbuild xoá
     // directive trong source) nên consumer KHÔNG phải làm gì.
-    { id: 'rsc-filetree-no-directive', directive: '', imp: 'FileTree', jsx: '<FileTree text={TREE} />', expectOk: true, why: "library tự khai 'use client' -> Server Component dùng trực tiếp được" },
-    { id: 'rsc-ticker-no-directive', directive: '', imp: 'CarouselTicker', jsx: '<CarouselTicker><span>a</span></CarouselTicker>', expectOk: true, why: "CarouselTicker dùng useRef; library tự khai 'use client'" },
-    { id: 'rsc-filetree-app-directive', directive: "'use client';\n", imp: 'FileTree', jsx: '<FileTree text={TREE} />', expectOk: true, why: 'consumer bọc thêm use client vẫn phải chạy' },
+    { id: 'rsc-filetree-no-directive', directive: '', imp: 'FileTree', path: 'file-tree', jsx: '<FileTree text={TREE} />', expectOk: true, why: "library tự khai 'use client' -> Server Component dùng trực tiếp được" },
+    { id: 'rsc-ticker-no-directive', directive: '', imp: 'CarouselTicker', path: 'carousel-ticker', jsx: '<CarouselTicker><span>a</span></CarouselTicker>', expectOk: true, why: "CarouselTicker dùng useRef; library tự khai 'use client'" },
+    { id: 'rsc-filetree-app-directive', directive: "'use client';\n", imp: 'FileTree', path: 'file-tree', jsx: '<FileTree text={TREE} />', expectOk: true, why: 'consumer bọc thêm use client vẫn phải chạy' },
+    // FloatingWindow khác ba ca trên: nó nhận PROP LÀ HÀM (`onOpenChange`), và hàm
+    // không qua được biên Server -> Client. Nên `'use client'` của library là cần
+    // nhưng CHƯA đủ: consumer phải tự bọc. Cặp ca này khoá đúng sự khác biệt đó.
+    // `expectError` chứ không chỉ `expectOk: false`: một ca chỉ đòi exit != 0 sẽ
+    // xanh kể cả khi build fail vì lý do hoàn toàn khác. Chuỗi dưới ĐO THẬT
+    // 2026-10-02 bằng `npx next build` trong .work của ca này.
+    { id: 'rsc-floatingwindow-no-directive', directive: '', imp: 'FloatingWindow', path: 'floating-window', jsx: '<FloatingWindow open onOpenChange={() => {}} title="t"><span>a</span></FloatingWindow>', expectOk: false, expectError: 'Event handlers cannot be passed to Client Component props', why: 'prop là hàm không qua được biên RSC; library khai use client là cần nhưng chưa đủ' },
+    { id: 'rsc-floatingwindow-app-directive', directive: "'use client';\n", imp: 'FloatingWindow', path: 'floating-window', jsx: '<FloatingWindow open onOpenChange={() => {}} title="t"><span>a</span></FloatingWindow>', expectOk: true, why: 'consumer bọc use client -> prop là hàm hợp lệ' },
   ];
 
   for (const v of variants) {
-    const work = createConsumer({ ...base, name: `next-${v.id}`, files: { ...base.files, 'app/page.tsx': page(v.directive, v.imp, v.jsx) } });
+    const work = createConsumer({ ...base, name: `next-${v.id}`, files: { ...base.files, 'app/page.tsx': page(v.directive, v.imp, v.path, v.jsx) } });
     const r = run('npx', ['next', 'build'], work, 600_000);
     const hookErr = /is not a function/.test(r.out) ? r.out.split('\n').find((l) => /is not a function/.test(l))?.trim() : null;
-    const ok = r.ok === v.expectOk;
-    add(`next:${v.id}`, ok, `${v.why}; exit=${r.code}${hookErr ? ` | ${hookErr}` : ''}`, { expectedFailure: !v.expectOk, hookError: hookErr });
+    // Một ca mong đợi fail phải khớp CẢ exit code VÀ lý do, nếu không nó chỉ đang
+    // canh "có fail" - và nó sẽ xanh y nguyên khi nguyên nhân đổi thành thứ khác.
+    const reasonMatched = !v.expectError || r.out.includes(v.expectError);
+    const ok = r.ok === v.expectOk && reasonMatched;
+    const detail = v.expectError
+      ? `${v.why}; exit=${r.code}; lý do khớp: ${reasonMatched ? 'có' : `KHÔNG - chờ "${v.expectError}"`}`
+      : `${v.why}; exit=${r.code}${hookErr ? ` | ${hookErr}` : ''}`;
+    // KHÔNG truyền `expectedFailure`. `report.mjs:18` biến một ca đỏ thành XFAIL khi
+    // cờ đó bật, và `:25` loại nó khỏi danh sách fail - nên ca sẽ xanh y nguyên dù
+    // build fail vì lý do khác. Phán quyết đã nằm trong `ok`: build phải khớp cả
+    // expectOk lẫn expectError. Đo 2026-10-02: với cờ đó bật, đổi expectError thành
+    // một chuỗi không tồn tại cho XFAIL và suite vẫn exit 0.
+    add(`next:${v.id}`, ok, detail, { mustFail: !v.expectOk, hookError: hookErr, expectError: v.expectError ?? null });
   }
 
 }

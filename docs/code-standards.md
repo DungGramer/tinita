@@ -63,7 +63,7 @@ packages/tinita-react/
 │   │   ├── index.ts                   # Barrel export
 │   │   ├── file-tree/
 │   │   │   ├── FileTree.tsx           # Main component (PascalCase, tên file riêng)
-│   │   │   ├── FileTree.css           # CSS (CSS variables + Tailwind)
+│   │   │   ├── FileTree.module.css           # CSS Modules (biến CSS, KHÔNG Tailwind)
 │   │   │   ├── types.ts               # Type definitions
 │   │   │   ├── utils/                 # Utilities riêng component
 │   │   │   ├── components/            # Private subcomponents
@@ -73,7 +73,7 @@ packages/tinita-react/
 │   │   │   └── index.ts
 │   │   └── carousel-ticker/
 │   │       ├── CarouselTicker.tsx
-│   │       ├── CarouselTicker.css
+│   │       ├── CarouselTicker.module.css
 │   │       ├── .types.ts, .utils.ts
 │   │       └── index.ts
 │   ├── utils/
@@ -104,17 +104,17 @@ packages/tinita-react/
 
 ### Files
 
-| Loại                    | Quy Tắc                              | Ví Dụ                                            |
-| ----------------------- | ------------------------------------ | ------------------------------------------------ |
-| Utilities (tinita)      | camelCase.ts                         | `fileSize.ts`, `generateUuid.ts`                 |
-| Hooks                   | `use` + PascalCase.ts                | `useToggle.ts`, `useIsomorphicLayoutEffect.ts`   |
-| Components (Main)       | PascalCase.tsx                       | `FileTree.tsx`, `Ping.tsx`                       |
-| Components (Private)    | camelCase.tsx                        | `fileLabel.tsx`, `folderNode.tsx`                |
-| CSS                     | Match component + .css               | `FileTree.css`, `CarouselTicker.css`             |
-| Types                   | types.ts hoặc ComponentName.types.ts | `types.ts`, `FileTree.types.ts`                  |
-| Utils (component-local) | camelCase.ts                         | `parser.ts`, `icons.ts`                          |
-| Tests                   | Match source + .test                 | `fileSize.test.ts`, `useToggle.test.tsx`         |
-| Index (re-export)       | index.ts (không .tsx nếu không JSX)  | `src/hooks/index.ts`, `src/ui/FileTree/index.ts` |
+| Loại                    | Quy Tắc                              | Ví Dụ                                              |
+| ----------------------- | ------------------------------------ | -------------------------------------------------- |
+| Utilities (tinita)      | camelCase.ts                         | `fileSize.ts`, `generateUuid.ts`                   |
+| Hooks                   | `use` + PascalCase.ts                | `useToggle.ts`, `useIsomorphicLayoutEffect.ts`     |
+| Components (Main)       | PascalCase.tsx                       | `FileTree.tsx`, `Ping.tsx`                         |
+| Components (Private)    | camelCase.tsx                        | `fileLabel.tsx`, `folderNode.tsx`                  |
+| CSS                     | Match component + .module.css        | `FileTree.module.css`, `CarouselTicker.module.css` |
+| Types                   | types.ts hoặc ComponentName.types.ts | `types.ts`, `FileTree.types.ts`                    |
+| Utils (component-local) | camelCase.ts                         | `parser.ts`, `icons.ts`                            |
+| Tests                   | Match source + .test                 | `fileSize.test.ts`, `useToggle.test.tsx`           |
+| Index (re-export)       | index.ts (không .tsx nếu không JSX)  | `src/hooks/index.ts`, `src/ui/FileTree/index.ts`   |
 
 ### Directories
 
@@ -136,7 +136,7 @@ packages/tinita-react/
 ```
 src/ui/FileTree/
   ├── FileTree.tsx              ← Main logic (PascalCase, tên file riêng)
-  ├── FileTree.css              ← Styles
+  ├── FileTree.module.css              ← Styles
   ├── types.ts                  ← Type definitions
   ├── utils/                    ← Helper utilities
   │   ├── parser.ts
@@ -266,7 +266,7 @@ src/ui/FileTree/
 
 - `src/styles/globals.css` - Tailwind base + theme tokens (CSS variables)
 - `src/styles/animations.css` - @keyframes animations
-- Component CSS (`FileTree.css`, `CarouselTicker.css`) - CSS variables + vanilla CSS, KHÔNG @apply
+- Component CSS (`FileTree.module.css`, `CarouselTicker.module.css`) - CSS variables + vanilla CSS, KHÔNG @apply
 
 **Build** (script tự log: Step 1, 1.5, 2, 3, 4):
 
@@ -289,7 +289,7 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 **Ví dụ:**
 
 ```css
-/* src/ui/FileTree/FileTree.css */
+/* src/ui/FileTree/FileTree.module.css */
 .tnt-filetree {
   background-color: var(--tnt-filetree-bg);
   color: var(--tnt-filetree-text);
@@ -1042,7 +1042,7 @@ của L2 trong Chromium - mạnh hơn nhưng cần chromium nên không chạy t
      chính là cách bỏ Preflight của Tailwind v4). Nên một class Tailwind trong JSX là phụ thuộc
      NGẦM vào Tailwind của host: đúng version, đúng config.
    - Đo được: host không có Tailwind thì `.tnt-ping` nhận `display: block` thay vì `inline-flex`.
-   - Sửa: `Ping.css` mới; biến thể của `CarouselTicker` chuyển sang `data-*`. `bg-green-500`
+   - Sửa: `Ping.module.css` mới; biến thể của `CarouselTicker` chuyển sang `data-*`. `bg-green-500`
      hard-code thành `--tnt-ping-dot`.
    - Kéo theo: bỏ `tailwind-merge`. `twMerge` chỉ có nghĩa khi có class Tailwind cần dedupe.
      `dist/ui/carousel-ticker/index.mjs` **31084 -> 5759 bytes (-81%)**.
@@ -1051,7 +1051,7 @@ của L2 trong Chromium - mạnh hơn nhưng cần chromium nên không chạy t
      của nó, đó là class third-party và ta không kiểm soát.
 
 8. **Variable runtime từ third-party không lọt vào public CSS** - ✅ đã bịt
-   - `FileTree.css` dùng `var(--radix-accordion-content-height)` trực tiếp trong keyframes public.
+   - `FileTree.module.css` dùng `var(--radix-accordion-content-height)` trực tiếp trong keyframes public.
    - Biến nội bộ của Radix nằm trong contract CSS công khai: đổi foundation sang Base UI là vỡ
      keyframes, và người dùng không có cách nào biết họ đang phụ thuộc Radix.
    - Sửa: `--tnt-accordion-content-height: var(--radix-accordion-content-height)` đặt trên
@@ -1216,7 +1216,7 @@ Các trường hợp này phải tắt ở JS: đọc `window.matchMedia('(prefe
 nghe event `change` để đổi setting hệ thống có hiệu lực ngay, không cần reload. Mẫu có sẵn ở
 `CarouselTicker.tsx` (hook `usePrefersReducedMotion`) và `smooth-scroll.ts:312`.
 
-Đã trả giá cho bài học này: `CarouselTicker.css` có khối reduced-motion từ đầu và nó **chưa bao
+Đã trả giá cho bài học này: `CarouselTicker.module.css` có khối reduced-motion từ đầu và nó **chưa bao
 giờ** tắt được marquee, vì marquee là WAAPI. Đo được 2026-09-26: bỏ nhánh JS đi thì dưới
 `reducedMotion: 'reduce'` content vẫn dịch từ `-19.5px` sang `-41px` trong 700ms.
 

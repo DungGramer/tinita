@@ -35,6 +35,9 @@
       "ui/carousel-ticker": [
         "dist/ui/carousel-ticker/index.d.ts"
       ],
+      "ui/floating-window": [
+        "./dist/ui/floating-window/index.d.ts"
+      ],
       "utils/autoInjectStyles": [
         "dist/utils/autoInjectStyles.d.ts"
       ],
@@ -102,6 +105,11 @@
       "types": "./dist/ui/carousel-ticker/index.d.ts",
       "import": "./dist/ui/carousel-ticker/index.mjs",
       "require": "./dist/ui/carousel-ticker/index.cjs"
+    },
+    "./ui/floating-window": {
+      "types": "./dist/ui/floating-window/index.d.ts",
+      "import": "./dist/ui/floating-window/index.mjs",
+      "require": "./dist/ui/floating-window/index.cjs"
     },
     "./utils/autoInjectStyles": {
       "types": "./dist/utils/autoInjectStyles.d.ts",
@@ -204,7 +212,8 @@
   "peerDependencies": {
     "@base-ui/react": ">=1.8.0",
     "lucide-react": ">=0.400.0",
-    "react": ">=18.0.0"
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
   },
   "peerDependenciesMeta": {
     "lucide-react": {

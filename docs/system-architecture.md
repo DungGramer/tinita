@@ -717,17 +717,26 @@ styling: cả hai đang tự đi ngược khỏi runtime CSS.
    đánh đổi là mọi CSS không layer của host đè lên component, kể cả vô ý. Đó là
    quyết định của consumer, không phải của library.
 
-### 7. Class global có prefix, KHÔNG CSS Modules - owner chốt 2026-09-26
+### 7. CSS Modules với tên ỔN ĐỊNH, không hash - chốt 2026-09-26, sửa mô tả 2026-10-02
 
-Đã cân nhắc CSS Modules (cách của Primer và Mantine) và **quyết định không đổi**.
-Đây là câu đã hỏi và đã trả lời - đừng mở lại mà không có lý do mới.
+Cái bị loại là **hash tên**, không phải CSS Modules. Code dùng CSS Modules: cả 5
+component đều `import styles from './<Tên>.module.css'`, và
+`vite.config.build.mts` đặt `generateScopedName: 'tnt-[folder]-[local]'` +
+`localsConvention: 'camelCaseOnly'`, nên `.root` trong `Ping.module.css` ra
+`tnt-ping-root`. Tức là **cột 3** của bảng dưới.
 
-|                              | Class global prefix `tnt-` (đang dùng)     | CSS Modules hash tên                            | CSS Modules tên ổn định |
-| ---------------------------- | ------------------------------------------ | ----------------------------------------------- | ----------------------- |
-| Trùng tên với host           | gần 0, nhờ prefix + guard                  | bất khả về cơ chế                               | gần 0, như cột 1        |
-| Người dùng override bằng CSS | **được** - nhắm `.tnt-filetree__label`     | **không** - chỉ còn CSS variable và `className` | được                    |
-| Cài đặt cho người dùng       | một lần `import 'tinita-react/styles.css'` | như cột 1                                       | như cột 1               |
-| Chi phí đổi                  | 0                                          | đổi pipeline CSS, 3 component, contract của lab | như cột giữa            |
+**Mục này từng kết luận "KHÔNG CSS Modules" và dẫn chứng `FileTree.tsx` nằm cạnh
+`FileTree.css`.** Cả hai đều sai so với code - không có file `.css` nào trong
+`src/ui/`, chỉ `.module.css`. Đo 2026-10-02: 5/5 component. Lập luận bên dưới vẫn
+đúng và vẫn là lý do chọn cột 3 thay vì cột 2; chỉ nhãn kết luận là sai, và
+`CLAUDE.md` đã nhắc lại cái nhãn sai đó.
+
+|                              | Class global prefix `tnt-` viết tay        | CSS Modules hash tên                            | CSS Modules tên ổn định (ĐANG DÙNG) |
+| ---------------------------- | ------------------------------------------ | ----------------------------------------------- | ----------------------------------- |
+| Trùng tên với host           | gần 0, nhờ prefix + guard                  | bất khả về cơ chế                               | gần 0, như cột 1                    |
+| Người dùng override bằng CSS | **được** - nhắm `.tnt-filetree__label`     | **không** - chỉ còn CSS variable và `className` | được                                |
+| Cài đặt cho người dùng       | một lần `import 'tinita-react/styles.css'` | như cột 1                                       | như cột 1                           |
+| Chi phí đổi                  | 0                                          | đổi pipeline CSS, 3 component, contract của lab | như cột giữa                        |
 
 Ba lý do chốt cột 1:
 
@@ -738,13 +747,20 @@ Ba lý do chốt cột 1:
 2. **Hash tên thu hẹp bề mặt tuỳ biến của người dùng.** Một design system npm tồn
    tại để nhiều project consume, và các project đó sẽ cần sửa thứ ta không lường
    trước. `.tnt-filetree__label` là hợp đồng công khai; hash thì không có hợp đồng.
-3. **CSS Modules + tên ổn định** (cách Mantine làm) trả toàn bộ chi phí migration
-   để nhận lại đúng mức chống trùng của cột 1 - vì tên lại ổn định. Chỉ còn lợi thế
-   colocation, và colocation ta đã có: `FileTree.tsx` nằm cạnh `FileTree.css`.
+3. **Cột 3 cho cùng mức chống trùng như cột 1, nhưng không phải nhớ prefix bằng
+   tay.** `generateScopedName` gắn `tnt-<folder>-` cho mọi class, nên không ai có
+   thể quên nó - khác hẳn việc tự viết `.tnt-filetree__label` trong file CSS. Tên
+   vẫn ổn định nên hợp đồng override của người dùng vẫn còn, và colocation có sẵn:
+   `FileTree.tsx` nằm cạnh `FileTree.module.css`.
 
-Cái **thay thế** CSS Modules ở đây là kỷ luật, và nó đã có răng: 10 guard tĩnh
-trong `tests/styles/no-global-leak.test.ts` (chạy mỗi `pnpm test`, cả 10 chứng minh
-bằng mutation) cộng ca `css-leak` của L2 đo thật trong Chromium. Nếu một ngày số
+Cột 3 lo phần _tên_; nó không lo phần _nội dung_. Một rule nhắm `body` hay `*` trong
+`.module.css` KHÔNG được scope và vẫn rò thẳng vào trang host, và một class Tailwind
+trong JSX đi vòng qua CSS Modules hoàn toàn. Phần đó vẫn là kỷ luật, và nó đã có răng:
+13 ca trong `tests/styles/no-global-leak.test.ts` cộng 5 ca trong
+`tests/styles/variant-contract.test.ts` - trong đó
+`NO className in src/ui receives a literal string` là cái canh đường Tailwind, thêm
+2026-10-02 sau khi 22 class utility lọt vào một component mà `pnpm lint` vẫn exit 0.
+Cả hai file chạy mỗi `pnpm test`; cộng ca `css-leak` của L2 đo thật trong Chromium. Nếu một ngày số
 component tăng đến mức guard không theo được, đó mới là lúc mở lại - và khi đó phải
 quyết tên ổn định trước, vì nó là thứ người dùng phụ thuộc.
 

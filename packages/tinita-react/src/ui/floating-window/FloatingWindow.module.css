@@ -1,0 +1,271 @@
+/**
+ * FloatingWindow CSS Modules
+ *
+ * Local class names (`.root`, `.header`); the build emits `tnt-floating-window-root`
+ * and so on - readable, and still targetable by a consumer who needs an override.
+ *
+ * Real CSS throughout, never a Tailwind utility in the JSX. This bundle ships no
+ * utilities, so a utility class would be a hidden dependency on the host having
+ * Tailwind. `Ping` was measured taking `display: block` instead of `inline-flex` in
+ * a host without it, and the version of this component that came from the app
+ * carried 22 such classes plus `bg-background`, which also needs the host's shadcn
+ * variables. `tests/styles/variant-contract.test.ts` now fails on any of them.
+ *
+ * No rule targets `body`, `html` or `*`. CSS Modules scopes classes, not element
+ * selectors, so one of those would leak straight into the host page.
+ *
+ * MOTION LIVES HERE, not in JavaScript. Position, size and collapse scale arrive as
+ * `--tnt-fw-*` custom properties on the element and CSS transitions them. The
+ * version this replaces drove the same values with framer-motion springs, which
+ * `prefers-reduced-motion` cannot reach - a media query can switch a transition off,
+ * it cannot switch off a JS animation loop.
+ */
+
+.root {
+  position: fixed;
+  /* Offset lives in `translate`, so `left`/`top` stay at 0 and the transform is the
+     single source of position. Mixing the two makes the collapse animation fight
+     itself. */
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  /* Collapse scales from the top-left so the scaled corner lands exactly on the
+     bubble position rather than drifting toward the centre. */
+  transform-origin: 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  /* The six values below are set inline, per instance, by the component - they are
+     geometry, not theme, so they are deliberately absent from globals.css. The
+     fallbacks keep the element sane if the inline style is ever missing. */
+  inline-size: var(--tnt-fw-width, 480px);
+  block-size: var(--tnt-fw-height, 320px);
+  transform: translate(var(--tnt-fw-x, 0px), var(--tnt-fw-y, 0px))
+    scale(var(--tnt-fw-scale-x, 1), var(--tnt-fw-scale-y, 1));
+  border: 1px solid var(--tnt-border);
+  border-radius: var(--tnt-radius-lg);
+  background-color: var(--tnt-background);
+  color: var(--tnt-foreground);
+  font-family: var(--tnt-font-sans);
+  /* `touch-action: none` is what makes a pointer drag work on a touch screen; the
+     browser otherwise claims the gesture for scrolling. */
+  touch-action: none;
+  transition:
+    transform var(--tnt-fw-duration) var(--tnt-fw-ease),
+    inline-size var(--tnt-fw-duration) var(--tnt-fw-ease),
+    block-size var(--tnt-fw-duration) var(--tnt-fw-ease),
+    opacity var(--tnt-fw-duration) var(--tnt-fw-ease),
+    border-radius var(--tnt-fw-duration) var(--tnt-fw-ease),
+    box-shadow var(--tnt-duration-fast) var(--tnt-fw-ease);
+}
+
+/* Live drag and resize must not be eased: the window would lag the pointer by the
+   whole transition duration. The attribute is set for the length of the gesture. */
+.root[data-dragging='true'] {
+  transition: none;
+}
+
+.root[data-active='true'] {
+  box-shadow: var(--tnt-fw-shadow-active);
+}
+
+.root[data-active='false'] {
+  box-shadow: var(--tnt-fw-shadow-idle);
+  border-color: var(--tnt-fw-border-idle);
+}
+
+.root[data-mode='maximized'] {
+  border-radius: 0;
+  border-inline: 0;
+  border-block: 0;
+}
+
+/* Collapsed, but still mounted and still laid out at full size: only the transform
+   scales. That is the point - the body never reflows to 48px, so an iframe inside it
+   keeps its state and its resolution, and restoring costs no layout pass. */
+.root[data-mode='minimized'] {
+  opacity: 0;
+  border-radius: var(--tnt-radius-lg);
+  pointer-events: none;
+}
+
+.header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tnt-fw-header-gap);
+  block-size: var(--tnt-fw-header-height);
+  padding-inline: var(--tnt-fw-header-padding);
+  border-block-end: 1px solid var(--tnt-border);
+  background-color: var(--tnt-fw-header-bg);
+  user-select: none;
+}
+
+.header[data-mode='windowed'] {
+  cursor: grab;
+}
+
+.header[data-mode='windowed']:active {
+  cursor: grabbing;
+}
+
+.title {
+  display: flex;
+  min-inline-size: 0;
+  align-items: center;
+  gap: var(--tnt-fw-header-gap);
+  font-size: var(--tnt-fw-title-font-size);
+  font-weight: 500;
+}
+
+.title-text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  inline-size: var(--tnt-fw-icon-size);
+  block-size: var(--tnt-fw-icon-size);
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--tnt-fw-actions-gap);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--tnt-fw-button-size);
+  block-size: var(--tnt-fw-button-size);
+  padding: 0;
+  border: 0;
+  border-radius: var(--tnt-radius-sm);
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  transition: background-color var(--tnt-duration-fast) var(--tnt-fw-ease);
+}
+
+.button:hover {
+  background-color: var(--tnt-accent);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--tnt-ring);
+  outline-offset: 1px;
+}
+
+.button > svg {
+  inline-size: var(--tnt-fw-button-icon-size);
+  block-size: var(--tnt-fw-button-icon-size);
+}
+
+.body {
+  position: relative;
+  flex: 1;
+  min-block-size: 0;
+  overflow: auto;
+}
+
+/*
+ * Pointer shield over the body during a gesture.
+ *
+ * A cross-origin iframe swallows pointer events, so a drag that passes over one
+ * stops dead. Taking the body out of hit-testing for the length of the gesture lets
+ * the events keep reaching the outer element, which holds pointer capture.
+ *
+ * Also applied while minimized: the collapsed body still overlays the bubble, and an
+ * iframe's own `pointer-events: auto` beats a `none` on an ancestor, so without this
+ * the invisible iframe eats every click meant for the bubble.
+ */
+.body[data-inert='true'] {
+  pointer-events: none;
+}
+
+/*
+ * Focus shield for an inactive window.
+ *
+ * A click inside a cross-origin iframe never reaches this document, so it cannot
+ * raise the window it is in. A transparent layer in our own DOM catches the first
+ * pointer-down, raises the window, and then unmounts - leaving the body fully
+ * interactive once active.
+ */
+.shield {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.resize {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-end: 0;
+  z-index: 1;
+  inline-size: var(--tnt-fw-resize-size);
+  block-size: var(--tnt-fw-resize-size);
+  cursor: nwse-resize;
+}
+
+/* The minimized bubble. A button, so it is reachable by keyboard and announced. */
+.bubble {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--tnt-fw-bubble-size);
+  block-size: var(--tnt-fw-bubble-size);
+  padding: 0;
+  transform: translate(var(--tnt-fw-x, 0px), var(--tnt-fw-y, 0px));
+  border: 1px solid var(--tnt-border);
+  border-radius: 9999px;
+  background-color: var(--tnt-background);
+  color: var(--tnt-foreground);
+  box-shadow: var(--tnt-fw-shadow-idle);
+  cursor: pointer;
+  touch-action: none;
+  transition:
+    transform var(--tnt-fw-duration) var(--tnt-fw-ease),
+    box-shadow var(--tnt-duration-fast) var(--tnt-fw-ease);
+}
+
+.bubble[data-dragging='true'] {
+  transition: box-shadow var(--tnt-duration-fast) var(--tnt-fw-ease);
+  cursor: grabbing;
+}
+
+.bubble:hover {
+  box-shadow: var(--tnt-fw-shadow-active);
+}
+
+.bubble:focus-visible {
+  outline: 2px solid var(--tnt-ring);
+  outline-offset: 2px;
+}
+
+.bubble > svg {
+  inline-size: var(--tnt-fw-bubble-icon-size);
+  block-size: var(--tnt-fw-bubble-icon-size);
+}
+
+/*
+ * Off entirely, never `0.01ms`. At that duration the transition still runs and still
+ * fires `transitionend`, which produces ordering bugs that appear only on the
+ * machines of people who asked for less motion.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .root,
+  .bubble,
+  .button {
+    transition: none !important;
+  }
+}

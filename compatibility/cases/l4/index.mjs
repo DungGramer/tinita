@@ -78,16 +78,25 @@ for (const reactVersion of REACT_VERSIONS) {
         "import 'tinita-react/styles.css';\n" +
         'export default function L({ children }: { children: React.ReactNode }) {\n' +
         '  return (<html lang="en"><body style={{ margin: 0, padding: 16 }}>{children}</body></html>);\n}\n',
+      // FloatingWindow mặc định ĐÓNG, bật bằng nút. Nó là `position: fixed` qua portal
+      // nên mở sẵn sẽ phủ lên cả ba vùng `data-shot` và phá baseline ảnh - phần kiểm
+      // nó nằm trước mục chụp ảnh và đóng lại trước khi chụp.
       'app/page.tsx':
         "'use client';\n" +
+        "import { useState } from 'react';\n" +
         "import { FileTree } from 'tinita-react/ui/file-tree';\n" +
         "import { Ping } from 'tinita-react/ui/ping';\n" +
-        "import { CarouselTicker } from 'tinita-react/ui/carousel-ticker';\n\n" +
+        "import { CarouselTicker } from 'tinita-react/ui/carousel-ticker';\n" +
+        "import { FloatingWindow } from 'tinita-react/ui/floating-window';\n\n" +
         "const TREE = ['src', '  index.ts', '  ui', '    button.tsx', 'README.md'].join('\\n');\n\n" +
         'export default function Page() {\n' +
+        '  const [fw, setFw] = useState(false);\n' +
         '  return (<main><div data-shot="ping"><Ping count={3} /></div>' +
         '<div data-shot="ticker" style={{ width: 300 }}><CarouselTicker><span>alpha</span></CarouselTicker></div>' +
-        '<div data-shot="filetree"><FileTree text={TREE} /></div></main>);\n}\n',
+        '<div data-shot="filetree"><FileTree text={TREE} /></div>' +
+        '<button type="button" data-fw-toggle onClick={() => setFw((v) => !v)}>toggle window</button>' +
+        '<FloatingWindow open={fw} onOpenChange={setFw} title="Dashboard"><p data-fw-body>window body</p></FloatingWindow>' +
+        '</main>);\n}\n',
     },
   });
 
@@ -127,6 +136,98 @@ for (const reactVersion of REACT_VERSIONS) {
         ? `không console error nào chứa 'hydrat' (${consoleErrors.length} error khác)`
         : `${hydrationErrors.length} lỗi hydration: ${hydrationErrors[0].slice(0, 200)}`,
       { consoleErrors: consoleErrors.slice(0, 5) });
+
+    // FloatingWindow trong browser THẬT, trên cả React 18 và 19.
+    //
+    // Đây là chỗ duy nhất component được mount trong một browser thật, và là chỗ duy
+    // nhất React 18 được đo - `peerDependencies` khai `>=18` nhưng L1 và L2 chỉ cài
+    // react@19 (ghi ở nợ kỹ thuật). Component dùng `useSyncExternalStore`, API của
+    // React 18, nên 18 là sàn CỨNG; ca này là thứ chứng minh sàn đó đứng được.
+    const fwErrorsBefore = consoleErrors.length;
+    await page.click('[data-fw-toggle]');
+    await page.waitForTimeout(600);
+
+    const fw = await page.evaluate(() => {
+      const root = document.querySelector('.tnt-floating-window-root');
+      if (!root) return null;
+      const box = root.getBoundingClientRect();
+      return {
+        // Portal, đo bằng phép phân biệt DỨT KHOÁT: node không được có tổ tiên
+        // `<main>`. Bản đầu dùng `parentElement?.tagName === 'BODY' ||
+        // parentElement?.parentElement?.tagName === 'BODY'`, và cái fallback hai
+        // tầng đó làm ca MÙ: bỏ `createPortal` thì root nằm trong `<main>`, cha của
+        // `<main>` là `<body>`, nên nhánh thứ hai vẫn đúng và ca vẫn xanh. Đo được
+        // 2026-10-02: gỡ portal -> L4 exit 0, `portal ra body=true`.
+        parentIsBody: root.parentElement?.tagName === 'BODY',
+        insideApp: Boolean(root.closest('main')),
+        width: Math.round(box.width),
+        height: Math.round(box.height),
+        position: getComputedStyle(root).position,
+        mode: root.getAttribute('data-mode'),
+        hasBody: Boolean(document.querySelector('[data-fw-body]')),
+        // Nếu CSS không được load thì class có nhưng kích thước là 0.
+        hasHeader: Boolean(document.querySelector('.tnt-floating-window-header')),
+      };
+    });
+
+    const fwErrors = consoleErrors.slice(fwErrorsBefore);
+    const fwOk = Boolean(
+      fw && fw.parentIsBody && fw.insideApp === false
+      && fw.position === 'fixed' && fw.mode === 'windowed'
+      && fw.width > 0 && fw.height > 0 && fw.hasBody && fw.hasHeader && fwErrors.length === 0
+    );
+    add(`react${reactVersion}:floating-window-mounts`, fwOk,
+      fw
+        ? `cha là body=${fw.parentIsBody}, trong <main>=${fw.insideApp}, position=${fw.position}, mode=${fw.mode}, ${fw.width}x${fw.height}, header=${fw.hasHeader}, body=${fw.hasBody}, console error mới=${fwErrors.length}`
+        : 'không tìm thấy .tnt-floating-window-root sau khi bật',
+      { measured: fw, newConsoleErrors: fwErrors.slice(0, 3) });
+
+    // reduced-motion của CHÍNH component, trong khi nó đang mở.
+    //
+    // Ca `reduced-motion-own-elements` phía dưới probe một div mang
+    // `tnt-animate-fade-in`, nên nó không nói gì về component này. Và motion của
+    // FloatingWindow là transition CSS chứ không phải animation, nên phải đọc
+    // `transitionDuration`, không phải `animationDuration`. Media được trả lại ngay
+    // để các mục phía dưới giữ nguyên điều kiện của chúng.
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.waitForTimeout(200);
+    const fwMotion = await page.evaluate(() => {
+      const read = (sel) => {
+        const el = document.querySelector(sel);
+        return el ? getComputedStyle(el).transitionDuration : null;
+      };
+      return { root: read('.tnt-floating-window-root'), button: read('.tnt-floating-window-button') };
+    });
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.waitForTimeout(200);
+    const fwMotionOn = await page.evaluate(() => {
+      const el = document.querySelector('.tnt-floating-window-root');
+      return el ? getComputedStyle(el).transitionDuration : null;
+    });
+
+    // Kiểm CẢ HAI chiều. Chỉ kiểm "0s khi reduce" thì một component chưa bao giờ có
+    // transition cũng cho xanh, và khối reduced-motion có thể đã bị xoá mà không ai thấy.
+    const zeroed = (v) => v !== null && /^0s(, 0s)*$/.test(v);
+    const fwMotionOk = zeroed(fwMotion.root) && zeroed(fwMotion.button)
+      && fwMotionOn !== null && !zeroed(fwMotionOn);
+    add(`react${reactVersion}:floating-window-reduced-motion`, fwMotionOk,
+      `reduce: root=${fwMotion.root}, button=${fwMotion.button}` +
+        ` | no-preference: root=${fwMotionOn}` +
+        (fwMotionOk ? ' -> tắt hẳn khi reduce, và CÓ transition khi không' : ' -> SAI: xem khối @media trong FloatingWindow.module.css'),
+      { reduce: fwMotion, noPreference: fwMotionOn });
+
+    // Đóng bằng CONTROL CỦA WINDOW, không bằng nút toggle của trang.
+    //
+    // Nút toggle nằm dưới window: ở viewport 800x600 window trải x 40..760, y 60..540
+    // và nút ở (16..116, 245..266), nên click bị chặn - Playwright báo "element is
+    // visible, enabled and stable" rồi retry 56 lần tới timeout. Đó là hành vi ĐÚNG
+    // của một overlay, và dùng nút Close thì vừa đóng được vừa kiểm luôn control đó
+    // cùng với đường `onOpenChange` quay về state của trang.
+    await page.click('.tnt-floating-window-root button[aria-label="Close"]');
+    await page.waitForTimeout(400);
+    const fwGone = await page.evaluate(() => !document.querySelector('.tnt-floating-window-root'));
+    add(`react${reactVersion}:floating-window-closes`, fwGone,
+      fwGone ? 'đóng xong, không còn node nào trong body' : 'VẪN còn node sau khi đóng - baseline ảnh dưới sẽ sai');
 
     // reduced-motion: khối `*, *::before, *::after { !important }` có đè element CHỦ NHÀ không.
     //

@@ -90,7 +90,11 @@ for (const { name, dir } of TARGETS) {
 {
   const tgz = tarballFor('tinita-react');
   const specs = Object.entries(contract['tinita-react'].optionalPeers);
-  const withoutPeers = createConsumer({ level: 'l1', name: '04-peer-absent', deps: ['react@19'], tarballs: [tgz] });
+  const allPeersForAudit = [...new Set(Object.values(contract['tinita-react'].optionalPeers).flat())];
+  // `react-dom` nằm ở đây vì nó là peer BẮT BUỘC từ 2026-10-02 (FloatingWindow dùng
+  // `createPortal`). Không khai thì npm tự cài peer bắt buộc đang thiếu, và ca này đỏ
+  // với `node_modules: react, react-dom, scheduler, tinita-react` - đúng như nó đã đỏ.
+  const withoutPeers = createConsumer({ level: 'l1', name: '04-peer-absent', deps: ['react@19', 'react-dom@19'], tarballs: [tgz] });
   // Danh sách peer lấy TỪ CONTRACT, không viết tay.
   //
   // Bản trước hardcode `['@radix-ui/react-accordion', 'lucide-react']` ngay ở đây
@@ -110,8 +114,19 @@ for (const { name, dir } of TARGETS) {
 
   const installed = execFileSync('/bin/ls', [resolve(withoutPeers, 'node_modules')], { encoding: 'utf8' })
     .split('\n').filter((x) => x && !x.startsWith('.'));
-  const cleanEnv = installed.length === 2 && installed.includes('react') && installed.includes('tinita-react');
-  add('04a-consumer-is-clean', cleanEnv, `node_modules: ${installed.join(', ')}`);
+  // Danh sách chính xác, không phải "chứa": chính sự chính xác mới bắt được một gói
+  // lạ xuất hiện. `scheduler` là dep bắc cầu của `react-dom`, không phải của tinita.
+  const REQUIRED = ['react', 'react-dom', 'scheduler', 'tinita-react'];
+  const unexpected = installed.filter((x) => !REQUIRED.includes(x));
+  // Điều ca này THẬT SỰ khẳng định: không một optional peer nào bị kéo vào. Kiểm
+  // tường minh thay vì chỉ đếm, để thông báo nói đúng cái sai khi nó sai.
+  const leakedPeers = installed.filter((x) => allPeersForAudit.includes(x));
+  const cleanEnv = unexpected.length === 0 && leakedPeers.length === 0
+    && REQUIRED.every((x) => installed.includes(x));
+  add('04a-consumer-is-clean', cleanEnv,
+    `node_modules: ${installed.join(', ')}`
+    + (unexpected.length ? ` | NGOÀI DỰ KIẾN: ${unexpected.join(', ')}` : '')
+    + (leakedPeers.length ? ` | OPTIONAL PEER LỌT VÀO: ${leakedPeers.join(', ')}` : ''));
 
   const rows = [];
   let bad = 0;
