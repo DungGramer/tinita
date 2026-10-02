@@ -1,3 +1,4 @@
+import { assertString } from '../asserts/assertString';
 import { base64ToBytes } from './base64ToBytes';
 
 /**
@@ -18,5 +19,7 @@ import { base64ToBytes } from './base64ToBytes';
  * ```
  */
 export function base64ToString(base64: string): string {
+  assertString(base64, 'base64ToString', 'base64');
+
   return new TextDecoder().decode(base64ToBytes(base64));
 }

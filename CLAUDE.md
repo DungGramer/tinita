@@ -91,13 +91,13 @@ từng subpath, KHÔNG wildcard**; xem `docs/code-standards.md`.
 
 ## Đường nhập
 
-**93 subpath công khai.** Danh sách thật nằm trong `exports` của từng
+**102 subpath công khai** (tính cả root của mỗi package). Danh sách thật nằm trong `exports` của từng
 `package.json`; `pnpm check-doc-links` làm đỏ nếu một `.md` nào nhắc tới đường
 không tồn tại, nên đừng liệt kê lại ở đây.
 
-`tinita` (52) - barrel hoặc subpath đều được. Thư mục: `array/`, `converter/`,
-`date/`, `file/`, `html/`, `mime/`, `object/`, `print/`, `string/`, `unit/`,
-`uuid/`, `validation/`.
+`tinita` (61) - barrel hoặc subpath đều được. Thư mục: `array/`, `asserts/`,
+`converter/`, `date/`, `file/`, `html/`, `mime/`, `object/`, `print/`, `string/`,
+`unit/`, `uuid/`, `validation/`.
 
 `tinita-dom` (23) - browser-only, **có chủ ý không có SSR guard khi GỌI**, nhưng
 mọi module phải **import** sạch khi không có DOM. Thư mục: `converter/`,
@@ -108,6 +108,7 @@ mọi module phải **import** sạch khi không có DOM. Thư mục: `converter
 4 component, 2 util.
 
 <!-- doc-links-ignore -->
+
 `tinita-react/hooks` và `tinita-react/ui` **không tồn tại** - CLAUDE.md từng ghi
 chúng là bắt buộc và chỉ người dùng vào đường chết. Đó là lý do
 `scripts/check-doc-links.mjs` tồn tại.
@@ -174,6 +175,31 @@ lý do nằm trong code - đọc trước khi sửa.
 **Đừng thêm assert vào thân hook React.** `usePagination` có hợp đồng là **clamp**,
 không ném, và một property test 2000 mẫu khoá việc `NaN` với `Infinity` đi qua được.
 Thân hook chạy lại mỗi render.
+
+### Hàm công khai bọc hàm công khai thì phải TỰ assert dưới tên nó
+
+Nếu không, người gọi nhận thông điệp nêu tên một hàm họ chưa từng gọi - đúng thứ tham
+số `caller` sinh ra để loại bỏ. Đo được **6 chỗ** vi phạm sau khi guard đã xanh:
+`base64ToString` và `base64ToBlob` nêu `base64ToBytes`; `toDevicePixels` nêu
+`convertLength`; `truncateFileName` và `truncateFileNameParts` nêu `getFileNameParts`;
+`provisionalWheelSource` nêu `decisiveWheelSource`. Giá là một `typeof` thêm mỗi lời
+gọi.
+
+`toDevicePixels` là ca đáng nhớ: `fromDevicePixels` **ngay dưới nó trong cùng file** đã
+assert đúng từ đầu. Hai hàm anh em, hai hình dạng - lặp lại đúng defect mà cả vốn từ
+này sinh ra để diệt.
+
+### `check-assert-reuse` MÙ với việc không validate gì cả
+
+Nó bắt điều kiện inline **trùng** primitive. Một hàm công khai **không có điều kiện
+nào** thì nó không thấy - và lớp đó tệ hơn vì im lặng: `fileSize(-5)` trả chuỗi
+`"NaN undefined"`, `provisionalWheelSource('x')` trả `'smoothed'` (một phán quyết SAI
+mà trông đúng), `objectToMap(42)` trả `Map` rỗng, `base64ToFile(42)` trả một `File`
+tên `undefined`.
+
+Cách thứ hai, mù khác chỗ, có trong `docs/code-standards.md`: đọc kiểu tham số đầu từ
+`dist/*.d.mts`, gọi bằng giá trị sai kiểu, phân loại thành im lặng / nêu sai tên / nêu
+đúng tên. Dùng lại nó sau khi thêm export mới.
 
 ### `TypeError` hay `RangeError`
 

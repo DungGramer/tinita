@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { base64ToFile } from '../src/converter/base64ToFile';
 import * as scrollbarModule from '../src/dimension/getScrollbarSize';
 import { downloadBlob } from '../src/file/downloadBlob';
 import { resizeImage } from '../src/image/resizeImage';
@@ -219,6 +220,23 @@ describe('validation gaps closed 2026-10-02', () => {
     // "non-negative integer of seconds", which is a value contract.
     expect(() => cookieJar.set('k', 'v', { maxAge: -1 })).not.toThrow(
       RangeError
+    );
+  });
+});
+
+// atob coerce tham số, nên base64ToFile(42) giải mã hai chữ số "42" và trả về một
+// File tên "undefined" mà không báo gì.
+describe('base64ToFile validates both strings', () => {
+  it('rejects a non-string payload', () => {
+    expect(() => base64ToFile(42 as never, 'a.txt')).toThrow(TypeError);
+    expect(() => base64ToFile(42 as never, 'a.txt')).toThrow(
+      'base64ToFile: base64 must be a string, got number'
+    );
+  });
+
+  it('rejects a missing file name', () => {
+    expect(() => base64ToFile('aGk=', undefined as never)).toThrow(
+      'base64ToFile: fileName must be a string, got undefined'
     );
   });
 });

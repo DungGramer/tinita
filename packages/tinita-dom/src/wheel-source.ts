@@ -1,3 +1,5 @@
+import { assertArray } from 'tinita/asserts/assertArray';
+import { assertFiniteNumber } from 'tinita/asserts/assertFiniteNumber';
 /**
  * Tells a stepped mouse wheel apart from an input that has already been
  * smoothed before it reached the page.
@@ -122,6 +124,8 @@ function topShare(values: number[]): number {
 export function classifyWheelSource(
   samples: WheelSample[]
 ): WheelSource | null {
+  assertArray(samples, 'classifyWheelSource', 'samples');
+
   if (samples.length < WHEEL_SAMPLE_COUNT) return null;
 
   const recent = samples.slice(-WHEEL_SAMPLE_COUNT);
@@ -157,6 +161,8 @@ export function classifyWheelSource(
  * trackpad contradicts that memory in one event, and this is what sees it.
  */
 export function decisiveWheelSource(delta: number): WheelSource | null {
+  assertFiniteNumber(delta, 'decisiveWheelSource', 'delta');
+
   const size = Math.abs(delta);
   if (size >= WHEEL_STEP_MIN_PIXELS) return 'stepped';
   if (size < WHEEL_REPEAT_MIN_PIXELS) return 'smoothed';
@@ -171,5 +177,10 @@ export function decisiveWheelSource(delta: number): WheelSource | null {
  * through unsmoothed for a few events is the one they do not.
  */
 export function provisionalWheelSource(delta: number): WheelSource {
+  // Names itself rather than delegating the message to decisiveWheelSource. Without
+  // it provisionalWheelSource('x') returned 'smoothed' - a confident wrong answer,
+  // because Math.abs('x') is NaN and NaN fails both comparisons.
+  assertFiniteNumber(delta, 'provisionalWheelSource', 'delta');
+
   return decisiveWheelSource(delta) ?? 'smoothed';
 }

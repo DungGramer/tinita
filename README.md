@@ -29,6 +29,7 @@ belongs here rather than in `tinita-dom`: ask whether the function means anythin
 | Folder        | What is in it                                                                                                                     |
 | ------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `array/`      | `createRange`, `getArrayValue`, `prependUnique`, `sortAlphaText`, `uniqueArray`                                                   |
+| `asserts/`    | 8 assertion primitives - `assertString`, `assertArray`, `assertFiniteNumber`, `assertObject`, and 4 more. See Validation below    |
 | `converter/`  | base64 and Blob conversions, `objectToFormData`, `parseKeyCombination`, the Map/object pair                                       |
 | `date/`       | `sortDates`                                                                                                                       |
 | `file/`       | `fileSize`, `getFileNameParts`, `truncateFileName`, `truncateFileNameParts`                                                       |
@@ -315,6 +316,51 @@ deliberate: physical screen size is a strong fingerprinting signal.
 
 `tinita-dom/unit/toDevicePixels` covers the part that genuinely does vary per display,
 which is what you want for a sharp canvas **on screen** - not for print.
+
+## Validation
+
+Every public function in `tinita` and `tinita-dom` rejects a bad argument by throwing,
+and the message names the function you called:
+
+```
+createRange: end must be an integer, got 2.5
+fileSize: size must not be negative, got -5
+toDevicePixels: value must be a finite number, got NaN
+```
+
+The function named is always the one **you** called, never an inner helper. That is
+deliberate: a message reading `base64ToBytes: ...` when you called `base64ToString`
+sends you to the wrong place.
+
+**`TypeError` for a bad argument, `RangeError` for a bounded interval.** `TypeError`
+covers the wrong type, `NaN`, `Infinity`, a negative where only non-negative makes
+sense - a value contract with no upper bound. `RangeError` is used only where the
+contract is an explicit interval; there is exactly one in these packages,
+`resizeImage`'s `quality`, which must be within `0..1`.
+
+Nothing is silently coerced or clamped. If a call returns, the arguments were valid.
+
+The primitives behind this are exported, so your own code can use the same vocabulary
+and get the same message shape:
+
+```typescript
+import { assertFiniteNumber } from 'tinita/asserts/assertFiniteNumber';
+
+export function scaleCanvas(width: unknown) {
+  assertFiniteNumber(width, 'scaleCanvas', 'width');
+
+  return width * devicePixelRatio; // `width` is `number` from here on
+}
+```
+
+They use TypeScript's `asserts value is T`, so one call both validates at runtime and
+narrows the type - which matters because `number` in TypeScript already admits `NaN`,
+`Infinity` and negatives, and because a `.d.ts` guards nothing at all for a consumer
+writing plain JavaScript.
+
+The eight are `assertString`, `assertNonEmptyString`, `assertArray`, `assertObject`,
+`assertFiniteNumber`, `assertPositiveFiniteNumber`, `assertInteger` and `assertDpi`.
+Each has its own subpath, spelled like the `assertFiniteNumber` import above.
 
 ## Root scripts
 

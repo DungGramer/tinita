@@ -665,16 +665,60 @@ sẽ biến một lời gọi thành một-trên-mỗi-node.
 Ngược lại, `converter/objectToMap` **tự gọi chính nó như một API công khai**, nên nó
 kiểm từng tầng. Hai hàm đệ quy, hai phán quyết trái nhau, và lý do nằm trong code.
 
-Bốn chỗ **cố ý không** dùng primitive, mỗi chỗ một `// assert-reuse-ignore <lý do>`:
+Bảy chỗ **cố ý không** dùng primitive, mỗi chỗ một `// assert-reuse-ignore <lý do>`;
+`check-assert-reuse` đếm đúng bảy và đòi mỗi cái một lý do viết ra:
 
-| Chỗ                                 | Vì sao                                                                                          |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `validation/isUrl`, `isPlainObject` | predicate, hợp đồng trả boolean                                                                 |
-| `html/html.ts` decode               | trả nguyên match cho reference không nhận ra                                                    |
-| `object/enumKeys`                   | `!Number.isFinite` LÀ logic của hàm                                                             |
-| `usePagination` `clamp`             | hợp đồng là clamp, property test 2000 mẫu khoá; và nó là thân hook, chạy lại mỗi render         |
-| `html/elementToJson`                | `typeof el.nodeName !== 'string'` nhận ra Element mà không dùng `instanceof`, thứ gãy qua realm |
-| `cookieJar.maxAge`                  | một consumer, không đáng extract                                                                |
+| Chỗ                             | Vì sao                                                                                          |
+| ------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `validation/isUrl`              | predicate, hợp đồng trả boolean, không ném                                                      |
+| `omitEmptyValues/isPlainObject` | predicate, và nghĩa HẸP hơn `assertObject`: nó kiểm cả prototype                                |
+| `html/html.ts` decode           | trả nguyên match cho reference không nhận ra                                                    |
+| `object/enumKeys`               | `!Number.isFinite` LÀ logic của hàm                                                             |
+| `usePagination` `clamp`         | hợp đồng là clamp, property test 2000 mẫu khoá; và nó là thân hook, chạy lại mỗi render         |
+| `html/elementToJson`            | `typeof el.nodeName !== 'string'` nhận ra Element mà không dùng `instanceof`, thứ gãy qua realm |
+| `cookieJar.maxAge`              | một consumer, không đáng extract                                                                |
+
+### Guard mù với việc KHÔNG validate gì cả
+
+`check-assert-reuse` bắt một điều kiện inline **trùng** primitive. Nó không thể bắt một
+hàm công khai **không có điều kiện nào** - và đó lại là lớp defect tệ hơn, vì nó im lặng.
+
+Đo bằng một cách thứ hai, mù khác chỗ: đọc kiểu tham số đầu từ `dist/*.d.mts`, gọi hàm
+bằng một giá trị sai kiểu, rồi phân loại kết quả thành "im lặng" / "ném nhưng nêu sai
+tên API" / "nêu đúng tên". Guard xanh mà cách này tìm ra **9 chỗ**, chia hai nhóm:
+
+**Im lặng, trả về một giá trị trông như đáp án:**
+
+| Hàm                           | Trước                                                       |
+| ----------------------------- | ----------------------------------------------------------- |
+| `fileSize`                    | `-5`, `NaN`, `Infinity`, `'x'`, `null` -> `"NaN undefined"` |
+| `fileSize(1024, 2)`           | `"1 undefined"` - `log2(1024)` = 10, danh sách có 9 đơn vị  |
+| `objectToMap(42)`             | `Map` rỗng                                                  |
+| `provisionalWheelSource('x')` | `'smoothed'` - phán quyết SAI mà trông đúng                 |
+| `base64ToFile(42)`            | một `File` tên `undefined`, vì `atob` coerce tham số        |
+
+**Ném, nhưng nêu tên hàm người gọi chưa từng gọi** - đúng thứ tham số `caller` sinh ra
+để loại bỏ, và nó quay lại ngay khi một hàm công khai bọc một hàm công khai khác:
+
+| Hàm công khai            | Tên nó nêu ra         |
+| ------------------------ | --------------------- |
+| `base64ToString`         | `base64ToBytes`       |
+| `base64ToBlob`           | `base64ToBytes`       |
+| `toDevicePixels`         | `convertLength`       |
+| `truncateFileName`       | `getFileNameParts`    |
+| `truncateFileNameParts`  | `getFileNameParts`    |
+| `provisionalWheelSource` | `decisiveWheelSource` |
+
+Quy tắc rút ra: **một hàm công khai bọc một hàm công khai khác thì phải tự assert dưới
+tên của nó.** Một `typeof` thêm cho mỗi lời gọi, và nó là cái giá của một thông điệp
+chỉ đúng chỗ. `toDevicePixels` là ca đáng nhớ nhất: `fromDevicePixels` ngay dưới nó
+trong cùng file ĐÃ assert đúng - hai hàm anh em, hai hình dạng, đúng lại cái defect mà
+cả vốn từ này sinh ra để diệt.
+
+Ba chỗ cách này báo mà **không** phải defect, ghi lại để lần sau không sửa oan:
+`conditionalEntry(42)` trả `{}` là đúng (tham số `value` là `undefined`, tức rỗng);
+`htmlToJson` và `setCssVariables` báo `DOMParser is not defined` chỉ vì probe chạy
+trong node - đo lại dưới jsdom thì cả hai ném đúng và tự nêu tên.
 
 ### Guard, và vì sao phải là script
 

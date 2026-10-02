@@ -39,7 +39,9 @@ import { convertLength, type LengthUnit } from 'tinita/unit/convertLength';
  *
  * Falls back to a ratio of `1` where `devicePixelRatio` is absent.
  *
- * @throws {TypeError} for a non-finite value or an unknown unit, via `convertLength`.
+ * @throws {TypeError} for a non-finite value or an unknown unit. Asserts under its own
+ *   name rather than letting `convertLength` throw: a message naming a function the
+ *   caller never called is the ambiguity `caller` exists to remove.
  *
  * @example
  * ```ts
@@ -51,6 +53,8 @@ import { convertLength, type LengthUnit } from 'tinita/unit/convertLength';
  * ```
  */
 export function toDevicePixels(value: number, unit: LengthUnit = 'px'): number {
+  assertFiniteNumber(value, 'toDevicePixels');
+
   const cssPixels = convertLength(value, unit, 'px');
   const ratio =
     typeof devicePixelRatio === 'number' && devicePixelRatio > 0

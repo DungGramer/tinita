@@ -1,3 +1,4 @@
+import { assertString } from '../asserts/assertString';
 import {
   truncateFileNameParts,
   type TruncateFileNameConfig,
@@ -85,11 +86,15 @@ export type { TruncateFileNameConfig };
  * // Dotfiles are names, not extensions.
  * truncateFileName('.gitignore', { maxLength: 8 });
  * // => '.g...ore'
+ *
+ * @throws {TypeError} if `fileName` is not a string.
  */
 export function truncateFileName(
   fileName: string,
   config: TruncateFileNameConfig = {}
 ): string {
+  assertString(fileName, 'truncateFileName', 'fileName');
+
   const { prefix, ellipsis, suffix, extensionWithDot } = truncateFileNameParts(
     fileName,
     config

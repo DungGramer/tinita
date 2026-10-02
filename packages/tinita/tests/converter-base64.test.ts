@@ -180,3 +180,26 @@ describe('blob converters', () => {
     expect(restored.size).toBe(0);
   });
 });
+
+// base64ToString và base64ToBlob bọc base64ToBytes, nên trước khi tự assert chúng
+// để base64ToBytes ném thông điệp nêu TÊN HÀM NGƯỜI GỌI CHƯA TỪNG GỌI.
+describe('the base64 wrappers name themselves, not base64ToBytes', () => {
+  it('base64ToString', () => {
+    expect(() => base64ToString(42 as never)).toThrow(TypeError);
+    expect(() => base64ToString(42 as never)).toThrow(
+      'base64ToString: base64 must be a string, got number'
+    );
+  });
+
+  it('base64ToBlob', () => {
+    expect(() => base64ToBlob(42 as never)).toThrow(
+      'base64ToBlob: base64 must be a string, got number'
+    );
+  });
+
+  it('base64ToBytes still names itself when called directly', () => {
+    expect(() => base64ToBytes(42 as never)).toThrow(
+      'base64ToBytes: base64 must be a string, got number'
+    );
+  });
+});

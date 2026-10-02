@@ -1,3 +1,4 @@
+import { assertString } from 'tinita/asserts/assertString';
 import { blobToFile } from './blobToFile';
 
 /**
@@ -10,7 +11,9 @@ import { blobToFile } from './blobToFile';
  * @param mimeType media type for the file. Empty by default.
  * @param lastModified epoch milliseconds, `0` by default. See `blobToFile`.
  *
- * @throws {TypeError} if `base64` is not valid base64.
+ * @throws {TypeError} if `base64` or `fileName` is not a string, or if `base64` is not
+ *   valid base64. `atob` coerces its argument, so `base64ToFile(42)` used to decode
+ *   the digits `"42"` and return a `File` named `undefined` without complaint.
  *
  * @example
  * ```ts
@@ -23,6 +26,9 @@ export function base64ToFile(
   mimeType = '',
   lastModified = 0
 ): File {
+  assertString(base64, 'base64ToFile', 'base64');
+  assertString(fileName, 'base64ToFile', 'fileName');
+
   let binary: string;
   try {
     binary = atob(base64);

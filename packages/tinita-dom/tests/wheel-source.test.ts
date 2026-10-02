@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   classifyWheelSource,
+  decisiveWheelSource,
   provisionalWheelSource,
   WHEEL_SAMPLE_COUNT,
   WHEEL_STEP_MIN_PIXELS,
@@ -121,6 +122,32 @@ describe('provisionalWheelSource', () => {
     expect(provisionalWheelSource(WHEEL_STEP_MIN_PIXELS)).toBe('stepped');
     expect(provisionalWheelSource(WHEEL_STEP_MIN_PIXELS - 0.01)).toBe(
       'smoothed'
+    );
+  });
+});
+
+// provisionalWheelSource('x') trả 'smoothed' - một câu trả lời SAI mà trông đúng,
+// vì Math.abs('x') là NaN và NaN thất bại ở cả hai phép so sánh.
+describe('wheel-source rejects garbage instead of answering confidently', () => {
+  it('provisionalWheelSource no longer answers "smoothed" for a non-number', () => {
+    expect(() => provisionalWheelSource('x' as never)).toThrow(TypeError);
+    expect(() => provisionalWheelSource('x' as never)).toThrow(
+      'provisionalWheelSource: delta must be a finite number, got string'
+    );
+    expect(() => provisionalWheelSource(Number.NaN)).toThrow(
+      'provisionalWheelSource: delta must be a finite number, got NaN'
+    );
+  });
+
+  it('decisiveWheelSource names itself, not its caller', () => {
+    expect(() => decisiveWheelSource('x' as never)).toThrow(
+      'decisiveWheelSource: delta must be a finite number, got string'
+    );
+  });
+
+  it('classifyWheelSource rejects a non-array', () => {
+    expect(() => classifyWheelSource(42 as never)).toThrow(
+      'classifyWheelSource: samples must be an array, got number'
     );
   });
 });

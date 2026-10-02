@@ -1,3 +1,4 @@
+import { assertString } from '../asserts/assertString';
 import { getFileNameParts } from './getFileNameParts';
 
 export type TruncateFileNameConfig = {
@@ -124,6 +125,11 @@ export function truncateFileNameParts(
   fileName: string,
   config: TruncateFileNameConfig = {}
 ): TruncatedFileNameParts {
+  // Names itself rather than leaving getFileNameParts to throw: this is an
+  // independently public subpath, and a message naming a function the caller never
+  // called is the ambiguity the caller argument exists to remove.
+  assertString(fileName, 'truncateFileNameParts', 'fileName');
+
   const { ellipsis = '...' } = config;
 
   const maxLength = toLength(config.maxLength ?? 30);

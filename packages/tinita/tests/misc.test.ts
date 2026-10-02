@@ -201,6 +201,22 @@ describe('mapToObject / objectToMap', () => {
     expect([...map]).toEqual([['a', 1]]);
     expect(obj).toEqual({ a: 1 });
   });
+
+  // objectToMap(42) used to return an empty Map in silence, and objectToMap(null)
+  // threw Object.keys' own "Cannot convert undefined or null to object" - a message
+  // naming neither the function nor the parameter.
+  it('objectToMap rejects a non-object instead of returning an empty Map', () => {
+    expect(() => objectToMap(42 as never)).toThrow(TypeError);
+    expect(() => objectToMap(42 as never)).toThrow(
+      'objectToMap: obj must be an object, got number'
+    );
+    expect(() => objectToMap(null as never)).toThrow(
+      'objectToMap: obj must be an object, got null'
+    );
+    expect(() => objectToMap(undefined as never)).toThrow(
+      'objectToMap: obj must be an object, got undefined'
+    );
+  });
 });
 
 describe('carried over from phase 02, now covered', () => {

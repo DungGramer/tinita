@@ -113,3 +113,29 @@ Mỗi pha có một ca tự phá canh đúng chỗ đó, vì tiêu chí "đã th
 
 > Thứ cần không phải "code validation ngắn nhất", mà là **abstraction nhỏ nhất thiết
 > lập rõ một invariant ổn định**.
+
+## Tìm thấy SAU KHI cả 4 pha đã được đánh XONG (2026-10-02)
+
+Bốn pha được đánh XONG trong `plan.md` mà **không ô todo nào được tick**. Đúng chỗ đó
+che ba việc chưa làm, và một trong ba đã bị viết vào docs như thể đã làm:
+
+1. **`objectToMap` chưa có `assertObject`** - mục 5 của pha 02, dòng todo chưa tick.
+   Nhưng `docs/code-standards.md` và `CLAUDE.md` đều đã khẳng định nó "kiểm từng tầng",
+   và commit message `e4986e4` cũng vậy. Đo được: `objectToMap(42)` trả `Map` rỗng.
+2. **`CHANGELOG.md`** - mục của pha 04. Nặng hơn dự: file chưa bao giờ vào git.
+   `.gitignore:39` là `*.md` và chỉ có `!README.md`, nên nó bị bỏ IM LẶNG -
+   `git status` sạch nên không có gì để thấy. Năm doc gốc khác (`CLAUDE.md`,
+   `ARCHITECTURE.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `DOCUMENT_REQUIRED.md`)
+   cũng khớp `*.md` và chỉ sống vì đã nằm trong index. Đã thêm negation cho cả sáu.
+3. **`README.md` bảng thư mục thiếu `asserts/`** - mục của pha 04. Thêm luôn mục
+   `## Validation` mô tả hợp đồng lỗi, vì đó là thứ consumer cần hơn danh sách hàm.
+
+Và một lớp defect mà **guard không thể thấy**: `check-assert-reuse` bắt điều kiện
+inline trùng primitive, nên nó mù với hàm công khai **không validate gì**. Một cách đo
+thứ hai (đọc kiểu tham số từ `dist/*.d.mts`, gọi bằng giá trị sai kiểu) tìm ra 9 chỗ
+nữa sau khi guard đã xanh - 5 chỗ im lặng trả giá trị trông như đáp án, 6 chỗ nêu tên
+hàm người gọi chưa từng gọi (có chỗ trùng nhau). Chi tiết ở `docs/code-standards.md`
+mục "Guard mù với việc KHÔNG validate gì cả".
+
+**Bài học cho lần sau: con dấu XONG ở `plan.md` không phải bằng chứng.** Ô todo chưa
+tick là bằng chứng ngược, và một guard xanh chỉ chứng minh thứ guard đó biết nhìn.

@@ -116,14 +116,14 @@ biên, và những chỗ nó có hợp đồng thì hợp đồng là clamp ch�
 
 ## Todo list
 
-- [ ] `cookieJar` + `downloadBlob` (3 consumer của `assertNonEmptyString`)
-- [ ] `html/` 4 file, chốt biên từng file
-- [ ] `image/`, `unit/`, `style/`
-- [ ] `Tree.tsx` gọi `useRequiredContext`
-- [ ] Xác nhận `createJsonStore` **không** bị thay
-- [ ] `check-assert-reuse` sạch cho cả hai package
-- [ ] 3 ca tự phá
-- [ ] `pnpm gate --full` 9/9
+- [x] `cookieJar` + `downloadBlob` (3 consumer của `assertNonEmptyString`)
+- [x] `html/` 4 file, chốt biên từng file
+- [x] `image/`, `unit/`, `style/`
+- [x] `Tree.tsx` gọi `useRequiredContext`
+- [x] Xác nhận `createJsonStore` **không** bị thay
+- [x] `check-assert-reuse` sạch cho cả hai package
+- [x] 3 ca tự phá
+- [x] `pnpm gate --full` 9/9
 
 ## Success Criteria
 

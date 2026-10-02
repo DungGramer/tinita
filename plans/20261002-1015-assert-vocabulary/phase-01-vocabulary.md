@@ -147,15 +147,15 @@ publish không nhận runtime dependency nào.
 
 ## Todo list
 
-- [ ] 7 primitive + JSDoc nêu postcondition
-- [ ] `assertString` chuyển khỏi `html.ts`, 3 call site
-- [ ] `assertDpi` chuyển đi, cài trên `assertPositiveFiniteNumber`, thêm `asserts`
-- [ ] 8 subpath vào `exports` + `typesVersions` + `contract.json` + barrel
-- [ ] `scripts/check-assert-reuse.mjs` + bước trong `pnpm gate`
-- [ ] Test mỗi primitive, gồm ca narrowing
-- [ ] `docs/code-standards.md` mục "Quy Tắc Validation"
-- [ ] 3 ca tự phá (xem Success Criteria)
-- [ ] `pnpm gate` 9/9
+- [x] 8 primitive + JSDoc nêu postcondition (plan ghi 7; `assertDpi` tách riêng vì tên miền)
+- [x] `assertString` chuyển khỏi `html.ts`, 3 call site
+- [x] `assertDpi` chuyển đi, cài trên `assertPositiveFiniteNumber`, thêm `asserts`
+- [x] 8 subpath vào `exports` + `typesVersions` + `contract.json` + barrel
+- [x] `scripts/check-assert-reuse.mjs` + bước trong `pnpm gate`
+- [x] Test mỗi primitive, gồm ca narrowing
+- [x] `docs/code-standards.md` mục "Quy Tắc Validation"
+- [x] 3 ca tự phá (xem Success Criteria)
+- [x] `pnpm gate` 9/9
 
 ## Success Criteria
 

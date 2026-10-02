@@ -113,15 +113,15 @@ không extract. Nếu consumer thứ hai xuất hiện thì extract lúc đó.
 
 ## Todo list
 
-- [ ] Đếm lại thông báo thiếu tiền tố sau pha 03
-- [ ] `resizeImage.quality`: `assertFiniteNumber` + `RangeError`, chỉ cho lossy type
-- [ ] `cookieJar.maxAge`: inline + dòng lý do không extract
-- [ ] Sửa thông báo còn thiếu tiền tố
-- [ ] `docs/code-standards.md` mục "Quy Tắc Validation"
-- [ ] `CHANGELOG.md`
-- [ ] `README.md` bảng thư mục thêm `asserts/`
-- [ ] 3 ca tự phá
-- [ ] `pnpm gate --full` 9/9
+- [x] Đếm lại thông báo thiếu tiền tố sau pha 03
+- [x] `resizeImage.quality`: `assertFiniteNumber` + `RangeError`, chỉ cho lossy type
+- [x] `cookieJar.maxAge`: inline + dòng lý do không extract
+- [x] Sửa thông báo còn thiếu tiền tố
+- [x] `docs/code-standards.md` mục "Quy Tắc Validation"
+- [x] `CHANGELOG.md`
+- [x] `README.md` bảng thư mục thêm `asserts/`
+- [x] 3 ca tự phá
+- [x] `pnpm gate --full` 9/9
 
 ## Success Criteria
 

@@ -299,3 +299,42 @@ describe('invariants across every combination', () => {
     }
   });
 });
+
+// Trước khi có assertString, cả ba boundary này ném TypeError vô danh
+// ("t.lastIndexOf is not a function"), và getFileNameParts(0) / (null) còn trả
+// ["",""] im lặng vì điều kiện `!fileName`.
+describe('the three file-name boundaries each name themselves', () => {
+  it('getFileNameParts rejects a non-string', () => {
+    expect(() => getFileNameParts(42 as never)).toThrow(TypeError);
+    expect(() => getFileNameParts(42 as never)).toThrow(
+      'getFileNameParts: fileName must be a string, got number'
+    );
+    expect(() => getFileNameParts(0 as never)).toThrow(
+      'getFileNameParts: fileName must be a string, got number'
+    );
+    expect(() => getFileNameParts(null as never)).toThrow(
+      'getFileNameParts: fileName must be a string, got object'
+    );
+  });
+
+  it('getFileNameParts still accepts the empty string, as documented', () => {
+    expect(getFileNameParts('')).toEqual(['', '']);
+  });
+
+  // Nếu chỉ getFileNameParts assert thì hai hàm dưới sẽ nêu tên hàm người gọi
+  // chưa từng gọi - đúng thứ tham số `caller` sinh ra để loại bỏ.
+  it('truncateFileNameParts names itself, not getFileNameParts', () => {
+    expect(() => truncateFileNameParts(42 as never)).toThrow(
+      'truncateFileNameParts: fileName must be a string, got number'
+    );
+  });
+
+  it('truncateFileName names itself, not truncateFileNameParts', () => {
+    expect(() => truncateFileName(42 as never)).toThrow(
+      'truncateFileName: fileName must be a string, got number'
+    );
+    expect(() => truncateFileName(null as never)).toThrow(
+      'truncateFileName: fileName must be a string, got object'
+    );
+  });
+});

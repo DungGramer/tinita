@@ -1,3 +1,5 @@
+import { assertString } from '../asserts/assertString';
+
 /**
  * Extract file name and extension from a file name string.
  *
@@ -22,8 +24,12 @@
  * @example
  * // Trailing dot stays in the name, so the input can be rebuilt exactly.
  * getFileNameParts("trailing.")     // => ["trailing.", ""]
+ *
+ * @throws {TypeError} if `fileName` is not a string.
  */
 export function getFileNameParts(fileName: string): [string, string] {
+  assertString(fileName, 'getFileNameParts', 'fileName');
+
   if (!fileName) return ['', ''];
 
   const lastDot = fileName.lastIndexOf('.');

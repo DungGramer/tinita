@@ -59,3 +59,23 @@ describe('toDevicePixels', () => {
     expect(() => fromDevicePixels(Number.POSITIVE_INFINITY)).toThrow(TypeError);
   });
 });
+
+// fromDevicePixels đã assert từ đầu, toDevicePixels ngay trên nó thì chưa - hai hàm
+// anh em trong một file, hai hình dạng. Trước đây toDevicePixels để convertLength ném.
+describe('toDevicePixels names itself, not convertLength', () => {
+  it('rejects a non-finite value under its own name', () => {
+    expect(() => toDevicePixels('x' as never)).toThrow(TypeError);
+    expect(() => toDevicePixels('x' as never)).toThrow(
+      'toDevicePixels: value must be a finite number, got string'
+    );
+    expect(() => toDevicePixels(Number.NaN)).toThrow(
+      'toDevicePixels: value must be a finite number, got NaN'
+    );
+  });
+
+  it('matches fromDevicePixels, which already did this', () => {
+    expect(() => fromDevicePixels('x' as never)).toThrow(
+      'fromDevicePixels: value must be a finite number, got string'
+    );
+  });
+});

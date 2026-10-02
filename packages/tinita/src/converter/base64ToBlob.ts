@@ -1,3 +1,4 @@
+import { assertString } from '../asserts/assertString';
 import { base64ToBytes } from './base64ToBytes';
 
 /**
@@ -22,5 +23,7 @@ import { base64ToBytes } from './base64ToBytes';
  * ```
  */
 export function base64ToBlob(base64: string, type = ''): Blob {
+  assertString(base64, 'base64ToBlob', 'base64');
+
   return new Blob([base64ToBytes(base64) as BlobPart], { type });
 }

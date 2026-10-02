@@ -116,15 +116,15 @@ là nguồn duy nhất; giữ nguyên.
 
 ## Todo list
 
-- [ ] Lấy danh sách từ `check-assert-reuse`, không grep tay
-- [ ] `string/` + `file/` (10 file)
-- [ ] `object/` - chốt biên từng hàm trước khi sửa
-- [ ] `omitEmptyValues` một lần + dòng lý do trong `filter`
-- [ ] `objectToMap` mỗi tầng + dòng lý do nói vì sao trái
-- [ ] `array/`, `date/`, `unit/`, `mime/`, `converter/`
-- [ ] Sửa test khoá thông báo cũ
-- [ ] 2 ca tự phá
-- [ ] `pnpm gate` 9/9
+- [x] Lấy danh sách từ `check-assert-reuse`, không grep tay
+- [x] `string/` + `file/` (10 file)
+- [x] `object/` - chốt biên từng hàm trước khi sửa
+- [x] `omitEmptyValues` một lần + dòng lý do trong `filter`
+- [x] `objectToMap` mỗi tầng + dòng lý do nói vì sao trái
+- [x] `array/`, `date/`, `unit/`, `mime/`, `converter/`
+- [x] Sửa test khoá thông báo cũ
+- [x] 2 ca tự phá
+- [x] `pnpm gate` 9/9
 
 ## Success Criteria
 
