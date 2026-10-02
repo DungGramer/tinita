@@ -27,17 +27,20 @@ Be respectful, professional, and constructive in all interactions.
 ### Setup
 
 1. **Clone the repository**:
+
    ```bash
    git clone https://github.com/your-org/tinita.git
    cd tinita
    ```
 
 2. **Install dependencies**:
+
    ```bash
    pnpm install
    ```
 
 3. **Build all packages**:
+
    ```bash
    pnpm build
    ```
@@ -114,6 +117,7 @@ When adding a new utility, hook, or composable, follow this checklist:
 ### Example: Adding a New Utility to @tinita/core
 
 1. **Create the utility file**:
+
    ```typescript
    // packages/core/src/string/isEmpty.ts
    export function isEmpty(value: unknown): value is '' {
@@ -122,6 +126,7 @@ When adding a new utility, hook, or composable, follow this checklist:
    ```
 
 2. **Update tsup.config.ts**:
+
    ```typescript
    // packages/core/tsup.config.ts
    export default defineConfig({
@@ -136,6 +141,7 @@ When adding a new utility, hook, or composable, follow this checklist:
    ```
 
 3. **Update package.json exports**:
+
    ```json
    {
      "exports": {
@@ -150,6 +156,7 @@ When adding a new utility, hook, or composable, follow this checklist:
    ```
 
 4. **Add to barrel export**:
+
    ```typescript
    // packages/core/src/index.ts
    export * from './number/isNumber';
@@ -158,6 +165,7 @@ When adding a new utility, hook, or composable, follow this checklist:
    ```
 
 5. **Write tests**:
+
    ```typescript
    // packages/core/tests/string.test.ts
    import { describe, it, expect } from 'vitest';
@@ -184,6 +192,7 @@ When adding a new utility, hook, or composable, follow this checklist:
    Add documentation with usage examples to `packages/core/README.md`.
 
 7. **Build and test**:
+
    ```bash
    cd packages/core
    pnpm build
@@ -198,23 +207,26 @@ When adding a new utility, hook, or composable, follow this checklist:
 ### Example: Adding a New Hook to @tinita/react
 
 1. **Create the hook file**:
+
    ```typescript
    // packages/react/src/useToggle.ts
    import { useState, useCallback } from 'react';
 
    export function useToggle(initialValue = false): [boolean, () => void] {
      const [value, setValue] = useState(initialValue);
-     const toggle = useCallback(() => setValue(v => !v), []);
+     const toggle = useCallback(() => setValue((v) => !v), []);
      return [value, toggle];
    }
    ```
 
 2. **Update tsup.config.ts**:
+
    ```typescript
    entry: ['src/index.ts', 'src/useDebounce.ts', 'src/useToggle.ts'],
    ```
 
 3. **Update package.json exports**:
+
    ```json
    "./useToggle": {
      "import": "./dist/useToggle.mjs",
@@ -224,6 +236,7 @@ When adding a new utility, hook, or composable, follow this checklist:
    ```
 
 4. **Add to barrel export**:
+
    ```typescript
    // packages/react/src/index.ts
    export * from './useDebounce';
@@ -327,6 +340,7 @@ Before committing, ensure:
 ### Common Mistakes to Avoid
 
 ❌ **DON'T**:
+
 - Bundle everything together
 - Put framework code in core package
 - Bundle React/Vue dependencies
@@ -334,6 +348,7 @@ Before committing, ensure:
 - Skip tests
 
 ✅ **DO**:
+
 - Keep modules separate with `bundle: false`
 - Maintain clear package boundaries
 - Externalize framework dependencies

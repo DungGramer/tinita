@@ -8,11 +8,11 @@ This document defines all required information for initializing the **tinita** p
 
 **tinita** is a multi‑package monorepo designed to provide:
 
-* Core utilities (framework‑agnostic)
-* React hooks
-* Vue composables
-* Node utilities
-* Shared tooling (lint configs, ts configs)
+- Core utilities (framework‑agnostic)
+- React hooks
+- Vue composables
+- Node utilities
+- Shared tooling (lint configs, ts configs)
 
 Scope is tech‑neutral, modular, and tree‑shakeable.
 
@@ -20,9 +20,9 @@ Scope is tech‑neutral, modular, and tree‑shakeable.
 
 ## 2. Monorepo Requirements
 
-* Package manager: **pnpm**
-* Monorepo engine: **Turborepo**
-* Structure:
+- Package manager: **pnpm**
+- Monorepo engine: **Turborepo**
+- Structure:
 
   ```txt
   tinita/
@@ -36,18 +36,19 @@ Scope is tech‑neutral, modular, and tree‑shakeable.
       node/
       config/
   ```
-* All packages must be published under scope (example): `@tinita/*`.
-* Each package must be independent and tree‑shakeable (per-file outputs).
+
+- All packages must be published under scope (example): `@tinita/*`.
+- Each package must be independent and tree‑shakeable (per-file outputs).
 
 ---
 
 ## 3. Build System Requirements
 
-* Build tool: **tsup**
-* Output formats: `esm` + `cjs`
-* Type definitions: required (`.d.ts`)
-* No bundling for util packages (`bundle: false`) except when explicitly overridden.
-* Directory outputs:
+- Build tool: **tsup**
+- Output formats: `esm` + `cjs`
+- Type definitions: required (`.d.ts`)
+- No bundling for util packages (`bundle: false`) except when explicitly overridden.
+- Directory outputs:
 
   ```txt
   dist/
@@ -60,12 +61,12 @@ Scope is tech‑neutral, modular, and tree‑shakeable.
 
 ## 4. TypeScript Requirements
 
-* All packages must contain:
+- All packages must contain:
+  - `tsconfig.json`
+  - `src/` directory
 
-  * `tsconfig.json`
-  * `src/` directory
-* Root `tsconfig.base.json` must define global compiler settings.
-* Path alias for internal sharing:
+- Root `tsconfig.base.json` must define global compiler settings.
+- Path alias for internal sharing:
 
   ```json
   {
@@ -84,11 +85,11 @@ Scope is tech‑neutral, modular, and tree‑shakeable.
 
 Every package must contain:
 
-* `package.json`
-* `src/index.ts`
-* `README.md`
-* Build script
-* Lint script
+- `package.json`
+- `src/index.ts`
+- `README.md`
+- Build script
+- Lint script
 
 Example minimal package.json fields:
 
@@ -112,8 +113,8 @@ Example minimal package.json fields:
 
 ## 6. Subpath Export Rules
 
-* Subpath exports must be defined for every util/hook.
-* Example:
+- Subpath exports must be defined for every util/hook.
+- Example:
 
 ```json
 {
@@ -151,16 +152,16 @@ tinita must enforce:
 
 ## 8. Lint & Format Requirements
 
-* ESLint + Prettier required.
-* Root config recommended.
-* Rules must apply to all packages.
+- ESLint + Prettier required.
+- Root config recommended.
+- Rules must apply to all packages.
 
 ---
 
 ## 9. Testing Requirements
 
-* Testing framework: **Vitest**
-* Tests stored in:
+- Testing framework: **Vitest**
+- Tests stored in:
 
   ```txt
   <package>/tests/*.test.ts
@@ -170,8 +171,8 @@ tinita must enforce:
 
 ## 10. Version & Release Requirements
 
-* Versioning: manual or via Changesets (optional).
-* Each package must be publish‑ready individually.
+- Versioning: manual or via Changesets (optional).
+- Each package must be publish‑ready individually.
 
 ---
 
@@ -179,11 +180,10 @@ tinita must enforce:
 
 Each package must have:
 
-* `README.md`: usage + API + import examples
-* Root must have:
-
-  * `CONTRIBUTING.md`
-  * `DOCUMENT_REQUIRED.md` (this file)
+- `README.md`: usage + API + import examples
+- Root must have:
+  - `CONTRIBUTING.md`
+  - `DOCUMENT_REQUIRED.md` (this file)
 
 ---
 
@@ -193,19 +193,19 @@ When initializing the project:
 
 1. Create root monorepo scaffold (pnpm + turbo + base tsconfig).
 2. Create packages:
+   - `core`
+   - `react`
+   - `vue`
+   - `node`
+   - `config`
 
-   * `core`
-   * `react`
-   * `vue`
-   * `node`
-   * `config`
 3. Setup tsup configs for each package.
 4. Setup ESLint + Prettier + Vitest in root.
 5. Implement example modules:
+   - `core`: `isNumber`, `isPositive`
+   - `react`: `useDebounce`
+   - `vue`: `useDebounce`
 
-   * `core`: `isNumber`, `isPositive`
-   * `react`: `useDebounce`
-   * `vue`: `useDebounce`
 6. Ensure subpath exports are configured.
 7. Ensure tests run across monorepo.
 

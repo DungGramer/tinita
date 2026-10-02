@@ -38,6 +38,16 @@ yarn-error.log*
 *.pem
 *.md
 !README.md
+# Doc gốc của repo. `*.md` khớp từng cái, và chúng sống được tới giờ chỉ vì đã nằm
+# trong index - một file mới, hay một file xoá rồi tạo lại, sẽ bị bỏ IM LẶNG.
+# CHANGELOG.md đã mất đúng theo cách đó: nó tồn tại trên đĩa, tả bản 0.1.0, và chưa
+# bao giờ vào git; `git status` sạch nên không có gì để thấy.
+!CHANGELOG.md
+!CLAUDE.md
+!ARCHITECTURE.md
+!CONTRIBUTING.md
+!CODE_OF_CONDUCT.md
+!DOCUMENT_REQUIRED.md
 !docs/*.md
 # Tài liệu ca test của compatibility lab phải commit được, nếu không người sau không hiểu ca
 !compatibility/**/*.md

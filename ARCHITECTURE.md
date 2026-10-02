@@ -12,12 +12,14 @@ This document defines the core architectural principles, edge cases, and complia
 micro-packages.
 
 ❌ **Bad Example** (DO NOT DO THIS):
+
 ```typescript
 // Inside tinita
 import { isNumericString } from 'some-is-numeric-string';
 ```
 
 If such a micro-package is ever published, it must be:
+
 - An independent package, NOT the sole source for `isNumericString` in `tinita`
 - `tinita` must keep its own internal implementation
 
@@ -31,6 +33,7 @@ project and asserts what landed in `node_modules`.
 **Problem**: Prevent scenarios where `positiveNumber@1.0.0` uses `isNumber@1.0.0` but the user installs `isNumber@1.1.0`, causing behavior conflicts.
 
 **Solutions**:
+
 1. **Internalize or bundle** core implementations into their parent package
 2. Do NOT let `tinita` behavior depend on versions users install separately
 3. Similar to `lodash` vs `lodash.isnumber` - they are independent at runtime
@@ -56,6 +59,7 @@ If runtime dependencies are absolutely necessary (rare in tinita):
 For critical dependencies in foundation packages:
 
 ❌ Avoid:
+
 ```json
 "dependencies": {
   "critical-dep": "^1.2.3"
@@ -63,6 +67,7 @@ For critical dependencies in foundation packages:
 ```
 
 ✅ Prefer:
+
 ```json
 "dependencies": {
   "critical-dep": "1.2.3"
@@ -91,7 +96,9 @@ Plus `config/` (shared ESLint, TypeScript and UI config, private) and `apps/stor
 > existed**, there is no Vue or Node package, and the real names carry no scope. A reader
 > following the old text would have installed nothing that resolves. Kept as a note
 > because the same class of error - documentation describing an API that is not there -
+
 <!-- doc-links-ignore -->
+
 > also put `tinita-react/hooks` in CLAUDE.md as a required import path, and is now
 > guarded for subpaths by `scripts/check-doc-links.mjs`.
 
@@ -102,6 +109,7 @@ happens to have. "Shared utilities" cannot be checked by a test; "runs in plain 
 can, and the lab measures it.
 
 **Strict Rules**:
+
 1. `tinita` must import cleanly AND run with no DOM. Guarded by L1 (plain Node) and the
    L2 SSR cases, which import every `tinita` specifier derived from `contract.json`.
 2. `tinita-dom` may use `document` and `window` **when called**, never at import time -
@@ -112,12 +120,14 @@ can, and the lab measures it.
 4. No framework code in `tinita` or `tinita-dom`.
 
 ❌ **Bad**: React code in core package
+
 ```typescript
 // tinita/src/useWindowSize.ts
 import { useState, useEffect } from 'react'; // WRONG!
 ```
 
 ✅ **Good**: Framework-specific code in appropriate package
+
 ```typescript
 // tinita-react/src/useWindowSize.ts
 import { useState, useEffect } from 'react'; // CORRECT
@@ -137,6 +147,7 @@ React and Vue MUST be `peerDependencies`, never bundled:
 ```
 
 **tsup configuration must externalize frameworks**:
+
 ```typescript
 // tinita-react/tsup.config.ts
 export default defineConfig({
@@ -166,11 +177,13 @@ import { isPositive } from 'tinita';
 ### 3.2 The Solution: One File = One Function
 
 **Mandatory Structure**:
+
 - `src/number/isNumber.ts` - ONE function
 - `src/number/isPositive.ts` - ONE function
 - `src/string/isEmpty.ts` - ONE function
 
 **Benefits**:
+
 - Modern bundlers can tree-shake unused modules
 - Users only ship what they use
 
@@ -203,11 +216,12 @@ export default defineConfig({
   // Without this tsup emits `.js` and every `exports.require` pointing at `.cjs`
   // breaks. Lab bug B1.
   outExtension: ({ format }) => ({ js: format === 'cjs' ? '.cjs' : '.mjs' }),
-  outDir: 'dist'
+  outDir: 'dist',
 });
 ```
 
 **Output structure**:
+
 ```
 dist/
   index.mjs
@@ -251,11 +265,13 @@ Every utility MUST have a subpath export:
 ### 3.5 Recommended Import Patterns
 
 **Allow barrel imports**:
+
 ```typescript
 import { isPositive } from 'tinita';
 ```
 
 **But RECOMMEND subpath imports in documentation**:
+
 ```typescript
 import { isEmail } from 'tinita/validation/isEmail';
 ```
@@ -269,10 +285,12 @@ import { isEmail } from 'tinita/validation/isEmail';
 ### 4.1 Large Package vs Micro-Packages
 
 If you create micro-packages in the future:
+
 - `some-is-numeric-string`
 - `some-is-positive`
 
 **Rules**:
+
 1. These micro-packages MUST NOT be runtime dependencies of `tinita`
 2. `tinita` has its own implementation in `src/number/isNumber.ts`
 3. Micro-packages are compiled separately
@@ -294,6 +312,7 @@ import { isNumericString } from 'some-is-numeric-string';
 ### 4.3 Source Sharing (Monorepo Internal)
 
 Within the monorepo, you CAN share source code via:
+
 - TypeScript path aliases
 - Workspace dependencies
 
@@ -321,6 +340,7 @@ Every package MUST have:
 ### 5.2 Turborepo Pipeline
 
 **Dependency graph**:
+
 ```json
 {
   "tasks": {
@@ -345,6 +365,7 @@ Every package MUST have:
 **Vitest** for entire monorepo:
 
 **Test structure**:
+
 ```
 packages/<package>/
   tests/
@@ -377,6 +398,7 @@ When adding a new utility/hook/composable:
 **Decision required**: Choose ONE pattern and be consistent.
 
 **Option A - Default Export**:
+
 ```typescript
 // isNumber.ts
 export default function isNumber(value: unknown): value is number {
@@ -388,6 +410,7 @@ import { isNumericString } from 'tinita/validation/isNumericString';
 ```
 
 **Option B - Named Export**:
+
 ```typescript
 // isNumber.ts
 export function isNumber(value: unknown): value is number {
@@ -414,6 +437,7 @@ interop shape bug B1 already had to fix once - and the worst case was a plugin, 
 **Issue**: User has React 17, but `tinita-react` requires React 18+
 
 **Solution**:
+
 - `peerDependencies` specifies minimum version
 - npm/pnpm will warn the user
 - Document required versions clearly in README
@@ -421,6 +445,7 @@ interop shape bug B1 already had to fix once - and the worst case was a plugin, 
 ### 6.4 Node vs Browser Environment
 
 **Rules**:
+
 1. `tinita` utilities must be environment-agnostic: no DOM, no Node-only APIs. The test
    is "does this mean anything without a document" - `stringToBase64` on a server does,
    `getScrollbarSize` does not.
@@ -454,6 +479,7 @@ export function isPositive(value: unknown): value is number {
 ```
 
 **Do NOT**:
+
 ```typescript
 // ❌ WRONG - circular package dependency
 import { isNumericString } from 'tinita/validation/isNumericString';
@@ -493,6 +519,7 @@ invariant 1 in `CLAUDE.md`. `bundle: true` is **required**: with `bundle: false`
 esbuild leaves relative specifiers without an extension in the `.mjs` output and Node
 ESM demands one, so every internal import failed with `ERR_MODULE_NOT_FOUND` - lab bug
 B2. Tree-shaking is unaffected because each entry is still its own file.
+
 - Explicit subpath exports
 - No side effects in module initialization
 
@@ -522,6 +549,7 @@ B2. Tree-shaking is unaffected because each entry is still its own file.
 **Critical**: The behavior of `tinita` MUST NOT depend on which version of any other `@tinita/*` package the user installs.
 
 Example:
+
 - User installs `tinita@1.0.0` and `some-is-numeric-string@2.0.0`
 - `tinita` must work exactly the same regardless of `some-is-numeric-string` version
 - They are independent packages
@@ -553,6 +581,7 @@ Example:
 ### 8.4 Semantic Versioning
 
 Strict semver adherence:
+
 - **Patch** (0.0.x): Bug fixes, no API changes
 - **Minor** (0.x.0): New features, backward-compatible
 - **Major** (x.0.0): Breaking changes
@@ -593,6 +622,7 @@ Strict semver adherence:
 ### 9.3 Breaking Changes
 
 When introducing breaking changes:
+
 1. Document in `CHANGELOG.md`
 2. Increment major version
 3. Provide migration guide
