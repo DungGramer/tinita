@@ -1,3 +1,5 @@
+import { assertFiniteNumber } from '../asserts/assertFiniteNumber';
+
 /** The CSS absolute length units. */
 export type LengthUnit = 'px' | 'in' | 'cm' | 'mm' | 'pt' | 'pc' | 'q';
 
@@ -68,11 +70,7 @@ export function convertLength(
   from: LengthUnit,
   to: LengthUnit
 ): number {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    throw new TypeError(
-      `convertLength: expected a finite number, got ${value}`
-    );
-  }
+  assertFiniteNumber(value, 'convertLength');
 
   const fromKey = String(from).toLowerCase() as LengthUnit;
   const toKey = String(to).toLowerCase() as LengthUnit;

@@ -1,3 +1,4 @@
+import { assertNonEmptyString } from 'tinita/asserts/assertNonEmptyString';
 export interface DownloadBlobOptions {
   /**
    * How long to keep the object URL alive before releasing it. 10000 by default.
@@ -51,9 +52,7 @@ export function downloadBlob(
   if (!(blob instanceof Blob)) {
     throw new TypeError(`downloadBlob: expected a Blob, got ${typeof blob}`);
   }
-  if (typeof fileName !== 'string' || fileName === '') {
-    throw new TypeError('downloadBlob: fileName must be a non-empty string');
-  }
+  assertNonEmptyString(fileName, 'downloadBlob', 'fileName');
 
   const { revokeAfterMs = 10_000 } = options;
   const url = URL.createObjectURL(blob);

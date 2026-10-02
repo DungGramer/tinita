@@ -1,3 +1,4 @@
+import { assertString } from '../asserts/assertString';
 import type { Html, HtmlPlugin } from './types';
 
 /**
@@ -18,14 +19,6 @@ const BASE_ENTITIES: Readonly<Record<string, string>> = {
 /** Escape a literal for use inside a regular expression alternation. */
 function escapeForRegExp(literal: string): string {
   return literal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function assertString(value: unknown, method: string): asserts value is string {
-  if (typeof value !== 'string') {
-    throw new TypeError(
-      `html.${method}() expects a string, received ${typeof value}`
-    );
-  }
 }
 
 /**
@@ -88,7 +81,7 @@ export function createHtml(): Html {
 
   const instance: Html = {
     encode(input) {
-      assertString(input, 'encode');
+      assertString(input, 'html.encode', 'input');
       encodeMatcher ??= buildEncodeMatcher();
       // `replace` with a global regex resets lastIndex itself, so the cached
       // matcher is safe to share across calls.
@@ -99,7 +92,7 @@ export function createHtml(): Html {
     },
 
     decode(input) {
-      assertString(input, 'decode');
+      assertString(input, 'html.decode', 'input');
       return input.replace(ENTITY_SHAPE, (match) => {
         const named =
           decodeEntities.get(match) ?? decodeEntities.get(`${match};`);
@@ -114,6 +107,9 @@ export function createHtml(): Html {
         );
         // Lone surrogates and anything past the Unicode range would make
         // fromCodePoint throw. An unrecognised reference is left as written.
+        // assert-reuse-ignore không phải validation: decode() trả nguyên match cho
+        // một reference không nhận ra, đó là hợp đồng của nó. Ném ở đây sẽ làm một
+        // chuỗi chứa `&#999999;` không decode được chút nào.
         if (!Number.isFinite(codePoint) || codePoint > 0x10ffff) return match;
         if (codePoint >= 0xd800 && codePoint <= 0xdfff) return match;
 

@@ -17,7 +17,7 @@
 export function bytesToBase64(bytes: Uint8Array): string {
   if (!(bytes instanceof Uint8Array)) {
     throw new TypeError(
-      `bytesToBase64() expects a Uint8Array, received ${typeof bytes}`
+      `bytesToBase64: expects a Uint8Array, received ${typeof bytes}`
     );
   }
 

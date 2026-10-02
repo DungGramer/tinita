@@ -1,3 +1,5 @@
+import { assertObject } from '../asserts/assertObject';
+
 /**
  * The string keys of a TypeScript `enum`, without the reverse-mapped numeric ones.
  *
@@ -22,13 +24,11 @@
  * ```
  */
 export function enumKeys<T extends object>(obj: T): Extract<keyof T, string>[] {
-  if (obj === null || typeof obj !== 'object') {
-    throw new TypeError(
-      `enumKeys: expected an object, got ${obj === null ? 'null' : typeof obj}`
-    );
-  }
+  assertObject(obj, 'enumKeys', 'obj');
 
+  // Đây LÀ logic của hàm, không phải validation: bỏ các key reverse-mapped dạng số
+  // mà một numeric enum sinh ra.
   return Object.keys(obj).filter(
-    (key) => !Number.isFinite(Number(key))
+    (key) => !Number.isFinite(Number(key)) // assert-reuse-ignore logic của hàm
   ) as Extract<keyof T, string>[];
 }

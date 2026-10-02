@@ -1,3 +1,5 @@
+import { assertString } from '../asserts/assertString';
+
 /**
  * Lowercase the whole string, then uppercase its first character.
  *
@@ -21,9 +23,7 @@
  * ```
  */
 export function sentenceCase(value: string): string {
-  if (typeof value !== 'string') {
-    throw new TypeError(`sentenceCase: expected a string, got ${typeof value}`);
-  }
+  assertString(value, 'sentenceCase');
 
   const trimmed = value.trim().toLowerCase();
   if (trimmed === '') return '';

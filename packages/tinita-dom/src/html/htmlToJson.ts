@@ -26,7 +26,7 @@ export function htmlToJson(html: string): JsonHtmlElement {
   const root = doc.body.firstElementChild;
 
   if (!root) {
-    throw new TypeError('htmlToJson() found no element in the given HTML');
+    throw new TypeError('htmlToJson: found no element in the given HTML');
   }
 
   return elementToJson(root);

@@ -177,6 +177,30 @@
       ],
       "unit/printPixels": [
         "./dist/unit/printPixels.d.ts"
+      ],
+      "asserts/assertArray": [
+        "./dist/asserts/assertArray.d.ts"
+      ],
+      "asserts/assertDpi": [
+        "./dist/asserts/assertDpi.d.ts"
+      ],
+      "asserts/assertFiniteNumber": [
+        "./dist/asserts/assertFiniteNumber.d.ts"
+      ],
+      "asserts/assertInteger": [
+        "./dist/asserts/assertInteger.d.ts"
+      ],
+      "asserts/assertNonEmptyString": [
+        "./dist/asserts/assertNonEmptyString.d.ts"
+      ],
+      "asserts/assertObject": [
+        "./dist/asserts/assertObject.d.ts"
+      ],
+      "asserts/assertPositiveFiniteNumber": [
+        "./dist/asserts/assertPositiveFiniteNumber.d.ts"
+      ],
+      "asserts/assertString": [
+        "./dist/asserts/assertString.d.ts"
       ]
     }
   },
@@ -725,6 +749,86 @@
       "require": {
         "types": "./dist/unit/printPixels.d.ts",
         "default": "./dist/unit/printPixels.cjs"
+      }
+    },
+    "./asserts/assertArray": {
+      "import": {
+        "types": "./dist/asserts/assertArray.d.mts",
+        "default": "./dist/asserts/assertArray.mjs"
+      },
+      "require": {
+        "types": "./dist/asserts/assertArray.d.ts",
+        "default": "./dist/asserts/assertArray.cjs"
+      }
+    },
+    "./asserts/assertDpi": {
+      "import": {
+        "types": "./dist/asserts/assertDpi.d.mts",
+        "default": "./dist/asserts/assertDpi.mjs"
+      },
+      "require": {
+        "types": "./dist/asserts/assertDpi.d.ts",
+        "default": "./dist/asserts/assertDpi.cjs"
+      }
+    },
+    "./asserts/assertFiniteNumber": {
+      "import": {
+        "types": "./dist/asserts/assertFiniteNumber.d.mts",
+        "default": "./dist/asserts/assertFiniteNumber.mjs"
+      },
+      "require": {
+        "types": "./dist/asserts/assertFiniteNumber.d.ts",
+        "default": "./dist/asserts/assertFiniteNumber.cjs"
+      }
+    },
+    "./asserts/assertInteger": {
+      "import": {
+        "types": "./dist/asserts/assertInteger.d.mts",
+        "default": "./dist/asserts/assertInteger.mjs"
+      },
+      "require": {
+        "types": "./dist/asserts/assertInteger.d.ts",
+        "default": "./dist/asserts/assertInteger.cjs"
+      }
+    },
+    "./asserts/assertNonEmptyString": {
+      "import": {
+        "types": "./dist/asserts/assertNonEmptyString.d.mts",
+        "default": "./dist/asserts/assertNonEmptyString.mjs"
+      },
+      "require": {
+        "types": "./dist/asserts/assertNonEmptyString.d.ts",
+        "default": "./dist/asserts/assertNonEmptyString.cjs"
+      }
+    },
+    "./asserts/assertObject": {
+      "import": {
+        "types": "./dist/asserts/assertObject.d.mts",
+        "default": "./dist/asserts/assertObject.mjs"
+      },
+      "require": {
+        "types": "./dist/asserts/assertObject.d.ts",
+        "default": "./dist/asserts/assertObject.cjs"
+      }
+    },
+    "./asserts/assertPositiveFiniteNumber": {
+      "import": {
+        "types": "./dist/asserts/assertPositiveFiniteNumber.d.mts",
+        "default": "./dist/asserts/assertPositiveFiniteNumber.mjs"
+      },
+      "require": {
+        "types": "./dist/asserts/assertPositiveFiniteNumber.d.ts",
+        "default": "./dist/asserts/assertPositiveFiniteNumber.cjs"
+      }
+    },
+    "./asserts/assertString": {
+      "import": {
+        "types": "./dist/asserts/assertString.d.mts",
+        "default": "./dist/asserts/assertString.mjs"
+      },
+      "require": {
+        "types": "./dist/asserts/assertString.d.ts",
+        "default": "./dist/asserts/assertString.cjs"
       }
     }
   },

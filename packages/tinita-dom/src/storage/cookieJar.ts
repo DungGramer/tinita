@@ -1,3 +1,6 @@
+import { assertNonEmptyString } from 'tinita/asserts/assertNonEmptyString';
+import { assertString } from 'tinita/asserts/assertString';
+
 export interface CookieOptions {
   /**
    * Lifetime in seconds. Omit for a session cookie, which the browser drops when it
@@ -72,11 +75,7 @@ export const cookieJar = {
    * returned `''` for both. Values are percent-decoded, matching `set`.
    */
   get(name: string): string | null {
-    if (typeof name !== 'string') {
-      throw new TypeError(
-        `cookieJar.get: expected a string, got ${typeof name}`
-      );
-    }
+    assertString(name, 'cookieJar.get', 'name');
 
     const target = encode(name);
     for (const pair of document.cookie.split(';')) {
@@ -109,9 +108,7 @@ export const cookieJar = {
    *   `secure`, which every current browser rejects outright.
    */
   set(name: string, value: string, options: CookieOptions = {}): void {
-    if (typeof name !== 'string' || name === '') {
-      throw new TypeError('cookieJar.set: name must be a non-empty string');
-    }
+    assertNonEmptyString(name, 'cookieJar.set', 'name');
 
     const {
       maxAge,
@@ -133,7 +130,23 @@ export const cookieJar = {
       `Path=${path}`,
       `SameSite=${sameSite}`,
     ];
-    if (maxAge !== undefined) parts.push(`Max-Age=${Math.floor(maxAge)}`);
+    if (maxAge !== undefined) {
+      // Was unvalidated, and the failure was silent AND load-bearing: Math.floor(NaN)
+      // is NaN, so `Max-Age=NaN` is an attribute no browser can parse, and the whole
+      // cookie is dropped. `set` returns void, so a session or CSRF cookie simply
+      // never got written and nothing said so.
+      //
+      // TypeError, not RangeError: there is no upper bound to be outside of - how long
+      // a cookie lives is the caller's business. The invariant is only
+      // "non-negative integer of seconds". 0 is valid and means "expire now".
+      // assert-reuse-ignore một consumer duy nhất, nên không extract (§19)
+      if (!Number.isInteger(maxAge) || maxAge < 0) {
+        throw new TypeError(
+          `cookieJar.set: maxAge must be a non-negative integer of seconds, got ${maxAge}`
+        );
+      }
+      parts.push(`Max-Age=${maxAge}`);
+    }
     if (domain) parts.push(`Domain=${domain}`);
     if (secure) parts.push('Secure');
 
@@ -151,9 +164,7 @@ export const cookieJar = {
     name: string,
     options: Pick<CookieOptions, 'path' | 'domain'> = {}
   ): void {
-    if (typeof name !== 'string' || name === '') {
-      throw new TypeError('cookieJar.remove: name must be a non-empty string');
-    }
+    assertNonEmptyString(name, 'cookieJar.remove', 'name');
 
     const { path = '/', domain } = options;
     const parts = [`${encode(name)}=`, `Path=${path}`, 'Max-Age=0'];

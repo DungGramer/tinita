@@ -26,6 +26,8 @@
  * ```
  */
 export function isUrl(value: unknown): boolean {
+  // assert-reuse-ignore predicate: hợp đồng là trả boolean, không ném. assertString
+  // ở đây sẽ biến `isUrl(42)` từ `false` thành một throw.
   if (typeof value !== 'string') return false;
 
   // `URL.canParse` landed in Node 18.17; `engines` allows 18.0.0, so fall back.

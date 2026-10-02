@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as scrollbarModule from '../src/dimension/getScrollbarSize';
 import { downloadBlob } from '../src/file/downloadBlob';
+import { resizeImage } from '../src/image/resizeImage';
+import { cookieJar } from '../src/storage/cookieJar';
 import { setCssVariables } from '../src/style/setCssVariables';
 
 const { getScrollbarSize } = scrollbarModule;
@@ -154,5 +156,69 @@ describe('getScrollbarSize', () => {
     // jsdom reports offsetHeight 0 for everything (measured 2026-10-01), so this can
     // only assert the shape. The real value is observable in the L4 browser lab.
     expect(getScrollbarSize()).toEqual([0, 0]);
+  });
+});
+
+describe('validation gaps closed 2026-10-02', () => {
+  it('resizeImage REFUSES a quality outside 0..1, with RangeError', () => {
+    // Was unvalidated, and silently: the spec says toDataURL ignores a quality
+    // outside 0..1 and uses its default, so `quality: 1.5` returned a
+    // default-quality image and reported nothing.
+    //
+    // RangeError because 0..1 is an explicitly bounded interval - the one place in
+    // the repo that earns it. The type problem stays a TypeError.
+    expect(() =>
+      resizeImage('x', { type: 'image/jpeg', quality: 1.5 })
+    ).toThrow(RangeError);
+    expect(() =>
+      resizeImage('x', { type: 'image/jpeg', quality: -0.1 })
+    ).toThrow(RangeError);
+    expect(() =>
+      // @ts-expect-error deliberately wrong type
+      resizeImage('x', { type: 'image/jpeg', quality: '0.8' })
+    ).toThrow(TypeError);
+  });
+
+  it('resizeImage ACCEPTS the boundary values and omission', () => {
+    for (const quality of [0, 1, 0.5, undefined]) {
+      expect(
+        () => resizeImage('x', { type: 'image/jpeg', quality }),
+        String(quality)
+      ).not.toThrow();
+    }
+  });
+
+  it('resizeImage does NOT refuse a bad quality for PNG, which ignores it', () => {
+    // The spec says toDataURL ignores quality for image/png, so refusing there would
+    // reject a perfectly valid call.
+    expect(() =>
+      resizeImage('x', { type: 'image/png', quality: 1.5 })
+    ).not.toThrow();
+    expect(() => resizeImage('x', { quality: 99 })).not.toThrow();
+  });
+
+  it('cookieJar REFUSES a maxAge that would silently drop the whole cookie', () => {
+    // Math.floor(NaN) is NaN, so `Max-Age=NaN` is unparseable and the browser
+    // discards the cookie entirely. `set` returns void, so a session or CSRF cookie
+    // simply never got written.
+    for (const maxAge of [Number.NaN, -1, 1.5, Number.POSITIVE_INFINITY]) {
+      expect(() => cookieJar.set('k', 'v', { maxAge }), String(maxAge)).toThrow(
+        TypeError
+      );
+    }
+  });
+
+  it('cookieJar accepts 0, which means expire now', () => {
+    expect(() => cookieJar.set('k', 'v', { maxAge: 0 })).not.toThrow();
+    expect(() => cookieJar.set('k', 'v', { maxAge: 300 })).not.toThrow();
+    cookieJar.remove('k');
+  });
+
+  it('maxAge is TypeError, not RangeError - there is no upper bound to exceed', () => {
+    // How long a cookie lives is the caller's business. The invariant is only
+    // "non-negative integer of seconds", which is a value contract.
+    expect(() => cookieJar.set('k', 'v', { maxAge: -1 })).not.toThrow(
+      RangeError
+    );
   });
 });

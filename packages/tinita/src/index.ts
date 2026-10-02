@@ -2,6 +2,17 @@
 // tables, and `full` is far too generic a name to put in a package's top-level
 // namespace. Import them from their own subpaths.
 
+// Asserts - runtime invariants at the API boundary. TypeScript guards the source;
+// these guard the values, and `number` in TS includes NaN and Infinity.
+export * from './asserts/assertArray';
+export * from './asserts/assertDpi';
+export * from './asserts/assertFiniteNumber';
+export * from './asserts/assertInteger';
+export * from './asserts/assertNonEmptyString';
+export * from './asserts/assertObject';
+export * from './asserts/assertPositiveFiniteNumber';
+export * from './asserts/assertString';
+
 // Array
 export * from './array/createRange';
 export * from './array/getArrayValue';

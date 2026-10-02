@@ -1,3 +1,6 @@
+import { assertArray } from '../asserts/assertArray';
+import { assertObject } from '../asserts/assertObject';
+
 /**
  * A new object holding only `keys` that `obj` actually owns.
  *
@@ -29,17 +32,11 @@ export function pick<T extends object, K extends keyof T>(
   obj: T,
   keys: readonly K[]
 ): Pick<T, K> {
-  if (obj === null || typeof obj !== 'object') {
-    throw new TypeError(
-      `pick: expected an object, got ${obj === null ? 'null' : typeof obj}`
-    );
-  }
+  assertObject(obj, 'pick', 'obj');
   // Guard through an alias: `Array.isArray` narrows `readonly K[]` to `any[]`, which
   // loses K and makes every later index an implicit `any`.
   const keyList: unknown = keys;
-  if (!Array.isArray(keyList)) {
-    throw new TypeError(`pick: expected an array of keys, got ${typeof keys}`);
-  }
+  assertArray(keyList, 'pick', 'keyList');
 
   const result = {} as Pick<T, K>;
   for (const key of keys) {

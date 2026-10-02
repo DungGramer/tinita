@@ -1,3 +1,5 @@
+import { assertDpi } from '../asserts/assertDpi';
+import { assertFiniteNumber } from '../asserts/assertFiniteNumber';
 import { convertLength, type LengthUnit } from './convertLength';
 
 /**
@@ -90,19 +92,7 @@ export function fromPrintPixels(
   dpi: number
 ): number {
   assertDpi(dpi, 'fromPrintPixels');
-  if (typeof pixels !== 'number' || !Number.isFinite(pixels)) {
-    throw new TypeError(
-      `fromPrintPixels: expected a finite number of pixels, got ${pixels}`
-    );
-  }
+  assertFiniteNumber(pixels, 'fromPrintPixels', 'pixels');
 
   return convertLength(pixels / dpi, 'in', unit);
-}
-
-function assertDpi(dpi: number, caller: string): void {
-  if (typeof dpi !== 'number' || !Number.isFinite(dpi) || dpi <= 0) {
-    throw new TypeError(
-      `${caller}: dpi must be a positive finite number, got ${dpi}`
-    );
-  }
 }

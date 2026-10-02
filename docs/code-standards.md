@@ -559,6 +559,150 @@ import { FileTree } from 'tinita-react/ui/file-tree';
 
 ---
 
+## Quy Tắc Validation (chốt 2026-10-02)
+
+TypeScript bảo vệ source, assertion bảo vệ runtime. Hai lớp **bổ sung nhau**, không
+thay thế nhau: `number` của TS bao gồm `NaN`, `Infinity`, `-Infinity`, `0` và số âm,
+nên nó không biểu diễn được `DPI = finite && > 0`; và ba package này publish lên npm
+nên consumer có thể là **JS thuần**, nơi `.d.ts` không chặn
+`fromPrintPixels(100, 'mm', NaN)`.
+
+### Tám primitive, và bằng chứng của từng cái
+
+Tất cả ở `packages/tinita/src/asserts/`, mỗi file một export, và đều là subpath công
+khai. `tinita-dom` và `tinita-react` dùng qua `tinita/asserts/*`.
+
+| Primitive                    | Lần | File | Lý do extract                               |
+| ---------------------------- | --: | ---: | ------------------------------------------- |
+| `assertString`               |  17 |   14 | tái dùng                                    |
+| `assertArray`                |  15 |   10 | tái dùng                                    |
+| `assertFiniteNumber`         |  10 |    8 | tái dùng                                    |
+| `assertObject`               |   8 |    6 | tái dùng                                    |
+| `assertNonEmptyString`       |   3 |    2 | tái dùng                                    |
+| `assertInteger`              |   3 |    2 | **thông báo**, không phải số lần - xem dưới |
+| `assertPositiveFiniteNumber` |   2 |    2 | `assertDpi` cài lên nó                      |
+| `assertDpi`                  |   2 |    1 | tên domain trên primitive generic           |
+
+`assertInteger` extract dù chỉ 3 lần, vì `createRange` trước đó kiểm hai biên trong
+**một** điều kiện nên lỗi không nói biên nào sai:
+
+```
+trước:  createRange: both bounds must be integers, got (1, 2.5)
+sau:    createRange: end must be an integer, got 2.5
+```
+
+Extract để sửa thông báo, không để bớt dòng.
+
+**KHÔNG** tạo: `assertFunction` (2 chỗ), `assertBlob` (2), `assertUint8Array` (1) -
+một hai consumer thì abstraction không có tái dùng. **KHÔNG** tạo trước
+`assertNonNegativeInteger` dù `cookieJar.maxAge` cần nó: một consumer duy nhất, giữ
+inline kèm lý do tại chỗ.
+
+**KHÔNG** tạo `assertLengthUnit`: nó sẽ mang bản sao danh sách đơn vị mà
+`PX_PER_UNIT` đang là nguồn duy nhất, và bản sao lệch được. `convertLength` tra bảng
+rồi ném kèm danh sách **lấy từ chính bảng đó**.
+
+### Tên: `assertObject`, không `assertPlainObject`
+
+Cả 8 chỗ dùng `x === null || typeof x !== 'object'`, hình dạng **nhận cả array và
+class instance**. Một cái tên hứa "plain" mà nhận array là tên che mất hành vi.
+
+Nghĩa hẹp thật nằm ở `isPlainObject` trong `object/omitEmptyValues.ts`: nó kiểm cả
+prototype, vì nó đệ quy và không được tháo một `Date` ra theo key enumerable
+(`Object.entries(new Date())` là `[]`, nên đệ quy vào sẽ âm thầm thay date bằng `{}`).
+Đó là invariant **khác** và nó ở chỗ nó được dùng.
+
+### Hình dạng thông báo
+
+```
+<tênAPI>: <tênTham số> must be <invariant>, got <mô tả>
+```
+
+Ba thành phần, mỗi cái vì một lý do:
+
+- **tênAPI** vì một helper phục vụ nhiều API; thiếu nó thì không biết ai từ chối.
+  Với method của object thì dùng `cookieJar.set`, `html.encode`.
+- **tênTham số** vì `expected a string` không nói đối số nào sai. Mặc định `value`.
+- **mô tả** chọn theo thứ gì hữu ích: `got string` cho sai kiểu, `got NaN` cho sai
+  giá trị. Hai cái đó dẫn tới hai bug khác nhau.
+
+`assertObject` và `assertArray` in `typeof`, **không** in giá trị: `String(value)`
+trên một object gọi `toString` nếu có, tức một side effect nằm trong đường lỗi, và
+nó tự ném được.
+
+### `TypeError` hay `RangeError`
+
+```
+TypeError     typeof sai, không finite, không integer, <= 0, rỗng
+              -> vi phạm hợp đồng về kiểu hoặc giá trị
+RangeError    CHỈ khi đúng kiểu nhưng ngoài một khoảng CÓ BIÊN tường minh
+```
+
+Phân biệt là **khoảng có biên**, không phải "có vi phạm giá trị hay không".
+`dpi <= 0` và `scale <= 0` là contract **dương**, nên `TypeError`. `quality` trong
+`resizeImage` là `0..1`, nên `RangeError` - và đó là chỗ duy nhất trong repo dùng nó.
+
+Lý do phải ghi: chuẩn gốc liệt kê `value <= 0` dưới **cả hai** nhóm. Owner chốt cách
+đọc "chỉ khoảng có biên" ngày 2026-10-02, nên 0 chỗ phải đổi loại error và cả 61
+assertion `toThrow(TypeError)` giữ nguyên.
+
+`Error` trần chỉ còn một chỗ: `useRequiredContext`. "Thiếu Provider" không phải vi
+phạm kiểu tham số, và không có built-in error nào chính xác hơn.
+
+### `isX` hay `assertX`
+
+`isX` trả `boolean` và **không bao giờ ném**. `assertX` ném và thiết lập invariant.
+Không trộn: `isUrl(42)` phải là `false`, không phải một throw. Vì vậy
+`validation/*` của `tinita` và `validation/*` của `tinita-dom` đều **không** được
+retrofit - chúng là predicate.
+
+### Validate ở biên, không ở mọi tầng
+
+`omitEmptyValues` lập invariant **một lần** ở hàm công khai; `filter` nội bộ tin nó,
+vì lời gọi đệ quy chỉ xảy ra sau khi `isPlainObject` đã xác nhận. Kiểm lại từng node
+sẽ biến một lời gọi thành một-trên-mỗi-node.
+
+Ngược lại, `converter/objectToMap` **tự gọi chính nó như một API công khai**, nên nó
+kiểm từng tầng. Hai hàm đệ quy, hai phán quyết trái nhau, và lý do nằm trong code.
+
+Bốn chỗ **cố ý không** dùng primitive, mỗi chỗ một `// assert-reuse-ignore <lý do>`:
+
+| Chỗ                                 | Vì sao                                                                                          |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `validation/isUrl`, `isPlainObject` | predicate, hợp đồng trả boolean                                                                 |
+| `html/html.ts` decode               | trả nguyên match cho reference không nhận ra                                                    |
+| `object/enumKeys`                   | `!Number.isFinite` LÀ logic của hàm                                                             |
+| `usePagination` `clamp`             | hợp đồng là clamp, property test 2000 mẫu khoá; và nó là thân hook, chạy lại mỗi render         |
+| `html/elementToJson`                | `typeof el.nodeName !== 'string'` nhận ra Element mà không dùng `instanceof`, thứ gãy qua realm |
+| `cookieJar.maxAge`                  | một consumer, không đáng extract                                                                |
+
+### Guard, và vì sao phải là script
+
+`pnpm gate` có bước `assert-reuse`. Nó làm đỏ một điều kiện inline trùng primitive,
+và nêu tên primitive nên dùng.
+
+Nó tồn tại vì quy ước **đã thất bại một lần, đo được**: `html/html.ts` có sẵn
+`assertString` với đúng signature `asserts`, giải một điều kiện có ở 14 file, và được
+dùng ở **1**. Một ngày sau `assertDpi` được viết ở `unit/printPixels.ts` **không** có
+`asserts`. Không ai thấy cả hai, vì không có gì đang nhìn.
+
+Thoát bằng `// assert-reuse-ignore <lý do>` ở dòng trên hoặc **cùng dòng**. Lý do là
+**bắt buộc** - marker rỗng vẫn đỏ, vì một exemption không ai phải giải thích là cách
+một guard biến thành trang trí.
+
+Guard khớp **pattern**, không khớp **ý định**: lần chạy đầu nó báo 43 chỗ, trong đó 4
+là false positive (predicate, logic hàm, hợp đồng clamp). Đó là lý do marker đòi lý
+do thay vì guard tự phán.
+
+### Trước khi viết một validator mới
+
+Tìm helper tương đương trước. Nếu điều kiện xuất hiện một lần và không có nghĩa ngoài
+hàm của nó thì **giữ inline** - đó là câu trả lời đúng ở đó, không phải thiếu sót.
+Đừng tạo `assertNumber`, `ensureNumber`, `requireNumber`, `checkNumber` hay
+`validateNumber` cho cùng một hợp đồng: một lối duy nhất là `assertX`.
+
+---
+
 ## Quy Tắc Dependency
 
 **Ràng buộc (owner, 2026-09-24):** `tinita-react` sẽ có foundation không đồng nhất (antd, Base UI,

@@ -1,14 +1,7 @@
 'use client';
 
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useRequiredContext } from '../../hooks/useRequiredContext';
+import React, { createContext, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Collapsible } from '@base-ui/react/collapsible';
 import { cn } from '../../utils/cn';
 import { variantAttributes } from '../../utils/variantAttributes';
@@ -411,13 +404,13 @@ interface TreeContextValue {
 }
 
 const TreeContext = createContext<TreeContextValue | null>(null);
+TreeContext.displayName = '<Tree>';
 const EMPTY_ANCESTORS: string[] = [];
 
-function useTreeContext(): TreeContextValue {
-  const value = useContext(TreeContext);
-  if (!value) throw new Error('TreeItem must be rendered inside <Tree>');
-  return value;
-}
+// Delegates to the package's own hook rather than hand-rolling the same check. The
+// version this replaced threw its own `Error` with a differently shaped message - one
+// idea, two implementations, in one package.
+const useTreeContext = (): TreeContextValue => useRequiredContext(TreeContext, 'TreeItem');
 
 interface TreeLevelProps {
   nodes: TreeNode[];

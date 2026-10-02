@@ -1,3 +1,4 @@
+import { assertObject } from 'tinita/asserts/assertObject';
 import type { JsonHtmlElement } from './elementToJson';
 
 /**
@@ -38,11 +39,7 @@ export function jsonToHtml(json: JsonHtmlElement): string {
 }
 
 function toElement(json: JsonHtmlElement): HTMLElement {
-  if (json === null || typeof json !== 'object') {
-    throw new TypeError(
-      `jsonToHtml: expected a JsonHtmlElement, got ${json === null ? 'null' : typeof json}`
-    );
-  }
+  assertObject(json, 'jsonToHtml', 'json');
 
   let element: HTMLElement;
   try {

@@ -1,3 +1,5 @@
+import { assertString } from '../asserts/assertString';
+
 export interface KeyCombination {
   /** The non-modifier key, exactly as written. */
   key: string;
@@ -75,11 +77,7 @@ const ALIAS_TO_FLAG = new Map<string, keyof Omit<KeyCombination, 'key'>>(
  * ```
  */
 export function parseKeyCombination(value: string): KeyCombination {
-  if (typeof value !== 'string') {
-    throw new TypeError(
-      `parseKeyCombination: expected a string, got ${typeof value}`
-    );
-  }
+  assertString(value, 'parseKeyCombination');
   if (value.trim() === '') {
     throw new TypeError(
       'parseKeyCombination: expected a key combination, got an empty string'

@@ -1,3 +1,4 @@
+import { assertString } from '../asserts/assertString';
 /**
  * Decode base64 into bytes. The inverse of `bytesToBase64`.
  *
@@ -18,15 +19,11 @@
  * ```
  */
 export function base64ToBytes(base64: string): Uint8Array {
-  if (typeof base64 !== 'string') {
-    throw new TypeError(
-      `base64ToBytes() expects a string, received ${typeof base64}`
-    );
-  }
+  assertString(base64, 'base64ToBytes', 'base64');
 
   if (/[-_]/.test(base64)) {
     throw new TypeError(
-      'base64ToBytes() received base64url. Convert it first: ' +
+      'base64ToBytes: received base64url. Convert it first: ' +
         "base64.replace(/-/g, '+').replace(/_/g, '/')"
     );
   }
@@ -36,7 +33,7 @@ export function base64ToBytes(base64: string): Uint8Array {
     binary = atob(base64);
   } catch {
     throw new TypeError(
-      'base64ToBytes() received a string that is not valid base64'
+      'base64ToBytes: received a string that is not valid base64'
     );
   }
 

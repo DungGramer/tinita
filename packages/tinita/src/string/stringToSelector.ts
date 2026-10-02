@@ -1,3 +1,5 @@
+import { assertString } from '../asserts/assertString';
+
 /**
  * Escape one CSS identifier, per the CSSOM `CSS.escape` algorithm.
  *
@@ -73,11 +75,7 @@ function escapeIdentifier(value: string): string {
  * ```
  */
 export function stringToSelector(value: string): string {
-  if (typeof value !== 'string') {
-    throw new TypeError(
-      `stringToSelector: expected a string, got ${typeof value}`
-    );
-  }
+  assertString(value, 'stringToSelector');
 
   const classes = value.split(/\s+/).filter((name) => name !== '');
   if (classes.length === 0) return '';

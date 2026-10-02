@@ -1,3 +1,4 @@
+import { assertInteger } from '../asserts/assertInteger';
 /**
  * Integers from `start` to `end`, both ends included.
  *
@@ -22,11 +23,10 @@
  * ```
  */
 export function createRange(start: number, end: number): number[] {
-  if (!Number.isInteger(start) || !Number.isInteger(end)) {
-    throw new TypeError(
-      `createRange: both bounds must be integers, got (${start}, ${end})`
-    );
-  }
+  // Two calls, not one combined check: the version this replaced reported
+  // `got (1, 2.5)` without saying which bound was the problem.
+  assertInteger(start, 'createRange', 'start');
+  assertInteger(end, 'createRange', 'end');
 
   const length = end - start + 1;
   if (length <= 0) return [];

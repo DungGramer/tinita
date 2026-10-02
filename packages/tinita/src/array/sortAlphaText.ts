@@ -1,3 +1,5 @@
+import { assertArray } from '../asserts/assertArray';
+
 export interface SortAlphaTextOptions<T> {
   /** `'asc'` by default. */
   order?: 'asc' | 'desc';
@@ -53,9 +55,7 @@ export function sortAlphaText<T>(
   list: T[],
   options: SortAlphaTextOptions<T> = {}
 ): T[] {
-  if (!Array.isArray(list)) {
-    throw new TypeError(`sortAlphaText: expected an array, got ${typeof list}`);
-  }
+  assertArray(list, 'sortAlphaText', 'list');
 
   const { order = 'asc', key, locale = 'en', collator } = options;
   const compare = new Intl.Collator(locale, collator).compare;

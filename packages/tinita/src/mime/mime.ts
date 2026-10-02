@@ -1,3 +1,4 @@
+import { assertString } from '../asserts/assertString';
 import { getFileNameParts } from '../file/getFileNameParts';
 import {
   DEFAULT_EXTENSION_TO_TYPE,
@@ -48,21 +49,13 @@ export function createMime(): Mime {
 
   const instance: Mime = {
     fromExtension(extension) {
-      if (typeof extension !== 'string') {
-        throw new TypeError(
-          `mime.fromExtension: expected a string, got ${typeof extension}`
-        );
-      }
+      assertString(extension, 'mime.fromExtension', 'extension');
 
       return extensionToType.get(normaliseExtension(extension));
     },
 
     fromFileName(fileName) {
-      if (typeof fileName !== 'string') {
-        throw new TypeError(
-          `mime.fromFileName: expected a string, got ${typeof fileName}`
-        );
-      }
+      assertString(fileName, 'mime.fromFileName', 'fileName');
       const [, extension] = getFileNameParts(fileName);
 
       return extension
@@ -71,21 +64,13 @@ export function createMime(): Mime {
     },
 
     toExtension(mimeType) {
-      if (typeof mimeType !== 'string') {
-        throw new TypeError(
-          `mime.toExtension: expected a string, got ${typeof mimeType}`
-        );
-      }
+      assertString(mimeType, 'mime.toExtension', 'mimeType');
 
       return typeToExtension.get(normaliseType(mimeType));
     },
 
     acceptToRegExp(accept) {
-      if (typeof accept !== 'string') {
-        throw new TypeError(
-          `mime.acceptToRegExp: expected a string, got ${typeof accept}`
-        );
-      }
+      assertString(accept, 'mime.acceptToRegExp', 'accept');
 
       const extensions = new Set<string>();
       for (const rawToken of accept.split(',')) {

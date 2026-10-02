@@ -1,3 +1,4 @@
+import { assertArray } from '../asserts/assertArray';
 /**
  * Sort date strings, oldest first by default.
  *
@@ -19,11 +20,7 @@ export function sortDates(
   dates: string[],
   order: 'asc' | 'desc' = 'asc'
 ): string[] {
-  if (!Array.isArray(dates)) {
-    throw new TypeError(
-      `sortDates() expects an array, received ${typeof dates}`
-    );
-  }
+  assertArray(dates, 'sortDates', 'dates');
 
   const direction = order === 'asc' ? 1 : -1;
 

@@ -168,7 +168,7 @@ export function objectToFormData<T extends Record<string, unknown>>(
     if (typeof value === 'object') {
       if (seen.has(value)) {
         throw new TypeError(
-          `objectToFormData() found a cycle at "${key}"; the same object appears inside itself`
+          `objectToFormData: found a cycle at "${key}"; the same object appears inside itself`
         );
       }
       seen.add(value);

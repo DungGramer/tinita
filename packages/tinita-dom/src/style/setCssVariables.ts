@@ -1,3 +1,5 @@
+import { assertObject } from 'tinita/asserts/assertObject';
+
 /**
  * Values a custom property can take. `null` removes the property.
  *
@@ -38,11 +40,7 @@ export function setCssVariables(
   variables: Record<string, CssVariableValue>,
   target: ElementCSSInlineStyle = document.documentElement
 ): void {
-  if (variables === null || typeof variables !== 'object') {
-    throw new TypeError(
-      `setCssVariables: expected an object, got ${variables === null ? 'null' : typeof variables}`
-    );
-  }
+  assertObject(variables, 'setCssVariables', 'variables');
   if (
     !target ||
     !('style' in target) ||

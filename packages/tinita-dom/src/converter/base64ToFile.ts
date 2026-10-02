@@ -28,7 +28,7 @@ export function base64ToFile(
     binary = atob(base64);
   } catch {
     throw new TypeError(
-      'base64ToFile() received a string that is not valid base64'
+      'base64ToFile: received a string that is not valid base64'
     );
   }
 

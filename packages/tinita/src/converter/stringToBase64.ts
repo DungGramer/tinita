@@ -1,3 +1,4 @@
+import { assertString } from '../asserts/assertString';
 import { bytesToBase64 } from './bytesToBase64';
 
 /**
@@ -24,11 +25,7 @@ import { bytesToBase64 } from './bytesToBase64';
  * ```
  */
 export function stringToBase64(input: string): string {
-  if (typeof input !== 'string') {
-    throw new TypeError(
-      `stringToBase64() expects a string, received ${typeof input}`
-    );
-  }
+  assertString(input, 'stringToBase64', 'input');
 
   return bytesToBase64(new TextEncoder().encode(input));
 }

@@ -1,3 +1,5 @@
+import { assertString } from '../asserts/assertString';
+
 export interface TitleCaseOptions {
   /**
    * Lowercase everything after each word's first character. `false` by default.
@@ -47,9 +49,7 @@ export function titleCase(
   value: string,
   options: TitleCaseOptions = {}
 ): string {
-  if (typeof value !== 'string') {
-    throw new TypeError(`titleCase: expected a string, got ${typeof value}`);
-  }
+  assertString(value, 'titleCase');
   if (value === '') return '';
 
   const { lowercaseRest = false } = options;

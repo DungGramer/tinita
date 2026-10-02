@@ -1,3 +1,6 @@
+import { assertArray } from '../asserts/assertArray';
+import { assertObject } from '../asserts/assertObject';
+
 /**
  * A new object holding every own enumerable property of `obj` except `keys`.
  *
@@ -23,17 +26,11 @@ export function omit<T extends object, K extends keyof T>(
   obj: T,
   keys: readonly K[]
 ): Omit<T, K> {
-  if (obj === null || typeof obj !== 'object') {
-    throw new TypeError(
-      `omit: expected an object, got ${obj === null ? 'null' : typeof obj}`
-    );
-  }
+  assertObject(obj, 'omit', 'obj');
   // Guard through an alias: `Array.isArray` narrows `readonly K[]` to `any[]`, which
   // loses K and makes every later index an implicit `any`.
   const keyList: unknown = keys;
-  if (!Array.isArray(keyList)) {
-    throw new TypeError(`omit: expected an array of keys, got ${typeof keys}`);
-  }
+  assertArray(keyList, 'omit', 'keyList');
 
   const excluded = new Set<unknown>(keys);
   const result = {} as Record<string, unknown>;

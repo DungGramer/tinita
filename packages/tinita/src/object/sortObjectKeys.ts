@@ -1,3 +1,4 @@
+import { assertObject } from '../asserts/assertObject';
 import { sortAlphaText } from '../array/sortAlphaText';
 
 /**
@@ -29,11 +30,7 @@ export function sortObjectKeys<T extends Record<string, unknown>>(
   obj: T,
   options: { locale?: string } = {}
 ): T {
-  if (obj === null || typeof obj !== 'object') {
-    throw new TypeError(
-      `sortObjectKeys: expected an object, got ${obj === null ? 'null' : typeof obj}`
-    );
-  }
+  assertObject(obj, 'sortObjectKeys', 'obj');
 
   const sorted = sortAlphaText(Object.keys(obj), { locale: options.locale });
 

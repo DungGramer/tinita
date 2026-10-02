@@ -22,7 +22,8 @@
     "check-stories": "node scripts/check-stories.mjs",
     "deploy:storybook": "node scripts/deploy-storybook.mjs",
     "deploy:storybook:preview": "node scripts/deploy-storybook.mjs --preview",
-    "check-doc-links": "node scripts/check-doc-links.mjs"
+    "check-doc-links": "node scripts/check-doc-links.mjs",
+    "check-assert-reuse": "node scripts/check-assert-reuse.mjs"
   },
   "devDependencies": {
     "@dunggramer/prettier": "^4.1.0",

@@ -1,3 +1,4 @@
+import { assertFiniteNumber } from 'tinita/asserts/assertFiniteNumber';
 import { convertLength, type LengthUnit } from 'tinita/unit/convertLength';
 
 /**
@@ -72,11 +73,7 @@ export function fromDevicePixels(
   value: number,
   unit: LengthUnit = 'px'
 ): number {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    throw new TypeError(
-      `fromDevicePixels: expected a finite number, got ${value}`
-    );
-  }
+  assertFiniteNumber(value, 'fromDevicePixels');
 
   const ratio =
     typeof devicePixelRatio === 'number' && devicePixelRatio > 0

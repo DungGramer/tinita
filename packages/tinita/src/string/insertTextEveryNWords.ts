@@ -1,3 +1,6 @@
+import { assertInteger } from '../asserts/assertInteger';
+import { assertString } from '../asserts/assertString';
+
 /**
  * Insert `separator` after every `every` words.
  *
@@ -29,21 +32,9 @@ export function insertTextEveryNWords(
   every = 2,
   separator = '\n'
 ): string {
-  if (typeof value !== 'string') {
-    throw new TypeError(
-      `insertTextEveryNWords: expected a string, got ${typeof value}`
-    );
-  }
-  if (typeof separator !== 'string') {
-    throw new TypeError(
-      `insertTextEveryNWords: separator must be a string, got ${typeof separator}`
-    );
-  }
-  if (!Number.isInteger(every)) {
-    throw new TypeError(
-      `insertTextEveryNWords: \`every\` must be an integer, got ${every}`
-    );
-  }
+  assertString(value, 'insertTextEveryNWords');
+  assertString(separator, 'insertTextEveryNWords', 'separator');
+  assertInteger(every, 'insertTextEveryNWords', 'every');
 
   const words = value.split(' ');
   if (every < 1 || words.length <= every) return value;

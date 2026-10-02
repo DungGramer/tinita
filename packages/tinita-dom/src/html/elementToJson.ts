@@ -34,6 +34,9 @@ export interface JsonHtmlElement {
  *   `Cannot read properties of null` one line earlier instead.
  */
 export function elementToJson(element: Element): JsonHtmlElement {
+  // assert-reuse-ignore không phải kiểm một string: đây là cách nhận ra một Element
+  // mà không dựa vào `instanceof Element`, thứ gãy khi node đến từ realm khác
+  // (iframe, DOMParser). assertString sẽ kiểm sai thứ.
   if (!element || typeof element.nodeName !== 'string') {
     throw new TypeError(
       `elementToJson: expected an Element, got ${element === null ? 'null' : typeof element}`

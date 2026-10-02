@@ -24,7 +24,7 @@ export function dataUrlToBlob(dataUrl: string): Blob {
   const match = /^data:([^,]*?);base64,(.*)$/s.exec(dataUrl);
   if (!match) {
     throw new TypeError(
-      'dataUrlToBlob() expects a base64 data URL, e.g. "data:text/plain;base64,aGk="'
+      'dataUrlToBlob: expects a base64 data URL, e.g. "data:text/plain;base64,aGk="'
     );
   }
 

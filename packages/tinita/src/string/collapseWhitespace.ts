@@ -1,3 +1,5 @@
+import { assertString } from '../asserts/assertString';
+
 /**
  * Collapse every run of whitespace to a single space.
  *
@@ -21,11 +23,7 @@
  * ```
  */
 export function collapseWhitespace(value: string): string {
-  if (typeof value !== 'string') {
-    throw new TypeError(
-      `collapseWhitespace: expected a string, got ${typeof value}`
-    );
-  }
+  assertString(value, 'collapseWhitespace');
 
   return value.replace(/\s+/g, ' ');
 }

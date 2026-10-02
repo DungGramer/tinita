@@ -1,3 +1,4 @@
+import { assertObject } from '../asserts/assertObject';
 export interface OmitEmptyValuesOptions {
   /**
    * Values to drop. Compared with `includes`, so `NaN` is matched too.
@@ -46,6 +47,8 @@ export function omitEmptyValues<T extends Record<string, unknown>>(
   const invalidValues = options.invalidValues ?? [null, undefined];
   const omitKeys = options.omitKeys ?? [];
 
+  assertObject(obj, 'omitEmptyValues', 'obj');
+
   return filter(obj, invalidValues, omitKeys, new WeakSet());
 }
 
@@ -55,14 +58,16 @@ function filter<T extends Record<string, unknown>>(
   omitKeys: string[],
   seen: WeakSet<object>
 ): Partial<T> {
-  if (obj === null || typeof obj !== 'object') {
-    throw new TypeError(
-      `omitEmptyValues() expects an object, received ${obj === null ? 'null' : typeof obj}`
-    );
-  }
+  // No object check here, deliberately. `omitEmptyValues` establishes it once at the
+  // public boundary, and the recursive call at the bottom of this function only
+  // happens after `isPlainObject(value)` has already confirmed it. Re-asserting per
+  // node would turn one check into one per node in the tree.
+  //
+  // The cycle check DOES belong here: `seen` is per-node state, not an invariant that
+  // can be established once up front.
   if (seen.has(obj)) {
     throw new TypeError(
-      'omitEmptyValues() received an object containing a cycle'
+      'omitEmptyValues: received an object containing a cycle'
     );
   }
   seen.add(obj);
@@ -93,6 +98,8 @@ function filter<T extends Record<string, unknown>>(
  * silently replace the date with `{}`.
  */
 function isPlainObject(value: unknown): value is Record<string, unknown> {
+  // assert-reuse-ignore predicate: hợp đồng là trả boolean, và nghĩa của nó HẸP hơn
+  // assertObject - nó còn kiểm prototype để một `Date` không bị tháo ra theo key.
   if (value === null || typeof value !== 'object') return false;
   const proto = Object.getPrototypeOf(value) as object | null;
   return proto === Object.prototype || proto === null;

@@ -68,9 +68,64 @@ describe('toPrintPixels', () => {
     for (const dpi of [0, -300, Number.NaN, Number.POSITIVE_INFINITY]) {
       expect(() => toPrintPixels(1, 'in', dpi), String(dpi)).toThrow(TypeError);
     }
+  });
+
+  it('names WHICH failure, not just that one happened', () => {
+    // assertDpi delegates to assertPositiveFiniteNumber, which reports the type
+    // problem before the sign problem. That ordering is the point: passing '300'
+    // is a different mistake from passing -300, and one message for both would
+    // send the caller looking in the wrong place.
+    const message = (dpi: unknown) => {
+      try {
+        // @ts-expect-error deliberately wrong type in some cases
+        toPrintPixels(1, 'in', dpi);
+      } catch (error) {
+        return (error as Error).message;
+      }
+
+      return '(did not throw)';
+    };
+
+    expect(message('300')).toBe(
+      'toPrintPixels: dpi must be a finite number, got string'
+    );
+    expect(message(Number.NaN)).toBe(
+      'toPrintPixels: dpi must be a finite number, got NaN'
+    );
+    expect(message(Number.POSITIVE_INFINITY)).toBe(
+      'toPrintPixels: dpi must be a finite number, got Infinity'
+    );
+    expect(message(-300)).toBe(
+      'toPrintPixels: dpi must be a positive finite number, got -300'
+    );
+    expect(message(0)).toBe(
+      'toPrintPixels: dpi must be a positive finite number, got 0'
+    );
+  });
+
+  it('every message names the public API that rejected the value', () => {
+    // The whole reason assertions take a `caller`. With one helper shared by many
+    // APIs, a message without it cannot say who refused.
+    const refusedBy = (fn: () => unknown) => {
+      try {
+        fn();
+      } catch (error) {
+        return (error as Error).message.split(':')[0];
+      }
+
+      return '(did not throw)';
+    };
+
     // @ts-expect-error deliberately wrong type
-    expect(() => toPrintPixels(1, 'in', '300')).toThrow(
-      /dpi must be a positive finite number/
+    expect(refusedBy(() => toPrintPixels(1, 'in', '300'))).toBe(
+      'toPrintPixels'
+    );
+    // @ts-expect-error deliberately wrong type
+    expect(refusedBy(() => fromPrintPixels(1, 'in', '300'))).toBe(
+      'fromPrintPixels'
+    );
+    expect(refusedBy(() => fromPrintPixels(Number.NaN, 'mm', 300))).toBe(
+      'fromPrintPixels'
     );
   });
 

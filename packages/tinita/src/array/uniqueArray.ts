@@ -1,3 +1,5 @@
+import { assertArray } from '../asserts/assertArray';
+
 /**
  * The first occurrence of each distinct item, order preserved.
  *
@@ -26,9 +28,7 @@
  * ```
  */
 export function uniqueArray<T>(list: T[]): T[] {
-  if (!Array.isArray(list)) {
-    throw new TypeError(`uniqueArray: expected an array, got ${typeof list}`);
-  }
+  assertArray(list, 'uniqueArray', 'list');
 
   return [...new Set(list)];
 }

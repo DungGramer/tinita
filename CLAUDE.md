@@ -8,7 +8,8 @@ ra được từ code.
 ## Đọc trước
 
 - `docs/code-standards.md` - quy tắc dependency, `typesVersions`, API một kiểu trả
-  về, CSS chống rò rỉ global, reduced-motion. Mỗi quy tắc đi kèm số đo.
+  về, đặt tên, **validation**, CSS chống rò rỉ global, reduced-motion. Mỗi quy tắc đi
+  kèm số đo.
 - `docs/system-architecture.md` - chiến lược đóng gói, bảng rò rỉ CSS đã đo.
 - `compatibility/README.md` - lab, quy tắc cô lập, những gì còn treo.
 - `ARCHITECTURE.md`, `CONTRIBUTING.md` - nguyên tắc kiến trúc và quy trình.
@@ -33,7 +34,8 @@ pnpm + Turborepo. Node >= 18.
 ## Lệnh
 
 ```bash
-pnpm gate           # CỔNG: format, lint, types, build, test, stories, doc-links, L1
+pnpm gate           # CỔNG: format, lint, types, build, test, stories, doc-links,
+                    #      assert-reuse, L1
 pnpm gate:full      # thêm L2 và L4 (cần chromium, vài phút) - chạy trước publish
 
 pnpm build          # turbo run build
@@ -44,6 +46,7 @@ pnpm format         # prettier --write
 pnpm format:check   # dùng cái này làm cổng, đừng --write rồi xem diff
 pnpm check-stories  # mọi subpath publish ra đều phải có story
 pnpm check-doc-links # mọi đường nhập viết trong .md đều phải tồn tại trong exports
+pnpm check-assert-reuse # điều kiện inline không được trùng primitive ở tinita/asserts/*
 pnpm storybook
 ```
 
@@ -124,6 +127,70 @@ mọi thư viện của component là `peerDependencies` + `peerDependenciesMeta
 npm **không cảnh báo** khi optional peer thiếu, nên bảng component -> peer trong
 README là bắt buộc, không phải trang trí. Quy tắc đầy đủ ở
 `docs/code-standards.md` mục "Quy Tắc Dependency".
+
+## Validation: dùng vốn từ có sẵn, đừng viết `if` mới
+
+`packages/tinita/src/asserts/` có **8 primitive**, đều là subpath công khai.
+`tinita-dom` và `tinita-react` dùng qua `tinita/asserts/*`.
+
+```
+assertString          assertNonEmptyString     assertArray
+assertFiniteNumber    assertPositiveFiniteNumber
+assertInteger         assertObject             assertDpi
+```
+
+Hình dạng thông báo, ba thành phần đều có lý do:
+
+```
+<tênAPI>: <tênTham số> must be <invariant>, got <mô tả>
+```
+
+`assertString(value, 'titleCase')` · `assertNonEmptyString(name, 'cookieJar.set', 'name')`
+
+**`pnpm check-assert-reuse` làm đỏ một điều kiện inline trùng primitive**, và nó nằm
+trong `pnpm gate`. Thoát bằng `// assert-reuse-ignore <lý do>` ở dòng trên hoặc cùng
+dòng - **lý do là bắt buộc**, marker rỗng vẫn đỏ.
+
+Guard này tồn tại vì quy ước đã thất bại một lần, đo được: `html/html.ts` có sẵn
+`assertString` với đúng signature `asserts`, giải một điều kiện có ở **14 file**, và
+được dùng ở **1**. Một ngày sau `assertDpi` được viết ở `unit/printPixels.ts`
+**không** có `asserts`. Không ai thấy cả hai vì không có gì đang nhìn.
+
+### Bốn thứ KHÔNG được làm
+
+**Đừng tạo primitive mới cho một hai consumer.** `assertFunction` (2 chỗ),
+`assertBlob` (2), `assertUint8Array` (1), `assertNonNegativeInteger` (1) đều **cố ý
+không có**. Giữ inline kèm marker.
+
+**Đừng retrofit predicate.** `isX` trả `boolean` và không bao giờ ném. `isUrl(42)`
+phải là `false`, không phải một throw. Cả `validation/*` của `tinita` lẫn của
+`tinita-dom` đều không được chuyển.
+
+**Đừng validate trong đệ quy.** `omitEmptyValues` lập invariant **một lần** ở hàm
+công khai và `filter` nội bộ tin nó. Nhưng `converter/objectToMap` **tự gọi chính nó
+như API công khai** nên nó kiểm từng tầng. Hai hàm đệ quy, hai phán quyết trái nhau,
+lý do nằm trong code - đọc trước khi sửa.
+
+**Đừng thêm assert vào thân hook React.** `usePagination` có hợp đồng là **clamp**,
+không ném, và một property test 2000 mẫu khoá việc `NaN` với `Infinity` đi qua được.
+Thân hook chạy lại mỗi render.
+
+### `TypeError` hay `RangeError`
+
+```
+TypeError     typeof sai, không finite, không integer, <= 0, rỗng
+RangeError    CHỈ khi đúng kiểu nhưng ngoài một khoảng CÓ BIÊN tường minh
+```
+
+Phân biệt là **có biên**, không phải "có vi phạm giá trị". `dpi <= 0` là contract
+dương nên `TypeError`. Cả repo có **đúng một** `RangeError`: `resizeImage.quality`,
+khoảng `0..1`.
+
+Phải ghi ở đây vì chuẩn gốc liệt kê `value <= 0` dưới **cả hai** nhóm; owner chốt
+cách đọc "chỉ khoảng có biên" ngày 2026-10-02.
+
+Chi tiết và bằng chứng extract từng primitive: `docs/code-standards.md` mục
+"Quy Tắc Validation".
 
 ## CSS: không được chạm vào trang khách
 

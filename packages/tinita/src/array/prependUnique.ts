@@ -1,3 +1,4 @@
+import { assertArray } from '../asserts/assertArray';
 /**
  * Prepend items to a list, skipping any whose key is already present.
  *
@@ -21,8 +22,10 @@ export function prependUnique<T extends Record<string, unknown>>(
   uniqueKey: keyof T = 'value' as keyof T
 ): T[] {
   // The version this replaced called `isEmpty(itemsToAdd)` without importing it
-  // from anywhere, so it threw ReferenceError on every call.
-  if (!Array.isArray(list)) return list;
+  // from anywhere, so it threw ReferenceError on every call. It then returned a
+  // non-array argument unchanged, which was a silent failure and the only array
+  // function here that did not throw.
+  assertArray(list, 'prependUnique', 'list');
 
   const items = Array.isArray(itemsToAdd) ? itemsToAdd : [itemsToAdd];
   if (items.length === 0) return list;

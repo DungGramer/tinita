@@ -1,3 +1,5 @@
+import { assertFiniteNumber } from 'tinita/asserts/assertFiniteNumber';
+import { assertPositiveFiniteNumber } from 'tinita/asserts/assertPositiveFiniteNumber';
 export interface ResizeImageOptions {
   /** Crop origin inside the source image, in source pixels. @default 0 */
   x?: number;
@@ -43,10 +45,25 @@ export function resizeImage(
 ): Promise<string> {
   const { x = 0, y = 0, scale = 1, type = 'image/png', quality } = options;
 
-  if (!Number.isFinite(scale) || scale <= 0) {
-    throw new TypeError(
-      `resizeImage() expects a positive scale, received ${scale}`
-    );
+  assertPositiveFiniteNumber(scale, 'resizeImage', 'scale');
+
+  // `quality` only applies to a lossy type - the spec says `toDataURL` ignores it for
+  // image/png - so refusing a value there would reject a perfectly valid call.
+  //
+  // RangeError, not TypeError, and this is the one place in the repo that earns it:
+  // 0..1 is an explicitly bounded interval, which is the distinction drawn in
+  // docs/code-standards.md. The type problem is still a TypeError, reported first.
+  //
+  // It was unvalidated before, and silently: `toDataURL` ignores a quality outside
+  // 0..1 and falls back to its default, so `quality: 1.5` returned a default-quality
+  // image and said nothing.
+  if (type !== 'image/png' && quality !== undefined) {
+    assertFiniteNumber(quality, 'resizeImage', 'quality');
+    if (quality < 0 || quality > 1) {
+      throw new RangeError(
+        `resizeImage: quality must be between 0 and 1, got ${quality}`
+      );
+    }
   }
 
   return new Promise<string>((resolve, reject) => {

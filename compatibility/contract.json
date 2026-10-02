@@ -55,7 +55,15 @@
         "./validation/isNumericString",
         "./validation/isUrl",
         "./unit/convertLength",
-        "./unit/printPixels"
+        "./unit/printPixels",
+        "./asserts/assertArray",
+        "./asserts/assertDpi",
+        "./asserts/assertFiniteNumber",
+        "./asserts/assertInteger",
+        "./asserts/assertNonEmptyString",
+        "./asserts/assertObject",
+        "./asserts/assertPositiveFiniteNumber",
+        "./asserts/assertString"
       ],
       "namedExports": {
         ".": [
@@ -221,6 +229,30 @@
         ],
         "./unit/printPixels": [
           "toPrintPixels"
+        ],
+        "./asserts/assertArray": [
+          "assertArray"
+        ],
+        "./asserts/assertDpi": [
+          "assertDpi"
+        ],
+        "./asserts/assertFiniteNumber": [
+          "assertFiniteNumber"
+        ],
+        "./asserts/assertInteger": [
+          "assertInteger"
+        ],
+        "./asserts/assertNonEmptyString": [
+          "assertNonEmptyString"
+        ],
+        "./asserts/assertObject": [
+          "assertObject"
+        ],
+        "./asserts/assertPositiveFiniteNumber": [
+          "assertPositiveFiniteNumber"
+        ],
+        "./asserts/assertString": [
+          "assertString"
         ]
       },
       "requiredFiles": [

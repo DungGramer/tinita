@@ -1,3 +1,5 @@
+import { assertString } from '../asserts/assertString';
+
 /**
  * `snake_case` to `Title Case`.
  *
@@ -21,11 +23,7 @@
  * ```
  */
 export function snakeToTitleCase(value: string): string {
-  if (typeof value !== 'string') {
-    throw new TypeError(
-      `snakeToTitleCase: expected a string, got ${typeof value}`
-    );
-  }
+  assertString(value, 'snakeToTitleCase');
 
   return value
     .split('_')

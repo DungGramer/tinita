@@ -29,6 +29,9 @@ export interface Pagination {
 }
 
 const clamp = (value: number, low: number, high: number): number => {
+  // assert-reuse-ignore hợp đồng của hook là CLAMP, không ném: một property test
+  // 2000 mẫu khoá việc NaN và Infinity đi qua được. Và đây là thân hook, chạy lại
+  // mỗi render, nên §15 áp theo nghĩa mạnh hơn một vòng lặp.
   if (!Number.isFinite(value)) return low;
 
   return Math.min(Math.max(Math.trunc(value), low), high);

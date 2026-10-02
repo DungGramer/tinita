@@ -1,3 +1,5 @@
+import { assertString } from 'tinita/asserts/assertString';
+
 /**
  * Block-level element names, uppercase to match `nodeName`.
  *
@@ -67,11 +69,7 @@ const BLOCK_LEVEL_NAMES = new Set([
  * ```
  */
 export function isBlockLevelHtml(html: string): boolean {
-  if (typeof html !== 'string') {
-    throw new TypeError(
-      `isBlockLevelHtml: expected a string, got ${typeof html}`
-    );
-  }
+  assertString(html, 'isBlockLevelHtml', 'html');
 
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const first = doc.body.firstElementChild;
