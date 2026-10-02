@@ -678,6 +678,55 @@ Bảy chỗ **cố ý không** dùng primitive, mỗi chỗ một `// assert-reu
 | `html/elementToJson`            | `typeof el.nodeName !== 'string'` nhận ra Element mà không dùng `instanceof`, thứ gãy qua realm |
 | `cookieJar.maxAge`              | một consumer, không đáng extract                                                                |
 
+### `classifyWheelSource`: khi không phân biệt được thì trả `null` (chốt 2026-10-02)
+
+Hai nguồn vật lý cho ra **cùng một hình dạng** stream và không timing lẫn magnitude nào
+tách được chúng. Đo trên `dist`:
+
+| Nguồn                          | stream                         | trước      |
+| ------------------------------ | ------------------------------ | ---------- |
+| smoother @60Hz                 | `[4.2, 3.9, ...]` cách 16ms    | `smoothed` |
+| smoother bị tab nền throttle   | `[4.2, 3.9, ...]` cách 80ms    | `stepped`  |
+| wheel encoder mịn, 1 notch/lần | `[12, 11, 13, ...]` cách 200ms | `stepped`  |
+
+Hai dòng dưới là hình dạng lưỡng lự, và code cũ trả `stepped` cho **cả hai** - tức nó
+nghiêng một hướng mà không nói ra. Tệ hơn: `provisionalWheelSource` trong **cùng
+module** nghiêng hướng NGƯỢC LẠI, kèm lý do viết trong JSDoc - _easing một input vốn
+đã mượt là lỗi người đọc CẢM THẤY; để một detent đi qua không mượt vài event là lỗi họ
+KHÔNG cảm thấy._ Hai hàm, một input, hai câu trả lời trái nhau.
+
+Owner chốt `null`, không phải phỏng đoán hướng nào:
+
+- `null` **đã là** câu trả lời có tài liệu của hàm cho "chưa đủ bằng chứng", và caller
+  đã xử lý sẵn - `if (verdict) settledSource = verdict`, tức giữ nguyên thứ đang dùng.
+- Trả một verdict ở đây sẽ **ghi đè** một `stepped` mà một loạt detent 100px thật vừa
+  chốt xong. `null` giữ được nó. Đây là điểm `null` hơn `'smoothed'`, không phải chuyện
+  thẩm mỹ - có test khoá đúng tình huống đó.
+- Chỗ chưa chốt gì thì event mở gesture rơi xuống `provisionalWheelSource`, nghiêng
+  `smoothed`. Nên bất đối xứng đó giờ đúng ở **cả hai** hàm thay vì một.
+
+Giá đã nhận: chuột encoder mịn báo pixel mode gần như không bao giờ tích được memory
+`stepped` từ hình dạng này, nên library không ease cho nó.
+
+**`deltaMode` lấy lại một phần giá đó.** `smooth-scroll.ts` đọc `e.deltaMode` để quy
+đổi đơn vị rồi **bỏ nó** ngay trước khi lấy mẫu. `LINE`/`PAGE` là detent **chắc chắn** -
+không trackpad nào báo hai mode đó - nên nó được kiểm TRƯỚC mọi suy luận timing. Tín
+hiệu **một chiều**: xác nhận được `stepped`, không xác nhận được `smoothed`, vì Chrome
+báo pixel mode cho cả chuột lăn. Vắng `deltaMode` **không** được đọc là pixel mode.
+
+Đã xét và **loại**: dùng "delta là phân số" để nhận ra smoother. Nghe được - probe cho
+smoother `4.2, 3.9` còn encoder `12, 11, 13` - nhưng comment ở `WHEEL_STEP_MIN_PIXELS`
+đã ghi _133.33px với một số driver_, tức một detent CÓ THỂ là phân số. Phản ví dụ nằm
+ngay trong repo.
+
+Test wiring là chỗ đáng chú ý: gỡ `deltaMode: e.deltaMode` khỏi `samples.push` lúc đầu
+làm đỏ **0 test**, vì mọi ca của `wheel-source` tự dựng `WheelSample` bằng tay nên
+không thấy đường dây. Hai ca mới trong `smooth-scroll.test.ts` lấy `defaultPrevented`
+làm thứ quan sát, và chúng chỉ đo được sau khi sửa hai lỗi thiết kế: event mở gesture 2
+phải nằm trong `[8, 48)` px để `decisiveWheelSource` **không** thắng memory; và delta
+line-mode phải chọn sao cho sau khi nhân 16 vẫn dưới sàn 48px, nếu không nó ra `stepped`
+bằng magnitude và ca xanh dù wiring bị gỡ.
+
 ### Guard mù với việc KHÔNG validate gì cả
 
 `check-assert-reuse` bắt một điều kiện inline **trùng** primitive. Nó không thể bắt một

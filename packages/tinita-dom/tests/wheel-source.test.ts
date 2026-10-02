@@ -3,6 +3,8 @@ import {
   classifyWheelSource,
   decisiveWheelSource,
   provisionalWheelSource,
+  WHEEL_DELTA_MODE_LINE,
+  WHEEL_DELTA_MODE_PAGE,
   WHEEL_SAMPLE_COUNT,
   WHEEL_STEP_MIN_PIXELS,
   type WheelSample,
@@ -99,11 +101,82 @@ describe('classifyWheelSource', () => {
     expect(classifyWheelSource([...detents, ...then])).toBe('smoothed');
   });
 
-  it.todo(
-    'decides what a sparse stream of small deltas is - a slow smoother throttled ' +
-      'by a background tab and a fine-encoder wheel nudged one notch at a time ' +
-      'produce the same shape, and nothing in the requirement says which wins'
-  );
+  // Đây là ca từng là `it.todo`. Owner chốt 2026-10-02: `null`.
+  //
+  // Một smoother bị tab nền throttle và một wheel encoder mịn nhấn từng notch cho
+  // ra CÙNG hình dạng, và không timing lẫn magnitude nào tách được. `null` là câu
+  // trả lời đã có tài liệu cho "chưa đủ bằng chứng", và nó GIỮ verdict đã chốt
+  // trước đó thay vì ghi đè bằng một phỏng đoán.
+  it('answers null for a sparse stream of small deltas, either source', () => {
+    // smoother bị throttle: delta phân số, 80ms một event
+    expect(
+      classifyWheelSource(stream([4.2, 3.9, 3.6, 3.3, 3.0, 2.7, 2.4, 2.1], 80))
+    ).toBeNull();
+    // encoder mịn: delta nguyên, 200ms một event
+    expect(
+      classifyWheelSource(stream([12, 11, 13, 12, 11, 13, 12, 11], 200))
+    ).toBeNull();
+  });
+
+  it('null PRESERVES a stepped verdict a real detent burst had settled', () => {
+    // Đây là lý do chọn null thay vì 'smoothed': chuỗi 100px thật chốt 'stepped',
+    // rồi một chuỗi thưa+nhỏ tới. Trả 'smoothed' sẽ xoá phán quyết đúng kia.
+    const detents = stream(Array(8).fill(100), 60);
+    expect(classifyWheelSource(detents)).toBe('stepped');
+
+    const lastTime = detents[detents.length - 1].time;
+    const sparse = stream(
+      [12, 11, 13, 12, 11, 13, 12, 11],
+      200,
+      lastTime + 200
+    );
+    expect(classifyWheelSource([...detents, ...sparse])).toBeNull();
+  });
+
+  // deltaMode được đọc ở smooth-scroll.ts cho việc quy đổi đơn vị rồi BỊ BỎ ngay
+  // trước khi lấy mẫu. Không trackpad nào báo line/page mode, nên nó là tín hiệu
+  // chắc chắn - và nó lấy lại đúng ca encoder mà nhánh null ở trên phải bỏ.
+  describe('deltaMode is checked before any timing inference', () => {
+    it('calls a line-mode stream stepped even when it looks smooth', () => {
+      // Hình dạng này KHÔNG có deltaMode thì ra 'smoothed': nhỏ và liên tục.
+      const shape = stream([4.2, 3.9, 3.6, 3.3, 3.0, 2.7, 2.4, 2.1], 16);
+      expect(classifyWheelSource(shape)).toBe('smoothed');
+
+      const lineMode = shape.map((s) => ({
+        ...s,
+        deltaMode: WHEEL_DELTA_MODE_LINE,
+      }));
+      expect(classifyWheelSource(lineMode)).toBe('stepped');
+    });
+
+    it('rescues the sparse encoder case the null branch gives up on', () => {
+      const sparse = stream([12, 11, 13, 12, 11, 13, 12, 11], 200);
+      expect(classifyWheelSource(sparse)).toBeNull();
+
+      const lineMode = sparse.map((s) => ({
+        ...s,
+        deltaMode: WHEEL_DELTA_MODE_LINE,
+      }));
+      expect(classifyWheelSource(lineMode)).toBe('stepped');
+    });
+
+    it('treats page mode the same way', () => {
+      const shape = stream([4.2, 3.9, 3.6, 3.3, 3.0, 2.7, 2.4, 2.1], 16).map(
+        (s) => ({ ...s, deltaMode: WHEEL_DELTA_MODE_PAGE })
+      );
+      expect(classifyWheelSource(shape)).toBe('stepped');
+    });
+
+    // Vắng deltaMode KHÔNG được hiểu là pixel mode, và pixel mode không loại trừ
+    // gì cả - Chrome báo pixel mode cho cả chuột lăn.
+    it('pixel mode and an absent deltaMode both rule nothing out', () => {
+      const shape = stream([4.2, 3.9, 3.6, 3.3, 3.0, 2.7, 2.4, 2.1], 16);
+      expect(classifyWheelSource(shape)).toBe('smoothed');
+      expect(
+        classifyWheelSource(shape.map((s) => ({ ...s, deltaMode: 0 })))
+      ).toBe('smoothed');
+    });
+  });
 });
 
 describe('provisionalWheelSource', () => {

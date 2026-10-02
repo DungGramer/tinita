@@ -458,7 +458,7 @@ Thêm 2026-09-26. Zero dependency, zero peer dependency, **browser-only**.
 ```
 tinita-dom
 ├── smooth-scroll   installSmoothScroll - một listener wheel cho toàn app
-└── wheel-source    classifyWheelSource + 6 hằng số đã đo (public, không phải nội bộ)
+└── wheel-source    classifyWheelSource + 8 hằng số đã đo (public, không phải nội bộ)
 ```
 
 `smooth-scroll` import `wheel-source`, nên nó rơi chính xác vào bẫy B2: với `bundle: false`, esbuild
@@ -466,7 +466,13 @@ giữ specifier tương đối không đuôi và Node ESM báo `ERR_MODULE_NOT_F
 `bundle: true` + `outExtension` từ dòng đầu, và có ca chứng minh: dựng bản `bundle: false` thì
 `publint` báo 4 đường dẫn gãy và `import()` throw.
 
-Dependency graph: không có cạnh nào. Nó không phụ thuộc `tinita`, `tinita-react`, hay React.
+Dependency graph của **bản publish**: không có cạnh nào - `dependencies` rỗng, không peer.
+Nhưng ở **source** thì `wheel-source`, `unit/toDevicePixels` và `converter/base64ToFile` đều import
+`tinita/asserts/*`, và `toDevicePixels` còn import `tinita/unit/convertLength`. `tinita` là
+**devDependency**, và `bundle: true` inline nó - đo được: 0 import `tinita` nào trong `dist/`.
+Đừng đọc "zero dependency" thành "source không chạm `tinita`"; đổi `bundle` thì câu đầu sai ngay.
+
+Không phụ thuộc `tinita-react` hay React.
 
 ---
 

@@ -29,6 +29,18 @@ of the bundler in front of it.
   converters.
 - `tinita-dom`: 22 subpaths, up from 2, and `engines` is now declared (`>=18.0.0`); it
   had been undefined while the other two packages declared it.
+- `tinita-dom/wheel-source`: `WheelSample` gained an optional `deltaMode`, and
+  `WHEEL_DELTA_MODE_LINE` / `WHEEL_DELTA_MODE_PAGE` are exported alongside the six
+  existing constants. Line and page mode are a certain detent - no trackpad reports
+  either - so `classifyWheelSource` checks it before any timing inference.
+  `smooth-scroll` read `deltaMode` for unit conversion and then dropped it one line
+  before sampling, discarding the strongest signal available.
+- `classifyWheelSource` now returns `null` for a sparse stream of small deltas rather
+  than guessing. A per-frame smoother throttled by a background tab and a fine-encoder
+  wheel nudged one notch at a time produce the same shape; the old code called both
+  `stepped`, while `provisionalWheelSource` in the same module leaned the opposite way.
+  `null` is already the documented answer for "not enough evidence", and it preserves a
+  `stepped` verdict that a real detent burst settled instead of overwriting it.
 - `tinita-react`: `useDoubleTap`, `usePagination`, `useRefreshComponent`,
   `useRequiredContext`, `useWindowSize`, `useIsomorphicLayoutEffect`, `jsxJoin`.
 - `tinita/html` and `tinita/mime`: a small default table plus an opt-in plugin applied
@@ -48,7 +60,7 @@ of the bundler in front of it.
   condition present in 14 files, and it was used in 1 - while a second helper,
   `assertDpi`, was written a day later in `unit/printPixels.ts` without the `asserts`
   signature. Two shapes, one codebase, one day apart.
-- Tests: 538, up from 156.
+- Tests: 546, up from 156.
 
 ### Fixed - defects that destroyed data or could not work at all
 

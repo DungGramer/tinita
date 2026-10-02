@@ -90,6 +90,14 @@ export const WHEEL_REPEAT_MIN_PIXELS = 8;
  */
 export const WHEEL_GESTURE_IDLE_MS = 120;
 
+/**
+ * `WheelEvent.deltaMode` values. Mirrors `DOM_DELTA_LINE` and `DOM_DELTA_PAGE`
+ * rather than reading them off `WheelEvent`, because this module is pure logic and
+ * must classify without a DOM - it is tested in Node.
+ */
+export const WHEEL_DELTA_MODE_LINE = 1;
+export const WHEEL_DELTA_MODE_PAGE = 2;
+
 export type WheelSource = 'stepped' | 'smoothed';
 
 /** One wheel event, already converted to pixels by the caller. */
@@ -98,6 +106,12 @@ export interface WheelSample {
   time: number;
   /** Pixel delta along the axis being scrolled. Sign is ignored. */
   delta: number;
+  /**
+   * `event.deltaMode`, unconverted. `LINE` or `PAGE` is a **certain** detent: no
+   * trackpad reports either. Optional because a caller with only pixel deltas has
+   * nothing to put here, and absence must not be read as pixel mode.
+   */
+  deltaMode?: number;
 }
 
 function median(values: number[]): number {
@@ -129,6 +143,24 @@ export function classifyWheelSource(
   if (samples.length < WHEEL_SAMPLE_COUNT) return null;
 
   const recent = samples.slice(-WHEEL_SAMPLE_COUNT);
+
+  // Checked BEFORE any timing inference, because it is not an inference. A
+  // trackpad reports pixel mode; line and page modes come from a wheel. This is the
+  // strongest signal available and `smooth-scroll` used to read `deltaMode` for unit
+  // conversion and then drop it one line before sampling.
+  //
+  // One-sided: it can confirm `stepped`, never `smoothed`. Chrome reports pixel mode
+  // for mouse wheels too, so pixel mode rules nothing out.
+  if (
+    recent.some(
+      (s) =>
+        s.deltaMode === WHEEL_DELTA_MODE_LINE ||
+        s.deltaMode === WHEEL_DELTA_MODE_PAGE
+    )
+  ) {
+    return 'stepped';
+  }
+
   const magnitudes = recent.map((s) => Math.abs(s.delta));
   const gaps = recent.slice(1).map((s, i) => s.time - recent[i].time);
 
@@ -144,6 +176,26 @@ export function classifyWheelSource(
 
   const continuous = median(gaps) <= WHEEL_CONTINUOUS_GAP_MS;
   const fineGrained = median(magnitudes) < WHEEL_STEP_MIN_PIXELS;
+
+  // Small deltas arriving slowly. A per-frame smoother throttled by a background
+  // tab and a fine-encoder wheel nudged one notch at a time produce the SAME shape -
+  // measured: [4.2, 3.9, 3.6, ...] at 80ms and [12, 11, 13, ...] at 200ms both land
+  // here, and neither timing nor magnitude separates them. Owner settled it
+  // 2026-10-02 as `null`, not a guess in either direction:
+  //
+  // `null` is already this function's documented answer for "not enough evidence",
+  // and the caller already handles it by keeping what it was doing. Returning a
+  // verdict here would OVERWRITE a `stepped` that a real 100px detent burst had
+  // settled moments earlier; `null` preserves it. Where nothing was settled, the
+  // gesture's opening event falls through to `provisionalWheelSource`, which leans
+  // `smoothed` - easing an input that was already smooth is the failure a reader
+  // feels, and that asymmetry now holds in both functions instead of one.
+  //
+  // The cost is real and accepted: a fine-encoder mouse reporting pixel mode never
+  // accumulates a `stepped` memory from streams of this shape, so it goes unsmoothed.
+  // The `deltaMode` check above recovers the case where the wheel reports line mode.
+  if (fineGrained && !continuous) return null;
+
   return continuous && fineGrained ? 'smoothed' : 'stepped';
 }
 

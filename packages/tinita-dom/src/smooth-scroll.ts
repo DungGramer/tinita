@@ -2,6 +2,8 @@ import {
   classifyWheelSource,
   decisiveWheelSource,
   provisionalWheelSource,
+  WHEEL_DELTA_MODE_LINE,
+  WHEEL_DELTA_MODE_PAGE,
   WHEEL_GESTURE_IDLE_MS,
   WHEEL_SAMPLE_COUNT,
   type WheelSample,
@@ -47,8 +49,6 @@ import {
 // A wheel event does not have to arrive in pixels. `deltaMode` says which unit
 // the deltas are counted in; LINE would move three pixels per notch if the
 // number were used raw. PAGE is converted against the element being scrolled.
-const WHEEL_DELTA_MODE_LINE = 1;
-const WHEEL_DELTA_MODE_PAGE = 2;
 const WHEEL_LINE_HEIGHT_PX = 16;
 
 // Rate of the critically damped spring that carries the scroll to its target,
@@ -384,7 +384,7 @@ export function installSmoothScroll(): () => void {
     }
     lastEventTime = e.timeStamp;
 
-    samples.push({ time: e.timeStamp, delta });
+    samples.push({ time: e.timeStamp, delta, deltaMode: e.deltaMode });
     if (samples.length > WHEEL_SAMPLE_COUNT) samples.shift();
 
     // Refines the answer for the NEXT gesture, never for this one.
