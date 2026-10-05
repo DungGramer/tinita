@@ -134,11 +134,22 @@ application. Bind what you want:
 The syntax is `tinita/converter/parseKeyCombination`'s, so `ctrl`, `cmd`, `⌘`, `option`
 and `win` are all understood, and an array binds several combinations to one action.
 
+**One binding, the right key on both platforms.** Control and Command are swapped to
+match the platform, so `minimize: 'Ctrl+M'` fires on Control under Windows and Linux and
+on Command on a Mac - the listener, not only the label. It is the `Mod` convention,
+applied without a keyword. Name both yourself and nothing is touched:
+`['Ctrl+M', 'Cmd+M']` keeps exactly those two everywhere. Combinations with neither
+modifier, like `F11` or `Escape`, are never remapped.
+
+The surprising half: on a Mac a lone `'Ctrl+M'` _becomes_ Command, so Control+M stops
+firing there. Bind both if you want both.
+
 **The controls advertise what you bound.** Hovering minimise shows `Minimize (Ctrl + M)`,
 or `Minimize (⌘M)` on an Apple keyboard - Apple's own style, concatenated, with glyphs
 for the named keys, so `Alt+Cmd+Escape` reads `⌥⌘⎋` there and `Alt + Win + Escape`
 elsewhere. Keys with no established Apple glyph are left as written, which is what macOS
-does too: `F11` stays `F11`. The combination shown is picked from your
+does too: `F11` stays `F11`. The shortcut shown is the mapped one, so it is always a key
+that fires. The combination shown is picked from your
 bindings by platform rather than translated into them: bind `['Ctrl+M', 'Cmd+M']` and a
 Mac shows the Command one, bind only `'Ctrl+M'` and a Mac shows `⌃ + M`, because Control
 is still the key that fires there. The action name stays in `aria-label` and every bound

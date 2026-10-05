@@ -310,17 +310,22 @@ export const FloatingWindow = ({
   );
   // `open && active`: a closed window answers no key, and with several open only the
   // one the reader is working in does.
-  useKeyBindings(keyBindings, open && active, runAction);
-
-  // Same parse the listener uses, so a control cannot advertise a key it does not
-  // answer. Keyed on the serialisation for the reason `useKeyBindings` documents: the
-  // prop is written inline and changes identity every render.
-  const bindingKey = JSON.stringify(keyBindings ?? null);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const parsedBindings = useMemo(() => parseBindings(keyBindings), [bindingKey]);
   // Read once. `navigator.userAgent` does not change, and the guard inside means this
   // is safe during render even where there is no `navigator`.
   const apple = useMemo(() => isApplePlatform(), []);
+
+  // Parsed ONCE and handed to both the listener and the tooltips. `parseBindings` also
+  // maps Control to Command per platform, so two parses would be two chances for the
+  // label and the key that fires to disagree. Keyed on the serialisation for the reason
+  // `useKeyBindings` documents: the prop is written inline.
+  const bindingKey = JSON.stringify(keyBindings ?? null);
+  const parsedBindings = useMemo(
+    () => parseBindings(keyBindings, apple),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [bindingKey, apple]
+  );
+
+  useKeyBindings(parsedBindings, open && active, runAction);
 
   /**
    * Accessible name, hover text and `aria-keyshortcuts` for one control.

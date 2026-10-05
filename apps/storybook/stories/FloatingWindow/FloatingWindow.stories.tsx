@@ -186,13 +186,18 @@ export const WithKeyBindings: Story = {
       title="Keyboard"
       keyBindings={{
         close: 'Escape',
-        minimize: ['Ctrl+M', 'Cmd+M'],
+        // One binding: Control under Windows and Linux, Command on a Mac - the
+        // listener too, not only the label.
+        minimize: 'Ctrl+M',
         maximize: 'F11',
       }}
       body={
         <div style={{ padding: 16, display: 'grid', gap: 8 }}>
           <p>Escape closes - try it from inside the field too.</p>
-          <p>Ctrl+M or Cmd+M minimises. F11 toggles maximise.</p>
+          <p>
+            Ctrl+M minimises - and it is ⌘M on a Mac, because a lone Control
+            binding is swapped to Command there. F11 toggles maximise.
+          </p>
           <p>
             Hover a control: it shows the combination that works on{' '}
             <em>this</em> platform, picked from the bindings rather than

@@ -72,9 +72,11 @@ describe('pickForPlatform', () => {
     expect(formatKeyCombination(pickForPlatform(both, false)!, false)).toBe('Ctrl + M');
   });
 
-  it('does NOT invent a Command binding that was never bound', () => {
-    // Only Ctrl+M bound. On a Mac the key that fires is still Control, so the label
-    // has to say so - `⌘M` here would be a lie.
+  // `pickForPlatform` sees combinations that `parseBindings` has ALREADY mapped, so in
+  // the component this case does not arise: a lone Control binding has become Command
+  // before it gets here. Kept as a unit on the raw function, which still picks nothing
+  // it was not given.
+  it('picks nothing it was not given', () => {
     const onlyCtrl = [parse('Ctrl+M')];
     expect(formatKeyCombination(pickForPlatform(onlyCtrl, true)!, true)).toBe('⌃M');
   });

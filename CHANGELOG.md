@@ -70,6 +70,13 @@ of the bundler in front of it.
   printable key is ignored while the focus is in a text field - binding `m` to minimise
   would otherwise fire on every `m` typed into an input - while modified and named keys
   still fire there.
+- `FloatingWindow` swaps Control for Command, and the reverse, to match the platform -
+  so `minimize: 'Ctrl+M'` is one binding that fires on Control under Windows and on
+  Command on a Mac. The **listener** is mapped, not only the label, which is what keeps
+  the label honest. Name both yourself (`['Ctrl+M', 'Cmd+M']`) and nothing is touched;
+  combinations with neither modifier are never remapped. It is the `Mod` convention
+  without the keyword. The surprising half: a lone `'Ctrl+M'` _becomes_ Command on a
+  Mac, so Control+M stops firing there.
 - `FloatingWindow`'s controls advertise their shortcut: hovering minimise shows
   `Minimize (Ctrl + M)`, or `Minimize (⌘M)` on an Apple keyboard - concatenated, with
   glyphs for the named keys, which is Apple's own convention (`⌥⌘⎋`). The combination

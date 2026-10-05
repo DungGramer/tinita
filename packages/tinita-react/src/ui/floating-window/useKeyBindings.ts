@@ -3,6 +3,8 @@
 import { useEffect, useRef } from 'react';
 import { parseKeyCombination, type KeyCombination } from 'tinita/converter/parseKeyCombination';
 
+import { isApplePlatform } from './formatKeyCombination';
+
 /** What a bound key can do. `maximize` toggles, matching the header control. */
 export type FloatingWindowAction = 'close' | 'minimize' | 'maximize';
 
@@ -74,13 +76,51 @@ function matches(event: KeyboardEvent, combination: KeyCombination): boolean {
  * The same boundary the pointer shields exist for. Nothing can be done from this side.
  */
 /**
- * `keyBindings` as parsed combinations per action, with the empty actions dropped.
+ * Swap Control for Command, or the reverse, so one binding is right on both platforms.
  *
- * Shared by the listener and by the tooltips, so what a control ADVERTISES and what it
- * RESPONDS to can never drift - two parses of the same prop is how that happens.
+ * **Only when the caller did not already cover both.** If an action carries a
+ * Control-only combination AND a Command-only one, they said what they meant for each
+ * platform and nothing is touched. Owner's rule, 2026-10-05.
+ *
+ * This changes the LISTENER as well as the label, which is what makes it honest: bind
+ * `'Ctrl+M'`, open it on a Mac, and `⌘M` is what fires - the tooltip is not translating
+ * a key that does nothing. It is the `Mod` convention every editor uses (CodeMirror,
+ * ProseMirror, Tiptap), applied automatically rather than through a keyword.
+ *
+ * The consequence, and it is the surprising half: on a Mac, a lone `'Ctrl+M'` becomes
+ * Command, so Control+M no longer fires. That is what "đổi Ctrl thành Command" means -
+ * a replacement, not an addition. Bind both explicitly to keep both.
+ *
+ * Left alone: a combination with neither modifier (`F11`, `Escape`, `Alt+M`), which has
+ * nothing to swap, and one carrying both (`Ctrl+Cmd+M`), which already names them.
+ */
+function applyPlatformMapping(
+  combinations: readonly KeyCombination[],
+  apple: boolean
+): KeyCombination[] {
+  const hasControlOnly = combinations.some((c) => c.ctrlKey && !c.metaKey);
+  const hasCommandOnly = combinations.some((c) => c.metaKey && !c.ctrlKey);
+  if (hasControlOnly && hasCommandOnly) return [...combinations];
+
+  return combinations.map((combination) => {
+    // Equal means both set or neither - nothing to decide either way.
+    if (combination.ctrlKey === combination.metaKey) return combination;
+
+    return { ...combination, ctrlKey: !apple, metaKey: apple };
+  });
+}
+
+/**
+ * `keyBindings` as parsed combinations per action, mapped for the platform, with the
+ * empty actions dropped.
+ *
+ * Called ONCE and the result handed to both the listener and the tooltips, so what a
+ * control advertises and what it responds to cannot drift - two parses of the same prop
+ * is how that happens.
  */
 export function parseBindings(
-  bindings: FloatingWindowKeyBindings | undefined
+  bindings: FloatingWindowKeyBindings | undefined,
+  apple: boolean = isApplePlatform()
 ): Partial<Record<FloatingWindowAction, KeyCombination[]>> {
   const parsed: Partial<Record<FloatingWindowAction, KeyCombination[]>> = {};
   if (!bindings) return parsed;
@@ -89,41 +129,45 @@ export function parseBindings(
     if (!value) continue;
     const specs = typeof value === 'string' ? [value] : value;
     const combinations = specs.map((spec) => parseKeyCombination(spec));
-    if (combinations.length > 0) parsed[action as FloatingWindowAction] = combinations;
+    if (combinations.length === 0) continue;
+    parsed[action as FloatingWindowAction] = applyPlatformMapping(combinations, apple);
   }
 
   return parsed;
 }
 
 export function useKeyBindings(
-  bindings: FloatingWindowKeyBindings | undefined,
+  parsed: Partial<Record<FloatingWindowAction, KeyCombination[]>>,
   enabled: boolean,
   run: (action: FloatingWindowAction) => void
 ): void {
-  // `run` in a ref, and the bindings keyed by their SERIALISATION.
+  // Takes the ALREADY-PARSED map, not the raw prop. The component needs the same map
+  // for its tooltips, and parsing twice is how a control ends up advertising a key it
+  // does not answer - especially now that `parseBindings` also maps Control to Command
+  // per platform.
   //
-  // A caller writes `keyBindings={{ close: 'Escape' }}` and `onAction={() => ...}`
-  // inline, so both change identity on every render. Depending on them directly tears
-  // the listener down and rebuilds it every render - the same `Object.is` trap
-  // `useWindowSize` documents, where a fresh object each check means "always changed".
+  // `run` in a ref, and the map keyed by its SERIALISATION: a caller writes
+  // `keyBindings={{ close: 'Escape' }}` inline, so everything derived from it changes
+  // identity every render. Depending on the object directly tears the listener down and
+  // rebuilds it each time - the `Object.is` trap `useWindowSize` documents.
   const runRef = useRef(run);
   runRef.current = run;
 
-  const bindingKey = JSON.stringify(bindings ?? null);
+  const parsedKey = JSON.stringify(parsed);
 
   useEffect(() => {
-    if (!enabled || !bindings) return;
+    if (!enabled) return;
 
-    const parsed = Object.entries(parseBindings(bindings)).flatMap(([action, combinations]) =>
+    const flat = Object.entries(parsed).flatMap(([action, combinations]) =>
       combinations.map((combination) => ({
         action: action as FloatingWindowAction,
         combination,
       }))
     );
-    if (parsed.length === 0) return;
+    if (flat.length === 0) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      const hit = parsed.find((p) => matches(event, p.combination));
+      const hit = flat.find((p) => matches(event, p.combination));
       if (!hit) return;
       if (isBarePrintable(hit.combination) && isEditable(event.target)) return;
 
@@ -136,8 +180,8 @@ export function useKeyBindings(
     document.addEventListener('keydown', onKeyDown);
 
     return () => document.removeEventListener('keydown', onKeyDown);
-    // `bindingKey`, not `bindings`: see the note above. `bindings` is read inside, and
-    // an identical serialisation means identical content, so the listener stays put.
+    // `parsedKey`, not `parsed`: see the note above. `parsed` is read inside, and an
+    // identical serialisation means identical content, so the listener stays put.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bindingKey, enabled]);
+  }, [parsedKey, enabled]);
 }

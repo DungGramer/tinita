@@ -501,15 +501,72 @@ describe('FloatingWindow - the controls advertise their shortcut', () => {
     }
   });
 
-  // The case that keeps the hint honest: with only Control bound, Control is what
-  // fires on a Mac too, so the label must say so instead of showing ⌘.
-  it('does not promise ⌘ on Apple when only Ctrl was bound', () => {
+  // Owner's rule 2026-10-05: a lone Control binding BECOMES Command on a Mac - the
+  // listener included. So the label is not translating a dead key, and the check is
+  // that the label and the key that fires agree.
+  it('turns a lone Ctrl binding into Command on Apple, listener and all', () => {
     const agent = vi
       .spyOn(navigator, 'userAgent', 'get')
-      .mockReturnValue('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36');
+      .mockReturnValue('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)');
     try {
       render(<Harness keyBindings={{ minimize: 'Ctrl+M' }} />);
-      expect(titleOf('Minimize')).toBe('Minimize (⌃M)');
+      expect(titleOf('Minimize')).toBe('Minimize (⌘M)');
+
+      // Command fires, which is what the label promises.
+      press('m', { metaKey: true });
+      expect(screen.queryByRole('button', { name: 'Dashboard' })).not.toBeNull();
+    } finally {
+      agent.mockRestore();
+    }
+  });
+
+  it('and Control no longer fires there - a replacement, not an addition', () => {
+    const agent = vi
+      .spyOn(navigator, 'userAgent', 'get')
+      .mockReturnValue('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)');
+    try {
+      render(<Harness keyBindings={{ minimize: 'Ctrl+M' }} />);
+
+      press('m', { ctrlKey: true });
+      expect(screen.queryByRole('button', { name: 'Dashboard' })).toBeNull();
+    } finally {
+      agent.mockRestore();
+    }
+  });
+
+  it('turns a lone Command binding into Control away from Apple', () => {
+    // This is the case that used to read `Win + M`: technically true, since `cmd`
+    // parses to metaKey and metaKey is the Windows key, but nobody binds it meaning
+    // that. Now it is Control on both sides of the label and the listener.
+    render(<Harness keyBindings={{ minimize: 'Cmd+M' }} />);
+    expect(titleOf('Minimize')).toBe('Minimize (Ctrl + M)');
+
+    press('m', { ctrlKey: true });
+    expect(screen.queryByRole('button', { name: 'Dashboard' })).not.toBeNull();
+  });
+
+  it('maps NOTHING when the caller covered both platforms', () => {
+    const agent = vi
+      .spyOn(navigator, 'userAgent', 'get')
+      .mockReturnValue('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)');
+    try {
+      render(<Harness keyBindings={{ minimize: ['Ctrl+M', 'Cmd+M'] }} />);
+      // Both were bound explicitly, so both still fire on a Mac.
+      press('m', { ctrlKey: true });
+      expect(screen.queryByRole('button', { name: 'Dashboard' })).not.toBeNull();
+    } finally {
+      agent.mockRestore();
+    }
+  });
+
+  it('leaves a binding with no Ctrl and no Cmd alone', () => {
+    const agent = vi
+      .spyOn(navigator, 'userAgent', 'get')
+      .mockReturnValue('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)');
+    try {
+      render(<Harness keyBindings={{ maximize: 'F11', close: 'Escape' }} />);
+      expect(titleOf('Maximize')).toBe('Maximize (F11)');
+      expect(titleOf('Close')).toBe('Close (⎋)');
     } finally {
       agent.mockRestore();
     }

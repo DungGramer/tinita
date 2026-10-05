@@ -384,16 +384,31 @@ hai thì mới chuyển.
 Hover vào control thì `title` thành `Minimize (Ctrl + M)`, trên Apple là
 `Minimize (⌘M)`. Bốn điều quyết định ở `formatKeyCombination.ts`:
 
-- **Tổ hợp hiện ra được CHỌN theo platform từ thứ caller đã bind**, không phải đổi
-  `Ctrl` thành `⌘` khi thấy Mac. Bind `['Ctrl+M','Cmd+M']` thì Apple hiện `⌘ + M`, nơi
-  khác hiện `Ctrl + M`. Bind **chỉ** `'Ctrl+M'` thì Apple hiện `⌃ + M`, vì phím thật sự
-  chạy trên Mac vẫn là Control - hiện `⌘` ở đó là nói sai.
+- **Control <-> Command tự đổi theo platform, nhưng CHỈ khi caller chưa cover cả hai.**
+  Owner chốt 2026-10-05. Một action vừa có tổ hợp chỉ-Ctrl vừa có tổ hợp chỉ-Cmd thì
+  **không map gì**: caller đã nói rõ cho từng nền. Chỉ có một trong hai thì nó được
+  **đổi** sang phím của nền đang chạy.
+
+  Phép đổi áp cho **cả listener**, không chỉ nhãn - đó là thứ làm nhãn trung thực. Bind
+  `'Ctrl+M'`, mở trên Mac, thì `⌘M` là phím **thật sự chạy**. Đây là quy ước `Mod` mà
+  mọi editor dùng (CodeMirror, ProseMirror, Tiptap), áp tự động chứ không qua keyword.
+
+  Nửa gây ngạc nhiên: trên Mac, `'Ctrl+M'` đơn lẻ **thành** Command, nên Control+M
+  **không còn chạy**. "Đổi" nghĩa là thay thế, không phải thêm. Muốn giữ cả hai thì bind
+  cả hai.
+
+  Không bị map: tổ hợp không có cả hai modifier (`F11`, `Escape`, `Alt+M`), và tổ hợp
+  có **cả hai** (`Ctrl+Cmd+M`) - nó đã tự nói rõ.
+
+- **Nhãn hiện tổ hợp đã map**, nên nó luôn là phím chạy được. `parseBindings` map một
+  lần, kết quả dùng cho **cả** listener lẫn tooltip - hai lần parse là cách nhãn và phím
+  đi lệch nhau.
 - **`aria-label` giữ nguyên tên hành động, phím tắt đi vào `aria-keyshortcuts`** - đó
   là attribute ARIA định nghĩa cho việc này. Gộp vào label sẽ khiến screen reader hiểu
   attribute đó đọc hai lần. `aria-keyshortcuts` liệt kê **mọi** tổ hợp đã bind, không
   chỉ cái đang hiện, vì tất cả đều chạy.
-- **Một lần parse duy nhất** (`parseBindings`) dùng cho cả listener lẫn tooltip, nên
-  control không thể quảng cáo một phím mà nó không trả lời.
+- **`useKeyBindings` nhận map ĐÃ parse**, không nhận prop thô - nên chỉ còn đúng một
+  chỗ parse, và control không thể quảng cáo một phím nó không trả lời.
 
 - **Apple NỐI LIỀN, nơi khác có dấu phân cách.** `⌘M` chứ không `⌘ + M`: mọi menu
   macOS viết liền nên một dấu `+` giữa các glyph đọc ra lạ ở đó. Ngoài Apple thì
