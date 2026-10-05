@@ -291,9 +291,32 @@
       ],
       "cssSpecifiers": [
         "./styles.css",
-        "./styles/globals.css",
+        "./styles.layer.css",
         "./styles/animations.css",
-        "./styles.layer.css"
+        "./styles/globals.css",
+        "./styles/tokens.css",
+        "./ui/carousel-ticker/index.css",
+        "./ui/carousel-ticker/styles.css",
+        "./ui/file-tree/index.css",
+        "./ui/file-tree/styles.css",
+        "./ui/file-tree/tokens.css",
+        "./ui/floating-window/index.css",
+        "./ui/floating-window/styles.css",
+        "./ui/floating-window/tokens.css",
+        "./ui/ping/index.css",
+        "./ui/ping/styles.css",
+        "./ui/ping/tokens.css",
+        "./ui/tree/index.css",
+        "./ui/tree/styles.css",
+        "./ui/tree/tokens.css"
+      ],
+      "cssAwareSpecifiers": [
+        ".",
+        "./ui/ping",
+        "./ui/carousel-ticker",
+        "./ui/floating-window",
+        "./ui/file-tree",
+        "./ui/tree"
       ],
       "namedExports": {
         "./hooks/useToggle": [

@@ -70,12 +70,28 @@ for (const { name, dir } of TARGETS) {
   });
   const peers = contract['tinita-react'].optionalPeers;
   let total = 0;
+  let skippedCssAware = 0;
   const failures = [];
   for (const { name } of TARGETS) {
+    const cssAware = new Set(contract[name].cssAwareSpecifiers ?? []);
     for (const spec of contract[name].specifiers) {
       const full = spec === '.' ? name : `${name}${spec.slice(1)}`;
       // Specifier cần optional peer thì bỏ ở ca này - ca 04 phụ trách.
       if ((peers[spec] ?? []).length > 0 && name === 'tinita-react') continue;
+      // CSS-AWARE specifier không nằm trong hợp đồng Node-safe.
+      //
+      // Chúng mang một import CSS để consumer tự nạp stylesheet, nên chúng đòi một
+      // bundler/runtime hiểu CSS. Bỏ qua ở đây theo ĐÚNG hợp đồng công khai
+      // (`cssAwareSpecifiers` trong contract.json), KHÔNG phải bằng cách khẳng định
+      // một lỗi cụ thể của Node: `ERR_UNKNOWN_FILE_EXTENSION` là chi tiết của loader
+      // hiện tại, không phải hợp đồng của package, và Node có thể đổi nó.
+      //
+      // Chúng được canh ở chỗ chúng thật sự chạy: `css-graph:*` và `next-rsc-*` của L2,
+      // cộng ca `peer-matrix-css-aware`.
+      if (cssAware.has(spec)) {
+        skippedCssAware += 1;
+        continue;
+      }
       for (const mode of ['require', 'import']) {
         total += 1;
         const r = tryLoad(work, full, mode);
@@ -83,7 +99,13 @@ for (const { name, dir } of TARGETS) {
       }
     }
   }
-  add('03-smoke-cjs-esm', failures.length === 0, `${total} lần thực thi${failures.length ? `, fail: ${failures.join(' | ')}` : ', đều load được'}`, { executions: total });
+  add(
+    '03-smoke-cjs-esm',
+    failures.length === 0,
+    `${total} lần thực thi${skippedCssAware ? `, bỏ ${skippedCssAware} specifier CSS-aware (hợp đồng khác)` : ''}` +
+      (failures.length ? `, fail: ${failures.join(' | ')}` : ', đều load được'),
+    { executions: total, skippedCssAware }
+  );
 }
 
 // ---------- 04 optional peer ----------
@@ -130,7 +152,17 @@ for (const { name, dir } of TARGETS) {
 
   const rows = [];
   let bad = 0;
-  for (const [spec, needed] of specs) {
+  // CHỈ phần Node-safe của hợp đồng peer ở đây.
+  //
+  // Ca này đo hợp đồng optional peer bằng cách `require` trong Node, và từ 2026-10-05
+  // mọi specifier `ui/*` cùng root mang một import CSS nên Node không nạp được chúng -
+  // lúc đó "thiếu peer" và "không nạp được CSS" cho cùng một exit code và ca mất khả
+  // năng phân biệt. Hợp đồng peer của chúng KHÔNG bị bỏ: nó chuyển sang
+  // `peer-matrix-css-aware` của L2, nơi consumer là một bundler thật.
+  const cssAwareSet = new Set(contract['tinita-react'].cssAwareSpecifiers ?? []);
+  const nodeSafeSpecs = specs.filter(([spec]) => !cssAwareSet.has(spec));
+
+  for (const [spec, needed] of nodeSafeSpecs) {
     const full = `tinita-react${spec.slice(1)}`;
     const absent = tryLoad(withoutPeers, full, 'require');
     const present = tryLoad(withPeers, full, 'require');
@@ -142,7 +174,13 @@ for (const { name, dir } of TARGETS) {
     if (!absentOk || !namesMissing || !presentOk) bad += 1;
     rows.push({ specifier: full, needs: needed, absentExit: absent.code, presentExit: present.code, namesMissingModule: namesMissing });
   }
-  add('04b-optional-peer-matrix', bad === 0, `${rows.length} đường nhập × 2 trạng thái${bad ? `, ${bad} sai` : ', đúng hết'}`, { matrix: rows });
+  add(
+    '04b-optional-peer-matrix',
+    bad === 0,
+    `${rows.length} đường nhập Node-safe × 2 trạng thái${bad ? `, ${bad} sai` : ', đúng hết'}` +
+      `; ${specs.length - nodeSafeSpecs.length} đường nhập CSS-aware đo ở L2 peer-matrix-css-aware`,
+    { matrix: rows, movedToL2: specs.length - nodeSafeSpecs.length }
+  );
 
   const warned = /peer/i.test(readFileSync(resolve(withoutPeers, 'package.json'), 'utf8')) === false;
   findings.push({ id: 'npm-silent-on-optional-peer', detail: 'npm KHÔNG cài và KHÔNG cảnh báo optional peer thiếu - vì vậy bảng component -> peer trong README/docs là bắt buộc, không phải trang trí', assignedTo: 'docs' });

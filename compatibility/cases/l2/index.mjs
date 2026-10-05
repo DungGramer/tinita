@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { EXIT, LAB } from '../../scripts/paths.mjs';
@@ -65,9 +65,11 @@ for (const [name, source, file, pkgJson] of [
 ]) {
   const work = createConsumer({ level: 'l2', name, deps: REACT, tarballs: TGZ, files: { [file]: source }, pkgJson });
   const r = run('node', [file], work, 60_000);
-  const hasPing = r.out.includes('tnt-ping');
-  const ok = r.ok && hasPing;
-  add(`ssr:${name}`, ok, ok ? `renderToString không throw, output có tnt-ping; ${UNIVERSAL.length} specifier universal import được và binding không undefined` : `exit=${r.code} ${r.out.split('\n').find((l) => /Error/.test(l))?.trim() ?? ''}`, { raw: r.out.slice(0, 400), universalSpecifiers: UNIVERSAL.length });
+  // `tnt-probe` thay cho `tnt-ping`: fixture không còn render component nào, vì
+  // `ui/*` không thuộc hợp đồng Node-safe nữa - xem đầu `lib/fixtures.mjs`.
+  const hasProbe = r.out.includes('tnt-probe');
+  const ok = r.ok && hasProbe;
+  add(`ssr:${name}`, ok, ok ? `renderToString không throw, output có tnt-probe; ${UNIVERSAL.length} specifier universal + utils/hooks của tinita-react import được, binding không undefined` : `exit=${r.code} ${r.out.split('\n').find((l) => /Error/.test(l))?.trim() ?? ''}`, { raw: r.out.slice(0, 400), universalSpecifiers: UNIVERSAL.length });
 }
 
 for (const [name, def] of Object.entries(contract)) {
@@ -192,16 +194,33 @@ if (hasBrowser) {
 // ---------- host KHÔNG có Tailwind: utility thô trong JSX không được ship ----------
 if (hasBrowser) {
   const { probeMissingUtilities } = await import('./lib/css-probe.mjs');
-  const work = createConsumer({ level: 'l2', name: 'no-tailwind', deps: REACT, tarballs: TGZ, files: {
+  // Markup lấy qua một BUNDLER, không bằng `node render.mjs`.
+  //
+  // Ca này đo CSS: host không có Tailwind mà Ping vẫn phải `inline-flex`. Node chỉ là
+  // phương tiện lấy markup, và từ 2026-10-05 `ui/ping` mang một import CSS nên Node
+  // trần không nạp được nó. Một bản build SSR của vite gỡ import CSS khỏi output SSR,
+  // nên markup vẫn lấy được qua đúng con đường mà package giờ đòi hỏi.
+  const work = createConsumer({ level: 'l2', name: 'no-tailwind', deps: [...REACT, 'vite@7'], tarballs: TGZ, files: {
     'render.mjs': `
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createElement as h } from 'react';
 import { Ping } from 'tinita-react/ui/ping';
 process.stdout.write(renderToStaticMarkup(h(Ping, { count: 1 })));
 `,
+    // `ssr.noExternal` BẮT BUỘC: mặc định vite externalize mọi thứ trong node_modules
+    // cho bản SSR, nên output giữ nguyên `import { Ping } from 'tinita-react/ui/ping'`
+    // và Node lại gặp đúng import CSS đó. `noExternal` bundle package vào, và lúc đó
+    // import CSS bị gỡ - đo 2026-10-05: 0 lần `.css` trong output.
+    //
+    // Và output là `render.js`, KHÔNG phải `.mjs` - vite đặt tên theo đuôi của nó.
+    'ssr.config.mjs': "export default { ssr: { noExternal: ['tinita-react'] }, build: { ssr: 'render.mjs', outDir: 'ssr-out', emptyOutDir: true, minify: false } };\n",
   }, pkgJson: { type: 'module' } });
 
-  const rendered = run('node', ['render.mjs'], work, 60_000);
+  const ssrBuilt = run('npx', ['vite', 'build', '-c', 'ssr.config.mjs'], work, 300_000);
+  if (!ssrBuilt.ok) {
+    add('no-tailwind-standalone-layout', false, `không build được bản SSR để lấy markup: exit=${ssrBuilt.code}`);
+  }
+  const rendered = ssrBuilt.ok ? run('node', ['ssr-out/render.js'], work, 60_000) : { out: '', ok: false };
   // Gắn data-probe vào node gốc của Ping để đo được, giữ nguyên class mà component sinh ra.
   const html = rendered.out.replace(/^<([a-z]+)/, '<$1 data-probe="ping-root"');
   const cssPath = resolve(work, 'node_modules/tinita-react/dist/styles.css');
@@ -319,6 +338,198 @@ createRoot(document.getElementById('root')).render(
     } finally {
       proc.kill('SIGTERM');
     }
+  }
+}
+
+// ---------- hợp đồng optional peer cho specifier CSS-AWARE ----------
+//
+// Đây là phần L1 `04b` không đo được nữa. Từ 2026-10-05 mọi `ui/*` mang một import CSS
+// nên Node không nạp được chúng, và "thiếu peer" với "không nạp được CSS" cho cùng một
+// exit code. Hợp đồng không bỏ - nó chuyển về đây, nơi consumer là một bundler thật và
+// peer thiếu hiện ra đúng tên.
+{
+  const SPECS = Object.entries(contract['tinita-react'].optionalPeers)
+    .filter(([spec, needed]) => spec.startsWith('./ui/') && needed.length > 0)
+    .map(([spec, needed]) => ({ spec, needed, id: spec.replace('./ui/', '') }));
+
+  const entryFor = (spec) =>
+    `import * as m from 'tinita-react${spec.slice(1)}';\nif (!Object.keys(m).length) throw new Error('rỗng');\nexport default m;\n`;
+  const configFor = (id) =>
+    `export default { build: { lib: { entry: '${id}.js', formats: ['es'], fileName: '${id}' }, outDir: 'out-${id}', emptyOutDir: true } };\n`;
+
+  const files = { };
+  for (const { spec, id } of SPECS) {
+    files[`${id}.js`] = entryFor(spec);
+    files[`vite.${id}.config.js`] = configFor(id);
+  }
+
+  for (const state of ['absent', 'present']) {
+    const work = createConsumer({
+      level: 'l2',
+      name: `peer-${state}-bundled`,
+      deps: state === 'present' ? [...REACT, 'vite@7', ...OPTIONAL_PEERS] : [...REACT, 'vite@7'],
+      tarballs: TGZ,
+      pkgJson: { type: 'module' },
+      files,
+    });
+
+    for (const { spec, needed, id } of SPECS) {
+      const built = run('npx', ['vite', 'build', '-c', `vite.${id}.config.js`], work, 300_000);
+      if (state === 'present') {
+        add(`peer-matrix-css-aware:${id}:present`, built.ok,
+          built.ok
+            ? `${spec} build được khi có ${needed.join(' + ')}`
+            : `exit=${built.code}: ${built.out.split('\n').map((l) => l.trim()).filter(Boolean).find((l) => /rror/.test(l)) ?? ''}`);
+      } else {
+        // Thiếu peer phải fail VÀ nêu đúng tên peer. Chỉ đòi "có fail" thì ca sẽ xanh
+        // y nguyên khi nguyên nhân đổi sang thứ khác.
+        const named = needed.filter((n) => built.out.includes(n));
+        const ok = !built.ok && named.length > 0;
+        add(`peer-matrix-css-aware:${id}:absent`, ok,
+          ok
+            ? `${spec} fail đúng như mong đợi, nêu tên: ${named.join(', ')}`
+            : built.ok
+              ? `${spec} build ĐƯỢC dù thiếu ${needed.join(' + ')} - optional peer không còn bị đòi`
+              : `${spec} fail nhưng KHÔNG nêu peer nào trong ${needed.join(', ')}`,
+          { needed, named });
+      }
+    }
+  }
+}
+
+// ---------- CSS dependency graph phản ánh JS dependency graph ----------
+//
+// Invariant, không phải chi tiết implementation: import MỘT component thì chỉ nạp
+// shared tokens + tokens của nó + CSS của nó (+ shared CSS primitive nó thật sự cần).
+// Ca này KHÔNG đếm xem vite emit mấy file và KHÔNG khoá đường dẫn - đổi sang
+// Rollup/tsup thì nó vẫn còn nghĩa.
+//
+// Đo 2026-10-05 trên Next: `styles.css` toàn bộ là 27023 byte, chỉ Ping là 2424.
+{
+  const MARKERS = {
+    ping: 'tnt-ping-root',
+    tree: 'tnt-tree-root',
+    filetree: 'tnt-filetree',
+    carousel: 'tnt-carousel',
+    fw: 'tnt-floating-window-root',
+    // Dấu HAI CHẤM quan trọng. `--tnt-radius` là TIỀN TỐ của bốn token khai báo
+    // (`--tnt-radius`, `--tnt-radius-sm`, `--tnt-radius-md`, `--tnt-radius-lg`), nên
+    // đếm thiếu dấu hai chấm ra x4 và ca dedupe đỏ oan. Đo 2026-10-05 trên CSS thật:
+    // tiền tố 4 lần, `--tnt-radius:` đúng 1 lần.
+    sharedToken: '--tnt-radius:',
+    // `animations.css` (18 keyframes) và `@theme inline` (150 biến `--color-*`) thuộc
+    // GLOBAL layer. Không component nào dùng - đo được 0/18 keyframes và 0 lần
+    // `var(--color-*)` trong src/ui - nên một bridge kéo chúng vào là hồi quy.
+    animations: 'tnt-animate-',
+    tailwindVars: '--color-background',
+  };
+
+  const SCENARIOS = [
+    {
+      id: 'ping',
+      imp: "import { Ping } from 'tinita-react/ui/ping';",
+      jsx: "h(Ping, { count: 1 })",
+      present: ['ping', 'sharedToken'],
+      absent: ['tree', 'filetree', 'carousel', 'fw', 'animations', 'tailwindVars'],
+      why: 'Ping một mình: CSS + token của Ping, không gì khác',
+    },
+    {
+      id: 'file-tree',
+      // FileTree render Tree, nên CSS của Tree là shared primitive BẮT BUỘC: mọi rule
+      // `tnt-tree-*` nằm ở stylesheet của Tree, `ui/file-tree/styles.css` có 0 cái.
+      imp: "import { FileTree } from 'tinita-react/ui/file-tree';",
+      jsx: "h(FileTree, { text: 'src' })",
+      present: ['filetree', 'tree', 'sharedToken'],
+      absent: ['ping', 'carousel', 'fw', 'animations', 'tailwindVars'],
+      why: 'FileTree kéo theo CSS của Tree vì nó render Tree, nhưng không kéo Ping',
+    },
+    {
+      // Tree là shared primitive: CẢ `ui/tree` và `ui/file-tree` đều `@import` CSS của
+      // nó. Import cả hai component thì CSS đó phải vào ĐÚNG MỘT LẦN, không phải hai.
+      id: 'tree-plus-file-tree',
+      imp: "import { Tree } from 'tinita-react/ui/tree';\nimport { FileTree } from 'tinita-react/ui/file-tree';",
+      jsx: "h('div', null, h(Tree, { nodes: [] }), h(FileTree, { text: 'src' }))",
+      present: ['tree', 'filetree', 'sharedToken'],
+      absent: ['ping', 'carousel', 'fw', 'animations', 'tailwindVars'],
+      sharedTokenCount: 1,
+      // `.tnt-tree-item{` được định nghĩa đúng 1 lần trong `ui/tree/styles.css`, nên
+      // đếm nó trong bundle cho thẳng số BẢN COPY.
+      ruleOnce: '.tnt-tree-item{',
+      why: 'Tree là shared primitive của hai bridge, CSS của nó không được vào hai lần',
+    },
+    {
+      id: 'ping-plus-file-tree',
+      imp: "import { Ping } from 'tinita-react/ui/ping';\nimport { FileTree } from 'tinita-react/ui/file-tree';",
+      jsx: "h('div', null, h(Ping, { count: 1 }), h(FileTree, { text: 'src' }))",
+      present: ['ping', 'filetree', 'tree', 'sharedToken'],
+      absent: ['carousel', 'fw', 'animations', 'tailwindVars'],
+      // Hai component đều `@import` shared tokens; nó phải vào bundle ĐÚNG MỘT LẦN.
+      sharedTokenCount: 1,
+      why: 'hai component: hợp của hai graph, shared tokens không lặp',
+    },
+    {
+      id: 'floating-window',
+      imp: "import { FloatingWindow } from 'tinita-react/ui/floating-window';",
+      jsx: "h(FloatingWindow, { open: true, onOpenChange: () => {}, title: 't' }, 'x')",
+      present: ['fw', 'sharedToken'],
+      absent: ['ping', 'tree', 'filetree', 'carousel', 'animations', 'tailwindVars'],
+      why: 'FloatingWindow một mình, dù JS của nó phụ thuộc tinita - cạnh JS không chạm CSS graph',
+    },
+  ];
+
+  for (const sc of SCENARIOS) {
+    const work = createConsumer({
+      level: 'l2',
+      name: `css-graph-${sc.id}`,
+      deps: [...REACT, 'vite@7', '@vitejs/plugin-react@5', ...OPTIONAL_PEERS],
+      tarballs: TGZ,
+      pkgJson: { type: 'module' },
+      files: {
+        'index.html': '<!doctype html><div id="root"></div><script type="module" src="/main.jsx"></script>',
+        'vite.config.js': "import react from '@vitejs/plugin-react';\nexport default { plugins: [react()] };\n",
+        // KHÔNG import CSS nào bằng tay - đó chính là thứ đang được kiểm.
+        'main.jsx': `import { createRoot } from 'react-dom/client';\nimport { createElement as h } from 'react';\n${sc.imp}\ncreateRoot(document.getElementById('root')).render(${sc.jsx});\n`,
+      },
+    });
+
+    const built = run('npx', ['vite', 'build'], work, 300_000);
+    if (!built.ok) {
+      const lines = built.out.split('\n').map((l) => l.trim()).filter(Boolean);
+      const at = lines.findIndex((l) => /rror/.test(l));
+      add(`css-graph:${sc.id}`, false, `vite build exit=${built.code}: ${lines.slice(at, at + 3).join(' | ')}`);
+      continue;
+    }
+
+    const assetDir = resolve(work, 'dist/assets');
+    const cssFiles = existsSync(assetDir) ? readdirSync(assetDir).filter((f) => f.endsWith('.css')) : [];
+    const css = cssFiles.map((f) => readFileSync(resolve(assetDir, f), 'utf8')).join('\n');
+
+    const missing = sc.present.filter((k) => !css.includes(MARKERS[k]));
+    const leaked = sc.absent.filter((k) => css.includes(MARKERS[k]));
+    // Byte count chỉ là DIAGNOSTIC, không bao giờ là assertion: Vite và Next minify
+    // khác nhau nên 2396 vs 2424 là bình thường. Khẳng định nằm ở có/không và ở quan
+    // hệ phụ thuộc.
+    const sharedSeen = sc.sharedTokenCount === undefined
+      ? null
+      : css.split(MARKERS.sharedToken).length - 1;
+    const dedupeOk = sharedSeen === null || sharedSeen === sc.sharedTokenCount;
+    // Một selector được định nghĩa đúng 1 lần trong stylesheet nguồn, nên số lần nó
+    // xuất hiện trong bundle CHÍNH LÀ số bản copy. Đếm class name trần thì vô nghĩa:
+    // `tnt-tree-root` có mặt trong 20 selector khác nhau - đo 2026-10-05.
+    const ruleSeen = sc.ruleOnce ? css.split(sc.ruleOnce).length - 1 : null;
+    const ruleOnceOk = ruleSeen === null || ruleSeen === 1;
+    const ok =
+      cssFiles.length > 0 && missing.length === 0 && leaked.length === 0 && dedupeOk && ruleOnceOk;
+    const detail = cssFiles.length === 0
+      ? 'KHÔNG emit CSS nào - component không tự kéo CSS của nó'
+      : `${css.length} byte; ${sc.why}`
+        + (sharedSeen === null ? '' : ` | shared tokens x${sharedSeen}`)
+        + (missing.length ? ` | THIẾU: ${missing.join(', ')}` : '')
+        + (leaked.length ? ` | RÒ: ${leaked.join(', ')}` : '')
+        + (ruleSeen === null ? '' : ` | ${sc.ruleOnce} x${ruleSeen}`)
+        + (dedupeOk ? '' : ` | TOKEN LẶP: chờ x${sc.sharedTokenCount}`)
+        + (ruleOnceOk ? '' : ` | RULE LẶP: ${sc.ruleOnce} vào ${ruleSeen} lần`);
+    add(`css-graph:${sc.id}`, ok, detail, { bytes: css.length, missing, leaked, sharedSeen, ruleSeen });
   }
 }
 

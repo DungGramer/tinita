@@ -37,13 +37,24 @@ if (missing.length > 0) {
 }`;
 }
 
+/**
+ * Hợp đồng NODE-SAFE, không phải "package hỗ trợ SSR".
+ *
+ * Từ 2026-10-05 mọi specifier `tinita-react/ui/*` cùng root mang một import CSS để
+ * consumer tự nạp stylesheet, nên chúng đòi một bundler hiểu CSS và Node trần không
+ * nạp được. Fixture này vì vậy chỉ dùng những entrypoint CÒN hợp đồng Node-safe -
+ * `utils/*`, `hooks/*`, và mọi specifier universal của `tinita`/`tinita-dom`.
+ *
+ * SSR của component KHÔNG bị bỏ: nó được canh ở `next-rsc-*` của L2 và
+ * `react18/19:*` của L4, nơi `next build` prerender thật. Đó cũng là nơi nó có nghĩa,
+ * vì không ai SSR một React app mà không có bundler.
+ */
 export function ssrEsm(universal) {
   return `
 import { renderToString } from 'react-dom/server';
 import { createElement as h } from 'react';
-import { Ping } from 'tinita-react/ui/ping';
-import { CarouselTicker } from 'tinita-react/ui/carousel-ticker';
 import { autoInjectStyles } from 'tinita-react/utils/autoInjectStyles';
+import { jsxJoin } from 'tinita-react/utils/jsxJoin';
 ${universalImportsEsm(universal)}
 ${universalAssert(universal)}
 
@@ -51,8 +62,7 @@ ${universalAssert(universal)}
 autoInjectStyles('probe-ssr', '.probe{}');
 
 const out = [
-  renderToString(h(Ping, { count: 3 })),
-  renderToString(h(CarouselTicker, null, h('span', null, 'x'))),
+  renderToString(h('span', { className: 'tnt-probe' }, jsxJoin(['a', 'b'], ', '))),
 ].join('\\n');
 process.stdout.write(out);
 `;
@@ -62,17 +72,15 @@ export function ssrCjs(universal) {
   return `
 const { renderToString } = require('react-dom/server');
 const { createElement: h } = require('react');
-const { Ping } = require('tinita-react/ui/ping');
-const { CarouselTicker } = require('tinita-react/ui/carousel-ticker');
 const { autoInjectStyles } = require('tinita-react/utils/autoInjectStyles');
+const { jsxJoin } = require('tinita-react/utils/jsxJoin');
 ${universalImportsCjs(universal)}
 ${universalAssert(universal)}
 
 autoInjectStyles('probe-ssr', '.probe{}');
 
 process.stdout.write([
-  renderToString(h(Ping, { count: 3 })),
-  renderToString(h(CarouselTicker, null, h('span', null, 'x'))),
+  renderToString(h('span', { className: 'tnt-probe' }, jsxJoin(['a', 'b'], ', '))),
 ].join('\\n'));
 `;
 }
