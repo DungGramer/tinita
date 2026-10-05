@@ -27,6 +27,14 @@ Các document này mô tả **target architecture** (chưa triển khai toàn b�
 
 ---
 
+## Feature playbooks (tái sử dụng cho dự án khác)
+
+| Tài liệu                                                                       | Nội dung                                                                                             | Đọc khi                                       |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| **[features/permission-denied-page.md](./features/permission-denied-page.md)** | Trang /forbidden cho SPA: kiến trúc gate, edge case, lỗi đã gặp, tiêu chí chấp nhận, cách kiểm chứng | Làm phân quyền trang/bản ghi ở bất kỳ SPA nào |
+
+---
+
 ## Các repo files khác (NOT trong docs/)
 
 | File                                      | Mục đích                                   | Chú ý                                                    |
