@@ -1,0 +1,59 @@
+/**
+ * FileTree's own design tokens.
+ *
+ * Imported by `ui/file-tree/index.css` only, so a consumer who never imports
+ * FileTree never receives these. Moved out of `styles/globals.css` 2026-10-05 when CSS
+ * started shipping per component.
+ *
+ * Declared with `:where(...)` for specificity 0, same reason as the shared tokens: a
+ * bare `:root` is (0,1,0) and beats `:where(.dark)` at (0,0,0), which breaks dark mode
+ * completely when the host puts `.dark` on `<html>` itself.
+ */
+
+:where(:root, [data-theme='light']) {
+  /* Icon colors - Light theme optimized */
+  --tnt-filetree-icon-folder: #4b5563;
+  --tnt-filetree-icon-file: #6b7280;
+  --tnt-filetree-icon-readme: #2563eb;
+  --tnt-filetree-icon-markdown: #2563eb;
+  --tnt-filetree-icon-javascript: #eab308;
+  --tnt-filetree-icon-css: #0ea5e9;
+  --tnt-filetree-icon-html: #dc2626;
+  --tnt-filetree-icon-json: #eab308;
+  --tnt-filetree-icon-database: #2563eb;
+  --tnt-filetree-icon-php: #6366f1;
+  --tnt-filetree-icon-vue: #10b981;
+  --tnt-filetree-icon-git: #dc2626;
+  --tnt-filetree-icon-text: #6b7280;
+  --tnt-filetree-icon-code: #eab308;
+  --tnt-filetree-icon-font: #6b7280;
+  --tnt-filetree-icon-image: #10b981;
+  --tnt-filetree-icon-video: #ef4444;
+  --tnt-filetree-icon-audio: #8b5cf6;
+  --tnt-filetree-icon-spreadsheet: #059669;
+  --tnt-filetree-icon-archive: #f59e0b;
+}
+
+:where(.dark, [data-theme='dark']) {
+  /* Icon colors - Dark theme optimized */
+  --tnt-filetree-icon-folder: #9ca3af;
+  --tnt-filetree-icon-file: #6b7280;
+  --tnt-filetree-icon-readme: #60a5fa;
+  --tnt-filetree-icon-markdown: #60a5fa;
+  --tnt-filetree-icon-javascript: #fbbf24;
+  --tnt-filetree-icon-css: #38bdf8;
+  --tnt-filetree-icon-html: #f87171;
+  --tnt-filetree-icon-json: #fbbf24;
+  --tnt-filetree-icon-database: #60a5fa;
+  --tnt-filetree-icon-php: #818cf8;
+  --tnt-filetree-icon-vue: #34d399;
+  --tnt-filetree-icon-git: #f87171;
+  --tnt-filetree-icon-text: #6b7280;
+  --tnt-filetree-icon-code: #fbbf24;
+  --tnt-filetree-icon-font: #6b7280;
+  --tnt-filetree-icon-image: #34d399;
+  --tnt-filetree-icon-video: #f87171;
+  --tnt-filetree-icon-audio: #a78bfa;
+  --tnt-filetree-icon-spreadsheet: #10b981;
+  --tnt-filetree-icon-archive: #fbbf24;
+}

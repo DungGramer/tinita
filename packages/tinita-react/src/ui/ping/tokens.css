@@ -1,0 +1,26 @@
+/**
+ * Ping's own design tokens.
+ *
+ * Imported by `ui/ping/index.css` only, so a consumer who never imports
+ * Ping never receives these. Moved out of `styles/globals.css` 2026-10-05 when CSS
+ * started shipping per component.
+ *
+ * Declared with `:where(...)` for specificity 0, same reason as the shared tokens: a
+ * bare `:root` is (0,1,0) and beats `:where(.dark)` at (0,0,0), which breaks dark mode
+ * completely when the host puts `.dark` on `<html>` itself.
+ */
+
+:where(:root, [data-theme='light']) {
+  --tnt-ping: oklch(55.6% 0 0);
+  /* Ping */
+  --tnt-ping-dot: oklch(72.3% 0.219 149.579);
+  --tnt-ping-dot-size: 0.5rem;
+  --tnt-ping-gap: 0.25rem;
+  --tnt-ping-prefix-gap: 0.5rem;
+  --tnt-ping-count-min-width: 2rem;
+  --tnt-ping-count-font-size: 0.75rem;
+}
+
+:where(.dark, [data-theme='dark']) {
+  --tnt-ping: oklch(70.8% 0 0);
+}

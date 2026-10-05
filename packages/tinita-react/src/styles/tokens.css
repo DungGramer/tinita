@@ -1,0 +1,99 @@
+/**
+ * Tinita React - Design Tokens & Theme
+ *
+ * Tokens only. No reset, no rule touching `body`, no `color-scheme`.
+ *
+ * A component library has no business resetting somebody else's `*` or `body`: a
+ * base layer here rewrites the host page's background, text colour and every
+ * element's border colour.
+ *
+ * `:root` declares `--tnt-*` variables and nothing else. They are namespaced, so
+ * they cannot collide with the host's. `color-scheme` is deliberately not
+ * declared: it changes the scrollbars and form controls of the entire page.
+ *
+ * Dark mode READS the host's convention (`.dark` or `[data-theme='dark']`), it does
+ * not define it. Wrapped in `:where()` for specificity 0, so the host can always
+ * override.
+ *
+ * Light tokens are declared on `:where(:root, [data-theme='light'])` - the SAME
+ * block, not two copies.
+ *
+ * `:where(:root)` and never a bare `:root`. `:root` has specificity (0,1,0) while
+ * `:where(.dark, [data-theme='dark'])` has (0,0,0), so when the host puts `.dark`
+ * or `data-theme="dark"` on `<html>` itself both rules match the same element and
+ * `:root` wins - dark mode breaks completely. That is exactly what Tailwind's
+ * `darkMode: 'class'` and shadcn do (`<html class="dark">`). Putting `.dark` on
+ * `<body>` or a wrapper div works either way, which is what makes this easy to
+ * miss.
+ *
+ * Wrapping in `:where()` drops both to (0,0,0), at which point declaration order
+ * decides: the dark block comes later, so it wins when both match. Bonus: every
+ * host rule, a bare `:root` included, can override tinita's tokens.
+ *
+ * Without a `light` branch, `theme="light"` would do nothing: inside a host in
+ * dark mode the dark tokens inherit down and `[data-theme='light']` matches no rule
+ * to pull them back.
+ *
+ * `@theme inline` emits nothing into the shipped bundle, which does not import
+ * Tailwind. It only has an effect if you rebuild with Tailwind yourself.
+ */
+
+/*
+ * SHARED tokens only. Component-specific tokens moved to `src/ui/<name>/tokens.css`
+ * so that importing one component does not drag another's - measured 2026-10-05:
+ * 91 of the 128 declarations here belonged to a single component, and a Ping-only
+ * consumer was receiving FileTree's 40 icon colours.
+ *
+ * This file is imported by EVERY component's CSS bridge and by `styles/globals.css`.
+ * It must stay free of `@theme inline`, which no component CSS references - measured
+ * 0 uses of `var(--color-*)` across `src/ui` - and free of rules, so a component
+ * pays for tokens and nothing else.
+ */
+
+:where(:root, [data-theme='light']) {
+  /* Colors */
+  --tnt-background: #ffffff;
+  --tnt-foreground: #1a1a1a;
+  --tnt-primary: #2563eb;
+  --tnt-primary-foreground: #ffffff;
+  --tnt-secondary: #f3f4f6;
+  --tnt-secondary-foreground: #1a1a1a;
+  --tnt-muted: #6b7280;
+  --tnt-muted-foreground: #ffffff;
+  --tnt-accent: rgba(0, 0, 0, 0.06);
+  --tnt-accent-foreground: #1a1a1a;
+  --tnt-destructive: #dc2626;
+  --tnt-destructive-foreground: #ffffff;
+  --tnt-border: #e5e7eb;
+  --tnt-input: #ffffff;
+  --tnt-ring: #2563eb;
+  /* Border Radius */
+  --tnt-radius: 0.5rem;
+  --tnt-radius-sm: 0.25rem;
+  --tnt-radius-md: 0.375rem;
+  --tnt-radius-lg: 0.5rem;
+  /* Spacing */
+  --tnt-spacing-tree-indent: 16px;
+  /* Typography */
+  --tnt-font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --tnt-font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+:where(.dark, [data-theme='dark']) {
+  /* Colors */
+  --tnt-background: #0a0a0a;
+  --tnt-foreground: #e5e7eb;
+  --tnt-primary: #60a5fa;
+  --tnt-primary-foreground: #0a0a0a;
+  --tnt-secondary: #1f1f1f;
+  --tnt-secondary-foreground: #e5e7eb;
+  --tnt-muted: #9ca3af;
+  --tnt-muted-foreground: #0a0a0a;
+  --tnt-accent: rgba(255, 255, 255, 0.06);
+  --tnt-accent-foreground: #e5e7eb;
+  --tnt-destructive: #f87171;
+  --tnt-destructive-foreground: #0a0a0a;
+  --tnt-border: #374151;
+  --tnt-input: #1f1f1f;
+  --tnt-ring: #60a5fa;
+}

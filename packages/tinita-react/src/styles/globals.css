@@ -38,179 +38,28 @@
  * Tailwind. It only has an effect if you rebuild with Tailwind yourself.
  */
 
-/* ============================================
-   1. CSS Variables - Light Theme
-   ============================================ */
-:where(:root, [data-theme='light']) {
-  /* Colors */
-  --tnt-background: #ffffff;
-  --tnt-foreground: #1a1a1a;
-  --tnt-primary: #2563eb;
-  --tnt-primary-foreground: #ffffff;
-  --tnt-secondary: #f3f4f6;
-  --tnt-secondary-foreground: #1a1a1a;
-  --tnt-muted: #6b7280;
-  --tnt-muted-foreground: #ffffff;
-  --tnt-accent: rgba(0, 0, 0, 0.06);
-  --tnt-accent-foreground: #1a1a1a;
-  --tnt-destructive: #dc2626;
-  --tnt-destructive-foreground: #ffffff;
-  --tnt-border: #e5e7eb;
-  --tnt-input: #ffffff;
-  --tnt-ring: #2563eb;
-  --tnt-ping: oklch(55.6% 0 0);
-  /* Ping */
-  --tnt-ping-dot: oklch(72.3% 0.219 149.579);
-  --tnt-ping-dot-size: 0.5rem;
-  --tnt-ping-gap: 0.25rem;
-  --tnt-ping-prefix-gap: 0.5rem;
-  --tnt-ping-count-min-width: 2rem;
-  --tnt-ping-count-font-size: 0.75rem;
+/*
+ * The GLOBAL stylesheet entry. It declares no token of its own any more.
+ *
+ * Tokens moved to `./tokens.css` (shared) and `../ui/<name>/tokens.css` (per
+ * component) when CSS started shipping per component, 2026-10-05. This file imports
+ * all of them so that `tinita-react/styles/globals.css` and the bundled `styles.css`
+ * keep exactly the content they had.
+ *
+ * `@theme inline` stays HERE and nowhere else. It maps `--tnt-*` onto Tailwind's
+ * `--color-*` for a host that compiles this file with their own Tailwind, and no
+ * component CSS references it - measured 2026-10-05: 0 uses of `var(--color-*)` in
+ * `src/ui`, and 0 occurrences of `@theme` or `--color-background` in the built
+ * `dist/styles.css`, where PostCSS consumes and drops it. A component bridge must not
+ * import this file: it would pay for 150 Tailwind mappings and every other
+ * component's tokens.
+ */
 
-  /* FloatingWindow */
-  --tnt-fw-header-bg: #f9fafb;
-  --tnt-fw-border-idle: rgb(229 231 235 / 0.6);
-  --tnt-fw-shadow-idle: 0 4px 12px rgb(0 0 0 / 0.08);
-  --tnt-fw-shadow-active: 0 12px 32px rgb(0 0 0 / 0.16);
-  --tnt-fw-duration: 220ms;
-  --tnt-fw-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --tnt-fw-bubble-size: 48px;
-  --tnt-fw-bubble-icon-size: 20px;
-  --tnt-fw-header-height: 40px;
-  --tnt-fw-header-padding: 0.75rem;
-  --tnt-fw-header-gap: 0.5rem;
-  --tnt-fw-actions-gap: 0.125rem;
-  --tnt-fw-title-font-size: 0.875rem;
-  --tnt-fw-icon-size: 1rem;
-  --tnt-fw-button-size: 1.75rem;
-  --tnt-fw-button-icon-size: 0.875rem;
-  --tnt-fw-resize-size: 1rem;
-
-  /* Border Radius */
-  --tnt-radius: 0.5rem;
-  --tnt-radius-sm: 0.25rem;
-  --tnt-radius-md: 0.375rem;
-  --tnt-radius-lg: 0.5rem;
-
-  /* Spacing */
-  --tnt-spacing-tree-indent: 16px;
-
-  /* Typography */
-  --tnt-font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --tnt-font-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
-
-  /* Tree - the primitive. Shared by every tree, deliberately not named `filetree`:
-     `FileTree` is one adapter built on top of it. */
-  --tnt-tree-bg: #ffffff;
-  --tnt-tree-text: #1a1a1a;
-  --tnt-tree-text-dim: #6b7280;
-  --tnt-tree-icon: #6b7280;
-  --tnt-tree-hover: rgb(0 0 0 / 0.06);
-  --tnt-tree-selected-bg: rgb(37 99 235 / 0.12);
-  --tnt-tree-selected-text: #1a1a1a;
-  --tnt-tree-font: Menlo, Monaco, 'Courier New', monospace;
-  --tnt-tree-font-size: 14px;
-  --tnt-tree-gap: 6px;
-  --tnt-tree-radius: 6px;
-  --tnt-tree-indent: 16px;
-  --tnt-tree-arrow-size: 14px;
-  /* Vertical gap between rows, so the focus ring has room to breathe. */
-  --tnt-tree-row-gap: 1px;
-  /* The guide line sits under the centre of the parent row's arrow slot. */
-  --tnt-tree-indicator-offset: 7px;
-
-  /* FileTree. Tokens are a public contract so they belong here; CSS Modules is for
-     component internals only. */
-  /* Light theme (default) */
-
-  /* Icon colors - Light theme optimized */
-  --tnt-filetree-icon-folder: #4b5563;
-  --tnt-filetree-icon-file: #6b7280;
-  --tnt-filetree-icon-readme: #2563eb;
-  --tnt-filetree-icon-markdown: #2563eb;
-  --tnt-filetree-icon-javascript: #eab308;
-  --tnt-filetree-icon-css: #0ea5e9;
-  --tnt-filetree-icon-html: #dc2626;
-  --tnt-filetree-icon-json: #eab308;
-  --tnt-filetree-icon-database: #2563eb;
-  --tnt-filetree-icon-php: #6366f1;
-  --tnt-filetree-icon-vue: #10b981;
-  --tnt-filetree-icon-git: #dc2626;
-  --tnt-filetree-icon-text: #6b7280;
-  --tnt-filetree-icon-code: #eab308;
-  --tnt-filetree-icon-font: #6b7280;
-  --tnt-filetree-icon-image: #10b981;
-  --tnt-filetree-icon-video: #ef4444;
-  --tnt-filetree-icon-audio: #8b5cf6;
-  --tnt-filetree-icon-spreadsheet: #059669;
-  --tnt-filetree-icon-archive: #f59e0b;
-}
-
-/* ============================================
-   2. CSS Variables - Dark Theme
-   ============================================ */
-:where(.dark, [data-theme='dark']) {
-  /* Colors */
-  --tnt-background: #0a0a0a;
-  --tnt-foreground: #e5e7eb;
-  --tnt-primary: #60a5fa;
-  --tnt-primary-foreground: #0a0a0a;
-  --tnt-secondary: #1f1f1f;
-  --tnt-secondary-foreground: #e5e7eb;
-  --tnt-muted: #9ca3af;
-  --tnt-muted-foreground: #0a0a0a;
-  --tnt-accent: rgba(255, 255, 255, 0.06);
-  --tnt-accent-foreground: #e5e7eb;
-  --tnt-destructive: #f87171;
-  --tnt-destructive-foreground: #0a0a0a;
-  --tnt-border: #374151;
-  --tnt-input: #1f1f1f;
-  --tnt-ring: #60a5fa;
-  --tnt-ping: oklch(70.8% 0 0);
-
-  /* FloatingWindow - dark. Only the colours change: sizes and easing are not
-     theme-dependent, so redeclaring them here would be two places to edit. */
-  --tnt-fw-header-bg: #141414;
-  --tnt-fw-border-idle: rgb(55 65 81 / 0.6);
-  --tnt-fw-shadow-idle: 0 4px 12px rgb(0 0 0 / 0.5);
-  --tnt-fw-shadow-active: 0 12px 32px rgb(0 0 0 / 0.7);
-
-  /* Tree - dark */
-  --tnt-tree-bg: #0a0a0a;
-  --tnt-tree-text: #e5e7eb;
-  --tnt-tree-text-dim: #9ca3af;
-  --tnt-tree-icon: #9ca3af;
-  --tnt-tree-hover: rgb(255 255 255 / 0.06);
-  --tnt-tree-selected-bg: rgb(96 165 250 / 0.18);
-  --tnt-tree-selected-text: #e5e7eb;
-
-  /* FileTree - dark. `:where(.dark, [data-theme='dark'])` also matches an element
-     carrying `data-theme` directly, so the `theme="dark"` prop picks these up too.
-     Do not duplicate this block into a component's CSS Modules - the same values in
-     two places drift invisibly. */
-
-  /* Icon colors - Dark theme optimized */
-  --tnt-filetree-icon-folder: #9ca3af;
-  --tnt-filetree-icon-file: #6b7280;
-  --tnt-filetree-icon-readme: #60a5fa;
-  --tnt-filetree-icon-markdown: #60a5fa;
-  --tnt-filetree-icon-javascript: #fbbf24;
-  --tnt-filetree-icon-css: #38bdf8;
-  --tnt-filetree-icon-html: #f87171;
-  --tnt-filetree-icon-json: #fbbf24;
-  --tnt-filetree-icon-database: #60a5fa;
-  --tnt-filetree-icon-php: #818cf8;
-  --tnt-filetree-icon-vue: #34d399;
-  --tnt-filetree-icon-git: #f87171;
-  --tnt-filetree-icon-text: #6b7280;
-  --tnt-filetree-icon-code: #fbbf24;
-  --tnt-filetree-icon-font: #6b7280;
-  --tnt-filetree-icon-image: #34d399;
-  --tnt-filetree-icon-video: #f87171;
-  --tnt-filetree-icon-audio: #a78bfa;
-  --tnt-filetree-icon-spreadsheet: #10b981;
-  --tnt-filetree-icon-archive: #fbbf24;
-}
+@import './tokens.css';
+@import '../ui/ping/tokens.css';
+@import '../ui/tree/tokens.css';
+@import '../ui/file-tree/tokens.css';
+@import '../ui/floating-window/tokens.css';
 
 /* ============================================
    3. @theme inline - Map to Tailwind Utilities

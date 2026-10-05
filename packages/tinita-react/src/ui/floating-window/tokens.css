@@ -1,0 +1,41 @@
+/**
+ * FloatingWindow's own design tokens.
+ *
+ * Imported by `ui/floating-window/index.css` only, so a consumer who never imports
+ * FloatingWindow never receives these. Moved out of `styles/globals.css` 2026-10-05 when CSS
+ * started shipping per component.
+ *
+ * Declared with `:where(...)` for specificity 0, same reason as the shared tokens: a
+ * bare `:root` is (0,1,0) and beats `:where(.dark)` at (0,0,0), which breaks dark mode
+ * completely when the host puts `.dark` on `<html>` itself.
+ */
+
+:where(:root, [data-theme='light']) {
+  /* FloatingWindow */
+  --tnt-fw-header-bg: #f9fafb;
+  --tnt-fw-border-idle: rgb(229 231 235 / 0.6);
+  --tnt-fw-shadow-idle: 0 4px 12px rgb(0 0 0 / 0.08);
+  --tnt-fw-shadow-active: 0 12px 32px rgb(0 0 0 / 0.16);
+  --tnt-fw-duration: 220ms;
+  --tnt-fw-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --tnt-fw-bubble-size: 48px;
+  --tnt-fw-bubble-icon-size: 20px;
+  --tnt-fw-header-height: 40px;
+  --tnt-fw-header-padding: 0.75rem;
+  --tnt-fw-header-gap: 0.5rem;
+  --tnt-fw-actions-gap: 0.125rem;
+  --tnt-fw-title-font-size: 0.875rem;
+  --tnt-fw-icon-size: 1rem;
+  --tnt-fw-button-size: 1.75rem;
+  --tnt-fw-button-icon-size: 0.875rem;
+  --tnt-fw-resize-size: 1rem;
+}
+
+:where(.dark, [data-theme='dark']) {
+  /* FloatingWindow - dark. Only the colours change: sizes and easing are not
+     theme-dependent, so redeclaring them here would be two places to edit. */
+  --tnt-fw-header-bg: #141414;
+  --tnt-fw-border-idle: rgb(55 65 81 / 0.6);
+  --tnt-fw-shadow-idle: 0 4px 12px rgb(0 0 0 / 0.5);
+  --tnt-fw-shadow-active: 0 12px 32px rgb(0 0 0 / 0.7);
+}

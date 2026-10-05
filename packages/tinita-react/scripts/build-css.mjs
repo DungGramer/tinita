@@ -17,7 +17,7 @@
  */
 
 import { execSync } from 'child_process';
-import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync, copyFileSync, unlinkSync, watch } from 'fs';
+import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync, copyFileSync, unlinkSync, watch, globSync } from 'fs';
 import { join, relative, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -145,6 +145,39 @@ function copyGlobalsCSS() {
 }
 
 /**
+ * Copy the PUBLISHED CSS sources into dist, keeping their relative layout.
+ *
+ * Three kinds, all hand-written source and all raw copies:
+ *  - `styles/tokens.css`      shared design tokens, imported by every bridge
+ *  - `ui/<c>/tokens.css`      that component's own tokens
+ *  - `ui/<c>/index.css`       the CSS entrypoint the component's JS imports
+ *
+ * The relative layout must match, because `styles/globals.css` reaches the component
+ * tokens with `../ui/<c>/tokens.css` and that path has to resolve in dist as well.
+ *
+ * Not minified on purpose: the bridges are `@import` lists and the token files are a
+ * public contract people read. The bundled `styles.css` is the minified artifact.
+ */
+function copyPublishedCSSSources() {
+  const copies = [['styles/tokens.css', 'styles/tokens.css']];
+  for (const dir of readdirSync(join(srcDir, 'ui'))) {
+    if (!statSync(join(srcDir, 'ui', dir)).isDirectory()) continue;
+    for (const file of ['index.css', 'tokens.css']) {
+      if (existsSync(join(srcDir, 'ui', dir, file))) {
+        copies.push([`ui/${dir}/${file}`, `ui/${dir}/${file}`]);
+      }
+    }
+  }
+
+  for (const [from, to] of copies) {
+    const dest = join(distDir, to);
+    mkdirSync(dirname(dest), { recursive: true });
+    copyFileSync(join(srcDir, from), dest);
+  }
+  console.log(`   ✓ Copied ${copies.length} published CSS sources (bridges + tokens)`);
+}
+
+/**
  * Copy animations.css to dist (raw file for users to import)
  */
 function copyAnimationsCSS() {
@@ -175,15 +208,26 @@ function createBundledCSS(themeCSS) {
     bundledCSS += '\n';
   }
 
-  // CSS component đến từ `dist/components.css` - output của Vite, tức bản đã qua CSS
+  // CSS component đến từ `dist/ui/*/styles.css` - output của Vite, tức bản đã qua CSS
   // Modules và đã scope tên. ĐỪNG đọc `src/ui/**/*.css`: tên ở source là LOCAL
   // (`.root`, `.label`) và ship nguyên nó ra là đè trực tiếp lên trang khách.
-  const componentsCSS = join(distDir, 'components.css');
-  if (existsSync(componentsCSS)) {
-    bundledCSS += readFileSync(componentsCSS, 'utf-8');
+  //
+  // Trước 2026-10-05 đây là MỘT file `dist/components.css`. Giờ `cssCodeSplit: true`
+  // nên mỗi component một file, và chúng là artifact PUBLISH (bridge của component
+  // `@import` chúng) - không xoá sau khi ghép như `components.css` cũ.
+  const perComponent = globSync('ui/*/styles.css', { cwd: distDir }).sort();
+  if (perComponent.length === 0) {
+    throw new Error('không thấy dist/ui/*/styles.css - chạy build:js (vite) trước build:css');
+  }
+  for (const rel of perComponent) {
+    bundledCSS += readFileSync(join(distDir, rel), 'utf-8');
     bundledCSS += '\n';
-  } else {
-    throw new Error('thiếu dist/components.css - chạy build:js (vite) trước build:css');
+  }
+
+  // `assetFileNames` trả tên này khi một CSS không quy được về component nào. Không ai
+  // `@import` nó, nên nó sẽ im lặng không bao giờ được nạp - làm đỏ thay vì bỏ qua.
+  if (existsSync(join(distDir, 'unattributed.css'))) {
+    throw new Error('dist/unattributed.css: có CSS không thuộc entry nào, không bridge nào nạp nó');
   }
 
   // Minify bundled CSS using PostCSS CLI
@@ -215,15 +259,6 @@ function createBundledCSS(themeCSS) {
 
   writeLayeredCSS(bundledPath);
 
-  // `components.css` là TRUNG GIAN - output của Vite, đã được ghép vào styles.css.
-  // `files: ["dist"]` ship mọi thứ trong dist nên phải xoá, không thì người dùng thấy
-  // hai file CSS và không biết cái nào là thật.
-  try {
-    unlinkSync(componentsCSS);
-    console.log('  ✓ Removed intermediate components.css');
-  } catch {
-    // không có thì thôi
-  }
 }
 
 /**
@@ -259,6 +294,7 @@ async function main() {
   try {
     console.log('\n   🎨 Step 1: Copying globals.css (raw file for users)');
     copyGlobalsCSS();
+    copyPublishedCSSSources();
 
     console.log('\n   🎨 Step 1.5: Copying animations.css (Apple iOS animation system)');
     copyAnimationsCSS();

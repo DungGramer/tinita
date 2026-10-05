@@ -24,6 +24,21 @@ import { defineConfig } from 'vite';
 const SRC = resolve(import.meta.dirname, 'src');
 
 /** Entry = mọi subpath trong `exports`. Giữ đúng bộ tsup đang dùng. */
+/**
+ * `Ping.css` -> `ui/ping`. Khoá là tên file vite đặt cho CSS của một `.module.css`
+ * khi nó DÙNG CHUNG giữa nhiều entry, lúc đó `originalFileNames` rỗng nên không còn
+ * cách nào khác để quy nó về component.
+ */
+const MODULE_CSS_OWNER = new Map<string, string>(
+  readdirSync(resolve(SRC, 'ui')).flatMap((dir) => {
+    const full = resolve(SRC, 'ui', dir);
+    if (!statSync(full).isDirectory()) return [];
+    return readdirSync(full)
+      .filter((f) => f.endsWith('.module.css'))
+      .map((f) => [f.replace(/\.module\.css$/, '.css'), `ui/${dir}`] as [string, string]);
+  })
+);
+
 function discoverEntries(): Record<string, string> {
   const entries: Record<string, string> = { index: resolve(SRC, 'index.ts') };
 
@@ -51,6 +66,7 @@ function discoverEntries(): Record<string, string> {
       }
     });
     if (entry) entries[`ui/${dir}/index`] = resolve(full, entry);
+
   }
 
   for (const file of readdirSync(resolve(SRC, 'utils'))) {
@@ -102,14 +118,22 @@ export default defineConfig({
       // VÀO dist thay vì để làm optional peer - và không có gì báo, vì component
       // vẫn chạy. Đã xảy ra khi đổi từ react-accordion sang react-collapsible:
       // chunk Tree phình lên 28310 bytes vì nuốt cả Radix vào trong.
-      external: [
-        'react',
-        'react/jsx-runtime',
-        'react-dom',
-        'lucide-react',
-        '@base-ui/react/collapsible',
-        '@base-ui/react',
-      ],
+      external: (id) =>
+        [
+          'react',
+          'react/jsx-runtime',
+          'react-dom',
+          'lucide-react',
+          '@base-ui/react/collapsible',
+          '@base-ui/react',
+        ].includes(id) ||
+        // CSS thường để NGUYÊN external, nên `import 'tinita-react/ui/x/index.css'`
+        // viết trong source SỐNG SÓT tới artifact và consumer tự nạp CSS. `.module.css`
+        // thì KHÔNG external - nó là import lấy GIÁ TRỊ (bảng class name) nên vite phải
+        // xử lý, và `generateScopedName` mới gắn được tiền tố `tnt-`.
+        (/\.css$/.test(id) && !/\.module\.css$/.test(id)) ||
+        // Barrel re-export qua subpath của chính package - xem src/index.ts.
+        /^tinita-react\//.test(id),
       output: {
         // `'use client'`: esbuild XOÁ directive khỏi source nên banner là cách duy
         // nhất giữ được nó. Cả package là client - hooks, autoInjectStyles chạm
@@ -118,12 +142,31 @@ export default defineConfig({
         // Chunk dùng chung phải mang đuôi đúng theo format, nếu không `.js` trong
         // ngữ cảnh ESM sẽ gãy.
         chunkFileNames: `chunks/[name]-[hash].${extension}`,
-        assetFileNames: 'components.css',
+        // CSS đã compile đặt cạnh ENTRY sở hữu nó, không theo tên chunk: mọi entry
+        // `ui/*` đều tên `index` nên `[name].css` cho `index.css`, `index2.css`...
+        //
+        // Hai trường hợp, cả hai đo được 2026-10-05:
+        //  - CSS của riêng một entry: `originalFileNames[0] === 'src/ui/<c>/index.ts'`.
+        //  - CSS DÙNG CHUNG giữa nhiều entry: `originalFileNames` RỖNG và `name` là tên
+        //    file module (`Tree.css`). `Tree.module.css` nằm trong cả `ui/tree` và
+        //    `ui/file-tree` vì FileTree bọc Tree, nên nó là shared CSS primitive.
+        //    `MODULE_CSS_OWNER` tra ngược tên đó về thư mục component.
+        assetFileNames: (info) => {
+          const from = (info.originalFileNames?.[0] ?? info.originalFileName ?? '').replace(/\\/g, '/');
+          const owner = /(?:^|\/)src\/(ui\/[^/]+)\//.exec(from);
+          if (owner) return `${owner[1]}/styles.css`;
+          const shared = MODULE_CSS_OWNER.get(info.name ?? '');
+          if (shared) return `${shared}/styles.css`;
+          // Không quy được về component nào. `build-css.mjs` làm đỏ nếu file này tồn
+          // tại, vì nó nghĩa là có CSS không thuộc entry nào và sẽ không ai nạp.
+          return 'unattributed.css';
+        },
       },
     },
-    // Một file CSS cho toàn bộ component. `build-css.mjs` ghép nó với globals.css
-    // và animations.css thành `styles.css`.
-    cssCodeSplit: false,
+    // MỘT file CSS cho mỗi component, không phải một file cho tất cả: đó là điều kiện
+    // để `ui/ping` chỉ kéo CSS của Ping. `build-css.mjs` ghép chúng lại thành
+    // `styles.css` cho người dùng design system.
+    cssCodeSplit: true,
     cssMinify: true,
     minify: true,
     sourcemap: false,

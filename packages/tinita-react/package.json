@@ -90,6 +90,21 @@
     },
     "./styles/globals.css": "./dist/styles/globals.css",
     "./styles/animations.css": "./dist/styles/animations.css",
+    "./styles/tokens.css": "./dist/styles/tokens.css",
+    "./ui/ping/index.css": "./dist/ui/ping/index.css",
+    "./ui/ping/tokens.css": "./dist/ui/ping/tokens.css",
+    "./ui/ping/styles.css": "./dist/ui/ping/styles.css",
+    "./ui/tree/index.css": "./dist/ui/tree/index.css",
+    "./ui/tree/tokens.css": "./dist/ui/tree/tokens.css",
+    "./ui/tree/styles.css": "./dist/ui/tree/styles.css",
+    "./ui/file-tree/index.css": "./dist/ui/file-tree/index.css",
+    "./ui/file-tree/tokens.css": "./dist/ui/file-tree/tokens.css",
+    "./ui/file-tree/styles.css": "./dist/ui/file-tree/styles.css",
+    "./ui/carousel-ticker/index.css": "./dist/ui/carousel-ticker/index.css",
+    "./ui/carousel-ticker/styles.css": "./dist/ui/carousel-ticker/styles.css",
+    "./ui/floating-window/index.css": "./dist/ui/floating-window/index.css",
+    "./ui/floating-window/tokens.css": "./dist/ui/floating-window/tokens.css",
+    "./ui/floating-window/styles.css": "./dist/ui/floating-window/styles.css",
     "./styles.css": "./dist/styles.css",
     "./styles.layer.css": "./dist/styles.layer.css",
     "./ui/file-tree": {
@@ -204,10 +219,8 @@
     }
   },
   "sideEffects": [
-    "./dist/styles.css",
-    "./dist/styles/globals.css",
-    "./dist/styles/animations.css",
-    "./dist/ui/**/*.css"
+    "./dist/**/*.css",
+    "./dist/ui/*/index.mjs"
   ],
   "engines": {
     "node": ">=18.0.0"
