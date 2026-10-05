@@ -48,7 +48,11 @@ yarn-error.log*
 !CONTRIBUTING.md
 !CODE_OF_CONDUCT.md
 !DOCUMENT_REQUIRED.md
+# `!docs/*.md` chỉ khớp MỘT tầng. Thiếu dòng `**` thì mọi `docs/<thư mục>/*.md`
+# bị `*.md` ăn im lặng - đúng lớp bug đã mất `CHANGELOG.md`. Đo 2026-10-05:
+# `docs/features/permission-denied-page.md` chỉ vào được repo nhờ `git add -f`.
 !docs/*.md
+!docs/**/*.md
 # Tài liệu ca test của compatibility lab phải commit được, nếu không người sau không hiểu ca
 !compatibility/**/*.md
 # Plan phải commit được. `.claude/active-plan` được track và trỏ vào plans/, nên nếu
