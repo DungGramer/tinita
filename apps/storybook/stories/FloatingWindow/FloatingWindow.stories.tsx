@@ -196,7 +196,9 @@ export const WithKeyBindings: Story = {
           <p>
             Hover a control: it shows the combination that works on{' '}
             <em>this</em> platform, picked from the bindings rather than
-            translated into them.
+            translated into them - and in Apple&apos;s own style on a Mac, so{' '}
+            <code>Cmd+M</code> reads <code>⌘M</code> rather than{' '}
+            <code>⌘ + M</code>.
           </p>
           <input placeholder="type here" />
         </div>

@@ -135,7 +135,10 @@ The syntax is `tinita/converter/parseKeyCombination`'s, so `ctrl`, `cmd`, `⌘`,
 and `win` are all understood, and an array binds several combinations to one action.
 
 **The controls advertise what you bound.** Hovering minimise shows `Minimize (Ctrl + M)`,
-or `Minimize (⌘ + M)` on an Apple keyboard. The combination shown is picked from your
+or `Minimize (⌘M)` on an Apple keyboard - Apple's own style, concatenated, with glyphs
+for the named keys, so `Alt+Cmd+Escape` reads `⌥⌘⎋` there and `Alt + Win + Escape`
+elsewhere. Keys with no established Apple glyph are left as written, which is what macOS
+does too: `F11` stays `F11`. The combination shown is picked from your
 bindings by platform rather than translated into them: bind `['Ctrl+M', 'Cmd+M']` and a
 Mac shows the Command one, bind only `'Ctrl+M'` and a Mac shows `⌃ + M`, because Control
 is still the key that fires there. The action name stays in `aria-label` and every bound

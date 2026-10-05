@@ -68,15 +68,60 @@ export function isApplePlatform(): boolean {
   return /Mac|iPhone|iPod|iPad/i.test(navigator.userAgent);
 }
 
-/** A single letter reads as a key only in upper case: `m` -> `M`. `F11` is left alone. */
-const displayKey = (key: string): string => ([...key].length === 1 ? key.toUpperCase() : key);
+/**
+ * Apple's glyphs for the named keys, which is the other half of writing `⌘M`.
+ *
+ * Dropping the separator alone is not Apple style - it turns `Cmd+Escape` into
+ * `⌘Escape`, a glyph pressed against a word. macOS writes `⌥⌘⎋`.
+ *
+ * Only keys with an unambiguous glyph in Apple's own UI are here. Anything absent is
+ * left exactly as written, which is also what macOS does: function keys stay `F11`,
+ * and Space stays the word `Space` rather than `␣`, because that is how Apple's own
+ * Keyboard Shortcuts list renders it.
+ */
+const APPLE_KEY_GLYPHS: Readonly<Record<string, string>> = {
+  escape: '⎋',
+  esc: '⎋',
+  tab: '⇥',
+  enter: '↩',
+  return: '↩',
+  backspace: '⌫',
+  delete: '⌦',
+  arrowup: '↑',
+  arrowdown: '↓',
+  arrowleft: '←',
+  arrowright: '→',
+  up: '↑',
+  down: '↓',
+  left: '←',
+  right: '→',
+  pageup: '⇞',
+  pagedown: '⇟',
+  home: '↖',
+  end: '↘',
+};
 
 /**
- * A combination as a viewer should read it: `'Ctrl + M'`, or `'⌘ + M'` on Apple.
+ * A single letter reads as a key only in upper case: `m` -> `M`. `F11` is left alone.
  *
- * Separator is `' + '` even in the Apple style, where Apple itself writes `⌘M` with
- * nothing between. That is the owner's call, 2026-10-05; `' + '` is easier to read in
- * a tooltip than a glyph pressed against a letter.
+ * Looked up lower-cased, because `parseKeyCombination` keeps the key exactly as the
+ * caller wrote it - `'Cmd+Escape'` and `'Cmd+esc'` must reach the same glyph.
+ */
+const displayKey = (key: string, apple: boolean): string => {
+  const glyph = apple ? APPLE_KEY_GLYPHS[key.toLowerCase()] : undefined;
+  if (glyph) return glyph;
+
+  return [...key].length === 1 ? key.toUpperCase() : key;
+};
+
+/**
+ * A combination as a viewer should read it: `'Ctrl + M'`, or `'⌘M'` on Apple.
+ *
+ * **Two conventions, not one with a flag.** Apple concatenates - `⌘M`, `⇧⌘A`, `⌥⌘⎋` -
+ * and every macOS menu is written that way, so a `+` between glyphs reads as foreign
+ * there. Everywhere else the modifiers are words, and words need a separator:
+ * `CtrlM` is unreadable. Owner chose the Apple-native style 2026-10-05, replacing an
+ * earlier `' + '` used on both sides.
  */
 export function formatKeyCombination(
   combination: KeyCombination,
@@ -86,7 +131,7 @@ export function formatKeyCombination(
     .filter(([flag]) => combination[flag])
     .map(([, label]) => label);
 
-  return [...parts, displayKey(combination.key)].join(' + ');
+  return [...parts, displayKey(combination.key, apple)].join(apple ? '' : ' + ');
 }
 
 /**
@@ -101,7 +146,8 @@ export function toAriaKeyShortcuts(combinations: readonly KeyCombination[]): str
     .map((combination) =>
       [
         ...ARIA.filter(([flag]) => combination[flag]).map(([, label]) => label),
-        displayKey(combination.key),
+        // ARIA wants the key's NAME, never a glyph - hence `apple: false` here.
+        displayKey(combination.key, false),
       ].join('+')
     )
     .join(' ');

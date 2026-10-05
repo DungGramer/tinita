@@ -382,7 +382,7 @@ hai thì mới chuyển.
 ### Tooltip hiện phím tắt, và nó phải là phím CHẠY ĐƯỢC
 
 Hover vào control thì `title` thành `Minimize (Ctrl + M)`, trên Apple là
-`Minimize (⌘ + M)`. Ba điều quyết định ở `formatKeyCombination.ts`:
+`Minimize (⌘M)`. Bốn điều quyết định ở `formatKeyCombination.ts`:
 
 - **Tổ hợp hiện ra được CHỌN theo platform từ thứ caller đã bind**, không phải đổi
   `Ctrl` thành `⌘` khi thấy Mac. Bind `['Ctrl+M','Cmd+M']` thì Apple hiện `⌘ + M`, nơi
@@ -395,9 +395,20 @@ Hover vào control thì `title` thành `Minimize (Ctrl + M)`, trên Apple là
 - **Một lần parse duy nhất** (`parseBindings`) dùng cho cả listener lẫn tooltip, nên
   control không thể quảng cáo một phím mà nó không trả lời.
 
+- **Apple NỐI LIỀN, nơi khác có dấu phân cách.** `⌘M` chứ không `⌘ + M`: mọi menu
+  macOS viết liền nên một dấu `+` giữa các glyph đọc ra lạ ở đó. Ngoài Apple thì
+  modifier là CHỮ, mà chữ thì cần phân cách - `CtrlM` không đọc được. Owner chốt kiểu
+  Apple thuần 2026-10-05, thay bản trước dùng `' + '` cho cả hai phía.
+  Bỏ dấu phân cách **một mình là chưa đủ**: `Cmd+Escape` sẽ ra `⌘Escape`, glyph dán vào
+  một từ. Nên có bảng `APPLE_KEY_GLYPHS` - `⎋ ⇥ ↩ ⌫ ⌦ ↑↓←→ ⇞⇟ ↖↘`. Chỉ phím có glyph
+  **rõ ràng trong UI của Apple** mới vào bảng; phím không có thì giữ nguyên chữ, đúng
+  như macOS làm: `F11` vẫn là `F11`, `Space` vẫn là chữ `Space` chứ không `␣`.
+
 Thứ tự modifier: Apple là `⌃⌥⇧⌘` đúng thứ tự mọi menu Mac dùng; ARIA là
 `Control, Alt, Shift, Meta` - spec chỉ đòi modifier đứng trước phím, không quy định thứ
-tự giữa chúng, nên thứ tự này cố định để giá trị attribute ổn định.
+tự giữa chúng, nên thứ tự này cố định để giá trị attribute ổn định. **ARIA không bao giờ
+nhận glyph** - nó cần TÊN phím, nên `aria-keyshortcuts` của `Cmd+Escape` là
+`Meta+Escape`.
 
 `isApplePlatform()` **cố ý không dùng** `isMacOS()` của `tinita-dom/validation/platform`
 dù đó mới là bản canonical. Lý do: `tinita-react` bắt buộc sống qua SSR, còn `tinita-dom`

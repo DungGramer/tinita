@@ -71,7 +71,8 @@ of the bundler in front of it.
   would otherwise fire on every `m` typed into an input - while modified and named keys
   still fire there.
 - `FloatingWindow`'s controls advertise their shortcut: hovering minimise shows
-  `Minimize (Ctrl + M)`, or `Minimize (⌘ + M)` on an Apple keyboard. The combination
+  `Minimize (Ctrl + M)`, or `Minimize (⌘M)` on an Apple keyboard - concatenated, with
+  glyphs for the named keys, which is Apple's own convention (`⌥⌘⎋`). The combination
   shown is **picked from the bindings by platform**, not translated into them - bind
   only `'Ctrl+M'` and a Mac shows `⌃ + M`, because Control is still the key that fires
   there. The action name stays in `aria-label` and every bound combination goes in

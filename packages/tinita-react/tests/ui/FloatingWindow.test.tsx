@@ -495,7 +495,7 @@ describe('FloatingWindow - the controls advertise their shortcut', () => {
       .mockReturnValue('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36');
     try {
       render(<Harness keyBindings={{ minimize: ['Ctrl+M', 'Cmd+M'] }} />);
-      expect(titleOf('Minimize')).toBe('Minimize (⌘ + M)');
+      expect(titleOf('Minimize')).toBe('Minimize (⌘M)');
     } finally {
       agent.mockRestore();
     }
@@ -509,7 +509,7 @@ describe('FloatingWindow - the controls advertise their shortcut', () => {
       .mockReturnValue('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36');
     try {
       render(<Harness keyBindings={{ minimize: 'Ctrl+M' }} />);
-      expect(titleOf('Minimize')).toBe('Minimize (⌃ + M)');
+      expect(titleOf('Minimize')).toBe('Minimize (⌃M)');
     } finally {
       agent.mockRestore();
     }

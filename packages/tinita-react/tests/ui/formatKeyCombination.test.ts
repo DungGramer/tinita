@@ -16,16 +16,44 @@ describe('formatKeyCombination', () => {
     expect(formatKeyCombination(parse('Win+E'), false)).toBe('Win + E');
   });
 
-  it('uses Apple glyphs on Apple', () => {
-    expect(formatKeyCombination(parse('Cmd+M'), true)).toBe('⌘ + M');
-    expect(formatKeyCombination(parse('Ctrl+M'), true)).toBe('⌃ + M');
-    expect(formatKeyCombination(parse('Alt+M'), true)).toBe('⌥ + M');
-    expect(formatKeyCombination(parse('Shift+M'), true)).toBe('⇧ + M');
+  it('uses Apple glyphs, concatenated, on Apple', () => {
+    expect(formatKeyCombination(parse('Cmd+M'), true)).toBe('⌘M');
+    expect(formatKeyCombination(parse('Ctrl+M'), true)).toBe('⌃M');
+    expect(formatKeyCombination(parse('Alt+M'), true)).toBe('⌥M');
+    expect(formatKeyCombination(parse('Shift+M'), true)).toBe('⇧M');
+  });
+
+  // Dropping the separator alone would give `⌘Escape` - a glyph pressed against a
+  // word, which is not Apple style at all. macOS writes `⌥⌘⎋`.
+  it('maps the named keys to their Apple glyph', () => {
+    expect(formatKeyCombination(parse('Cmd+Escape'), true)).toBe('⌘⎋');
+    expect(formatKeyCombination(parse('Alt+Cmd+Escape'), true)).toBe('⌥⌘⎋');
+    expect(formatKeyCombination(parse('Cmd+Enter'), true)).toBe('⌘↩');
+    expect(formatKeyCombination(parse('Cmd+ArrowUp'), true)).toBe('⌘↑');
+    expect(formatKeyCombination(parse('Cmd+Backspace'), true)).toBe('⌘⌫');
+  });
+
+  it('matches a key name case-insensitively', () => {
+    // `parseKeyCombination` keeps the key exactly as written, so both spellings have
+    // to reach the same glyph.
+    expect(formatKeyCombination(parse('Cmd+esc'), true)).toBe('⌘⎋');
+    expect(formatKeyCombination(parse('Cmd+ESCAPE'), true)).toBe('⌘⎋');
+  });
+
+  it('leaves a key with no Apple glyph exactly as written', () => {
+    // macOS does the same: function keys stay F-keys, Space stays the word.
+    expect(formatKeyCombination(parse('Cmd+F11'), true)).toBe('⌘F11');
+    expect(formatKeyCombination(parse('Cmd+Space'), true)).toBe('⌘Space');
+  });
+
+  it('never uses a glyph away from Apple', () => {
+    expect(formatKeyCombination(parse('Ctrl+Escape'), false)).toBe('Ctrl + Escape');
+    expect(formatKeyCombination(parse('Ctrl+ArrowUp'), false)).toBe('Ctrl + ArrowUp');
   });
 
   // Every Mac menu renders ⌃⌥⇧⌘ in that sequence; another order reads as foreign.
   it("follows Apple's modifier order, not the order written", () => {
-    expect(formatKeyCombination(parse('Cmd+Shift+Alt+Ctrl+K'), true)).toBe('⌃ + ⌥ + ⇧ + ⌘ + K');
+    expect(formatKeyCombination(parse('Cmd+Shift+Alt+Ctrl+K'), true)).toBe('⌃⌥⇧⌘K');
   });
 
   it('upper-cases a single letter and leaves a named key alone', () => {
@@ -40,15 +68,15 @@ describe('pickForPlatform', () => {
   it('shows the Command one on Apple and the Control one elsewhere', () => {
     const both = ['Ctrl+M', 'Cmd+M'].map(parse);
 
-    expect(formatKeyCombination(pickForPlatform(both, true)!, true)).toBe('⌘ + M');
+    expect(formatKeyCombination(pickForPlatform(both, true)!, true)).toBe('⌘M');
     expect(formatKeyCombination(pickForPlatform(both, false)!, false)).toBe('Ctrl + M');
   });
 
   it('does NOT invent a Command binding that was never bound', () => {
     // Only Ctrl+M bound. On a Mac the key that fires is still Control, so the label
-    // has to say so - `⌘ + M` here would be a lie.
+    // has to say so - `⌘M` here would be a lie.
     const onlyCtrl = [parse('Ctrl+M')];
-    expect(formatKeyCombination(pickForPlatform(onlyCtrl, true)!, true)).toBe('⌃ + M');
+    expect(formatKeyCombination(pickForPlatform(onlyCtrl, true)!, true)).toBe('⌃M');
   });
 
   it('falls back to the first when no combination matches the platform', () => {
@@ -67,6 +95,8 @@ describe('toAriaKeyShortcuts', () => {
   // `+` with no spaces; alternatives separated by a space.
   it("uses ARIA's names and syntax, not the display ones", () => {
     expect(toAriaKeyShortcuts([parse('Ctrl+M')])).toBe('Control+M');
+    // A glyph here would be invalid: ARIA wants the key's name.
+    expect(toAriaKeyShortcuts([parse('Cmd+Escape')])).toBe('Meta+Escape');
     // Control, Alt, Shift, Meta - modifiers before the key, which is what the
     // attribute requires. The order AMONG modifiers is not prescribed by the spec;
     // this one is fixed so the value is stable, and it matches the spec's examples.
