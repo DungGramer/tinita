@@ -226,6 +226,47 @@ cách đọc "chỉ khoảng có biên" ngày 2026-10-02.
 Chi tiết và bằng chứng extract từng primitive: `docs/code-standards.md` mục
 "Quy Tắc Validation".
 
+## CSS đi theo component - `ui/*` đòi consumer hiểu CSS
+
+`import { Ping } from 'tinita-react/ui/ping'` tự kéo CSS. **Không phải import
+stylesheet.** Chi tiết và số đo ở `docs/system-architecture.md` mục 6b; đây là thứ cần
+biết ngay:
+
+```
+ui/<name>/index.ts      import the bridge below, bare specifier   <- viết TAY
+ui/<name>/index.css     bridge: @import tokens chung + tokens riêng + styles
+ui/<name>/styles.css    CSS Modules đã compile (vite emit)
+ui/<name>/tokens.css    token của riêng component
+styles/tokens.css       37 token dùng chung
+```
+
+**Thêm component mới thì phải viết `index.css` và dòng `import` trong `index.ts`.** Không
+có bước build nào chèn nó - nếu thiếu, component ship ra không có style và chỉ ca
+`css-graph:*` của L2 bắt được.
+
+**Specifier phải BARE** - bắt đầu bằng tên package. Tương đối thì rollup viết lại thành chỗ
+không tồn tại: đo được `./index.css` ra `../../ping/index.css`.
+
+**Bridge KHÔNG được import `globals.css` hay `animations.css`.** Đo 2026-10-05: 0
+component dùng `var(--color-*)` và 0/18 keyframes của `animations.css` được component
+nào tham chiếu. Import vào là bắt một component trả 150 mapping Tailwind, 18 keyframes
+và token của mọi component khác.
+
+**`sideEffects` phải kể tên JS ENTRY có side effect**, không chỉ CSS. Dạng
+`["./dist/**/*.css"]` - đúng dạng docs webpack khuyên - làm rollup **xoá** import CSS, và
+nó chỉ hỏng ở production build chứ không hỏng ở dev. Giá trị đúng:
+`["./dist/**/*.css", "./dist/ui/*/index.mjs"]`.
+
+**Hợp đồng Node-safe giờ chỉ gồm `hooks/*` và `utils/*`.** `ui/*` và root (nó re-export
+component) không load được bằng `node` trần. `contract.json` khai
+`cssAwareSpecifiers`, và ca lab đọc trường đó - **đừng** viết ca khẳng định
+`ERR_UNKNOWN_FILE_EXTENSION`, đó là chi tiết loader của Node hôm nay chứ không phải hợp
+đồng của package.
+
+**Conditional `node` export đã thử và đã loại**, đừng mở lại: nó làm Next mất CSS khi
+page là Server Component (đo: 0 byte, đối chứng bỏ condition ra thì 2424 byte). Next
+server graph phải thấy cạnh CSS để client graph thừa hưởng.
+
 ## CSS: không được chạm vào trang khách
 
 Owner đã dính production: Tailwind và CSS global của library xung đột với web của

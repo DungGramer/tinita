@@ -717,6 +717,125 @@ styling: cả hai đang tự đi ngược khỏi runtime CSS.
    đánh đổi là mọi CSS không layer của host đè lên component, kể cả vô ý. Đó là
    quyết định của consumer, không phải của library.
 
+### 6b. CSS đi theo component, và `ui/*` đòi consumer hiểu CSS - chốt 2026-10-05
+
+Mỗi subpath dưới `ui/` tự kéo CSS của nó. Consumer viết
+`import { Ping } from 'tinita-react/ui/ping'` và **không phải import stylesheet nào**.
+
+#### Ba tầng entry, ba hợp đồng khác nhau
+
+```
+ui/*                  CSS-aware. CSS tự đến. Đòi bundler/runtime hiểu CSS.
+styles.css            toàn bộ design system, KHÔNG layer. Import tay.
+styles.layer.css      toàn bộ design system, bọc @layer tnt. Import tay.
+hooks/*, utils/*      Node-safe. Không CSS.
+```
+
+Lựa chọn layer **không mất**: nó nằm ở global API, nơi nó thuộc về. "Component tự mang
+CSS" là vấn đề **dependency**; "ai thắng ai trong cascade" là vấn đề **cascade policy**.
+Hai thứ khác loại, đừng ép vào cùng một cơ chế.
+
+#### `index.css` là CSS entrypoint, không phải stylesheet
+
+```
+ui/ping/index.ts      import 'tinita-react/ui/ping/index.css'   <- viết TAY trong source
+ui/ping/index.css     @import shared tokens + ping tokens + ping styles
+ui/ping/styles.css    CSS Modules đã compile, class đã scope `tnt-ping-*`
+styles/tokens.css     37 token dùng chung
+ui/ping/tokens.css    8 token của riêng Ping
+```
+
+`index.css` không khai một rule nào. Nó chỉ **đặt tên** cho những CSS đã publish mà
+component phụ thuộc. `build-css.mjs` lo đưa artifact vào `dist`; **không có bước nào
+chèn import vào source** - source graph bằng published graph.
+
+Specifier là **bare** - bắt đầu bằng tên package - chứ không tương đối: rollup viết lại external
+tương đối thành chỗ không tồn tại - đo 2026-10-05, `./index.css` ra
+`../../ping/index.css`. Bare thì nó để nguyên.
+
+#### Token tách ba tầng là PHẦN CỦA dependency graph, không phải tối ưu tùy chọn
+
+Đo 2026-10-05: 91 trong 128 khai báo token thuộc về **một** component. Trước khi tách,
+người chỉ dùng `Ping` nhận cả 40 màu icon của FileTree. Sau khi tách, một component chỉ
+trả shared tokens + tokens của nó.
+
+`@theme inline` (150 biến `--color-*`) và `animations.css` (18 keyframes) **thuộc global
+layer**: 0 component dùng `var(--color-*)`, và 0/18 keyframes được component nào tham
+chiếu. Bridge không import chúng.
+
+`FileTree -> Tree` là dependency CSS **tường minh**: `ui/file-tree/styles.css` có 0 rule
+`tnt-tree-*`, chúng nằm ở stylesheet của Tree. Thiếu hai dòng `@import` đó là FileTree
+ship một Tree không style.
+
+#### `sideEffects` phải mô tả JS ENTRY có side effect, không chỉ CSS
+
+Dạng "chỉ CSS" - đúng dạng mọi tài liệu webpack khuyên - làm rollup **xoá** import CSS.
+Đo 2026-10-05 trong consumer thật:
+
+```
+false                                          CSS không tới
+["./dist/**/*.css"]                            CSS không tới
+["**/*.css"]                                   CSS không tới
+["*.css"]                                      CSS không tới
+true                                           CSS tới
+["./dist/**/*.css","./dist/**/*.mjs"]          CSS tới
+["./dist/**/*.css","./dist/ui/*/index.mjs"]    CSS tới   <- đang dùng
+```
+
+Nó hỏng ở **production build** và không hỏng ở dev, nên lớp bug này chỉ lộ sau khi ship.
+
+#### SSR support KHÔNG cùng một requirement với Node-native execution
+
+```
+tinita-react/ui/*      đòi consumer hiểu CSS
+tinita-react           đòi consumer hiểu CSS (barrel re-export component)
+tinita-react/hooks/*   Node-safe
+tinita-react/utils/*   Node-safe
+```
+
+Đo 2026-10-05: `require('tinita-react/hooks/useToggle')` và `utils/jsxJoin` chạy trong
+Node trần; `ui/ping` và root thì không. **Root lệch khỏi dự tính ban đầu** - nó re-export
+ba component nên mang theo import CSS của chúng.
+
+`contract.json` khai `cssAwareSpecifiers`, và ba ca của lab đọc trường đó thay vì
+hardcode: `03-smoke-cjs-esm` bỏ chúng theo HỢP ĐỒNG (không khẳng định
+`ERR_UNKNOWN_FILE_EXTENSION` - đó là chi tiết loader của Node hôm nay, không phải hợp
+đồng của package), `04b-optional-peer-matrix` giữ phần Node-safe, và hợp đồng peer của
+`ui/*` chuyển sang ca `peer-matrix-css-aware` của L2 nơi consumer là bundler thật.
+
+#### Conditional `node` export: đã thử, ĐÃ LOẠI
+
+Phương án duy nhất có thể giữ cả hai hợp đồng là `exports[...].node` trỏ một bản JS
+không import CSS. Đo trên bốn môi trường:
+
+```
+Node ESM                          JS chạy, CSS không execute     ĐÚNG
+Node CJS                          JS chạy, CSS không execute     ĐÚNG
+Vite browser                      CSS 2396 byte, đủ              ĐÚNG
+Next, page 'use client'           CSS 2424 byte, đủ              ĐÚNG
+Next, page là Server Component    CSS 0 byte, MẤT HẲN            LOẠI
+```
+
+Đối chứng: bỏ condition `node` ra, đúng ca đó cho 2424 byte có CSS.
+
+Nguyên nhân, và nó không sửa được bằng một condition khác: **Next server graph phải thấy
+cạnh CSS để client graph thừa hưởng nó.** Một artifact riêng cho Node cắt đúng cạnh đó
+trước khi graph được dựng. `browser`, `react-server`, `development` chỉ thêm biến thể,
+không đổi nguyên nhân. Đừng mở lại.
+
+#### Lợi ích đã đo
+
+```
+import 'tinita-react/styles.css'   27 023 byte
+ui/ping                             2 424 byte   -91%
+ui/floating-window                  6 559 byte
+ui/file-tree                        9 410 byte   -65%
+ui/ping + ui/file-tree             10 640 byte   shared tokens đúng 1 lần
+```
+
+Byte chỉ là **diagnostic**. Khẳng định của ca lab nằm ở có/không và ở quan hệ phụ thuộc -
+Vite và Next minify khác nhau nên 2396 với 2424 là bình thường.
+
 ### 7. CSS Modules với tên ỔN ĐỊNH, không hash - chốt 2026-09-26, sửa mô tả 2026-10-02
 
 Cái bị loại là **hash tên**, không phải CSS Modules. Code dùng CSS Modules: cả 5
