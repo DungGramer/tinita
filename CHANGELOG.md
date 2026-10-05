@@ -70,6 +70,13 @@ of the bundler in front of it.
   printable key is ignored while the focus is in a text field - binding `m` to minimise
   would otherwise fire on every `m` typed into an input - while modified and named keys
   still fire there.
+- `FloatingWindow`'s controls advertise their shortcut: hovering minimise shows
+  `Minimize (Ctrl + M)`, or `Minimize (⌘ + M)` on an Apple keyboard. The combination
+  shown is **picked from the bindings by platform**, not translated into them - bind
+  only `'Ctrl+M'` and a Mac shows `⌃ + M`, because Control is still the key that fires
+  there. The action name stays in `aria-label` and every bound combination goes in
+  `aria-keyshortcuts`. One parse feeds both the listener and the label, so a control
+  cannot advertise a key it does not answer.
 - React 18 support is now measured, not just claimed. The lab builds and mounts the
   components in a real Chromium on **both 18 and 19** and fails on a hydration error;
   `FloatingWindow` was added to that case, so the component with the newest code has

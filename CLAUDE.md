@@ -379,6 +379,33 @@ Phần so khớp event với `KeyCombination` nằm **nội bộ** trong `useKey
 thành primitive ở `tinita`: đúng một consumer, nên theo §19 giữ local. Có consumer thứ
 hai thì mới chuyển.
 
+### Tooltip hiện phím tắt, và nó phải là phím CHẠY ĐƯỢC
+
+Hover vào control thì `title` thành `Minimize (Ctrl + M)`, trên Apple là
+`Minimize (⌘ + M)`. Ba điều quyết định ở `formatKeyCombination.ts`:
+
+- **Tổ hợp hiện ra được CHỌN theo platform từ thứ caller đã bind**, không phải đổi
+  `Ctrl` thành `⌘` khi thấy Mac. Bind `['Ctrl+M','Cmd+M']` thì Apple hiện `⌘ + M`, nơi
+  khác hiện `Ctrl + M`. Bind **chỉ** `'Ctrl+M'` thì Apple hiện `⌃ + M`, vì phím thật sự
+  chạy trên Mac vẫn là Control - hiện `⌘` ở đó là nói sai.
+- **`aria-label` giữ nguyên tên hành động, phím tắt đi vào `aria-keyshortcuts`** - đó
+  là attribute ARIA định nghĩa cho việc này. Gộp vào label sẽ khiến screen reader hiểu
+  attribute đó đọc hai lần. `aria-keyshortcuts` liệt kê **mọi** tổ hợp đã bind, không
+  chỉ cái đang hiện, vì tất cả đều chạy.
+- **Một lần parse duy nhất** (`parseBindings`) dùng cho cả listener lẫn tooltip, nên
+  control không thể quảng cáo một phím mà nó không trả lời.
+
+Thứ tự modifier: Apple là `⌃⌥⇧⌘` đúng thứ tự mọi menu Mac dùng; ARIA là
+`Control, Alt, Shift, Meta` - spec chỉ đòi modifier đứng trước phím, không quy định thứ
+tự giữa chúng, nên thứ tự này cố định để giá trị attribute ổn định.
+
+`isApplePlatform()` **cố ý không dùng** `isMacOS()` của `tinita-dom/validation/platform`
+dù đó mới là bản canonical. Lý do: `tinita-react` bắt buộc sống qua SSR, còn `tinita-dom`
+bị đánh `browserOnly: true` và ca SSR của L2 **bỏ qua hẳn** nó - tức câu "mọi module
+`tinita-dom` phải import sạch khi không có DOM" trong file này **không có guard**, đo
+2026-10-05. Một regex trùng lặp rẻ hơn một cạnh package dựa trên bất biến không ai canh.
+Ghi ở nợ #21.
+
 ### React 18 là sàn CỨNG, và chỉ L4 đo nó
 
 `ui/tree/store.ts` và `hooks/useWindowSize.ts` dùng `useSyncExternalStore` - API của

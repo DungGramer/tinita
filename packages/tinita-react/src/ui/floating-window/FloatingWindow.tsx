@@ -20,6 +20,13 @@ import {
 import { CloseIcon, MaximizeIcon, MinimizeIcon, RestoreIcon, WindowIcon } from './icons';
 import styles from './FloatingWindow.module.css';
 import {
+  formatKeyCombination,
+  isApplePlatform,
+  pickForPlatform,
+  toAriaKeyShortcuts,
+} from './formatKeyCombination';
+import {
+  parseBindings,
   useKeyBindings,
   type FloatingWindowAction,
   type FloatingWindowKeyBindings,
@@ -305,6 +312,43 @@ export const FloatingWindow = ({
   // one the reader is working in does.
   useKeyBindings(keyBindings, open && active, runAction);
 
+  // Same parse the listener uses, so a control cannot advertise a key it does not
+  // answer. Keyed on the serialisation for the reason `useKeyBindings` documents: the
+  // prop is written inline and changes identity every render.
+  const bindingKey = JSON.stringify(keyBindings ?? null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const parsedBindings = useMemo(() => parseBindings(keyBindings), [bindingKey]);
+  // Read once. `navigator.userAgent` does not change, and the guard inside means this
+  // is safe during render even where there is no `navigator`.
+  const apple = useMemo(() => isApplePlatform(), []);
+
+  /**
+   * Accessible name, hover text and `aria-keyshortcuts` for one control.
+   *
+   * The visible hint shows the combination that MATCHES THE PLATFORM, picked from what
+   * the caller bound - showing `⌘ + M` when Control is the key that fires would be a
+   * lie. `aria-label` stays the plain action name and the shortcut goes in
+   * `aria-keyshortcuts`, which is the attribute ARIA defines for it; folding it into
+   * the label would make a modern screen reader announce it twice.
+   */
+  const controlProps = useCallback(
+    (action: FloatingWindowAction, label: string) => {
+      const combinations = parsedBindings[action];
+      if (!combinations || combinations.length === 0) {
+        return { 'aria-label': label, title: label };
+      }
+      const shown = pickForPlatform(combinations, apple);
+
+      return {
+        'aria-label': label,
+        title: shown ? `${label} (${formatKeyCombination(shown, apple)})` : label,
+        // Every bound alternative, not only the one on display: they all work.
+        'aria-keyshortcuts': toAriaKeyShortcuts(combinations),
+      };
+    },
+    [apple, parsedBindings]
+  );
+
   if (!open || !measured || !geometry) return null;
 
   const maximized = isMaximized;
@@ -372,8 +416,7 @@ export const FloatingWindow = ({
             <button
               type="button"
               className={styles.button}
-              aria-label={labels.minimize}
-              title={labels.minimize}
+              {...controlProps('minimize', labels.minimize)}
               onClick={() => setMode('minimized')}
             >
               <MinimizeIcon />
@@ -381,8 +424,7 @@ export const FloatingWindow = ({
             <button
               type="button"
               className={styles.button}
-              aria-label={maximized ? labels.restore : labels.maximize}
-              title={maximized ? labels.restore : labels.maximize}
+              {...controlProps('maximize', maximized ? labels.restore : labels.maximize)}
               onClick={() => setMode(maximized ? 'windowed' : 'maximized')}
             >
               {maximized ? <RestoreIcon /> : <MaximizeIcon />}
@@ -390,8 +432,7 @@ export const FloatingWindow = ({
             <button
               type="button"
               className={styles.button}
-              aria-label={labels.close}
-              title={labels.close}
+              {...controlProps('close', labels.close)}
               onClick={() => onOpenChange(false)}
             >
               <CloseIcon />

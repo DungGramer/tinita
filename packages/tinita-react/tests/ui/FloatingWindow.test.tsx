@@ -447,3 +447,80 @@ describe('FloatingWindow - keyBindings', () => {
     expect(onOpenChange).not.toHaveBeenCalled();
   });
 });
+
+// Hover vào icon phải hiện luôn phím tắt, và trên Mac là glyph của Apple.
+describe('FloatingWindow - the controls advertise their shortcut', () => {
+  const titleOf = (name: string) => screen.getByRole('button', { name }).getAttribute('title');
+  const shortcutsOf = (name: string) =>
+    screen.getByRole('button', { name }).getAttribute('aria-keyshortcuts');
+
+  it('shows nothing extra when nothing is bound', () => {
+    render(<Harness />);
+
+    expect(titleOf('Minimize')).toBe('Minimize');
+    expect(shortcutsOf('Minimize')).toBeNull();
+  });
+
+  it('appends the combination to the hover text', () => {
+    render(<Harness keyBindings={{ minimize: 'Ctrl+M', close: 'Escape', maximize: 'F11' }} />);
+
+    expect(titleOf('Minimize')).toBe('Minimize (Ctrl + M)');
+    expect(titleOf('Close')).toBe('Close (Escape)');
+    expect(titleOf('Maximize')).toBe('Maximize (F11)');
+  });
+
+  it('keeps aria-label the plain action name, with the key in aria-keyshortcuts', () => {
+    // ARIA defines an attribute for this. Folding the shortcut into the label would
+    // make a screen reader that supports the attribute announce it twice.
+    render(<Harness keyBindings={{ minimize: ['Ctrl+M', 'Cmd+M'] }} />);
+
+    const button = screen.getByRole('button', { name: 'Minimize' });
+    expect(button.getAttribute('aria-label')).toBe('Minimize');
+    // Both alternatives, because both fire.
+    expect(button.getAttribute('aria-keyshortcuts')).toBe('Control+M Meta+M');
+  });
+
+  it('follows the label when maximize becomes restore', () => {
+    render(<Harness keyBindings={{ maximize: 'F11' }} />);
+
+    act(() => {
+      screen.getByRole('button', { name: 'Maximize' }).click();
+    });
+    expect(titleOf('Restore')).toBe('Restore (F11)');
+  });
+
+  it('shows the Apple glyph on an Apple user-agent', () => {
+    const agent = vi
+      .spyOn(navigator, 'userAgent', 'get')
+      .mockReturnValue('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36');
+    try {
+      render(<Harness keyBindings={{ minimize: ['Ctrl+M', 'Cmd+M'] }} />);
+      expect(titleOf('Minimize')).toBe('Minimize (⌘ + M)');
+    } finally {
+      agent.mockRestore();
+    }
+  });
+
+  // The case that keeps the hint honest: with only Control bound, Control is what
+  // fires on a Mac too, so the label must say so instead of showing ⌘.
+  it('does not promise ⌘ on Apple when only Ctrl was bound', () => {
+    const agent = vi
+      .spyOn(navigator, 'userAgent', 'get')
+      .mockReturnValue('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36');
+    try {
+      render(<Harness keyBindings={{ minimize: 'Ctrl+M' }} />);
+      expect(titleOf('Minimize')).toBe('Minimize (⌃ + M)');
+    } finally {
+      agent.mockRestore();
+    }
+  });
+
+  // One parse feeds both the listener and the label, so they cannot disagree.
+  it('advertises exactly the key that works', () => {
+    render(<Harness keyBindings={{ minimize: 'Ctrl+M' }} />);
+    expect(titleOf('Minimize')).toBe('Minimize (Ctrl + M)');
+
+    press('m', { ctrlKey: true });
+    expect(screen.queryByRole('button', { name: 'Dashboard' })).not.toBeNull();
+  });
+});

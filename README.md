@@ -134,6 +134,13 @@ application. Bind what you want:
 The syntax is `tinita/converter/parseKeyCombination`'s, so `ctrl`, `cmd`, `⌘`, `option`
 and `win` are all understood, and an array binds several combinations to one action.
 
+**The controls advertise what you bound.** Hovering minimise shows `Minimize (Ctrl + M)`,
+or `Minimize (⌘ + M)` on an Apple keyboard. The combination shown is picked from your
+bindings by platform rather than translated into them: bind `['Ctrl+M', 'Cmd+M']` and a
+Mac shows the Command one, bind only `'Ctrl+M'` and a Mac shows `⌃ + M`, because Control
+is still the key that fires there. The action name stays in `aria-label` and every bound
+combination goes in `aria-keyshortcuts`, which is the attribute ARIA defines for it.
+
 Two behaviours worth knowing. A **bare printable key is ignored while the focus is in a
 text field** - binding `m` to minimise would otherwise fire on every `m` typed into an
 input. Anything with a modifier, and named keys such as `Escape` or `F2`, still fire

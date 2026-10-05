@@ -73,6 +73,28 @@ function matches(event: KeyboardEvent, combination: KeyCombination): boolean {
  *
  * The same boundary the pointer shields exist for. Nothing can be done from this side.
  */
+/**
+ * `keyBindings` as parsed combinations per action, with the empty actions dropped.
+ *
+ * Shared by the listener and by the tooltips, so what a control ADVERTISES and what it
+ * RESPONDS to can never drift - two parses of the same prop is how that happens.
+ */
+export function parseBindings(
+  bindings: FloatingWindowKeyBindings | undefined
+): Partial<Record<FloatingWindowAction, KeyCombination[]>> {
+  const parsed: Partial<Record<FloatingWindowAction, KeyCombination[]>> = {};
+  if (!bindings) return parsed;
+
+  for (const [action, value] of Object.entries(bindings)) {
+    if (!value) continue;
+    const specs = typeof value === 'string' ? [value] : value;
+    const combinations = specs.map((spec) => parseKeyCombination(spec));
+    if (combinations.length > 0) parsed[action as FloatingWindowAction] = combinations;
+  }
+
+  return parsed;
+}
+
 export function useKeyBindings(
   bindings: FloatingWindowKeyBindings | undefined,
   enabled: boolean,
@@ -92,16 +114,12 @@ export function useKeyBindings(
   useEffect(() => {
     if (!enabled || !bindings) return;
 
-    const parsed: { action: FloatingWindowAction; combination: KeyCombination }[] = [];
-    for (const [action, value] of Object.entries(bindings)) {
-      if (!value) continue;
-      for (const spec of typeof value === 'string' ? [value] : value) {
-        parsed.push({
-          action: action as FloatingWindowAction,
-          combination: parseKeyCombination(spec),
-        });
-      }
-    }
+    const parsed = Object.entries(parseBindings(bindings)).flatMap(([action, combinations]) =>
+      combinations.map((combination) => ({
+        action: action as FloatingWindowAction,
+        combination,
+      }))
+    );
     if (parsed.length === 0) return;
 
     const onKeyDown = (event: KeyboardEvent) => {

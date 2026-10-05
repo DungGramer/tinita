@@ -193,6 +193,11 @@ export const WithKeyBindings: Story = {
         <div style={{ padding: 16, display: 'grid', gap: 8 }}>
           <p>Escape closes - try it from inside the field too.</p>
           <p>Ctrl+M or Cmd+M minimises. F11 toggles maximise.</p>
+          <p>
+            Hover a control: it shows the combination that works on{' '}
+            <em>this</em> platform, picked from the bindings rather than
+            translated into them.
+          </p>
           <input placeholder="type here" />
         </div>
       }
