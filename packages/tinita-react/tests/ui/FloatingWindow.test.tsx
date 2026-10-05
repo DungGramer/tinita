@@ -33,8 +33,27 @@ afterEach(() => {
   setViewport(JSDOM_WIDTH, JSDOM_HEIGHT);
 });
 
+/** Dispatch a keydown that bubbles to `document`, optionally from a given element. */
+function press(
+  key: string,
+  modifiers: Partial<Record<'ctrlKey' | 'shiftKey' | 'altKey' | 'metaKey', boolean>> = {},
+  from: Element = document.body
+) {
+  const event = new KeyboardEvent('keydown', {
+    key,
+    bubbles: true,
+    cancelable: true,
+    ...modifiers,
+  });
+  act(() => {
+    from.dispatchEvent(event);
+  });
+  return event;
+}
+
 function Harness({
   initialMode = 'windowed',
+  children,
   ...rest
 }: { initialMode?: FloatingWindowMode } & Partial<React.ComponentProps<typeof FloatingWindow>>) {
   const [open, setOpen] = useState(true);
@@ -49,7 +68,12 @@ function Harness({
       onModeChange={setMode}
       {...rest}
     >
-      <p>body content</p>
+      {/* Default body, overridable. Written as a fallback rather than hardcoded:
+          JSX children between the tags BEAT a `children` arriving through the
+          spread, so the first version of this harness silently dropped the
+          <input> that two cases pass - and both cases failed for that reason,
+          not for the behaviour they were written to check. */}
+      {children ?? <p>body content</p>}
     </FloatingWindow>
   );
 }
@@ -250,5 +274,176 @@ describe('FloatingWindow', () => {
       expect(fitted.x + fitted.width).toBeLessThanOrEqual(600);
       expect(fitted.y).toBeLessThanOrEqual(500);
     });
+  });
+});
+
+// "Bấm escape hay bất kỳ phím nào để thoát hay minimize" là PROPS SETTING, không phải
+// hành vi mặc định: window này không phải modal, nên một Escape hardcode sẽ ném đi thứ
+// người dùng đang làm trong đó, và không phím nào là lựa chọn đúng cho mọi ứng dụng.
+describe('FloatingWindow - keyBindings', () => {
+  it('binds NOTHING by default', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <FloatingWindow open onOpenChange={onOpenChange} title="Dashboard">
+        <p>body content</p>
+      </FloatingWindow>
+    );
+
+    press('Escape');
+    expect(onOpenChange).not.toHaveBeenCalled();
+    expect(screen.queryByText('Dashboard')).not.toBeNull();
+  });
+
+  it('closes on a bound key, and marks the event handled', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <FloatingWindow
+        open
+        onOpenChange={onOpenChange}
+        title="Dashboard"
+        keyBindings={{ close: 'Escape' }}
+      >
+        <p>body content</p>
+      </FloatingWindow>
+    );
+
+    const event = press('Escape');
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    // The caller asked for this key, so the host's own handling must not also run.
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('parses modifiers through tinita/converter/parseKeyCombination', () => {
+    render(<Harness keyBindings={{ minimize: 'Ctrl+M' }} />);
+
+    // `event.key` is lower-case `m` while Ctrl is held; comparing exactly would never
+    // match, which is why the matcher lower-cases both sides.
+    press('m', { ctrlKey: true });
+    expect(screen.queryByRole('button', { name: 'Dashboard' })).not.toBeNull();
+  });
+
+  it('ignores the same key without its modifier', () => {
+    render(<Harness keyBindings={{ minimize: 'Ctrl+M' }} />);
+
+    press('m');
+    expect(screen.queryByRole('button', { name: 'Dashboard' })).toBeNull();
+  });
+
+  it('accepts several combinations for one action', () => {
+    render(<Harness keyBindings={{ minimize: ['Ctrl+M', 'Cmd+M'] }} />);
+
+    press('m', { metaKey: true });
+    expect(screen.queryByRole('button', { name: 'Dashboard' })).not.toBeNull();
+  });
+
+  it('toggles maximize, matching the header control', () => {
+    render(<Harness keyBindings={{ maximize: 'F11' }} />);
+
+    press('F11');
+    expect(screen.queryByRole('button', { name: 'Restore' })).not.toBeNull();
+    press('F11');
+    expect(screen.queryByRole('button', { name: 'Maximize' })).not.toBeNull();
+  });
+
+  // Binding a bare letter would otherwise fire on every occurrence of it in a field.
+  it('ignores a bare printable key while the focus is in a text field', () => {
+    const { baseElement } = render(
+      <Harness keyBindings={{ minimize: 'm' }}>
+        <input defaultValue="" />
+      </Harness>
+    );
+    const input = baseElement.querySelector('input');
+
+    press('m', {}, input as Element);
+    expect(screen.queryByRole('button', { name: 'Dashboard' })).toBeNull();
+
+    // Away from the field it still works, so the guard is about the target and not
+    // about the binding being broken.
+    press('m');
+    expect(screen.queryByRole('button', { name: 'Dashboard' })).not.toBeNull();
+  });
+
+  it('still fires a named key inside a text field - Escape does not collide with typing', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <FloatingWindow
+        open
+        onOpenChange={onOpenChange}
+        title="Dashboard"
+        keyBindings={{ close: 'Escape' }}
+      >
+        <input defaultValue="" />
+      </FloatingWindow>
+    );
+    const input = document.querySelector('input');
+
+    press('Escape', {}, input as Element);
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('still fires a modified key inside a text field', () => {
+    render(
+      <Harness keyBindings={{ minimize: 'Ctrl+M' }}>
+        <input defaultValue="" />
+      </Harness>
+    );
+    const input = document.querySelector('input');
+
+    press('m', { ctrlKey: true }, input as Element);
+    expect(screen.queryByRole('button', { name: 'Dashboard' })).not.toBeNull();
+  });
+
+  // With several windows open only the one the reader is working in should answer.
+  it('answers no key while inactive', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <FloatingWindow
+        open
+        active={false}
+        onOpenChange={onOpenChange}
+        title="Dashboard"
+        keyBindings={{ close: 'Escape' }}
+      >
+        <p>body content</p>
+      </FloatingWindow>
+    );
+
+    press('Escape');
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('answers no key while closed', () => {
+    const onOpenChange = vi.fn();
+    render(
+      <FloatingWindow
+        open={false}
+        onOpenChange={onOpenChange}
+        title="Dashboard"
+        keyBindings={{ close: 'Escape' }}
+      >
+        <p>body content</p>
+      </FloatingWindow>
+    );
+
+    press('Escape');
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it('removes its listener on unmount', () => {
+    const onOpenChange = vi.fn();
+    const { unmount } = render(
+      <FloatingWindow
+        open
+        onOpenChange={onOpenChange}
+        title="Dashboard"
+        keyBindings={{ close: 'Escape' }}
+      >
+        <p>body content</p>
+      </FloatingWindow>
+    );
+
+    unmount();
+    press('Escape');
+    expect(onOpenChange).not.toHaveBeenCalled();
   });
 });

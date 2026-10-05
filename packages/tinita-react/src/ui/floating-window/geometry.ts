@@ -2,6 +2,12 @@
  * Pure geometry for the floating window. No DOM, no React - so every rule below is
  * unit-testable without a renderer, which is why it lives in its own module.
  *
+ * Lives in the component folder, yet `hooks/useDragSnap` and `hooks/useWindowDrag`
+ * import it. That is deliberate: `src/utils/` and `src/hooks/` are scanned FLAT by both
+ * vite and tsup, so a file placed there becomes a published entry whether it is exported
+ * or not. Keeping it here means one fewer build-but-unexported entry, and the two hooks
+ * re-export the types a consumer actually needs.
+ *
  * Everything here **clamps**; nothing throws. That is deliberate and it follows the
  * precedent already set by `usePagination`: a window dragged past the edge of the
  * screen, or a viewport that shrank under it, is ordinary use and not a caller error.

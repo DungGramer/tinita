@@ -47,6 +47,12 @@
       "hooks/useDoubleTap": [
         "./dist/hooks/useDoubleTap.d.ts"
       ],
+      "hooks/useDragSnap": [
+        "./dist/hooks/useDragSnap.d.ts"
+      ],
+      "hooks/useWindowDrag": [
+        "./dist/hooks/useWindowDrag.d.ts"
+      ],
       "hooks/usePagination": [
         "./dist/hooks/usePagination.d.ts"
       ],
@@ -125,6 +131,16 @@
         "types": "./dist/hooks/useDoubleTap.d.ts",
         "default": "./dist/hooks/useDoubleTap.cjs"
       }
+    },
+    "./hooks/useDragSnap": {
+      "types": "./dist/hooks/useDragSnap.d.ts",
+      "import": "./dist/hooks/useDragSnap.mjs",
+      "require": "./dist/hooks/useDragSnap.cjs"
+    },
+    "./hooks/useWindowDrag": {
+      "types": "./dist/hooks/useWindowDrag.d.ts",
+      "import": "./dist/hooks/useWindowDrag.mjs",
+      "require": "./dist/hooks/useWindowDrag.cjs"
     },
     "./hooks/usePagination": {
       "import": {

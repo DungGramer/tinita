@@ -65,7 +65,7 @@ mime.extend(full);
 
 ### tinita-react (v0.1.0)
 
-Seven hooks and five UI components, CSS included. **Import specific subpaths rather than the barrel** -
+Nine hooks and five UI components, CSS included. **Import specific subpaths rather than the barrel** -
 see the note under the peer table for why.
 
 ```typescript
@@ -78,6 +78,10 @@ import { FileTree } from 'tinita-react/ui/file-tree';
 import { Ping } from 'tinita-react/ui/ping';
 import { CarouselTicker } from 'tinita-react/ui/carousel-ticker';
 import { FloatingWindow } from 'tinita-react/ui/floating-window';
+
+// The two hooks behind FloatingWindow, usable on their own
+import { useDragSnap } from 'tinita-react/hooks/useDragSnap';
+import { useWindowDrag } from 'tinita-react/hooks/useWindowDrag';
 
 // Utility
 import { autoInjectStyles } from 'tinita-react/utils/autoInjectStyles';
@@ -105,6 +109,36 @@ import 'tinita-react/styles.css';
 for `FloatingWindow`, which portals into `document.body` - a window rendered inside the app's own
 tree is trapped by any ancestor that creates a stacking context, and `position: fixed` does not
 escape a transformed parent.
+
+#### Keyboard shortcuts
+
+Nothing is bound by default. A floating window is not a modal, so a hardcoded `Escape`
+would throw away whatever you were doing in it, and no single key is right for every
+application. Bind what you want:
+
+```tsx
+<FloatingWindow
+  open={open}
+  onOpenChange={setOpen}
+  title="Dashboard"
+  keyBindings={{
+    close: 'Escape',
+    minimize: ['Ctrl+M', 'Cmd+M'],
+    maximize: 'F11',
+  }}
+>
+  {/* ... */}
+</FloatingWindow>
+```
+
+The syntax is `tinita/converter/parseKeyCombination`'s, so `ctrl`, `cmd`, `⌘`, `option`
+and `win` are all understood, and an array binds several combinations to one action.
+
+Two behaviours worth knowing. A **bare printable key is ignored while the focus is in a
+text field** - binding `m` to minimise would otherwise fire on every `m` typed into an
+input. Anything with a modifier, and named keys such as `Escape` or `F2`, still fire
+there. And keys pressed **inside a cross-origin iframe never arrive**, which is the same
+boundary the window's pointer shields exist for.
 
 **React 18 is a hard floor, not a preference.** `Tree` and `useWindowSize` are built on
 `useSyncExternalStore`, which React added in 18, so there is no version of this package that runs on 17. React 18 and 19 are both built and exercised in a real Chromium by the compatibility lab

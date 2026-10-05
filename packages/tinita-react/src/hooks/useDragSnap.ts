@@ -2,7 +2,19 @@
 
 import { useCallback, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
-import { BUBBLE_SIZE, snapToEdge, type Point, type SnapSide, type Viewport } from './geometry';
+import {
+  BUBBLE_SIZE,
+  snapToEdge,
+  type Point,
+  type SnapSide,
+  type Viewport,
+} from '../ui/floating-window/geometry';
+
+// Re-exported so a consumer of this subpath has the types its own signature uses
+// without a second import. `geometry` itself is not a published subpath - see the note
+// at the top of that file.
+export type { Point, SnapSide, Viewport } from '../ui/floating-window/geometry';
+export { BUBBLE_SIZE, EDGE_MARGIN } from '../ui/floating-window/geometry';
 
 /** Pointer travel, in px, past which the gesture is a drag rather than a tap. */
 const TAP_SLOP = 5;

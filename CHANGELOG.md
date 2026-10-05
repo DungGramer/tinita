@@ -57,6 +57,19 @@ of the bundler in front of it.
   vite's `external` list without being declared, next to a comment saying that list
   must match `peerDependencies` - so this closes an existing mismatch rather than
   adding a dependency.
+- `tinita-react/hooks/useDragSnap` and `tinita-react/hooks/useWindowDrag`: the two
+  hooks behind `FloatingWindow`, as public subpaths. Both are controlled - they hold
+  the live gesture and nothing else, so the caller owns the position and decides
+  whether it is remembered. `useDragSnap` reads no `window`; the viewport is an
+  argument, which is what lets it render on a server. Each re-exports the types its own
+  signature uses, so `geometry` needs no subpath of its own.
+- `FloatingWindow` takes `keyBindings`, and **binds nothing by default**. A window is
+  not a modal, so a hardcoded `Escape` would discard whatever the reader was doing in
+  it. The syntax is `tinita/converter/parseKeyCombination`'s, so `cmd`, `⌘`, `option`
+  and `win` all work, and an array binds several combinations to one action. A bare
+  printable key is ignored while the focus is in a text field - binding `m` to minimise
+  would otherwise fire on every `m` typed into an input - while modified and named keys
+  still fire there.
 - React 18 support is now measured, not just claimed. The lab builds and mounts the
   components in a real Chromium on **both 18 and 19** and fails on a hydration error;
   `FloatingWindow` was added to that case, so the component with the newest code has

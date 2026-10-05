@@ -280,6 +280,8 @@
         "./ui/tree",
         "./utils/autoInjectStyles",
         "./hooks/useDoubleTap",
+        "./hooks/useDragSnap",
+        "./hooks/useWindowDrag",
         "./hooks/usePagination",
         "./hooks/useRefreshComponent",
         "./hooks/useRequiredContext",

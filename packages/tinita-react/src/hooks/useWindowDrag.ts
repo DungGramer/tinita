@@ -2,7 +2,18 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
-import { clampWindow, MIN_HEIGHT, MIN_WIDTH, type Viewport, type WindowGeometry } from './geometry';
+import {
+  clampWindow,
+  MIN_HEIGHT,
+  MIN_WIDTH,
+  type Viewport,
+  type WindowGeometry,
+} from '../ui/floating-window/geometry';
+
+// Re-exported for the same reason as in `useDragSnap`: this hook's own signature
+// speaks in these types, and `geometry` is not a published subpath.
+export type { Viewport, WindowGeometry } from '../ui/floating-window/geometry';
+export { MIN_HEIGHT, MIN_WIDTH } from '../ui/floating-window/geometry';
 
 export interface WindowDragOptions {
   geometry: WindowGeometry;

@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
+import { useDragSnap } from '../../hooks/useDragSnap';
+import { useWindowDrag } from '../../hooks/useWindowDrag';
 import { useWindowSize } from '../../hooks/useWindowSize';
 import { cn } from '../../utils/cn';
 import { variantAttributes } from '../../utils/variantAttributes';
@@ -17,10 +19,14 @@ import {
 } from './geometry';
 import { CloseIcon, MaximizeIcon, MinimizeIcon, RestoreIcon, WindowIcon } from './icons';
 import styles from './FloatingWindow.module.css';
-import { useDragSnap } from './useDragSnap';
-import { useWindowDrag } from './useWindowDrag';
+import {
+  useKeyBindings,
+  type FloatingWindowAction,
+  type FloatingWindowKeyBindings,
+} from './useKeyBindings';
 
 export type { Point, SnapSide, WindowGeometry } from './geometry';
+export type { FloatingWindowAction, FloatingWindowKeyBindings } from './useKeyBindings';
 export { BUBBLE_SIZE, MIN_HEIGHT, MIN_WIDTH } from './geometry';
 
 /** Windowed, filling the viewport, or collapsed to an edge bubble. */
@@ -95,6 +101,19 @@ export interface FloatingWindowProps {
   actions?: ReactNode;
   /** Overrides for the control labels. Each is both `aria-label` and `title`. */
   labels?: Partial<FloatingWindowLabels>;
+  /**
+   * Keyboard shortcuts, per action. **Nothing is bound unless you ask.**
+   *
+   * ```tsx
+   * keyBindings={{ close: 'Escape', minimize: ['Ctrl+M', 'Cmd+M'], maximize: 'F11' }}
+   * ```
+   *
+   * Syntax is `tinita/converter/parseKeyCombination`'s, so `cmd`, `⌘`, `option` and
+   * `win` are all understood. Listens on `document` while the window is open and
+   * `active`. A bare printable key is ignored while the focus is in a text field;
+   * anything with a modifier, and named keys such as `Escape`, still fire there.
+   */
+  keyBindings?: FloatingWindowKeyBindings;
   /** Vertical slot for the default bubble spot, so several never overlap. */
   bubbleSlot?: number;
   /** Forces the colour scheme. Unset follows the host's dark-mode convention. */
@@ -170,6 +189,7 @@ export const FloatingWindow = ({
   stack = 0,
   actions,
   labels: labelOverrides,
+  keyBindings,
   bubbleSlot = 0,
   theme,
   container,
@@ -270,9 +290,24 @@ export const FloatingWindow = ({
     onTap: () => setMode('windowed'),
   });
 
+  // Before the early return: a hook cannot be called conditionally. `maximized` is
+  // derived here rather than below so the action handler can read it.
+  const isMaximized = mode === 'maximized';
+  const runAction = useCallback(
+    (action: FloatingWindowAction) => {
+      if (action === 'close') onOpenChange(false);
+      else if (action === 'minimize') setMode('minimized');
+      else setMode(isMaximized ? 'windowed' : 'maximized');
+    },
+    [isMaximized, onOpenChange, setMode]
+  );
+  // `open && active`: a closed window answers no key, and with several open only the
+  // one the reader is working in does.
+  useKeyBindings(keyBindings, open && active, runAction);
+
   if (!open || !measured || !geometry) return null;
 
-  const maximized = mode === 'maximized';
+  const maximized = isMaximized;
   const minimized = mode === 'minimized';
 
   // Visible layout box. Maximized fills the viewport; the body re-lays-out to that

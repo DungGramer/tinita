@@ -94,7 +94,12 @@ describe('usePagination', () => {
     expect(result.current.setPageSize).toBe(before.setPageSize);
   });
 
-  it('holds its invariants over 2000 seeded random inputs', () => {
+  // Timeout declared, not inherited. 2000 `renderHook` calls take ~1.5s alone but
+  // 6734ms inside the full suite, where every package's tests run in parallel -
+  // measured 2026-10-05, when adding tests elsewhere pushed it past vitest's 5s
+  // default and turned a passing test red without touching it. The budget belongs to
+  // the test that needs it, not to whatever else happens to be running.
+  it('holds its invariants over 2000 seeded random inputs', { timeout: 30_000 }, () => {
     // xorshift, seeded: a failure reproduces instead of vanishing on re-run.
     let seed = 0x2f6a1bd;
     const next = () => {

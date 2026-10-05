@@ -91,7 +91,7 @@ từng subpath, KHÔNG wildcard**; xem `docs/code-standards.md`.
 
 ## Đường nhập
 
-**103 subpath công khai** (tính cả root của mỗi package). Danh sách thật nằm trong `exports` của từng
+**105 subpath công khai** (tính cả root của mỗi package). Danh sách thật nằm trong `exports` của từng
 `package.json`; `pnpm check-doc-links` làm đỏ nếu một `.md` nào nhắc tới đường
 không tồn tại, nên đừng liệt kê lại ở đây.
 
@@ -104,7 +104,7 @@ mọi module phải **import** sạch khi không có DOM. Thư mục: `converter
 `dimension/`, `file/`, `html/`, `image/`, `storage/`, `style/`, `unit/`,
 `validation/`, cộng `smooth-scroll` và `wheel-source`.
 
-`tinita-react` (19, trong đó 4 là CSS) - dùng **subpath cụ thể**. 7 hook,
+`tinita-react` (21, trong đó 4 là CSS) - dùng **subpath cụ thể**. 9 hook,
 5 component, 2 util.
 
 <!-- doc-links-ignore -->
@@ -118,6 +118,14 @@ Barrel `tinita-react` tồn tại nhưng nó re-export `./ui/file-tree`, nên
 Ping không cần. Đây là lý do KỸ THUẬT để tránh barrel.
 
 `installSmoothScroll()` gọi một lần ngoài React và trả về hàm gỡ.
+
+`tinita-react/hooks/useDragSnap` và `hooks/useWindowDrag` là hai hook của
+`FloatingWindow`, mở thành subpath công khai 2026-10-05 theo quyết định của owner. Chúng
+**controlled**: chỉ giữ gesture đang chạy, caller sở hữu vị trí và quyết định có ghi nhớ
+hay không. Cả hai re-export kiểu mà signature của chúng dùng (`Point`, `Viewport`,
+`WindowGeometry`, `SnapSide`), nên không cần mở thêm subpath cho `geometry` - file đó cố
+ý vẫn nằm trong folder component, vì `src/hooks/` và `src/utils/` bị quét PHẲNG nên đặt
+ở đó là tự sinh thêm một entry build-mà-không-export.
 
 ## Dependency: optional peer, không phải dependencies
 
@@ -337,6 +345,39 @@ import nó ở đây sẽ làm component throw ở consumer không cài. `Tree` 
 `react-dom` giờ là **peer bắt buộc** (`createPortal`). Nó đã nằm trong `external` của
 vite từ trước mà chưa được khai peer - comment ở đó nói "PHẢI khớp `peerDependencies`",
 nên đây là bịt lệch cũ chứ không phải thêm phụ thuộc mới.
+
+### Phím tắt là PROP, không có mặc định nào
+
+`keyBindings` nhận cú pháp của `tinita/converter/parseKeyCombination`, nên `cmd`, `⌘`,
+`option`, `win` đều hiểu được, và một action nhận được nhiều tổ hợp:
+
+```tsx
+keyBindings={{ close: 'Escape', minimize: ['Ctrl+M', 'Cmd+M'], maximize: 'F11' }}
+```
+
+**Không phím nào bị bind sẵn.** Window này không phải modal, nên một `Escape` hardcode
+sẽ ném đi thứ người đọc đang làm trong đó, và không phím nào là lựa chọn đúng cho mọi
+ứng dụng. Owner chốt 2026-10-05.
+
+Ba quyết định trong `useKeyBindings.ts` không suy ra được từ code, đọc trước khi sửa:
+
+1. **Listener trên `document`, cổng là `open && active`.** Đặt trên chính element thì
+   nó không làm gì cho tới khi người đọc click vào trong, nên một window vừa mở sẽ bỏ
+   qua phím tắt của chính nó và trông như hỏng. `active` là thứ đã có để phân biệt
+   nhiều window - chỉ cái đang active trả lời.
+2. **Một phím in được không có modifier bị bỏ qua khi focus đang ở field.** Bind `'m'`
+   cho minimize thì nếu không có guard này, mỗi lần gõ chữ m vào input trong window là
+   window thu nhỏ. Tổ hợp có modifier, và phím có tên như `Escape`/`F2`, **vẫn** chạy
+   trong field - chúng không đụng việc gõ. Không làm thành prop, vì phương án còn lại
+   chưa bao giờ là thứ caller muốn.
+3. **Dep của effect là `JSON.stringify(bindings)`, không phải `bindings`.** Caller viết
+   `keyBindings={{ close: 'Escape' }}` inline nên object đổi identity mỗi render, và
+   dep theo object sẽ gỡ/gắn listener mỗi render - đúng bẫy `Object.is` mà
+   `useWindowSize` đã ghi. `run` giữ trong ref cùng lý do.
+
+Phần so khớp event với `KeyCombination` nằm **nội bộ** trong `useKeyBindings.ts`, không
+thành primitive ở `tinita`: đúng một consumer, nên theo §19 giữ local. Có consumer thứ
+hai thì mới chuyển.
 
 ### React 18 là sàn CỨNG, và chỉ L4 đo nó
 

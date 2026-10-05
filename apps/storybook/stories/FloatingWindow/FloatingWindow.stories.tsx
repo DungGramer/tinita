@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { expect, userEvent, within } from 'storybook/test';
 import {
   FloatingWindow,
+  type FloatingWindowKeyBindings,
   type FloatingWindowMode,
   type Point,
   type WindowGeometry,
@@ -18,11 +19,13 @@ function Demo({
   active = true,
   title = 'Dashboard',
   body,
+  keyBindings,
 }: {
   initialMode?: FloatingWindowMode;
   active?: boolean;
   title?: string;
   body?: React.ReactNode;
+  keyBindings?: FloatingWindowKeyBindings;
 }) {
   const [open, setOpen] = useState(true);
   const [mode, setMode] = useState<FloatingWindowMode>(initialMode);
@@ -52,6 +55,7 @@ function Demo({
         bubblePosition={bubble}
         onBubblePositionChange={setBubble}
         active={active}
+        keyBindings={keyBindings}
       >
         {body ?? (
           <div style={{ padding: 16 }}>
@@ -163,6 +167,34 @@ export const WithIframeBody: Story = {
           src="https://example.com"
           style={{ border: 0, inlineSize: '100%', blockSize: '100%' }}
         />
+      }
+    />
+  ),
+};
+
+/**
+ * Keyboard shortcuts are a prop, with nothing bound by default.
+ *
+ * `Escape` closes, `Ctrl+M` or `Cmd+M` minimises, `F11` toggles maximise. Type into
+ * the field and note that a bare letter bound to an action would be ignored there,
+ * while `Escape` and anything with a modifier still fire - a bare printable key is
+ * the only one that collides with typing.
+ */
+export const WithKeyBindings: Story = {
+  render: () => (
+    <Demo
+      title="Keyboard"
+      keyBindings={{
+        close: 'Escape',
+        minimize: ['Ctrl+M', 'Cmd+M'],
+        maximize: 'F11',
+      }}
+      body={
+        <div style={{ padding: 16, display: 'grid', gap: 8 }}>
+          <p>Escape closes - try it from inside the field too.</p>
+          <p>Ctrl+M or Cmd+M minimises. F11 toggles maximise.</p>
+          <input placeholder="type here" />
+        </div>
       }
     />
   ),
