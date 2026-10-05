@@ -68,11 +68,21 @@ function cutBlocks(css: string, test: RegExp): { rest: string; bodies: string[] 
 
 /** The selector at the head of each rule, with the brace body removed. */
 function selectors(css: string): string[] {
+  // At-rule STATEMENTS go first - `@import '...';`, `@charset`, `@layer a, b;`.
+  // They have no block, so the selector regex below walks straight past them into the
+  // next rule and hands back the at-rule text as if it were a selector. Measured
+  // 2026-10-05, after `globals.css` started with `@import`: `\s*` backtracks to leave
+  // one newline for `[^{}@]`, a newline satisfies it, and the whole `@import` block
+  // was reported as a selector containing a class called `.css`.
+  const withoutAtStatements = stripComments(css).replace(/@[\w-]+[^;{}]*;/g, '');
+
   const out: string[] = [];
-  for (const match of stripComments(css).matchAll(/(^|[}])\s*([^{}@][^{}]*)\{/g)) {
+  for (const match of withoutAtStatements.matchAll(/(^|[}])\s*([^{}@][^{}]*)\{/g)) {
     for (const part of (match[2] ?? '').split(',')) {
       const s = part.trim();
-      if (s) out.push(s);
+      // Second belt: a selector can never begin with `@`. `[^{}@]` alone does not
+      // enforce it, because it is satisfied by the whitespace in front of the at-rule.
+      if (s && !s.startsWith('@')) out.push(s);
     }
   }
   return out;
