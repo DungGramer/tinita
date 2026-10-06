@@ -326,10 +326,10 @@ createRoot(document.getElementById('root')).render(
    * không route nào tránh được). Đo 2026-10-06: hai tầng browser duy nhất của repo
    * đều che đúng lớp lỗi mà ship-CSS-theo-component sinh ra.
    *
-   * Phán quyết HAI CHIỀU, và tín hiệu thứ hai phải đến từ một declaration KHÔNG
-   * dùng token:
-   *   position !== 'absolute'  -> CSS của component không tới (bridge hỏng)
-   *   animationName === 'none' -> CSS tới nhưng token không giải được
+   * Phán quyết HAI CHIỀU, và tín hiệu "CSS đã tới" phải đến từ declaration KHÔNG
+   * dùng token VÀ KHÔNG bị animation làm đổi:
+   *   position/borderRadius sai  -> CSS của component không tới (bridge hỏng)
+   *   animationName === 'none'   -> CSS tới nhưng token không giải được
    *
    * Bản đầu của ca này đọc `animationName` + `animationDuration` và cả hai cùng
    * báo hỏng, trong khi `css-graph:ping` cùng lượt chạy lại PASS với 2396 byte CSS
@@ -338,6 +338,12 @@ createRoot(document.getElementById('root')).render(
    * initial `none`. Hai tín hiệu đó hỏng cùng nhau nên không phân biệt được gì.
    * `position: absolute` trong cùng rule `.pulse` không qua token, nên nó là bằng
    * chứng độc lập rằng rule đã áp. Đo 2026-10-06.
+   *
+   * Và `opacity` KHÔNG dùng được làm tín hiệu đó, dù rule đặt `opacity: 0.75`:
+   * keyframes `tnt-ping-pulse` animate chính opacity, nên khi fix đã xong và
+   * animation CHẠY thì giá trị đọc được là một điểm giữa hai keyframe - đo
+   * `0.503264`. Lần thứ hai cùng một lỗi: chọn tín hiệu mà thứ đang test làm đổi.
+   * `borderRadius` thì không bị animate, nên nó là cái belt đúng.
    *
    * Ping được chọn vì pulse là toàn bộ chức năng của nó, và nó không cần optional
    * peer nào.
@@ -379,6 +385,7 @@ createRoot(document.getElementById('root')).render(h(Ping, { count: 2 }));
             duration: cs.animationDuration,
             // Không qua token -> bằng chứng độc lập rằng rule `.pulse` đã áp.
             position: cs.position,
+            borderRadius: cs.borderRadius,
             opacity: cs.opacity,
           };
         }),
@@ -387,13 +394,13 @@ createRoot(document.getElementById('root')).render(h(Ping, { count: 2 }));
       add('motion-present', false, `không dựng được trang preview: ${probed.error.message}`);
     } else {
       const m = probed.value;
-      const cssArrived = m.found && m.position === 'absolute' && m.opacity === '0.75';
+      const cssArrived = m.found && m.position === 'absolute' && m.borderRadius === '9999px';
       const tokenResolved = m.found && m.name !== 'none' && m.name !== '' && m.duration !== '0s';
       add(
         'motion-present',
         cssArrived && tokenResolved,
         m.found
-          ? `position=${m.position} opacity=${m.opacity} animationName=${m.name} animationDuration=${m.duration}` +
+          ? `position=${m.position} borderRadius=${m.borderRadius} opacity=${m.opacity} animationName=${m.name} animationDuration=${m.duration}` +
               ` | CSS tới=${cssArrived}, token giải được=${tokenResolved}` +
               (cssArrived && !tokenResolved ? ' <- token nằm NGOÀI CSS graph của component' : '')
           : 'không tìm thấy .tnt-ping-pulse',
