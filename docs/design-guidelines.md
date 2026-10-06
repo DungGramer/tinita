@@ -211,19 +211,28 @@ Không chạm component, không chạm class. Ghi đè biến ở scope bạn mu
   --tnt-radius: 0.75rem;
 }
 
-/* hoặc chỉ riêng một component */
+/* hoặc chỉ riêng một component.
+   Token BỀ MẶT của cây là `--tnt-tree-*`, không phải `--tnt-file-tree-*`: FileTree là
+   adapter, phần cây do Tree render. 20 token của file-tree đều là `icon-*` - đo
+   2026-10-06, và ví dụ cũ ở đây dạy override ba tên khai ở 0 chỗ. */
 .tnt-file-tree-root {
-  --tnt-file-tree-bg: #fdf6e3;
-  --tnt-file-tree-hover: rgba(0, 0, 0, 0.08);
-  --tnt-file-tree-indent: 24px;
+  --tnt-tree-bg: #fdf6e3;
+  --tnt-tree-hover: rgba(0, 0, 0, 0.08);
+  --tnt-tree-indent: 24px;
   --tnt-file-tree-icon-markdown: #b58900;
 }
 ```
 
-`FileTree` phơi ra bộ biến riêng ngoài token toàn cục: `--tnt-file-tree-{bg,text,text-dim,hover,active,spacing,indent}`,
-cộng 20 biến màu icon `--tnt-file-tree-icon-{folder,file,readme,markdown,javascript,css,html,json,database,php,vue,git,text,code,font,image,video,audio,spreadsheet,archive}`.
-Mỗi biến icon dùng fallback `var(--tnt-file-tree-icon-x, var(--tnt-file-tree-text-dim))`,
-nên bỏ trống vẫn ra màu hợp lý.
+`FileTree` phơi ra **đúng 20 biến**, tất cả là màu icon:
+`--tnt-file-tree-icon-{folder,file,readme,markdown,javascript,css,html,json,database,php,vue,git,text,code,font,image,video,audio,spreadsheet,archive}`.
+
+Sửa 2026-10-06, mục này sai hai chỗ. Thứ nhất, bộ
+`--tnt-file-tree-{bg,text,text-dim,hover,active,spacing,indent}` **không tồn tại** -
+khai ở 0 chỗ, dùng ở 0 chỗ. Token bề mặt của cây là `--tnt-tree-*`, vì FileTree là
+adapter và phần cây do Tree render. Thứ hai, biến icon **không có fallback**: đo
+trên `dist/ui/file-tree/styles.css`, 20 lần dùng `var(--tnt-file-tree-icon-*)` và 0
+lần có dấu phẩy. Bỏ trống một biến icon thì declaration thành invalid at
+computed-value time và `color` về giá trị kế thừa, không phải "màu hợp lý".
 
 ### Level 2 - variant prop + `className` **[ĐANG CÓ]**
 

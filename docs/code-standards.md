@@ -293,10 +293,13 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 **Ví dụ:**
 
 ```css
-/* src/ui/FileTree/FileTree.module.css */
+/* src/ui/file-tree/FileTree.module.css */
 .tnt-file-tree-root {
-  background-color: var(--tnt-file-tree-bg);
-  color: var(--tnt-file-tree-text);
+  /* Token bề mặt là `--tnt-tree-*`: FileTree là adapter, phần cây do Tree render.
+     20 token của file-tree đều là `icon-*`. Ví dụ cũ dùng `--tnt-file-tree-bg` và
+     `--tnt-file-tree-text`, cả hai khai ở 0 chỗ - đo 2026-10-06. */
+  background-color: var(--tnt-tree-bg);
+  color: var(--tnt-tree-text);
 }
 
 .tnt-tree-label {
@@ -314,8 +317,8 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 
 ```css
 :root {
-  --tnt-file-tree-bg: #ffffff;
-  --tnt-file-tree-text: #000000;
+  --tnt-tree-bg: #ffffff;
+  --tnt-tree-text: #000000;
   --tnt-primary: #007bff;
 }
 ```
