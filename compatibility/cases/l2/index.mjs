@@ -6,6 +6,7 @@ import { EXIT, LAB } from '../../scripts/paths.mjs';
 import { createConsumer, readManifest, tarballFor } from '../../scripts/consumer.mjs';
 import { printSummary, writeReport } from '../../scripts/report.mjs';
 import { ssrCjs, ssrEsm, tsProbe } from './lib/fixtures.mjs';
+import { withPreview } from './lib/preview.mjs';
 
 const contract = JSON.parse(readFileSync(resolve(LAB, 'contract.json'), 'utf8')).packages;
 const cases = [];
@@ -286,57 +287,118 @@ createRoot(document.getElementById('root')).render(
     add('vite:build', false, `vite build exit=${built.code}: ${lines.slice(at, at + 4).join(' | ')}`);
   } else {
     add('vite:build', true, 'vite build exit 0');
-    // preview chạy nền -> spawn, không execFileSync
-    const { spawn } = await import('node:child_process');
-    /**
-     * `localhost`, KHÔNG phải `127.0.0.1`.
-     *
-     * `vite preview` bind IPv6 `::1` mà không bind IPv4. Đo 2026-09-28 trên cùng
-     * server: `[::1]:4319` -> 200, `localhost:4319` -> 200, `127.0.0.1:4319` -> 000
-     * (connection refused). Gõ cứng IPv4 nên ca này không bao giờ tới được trang,
-     * và trước khi có vòng chờ + catch ở dưới thì nó giết cả lần chạy L2.
-     */
-    const PREVIEW_URL = 'http://localhost:4319/';
-    const proc = spawn('npx', ['vite', 'preview', '--port', '4319', '--strictPort'], { cwd: work, stdio: 'ignore' });
-    try {
-      /**
-       * CHỜ SERVER SẴN SÀNG, không ngủ một khoảng cố định.
-       *
-       * Bản trước ngủ 4000ms rồi goto thẳng. `npx vite preview` trong consumer mới
-       * phải resolve binary trước, và trên máy này nó vượt 4s -> `goto` ném
-       * ERR_CONNECTION_REFUSED. Vì `try` chỉ có `finally` mà không có `catch`, lỗi
-       * đó thoát ra và GIẾT cả lần chạy L2: mọi ca sau không chạy và report không
-       * được ghi. Đo 2026-09-28.
-       */
-      const deadline = Date.now() + 30_000;
-      let up = false;
-      while (Date.now() < deadline) {
-        try {
-          const r = await fetch(PREVIEW_URL, { signal: AbortSignal.timeout(1000) });
-          if (r.ok) { up = true; break; }
-        } catch {
-          // chưa lên, thử lại
-        }
-        await new Promise((r) => setTimeout(r, 250));
-      }
-      if (!up) throw new Error('vite preview không lên sau 30s trên cổng 4319');
-      const browser = await chromium.launch();
-      const page = await browser.newPage();
-      await page.goto(PREVIEW_URL, { waitUntil: 'networkidle' });
-      const seen = await page.evaluate(() => ({
-        filetree: document.querySelectorAll('.tnt-file-tree-root').length,
-        ping: document.querySelectorAll('[class*="tnt-ping"]').length,
-        tinitaRules: [...document.styleSheets].flatMap((sh) => { try { return [...sh.cssRules]; } catch { return []; } })
-          .filter((r) => r.selectorText?.includes('tnt-')).length,
-      }));
-      await browser.close();
-      const ok = seen.filetree >= 1 && seen.tinitaRules > 0;
-      add('vite:render', ok, `FileTree=${seen.filetree} Ping=${seen.ping} rule .tnt-*=${seen.tinitaRules}`);
-    } catch (error) {
-      // Một ca đỏ là một ca đỏ, không phải lý do để bỏ luôn phần còn lại của L2.
-      add('vite:render', false, `không dựng được trang preview: ${error.message}`);
-    } finally {
-      proc.kill('SIGTERM');
+    const rendered = await withPreview({
+      work,
+      port: 4319,
+      probe: (page) =>
+        page.evaluate(() => ({
+          filetree: document.querySelectorAll('.tnt-file-tree-root').length,
+          ping: document.querySelectorAll('[class*="tnt-ping"]').length,
+          tinitaRules: [...document.styleSheets]
+            .flatMap((sh) => {
+              try {
+                return [...sh.cssRules];
+              } catch {
+                return [];
+              }
+            })
+            .filter((r) => r.selectorText?.includes('tnt-')).length,
+        })),
+    });
+    if (!rendered.ok) {
+      add('vite:render', false, `không dựng được trang preview: ${rendered.error.message}`);
+    } else {
+      const seen = rendered.value;
+      add(
+        'vite:render',
+        seen.filetree >= 1 && seen.tinitaRules > 0,
+        `FileTree=${seen.filetree} Ping=${seen.ping} rule .tnt-*=${seen.tinitaRules}`,
+      );
+    }
+  }
+
+  /**
+   * ---------- Token motion: consumer per-component KHÔNG nhập styles.css ----------
+   *
+   * Ca này tồn tại vì mọi consumer browser khác của lab đều `import
+   * 'tinita-react/styles.css'` - `vite:render` ngay trên, và CẢ app Next của L4
+   * (root layout của nó nhập, và trong App Router root layout áp cho mọi route nên
+   * không route nào tránh được). Đo 2026-10-06: hai tầng browser duy nhất của repo
+   * đều che đúng lớp lỗi mà ship-CSS-theo-component sinh ra.
+   *
+   * Phán quyết HAI CHIỀU, và tín hiệu thứ hai phải đến từ một declaration KHÔNG
+   * dùng token:
+   *   position !== 'absolute'  -> CSS của component không tới (bridge hỏng)
+   *   animationName === 'none' -> CSS tới nhưng token không giải được
+   *
+   * Bản đầu của ca này đọc `animationName` + `animationDuration` và cả hai cùng
+   * báo hỏng, trong khi `css-graph:ping` cùng lượt chạy lại PASS với 2396 byte CSS
+   * của Ping - hai thứ không thể cùng đúng. Lý do: `animation` là SHORTHAND, nên
+   * `var()` không giải được làm invalid cả declaration và `animation-name` cũng về
+   * initial `none`. Hai tín hiệu đó hỏng cùng nhau nên không phân biệt được gì.
+   * `position: absolute` trong cùng rule `.pulse` không qua token, nên nó là bằng
+   * chứng độc lập rằng rule đã áp. Đo 2026-10-06.
+   *
+   * Ping được chọn vì pulse là toàn bộ chức năng của nó, và nó không cần optional
+   * peer nào.
+   */
+  const noGlobal = createConsumer({
+    level: 'l2',
+    name: 'vite-no-global-css',
+    deps: [...REACT, 'vite@7', '@vitejs/plugin-react@5'],
+    tarballs: TGZ,
+    pkgJson: { type: 'module' },
+    files: {
+      'index.html': '<!doctype html><div id="root"></div><script type="module" src="/main.jsx"></script>',
+      'vite.config.js': "import react from '@vitejs/plugin-react';\nexport default { plugins: [react()] };\n",
+      // CỐ Ý không có `import 'tinita-react/styles.css'`. Thêm vào là xoá ca này.
+      'main.jsx': `
+import { createRoot } from 'react-dom/client';
+import { createElement as h } from 'react';
+import { Ping } from 'tinita-react/ui/ping';
+createRoot(document.getElementById('root')).render(h(Ping, { count: 2 }));
+`,
+    },
+  });
+
+  const noGlobalBuilt = run('npx', ['vite', 'build'], noGlobal, 300_000);
+  if (!noGlobalBuilt.ok) {
+    add('motion-present:build', false, `vite build exit=${noGlobalBuilt.code}`);
+  } else {
+    const probed = await withPreview({
+      work: noGlobal,
+      port: 4320,
+      probe: (page) =>
+        page.evaluate(() => {
+          const el = document.querySelector('.tnt-ping-pulse');
+          if (!el) return { found: false };
+          const cs = getComputedStyle(el);
+          return {
+            found: true,
+            name: cs.animationName,
+            duration: cs.animationDuration,
+            // Không qua token -> bằng chứng độc lập rằng rule `.pulse` đã áp.
+            position: cs.position,
+            opacity: cs.opacity,
+          };
+        }),
+    });
+    if (!probed.ok) {
+      add('motion-present', false, `không dựng được trang preview: ${probed.error.message}`);
+    } else {
+      const m = probed.value;
+      const cssArrived = m.found && m.position === 'absolute' && m.opacity === '0.75';
+      const tokenResolved = m.found && m.name !== 'none' && m.name !== '' && m.duration !== '0s';
+      add(
+        'motion-present',
+        cssArrived && tokenResolved,
+        m.found
+          ? `position=${m.position} opacity=${m.opacity} animationName=${m.name} animationDuration=${m.duration}` +
+              ` | CSS tới=${cssArrived}, token giải được=${tokenResolved}` +
+              (cssArrived && !tokenResolved ? ' <- token nằm NGOÀI CSS graph của component' : '')
+          : 'không tìm thấy .tnt-ping-pulse',
+        { measured: m },
+      );
     }
   }
 }
