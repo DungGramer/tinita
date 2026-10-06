@@ -102,6 +102,19 @@
       "tier": 3,
       "advisory": true,
       "why": "runtime khác hẳn, chưa cài ở local nên chỉ tồn tại trong Docker. advisory: fail không làm đỏ tier 2"
+    },
+    {
+      "id": "playwright",
+      "tier": 3,
+      "dockerfile": "playwright.Dockerfile",
+      "node": "20",
+      "pm": "npm",
+      "pmVersion": "latest",
+      "levels": [
+        "l4"
+      ],
+      "writesScreenshots": true,
+      "why": "Ca ảnh của L4 chỉ CHẠY THẬT ở đây. Baseline sinh trong Linux mà so trên host macOS thì đỏ hết vì font rendering và antialiasing khác, nên L4 trên host skip phần ảnh. Cell này là chỗ duy nhất vừa sinh được baseline (`--update-snapshots`, cần mount `__screenshots__` read-write) vừa so được nó."
     }
   ]
 }

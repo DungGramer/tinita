@@ -51,7 +51,7 @@ if (flags['update-snapshots'] === 'true' && !IN_CONTAINER) {
     '[l4] TỪ CHỐI sinh baseline trên host.\n' +
       '[l4] Font rendering và antialiasing của macOS khác Linux container -> baseline sinh trên host\n' +
       '[l4] sẽ làm mọi ca đỏ vì lý do không liên quan tới library.\n' +
-      '[l4] Chạy trong container: node compatibility/cases/l3/index.mjs --case=playwright --update-snapshots\n',
+      '[l4] Chạy trong container: node compatibility/run.mjs l3 --case=playwright --update-snapshots\n',
   );
   process.exit(EXIT.INFRA);
 }
@@ -333,16 +333,35 @@ for (const reactVersion of REACT_VERSIONS) {
     // Đưa media về `reduce` cho phần chụp ảnh phía dưới giữ nguyên điều kiện cũ.
     await page.emulateMedia({ reducedMotion: 'reduce' });
 
-    // Visual regression: baseline chỉ so khi đã có, và chỉ sinh trong container.
-    mkdirSync(SHOTS, { recursive: true });
-    for (const shot of ['ping', 'ticker', 'filetree']) {
-      const file = resolve(SHOTS, `${shot}-react${reactVersion}.png`);
-      const el = page.locator(`[data-shot="${shot}"]`);
-      if (flags['update-snapshots'] === 'true') {
-        await el.screenshot({ path: file, animations: 'disabled' });
-        add(`react${reactVersion}:shot:${shot}`, true, `baseline ghi: ${shot}-react${reactVersion}.png`);
-      } else if (!existsSync(file)) {
-        add(`react${reactVersion}:shot:${shot}`, true, 'skip: chưa có baseline (sinh trong container trước)', { skipped: true, reason: 'no-baseline' });
+    /*
+       * Visual regression. Baseline sinh TRONG container, và cũng chỉ SO trong
+       * container.
+       *
+       * Chỗ dễ sai: sinh baseline trong Linux rồi so trên host macOS thì 6 ca đỏ
+       * hết vì font rendering và antialiasing khác - tức việc sinh baseline sẽ biến
+       * 6 SKIP thành 6 FAIL mà không có lỗi nào trong library. `playwright.Dockerfile`
+       * đã ghi nửa đầu của điều đó (chỉ SINH trong container); nửa sau là chỉ SO
+       * trong container, và nó thiếu cho tới 2026-10-06.
+       *
+       * Hệ quả: ca ảnh chỉ thật sự chạy qua cell `playwright` của L3. Trên host nó
+       * skip, và lý do nói rõ vì sao chứ không phải "chưa có baseline".
+       */
+      mkdirSync(SHOTS, { recursive: true });
+      for (const shot of ['ping', 'ticker', 'filetree']) {
+        const file = resolve(SHOTS, `${shot}-react${reactVersion}.png`);
+        const el = page.locator(`[data-shot="${shot}"]`);
+        if (flags['update-snapshots'] === 'true') {
+          await el.screenshot({ path: file, animations: 'disabled' });
+          add(`react${reactVersion}:shot:${shot}`, true, `baseline ghi: ${shot}-react${reactVersion}.png`);
+        } else if (!IN_CONTAINER) {
+          add(
+            `react${reactVersion}:shot:${shot}`,
+            true,
+            'skip: chỉ so ảnh TRONG container - rendering của host khác Linux. Chạy `node compatibility/run.mjs l3 --case=playwright`',
+            { skipped: true, reason: 'host-rendering-differs' },
+          );
+        } else if (!existsSync(file)) {
+        add(`react${reactVersion}:shot:${shot}`, true, 'skip: chưa có baseline. Sinh: `node compatibility/run.mjs l3 --case=playwright --update-snapshots`', { skipped: true, reason: 'no-baseline' });
       } else {
         const current = await el.screenshot({ animations: 'disabled' });
         const baseline = readFileSync(file);

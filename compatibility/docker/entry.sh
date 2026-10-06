@@ -4,6 +4,9 @@ set -e
 # /artifacts : tarball do pack.mjs tạo, mount read-only
 # /work      : nơi container tự dựng consumer (tmpfs hoặc volume của container)
 LEVEL="${1:-l1}"
+# Mọi tham số sau LEVEL được chuyển nguyên cho run.mjs - `--update-snapshots` đi qua
+# đường này. `run.mjs` chuyển tiếp mọi flag xuống case (run.mjs:70).
+[ $# -gt 0 ] && shift
 
 echo "== cell: node $(node --version), PM=${PM}"
 if [ "$PM" != "npm" ]; then echo "== ${PM} $(${PM} --version)"; fi
@@ -59,4 +62,14 @@ if [ "$PM" = "yarn" ] && [ "$PM_MODE" = "pnp" ]; then
   echo "== consumer sẽ dựng bằng yarn PnP (LAB_CONSUMER_PM=$LAB_CONSUMER_PM)"
 fi
 
-node /work/lab/run.mjs "$LEVEL" --no-pack
+# /screenshots : baseline ảnh, mount READ-WRITE, chỉ khi đang sinh baseline.
+#
+# `tar` phía trên copy lab vào /work/lab, nên ảnh ghi ra ở đó sẽ MẤT khi container
+# thoát. Symlink thư mục baseline sang mount của host là đường duy nhất đưa ảnh ra.
+if [ -d /screenshots ]; then
+  rm -rf /work/lab/cases/l4/__screenshots__
+  ln -s /screenshots /work/lab/cases/l4/__screenshots__
+  echo "== __screenshots__ -> /screenshots (mount rw của host)"
+fi
+
+node /work/lab/run.mjs "$LEVEL" --no-pack "$@"

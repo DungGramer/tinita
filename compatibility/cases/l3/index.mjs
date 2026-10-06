@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { ARTIFACTS, EXIT, LAB } from '../../scripts/paths.mjs';
@@ -74,12 +74,25 @@ for (const cell of selected) {
   }
 
   for (const level of cell.levels) {
+    /*
+     * `--update-snapshots` chỉ có nghĩa với cell khai `writesScreenshots`, và nó đòi
+     * mount READ-WRITE: `entry.sh` tar lab vào `/work/lab`, nên ảnh ghi ra ở đó mất
+     * khi container thoát.
+     *
+     * `/lab` vẫn là `:ro` - chỉ đúng thư mục baseline được ghi.
+     */
+    const wantsUpdate = flags['update-snapshots'] === 'true' && cell.writesScreenshots === true;
+    const shots = resolve(LAB, 'cases/l4/__screenshots__');
+    if (wantsUpdate) mkdirSync(shots, { recursive: true });
+
     const run = spawnSync('docker', [
       'run', '--rm',
       '-v', `${LAB}:/lab:ro`,
       '-v', `${ARTIFACTS}:/artifacts:ro`,
+      ...(wantsUpdate ? ['-v', `${shots}:/screenshots`] : []),
       ...(cell.pmMode ? ['-e', `PM_MODE=${cell.pmMode}`] : []),
       tag, level,
+      ...(wantsUpdate ? ['--update-snapshots'] : []),
     ], { encoding: 'utf8', timeout: 1_800_000 });
 
     const out = `${run.stdout ?? ''}${run.stderr ?? ''}`;
