@@ -287,6 +287,32 @@ component) không load được bằng `node` trần. `contract.json` khai
 page là Server Component (đo: 0 byte, đối chứng bỏ condition ra thì 2424 byte). Next
 server graph phải thấy cạnh CSS để client graph thừa hưởng.
 
+### Sàn browser của CSS: `oklch()` và `color-mix()`
+
+```
+oklch()      Chrome 111  Safari 15.4  Firefox 113   --tnt-ping, --tnt-ping-dot
+color-mix()  Chrome 111  Safari 16.2  Firefox 113   --tnt-tree-selected-bg,
+                                                    --tnt-floating-window-border-idle
+```
+
+`oklch()` đã nằm trong CSS publish từ trước khi ai viết nó ra - đo 2026-10-06, 3 khai
+báo. `color-mix()` thêm có chủ ý 2026-10-06 để hai token kia dẫn xuất từ `--tnt-ring`
+và `--tnt-border` thay vì đóng băng một giá trị tính tay.
+
+**`rgb(from ...)` đã cân và loại**: nó giữ được serialization `rgba()` nhưng sàn
+Firefox là 128 (7/2024) so với 113 mà package đã đòi - khoảng 15 tháng Firefox cho
+một khác biệt hình thức.
+
+**`in srgb`, KHÔNG `in oklab`.** Đo trong Chromium: `in srgb` cho kênh trùng khít
+literal cũ, `in oklab` đi qua không gian khác và serialize ra `oklab(...)`.
+
+Hệ quả quan sát được: `color-mix()` serialize thành
+`color(srgb 0.145098 0.388235 0.921569 / 0.12)`, không phải `rgba(37, 99, 235, 0.12)`.
+Cùng màu trong phạm vi làm tròn float - đo `99.0` ra `98.9999` - nhưng **mọi phép so
+sánh trên `getComputedStyle` phải so SỐ, không so chuỗi**. Và đừng đọc màu bằng
+canvas: nó lưu 8-bit và làm tròn màu alpha thấp, đo được `rgba(37, 99, 235, 0.12)` ra
+`[33, 99, 239, 31]`.
+
 ### Token mới đặt ở đâu - năm câu, hai câu đầu máy kiểm được
 
 ```

@@ -485,9 +485,39 @@ outside the pnpm workspace so nothing resolves back to the source.
 
 - **Workspace:** pnpm 9 + Turborepo
 - **Node:** >=18
+- **Browsers (CSS floor):** Chrome 111, Safari 16.2, Firefox 113 - see below
 - **Build:** tsup and Vite (JS) + PostCSS (CSS)
 - **Tests:** Vitest - `tinita` 35, `tinita-react` 49, `tinita-dom` 17
 - **Release:** manual, via `scripts/publish.mjs`
+
+### The CSS floor, and where it comes from
+
+`tinita-react`'s stylesheets use two modern colour functions, so the browser floor is
+set by them rather than by anything in the JavaScript:
+
+| Function      | Used for                                                      | Chrome | Safari | Firefox |
+| ------------- | ------------------------------------------------------------- | ------ | ------ | ------- |
+| `oklch()`     | `--tnt-ping`, `--tnt-ping-dot`                                | 111    | 15.4   | 113     |
+| `color-mix()` | `--tnt-tree-selected-bg`, `--tnt-floating-window-border-idle` | 111    | 16.2   | 113     |
+
+`oklch()` has been in the published CSS since before this was written down; measured
+2026-10-06, three declarations use it. `color-mix()` was added deliberately on
+2026-10-06 so those two tokens derive from `--tnt-ring` and `--tnt-border` instead of
+freezing a hand-computed value - override the palette token and the tint follows.
+
+`rgb(from ...)` relative colours would have done the same job and kept the computed
+value serialising as `rgba()`, but its Firefox floor is 128 (July 2024) against 113
+for what the package already required. That is roughly fifteen months of Firefox for
+a cosmetic difference, so `color-mix()` won.
+
+One observable consequence: a `color-mix()` result serialises as
+`color(srgb 0.145098 0.388235 0.921569 / 0.12)`, not `rgba(37, 99, 235, 0.12)`. The
+colour is the same to within float rounding - measured `99.0` coming back as
+`98.9999`, four significant figures below one 8-bit step - but code that compares
+`getComputedStyle` output as a **string** will see a different value. Compare numbers.
+
+`tinita` and `tinita-dom` ship no CSS and have no browser floor of their own beyond
+the DOM APIs each function names.
 
 ---
 
