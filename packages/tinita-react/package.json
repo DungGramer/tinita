@@ -79,14 +79,24 @@
   ],
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./hooks/useToggle": {
-      "types": "./dist/hooks/useToggle.d.ts",
-      "import": "./dist/hooks/useToggle.mjs",
-      "require": "./dist/hooks/useToggle.cjs"
+      "import": {
+        "types": "./dist/hooks/useToggle.d.mts",
+        "default": "./dist/hooks/useToggle.mjs"
+      },
+      "require": {
+        "types": "./dist/hooks/useToggle.d.ts",
+        "default": "./dist/hooks/useToggle.cjs"
+      }
     },
     "./styles/globals.css": "./dist/styles/globals.css",
     "./styles/animations.css": "./dist/styles/animations.css",
@@ -110,34 +120,64 @@
     "./styles.css": "./dist/styles.css",
     "./styles.layer.css": "./dist/styles.layer.css",
     "./ui/file-tree": {
-      "types": "./dist/ui/file-tree/index.d.ts",
-      "import": "./dist/ui/file-tree/index.mjs",
-      "require": "./dist/ui/file-tree/index.cjs"
+      "import": {
+        "types": "./dist/ui/file-tree/index.d.mts",
+        "default": "./dist/ui/file-tree/index.mjs"
+      },
+      "require": {
+        "types": "./dist/ui/file-tree/index.d.ts",
+        "default": "./dist/ui/file-tree/index.cjs"
+      }
     },
     "./ui/tree": {
-      "types": "./dist/ui/tree/index.d.ts",
-      "import": "./dist/ui/tree/index.mjs",
-      "require": "./dist/ui/tree/index.cjs"
+      "import": {
+        "types": "./dist/ui/tree/index.d.mts",
+        "default": "./dist/ui/tree/index.mjs"
+      },
+      "require": {
+        "types": "./dist/ui/tree/index.d.ts",
+        "default": "./dist/ui/tree/index.cjs"
+      }
     },
     "./ui/ping": {
-      "types": "./dist/ui/ping/index.d.ts",
-      "import": "./dist/ui/ping/index.mjs",
-      "require": "./dist/ui/ping/index.cjs"
+      "import": {
+        "types": "./dist/ui/ping/index.d.mts",
+        "default": "./dist/ui/ping/index.mjs"
+      },
+      "require": {
+        "types": "./dist/ui/ping/index.d.ts",
+        "default": "./dist/ui/ping/index.cjs"
+      }
     },
     "./ui/carousel-ticker": {
-      "types": "./dist/ui/carousel-ticker/index.d.ts",
-      "import": "./dist/ui/carousel-ticker/index.mjs",
-      "require": "./dist/ui/carousel-ticker/index.cjs"
+      "import": {
+        "types": "./dist/ui/carousel-ticker/index.d.mts",
+        "default": "./dist/ui/carousel-ticker/index.mjs"
+      },
+      "require": {
+        "types": "./dist/ui/carousel-ticker/index.d.ts",
+        "default": "./dist/ui/carousel-ticker/index.cjs"
+      }
     },
     "./ui/floating-window": {
-      "types": "./dist/ui/floating-window/index.d.ts",
-      "import": "./dist/ui/floating-window/index.mjs",
-      "require": "./dist/ui/floating-window/index.cjs"
+      "import": {
+        "types": "./dist/ui/floating-window/index.d.mts",
+        "default": "./dist/ui/floating-window/index.mjs"
+      },
+      "require": {
+        "types": "./dist/ui/floating-window/index.d.ts",
+        "default": "./dist/ui/floating-window/index.cjs"
+      }
     },
     "./utils/autoInjectStyles": {
-      "types": "./dist/utils/autoInjectStyles.d.ts",
-      "import": "./dist/utils/autoInjectStyles.mjs",
-      "require": "./dist/utils/autoInjectStyles.cjs"
+      "import": {
+        "types": "./dist/utils/autoInjectStyles.d.mts",
+        "default": "./dist/utils/autoInjectStyles.mjs"
+      },
+      "require": {
+        "types": "./dist/utils/autoInjectStyles.d.ts",
+        "default": "./dist/utils/autoInjectStyles.cjs"
+      }
     },
     "./hooks/useDoubleTap": {
       "import": {
@@ -150,14 +190,24 @@
       }
     },
     "./hooks/useDragSnap": {
-      "types": "./dist/hooks/useDragSnap.d.ts",
-      "import": "./dist/hooks/useDragSnap.mjs",
-      "require": "./dist/hooks/useDragSnap.cjs"
+      "import": {
+        "types": "./dist/hooks/useDragSnap.d.mts",
+        "default": "./dist/hooks/useDragSnap.mjs"
+      },
+      "require": {
+        "types": "./dist/hooks/useDragSnap.d.ts",
+        "default": "./dist/hooks/useDragSnap.cjs"
+      }
     },
     "./hooks/useWindowDrag": {
-      "types": "./dist/hooks/useWindowDrag.d.ts",
-      "import": "./dist/hooks/useWindowDrag.mjs",
-      "require": "./dist/hooks/useWindowDrag.cjs"
+      "import": {
+        "types": "./dist/hooks/useWindowDrag.d.mts",
+        "default": "./dist/hooks/useWindowDrag.mjs"
+      },
+      "require": {
+        "types": "./dist/hooks/useWindowDrag.d.ts",
+        "default": "./dist/hooks/useWindowDrag.cjs"
+      }
     },
     "./hooks/usePagination": {
       "import": {
