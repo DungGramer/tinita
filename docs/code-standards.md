@@ -283,23 +283,27 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 **Quy Tắc (Hiện Trạng ✓):**
 
 - Prefix tất cả class: `tnt-{component}__*`
-- BEM-like: `tnt-filetree__label--folder`
+- `tnt-<folder>-<local>`, kebab phẳng. **KHÔNG phải BEM** - không có `__` element
+  lẫn `--` modifier. Tên do `generateScopedName: 'tnt-[folder]-[local]'` của vite
+  sinh từ CSS Modules, nên `.root` trong `src/ui/file-tree/FileTree.module.css`
+  thành `.tnt-file-tree-root`. Biến thể đi qua `data-*`, không qua tên class.
+  Sửa 2026-10-06: mô tả BEM ở đây chưa bao giờ đúng với code.
 - CSS variable: `tnt-primary`, `tnt-radius-md`, `tnt-ease-in-out`
 
 **Ví dụ:**
 
 ```css
 /* src/ui/FileTree/FileTree.module.css */
-.tnt-filetree {
+.tnt-file-tree-root {
   background-color: var(--tnt-file-tree-bg);
   color: var(--tnt-file-tree-text);
 }
 
-.tnt-filetree__label {
+.tnt-tree-label {
   padding: var(--tnt-spacing-2);
 }
 
-.tnt-filetree__label--folder {
+.tnt-tree-row[data-selected='true'] .tnt-tree-label {
   font-weight: 600;
 }
 ```
@@ -1055,7 +1059,7 @@ của L2 trong Chromium - mạnh hơn nhưng cần chromium nên không chạy t
    - Biến nội bộ của Radix nằm trong contract CSS công khai: đổi foundation sang Base UI là vỡ
      keyframes, và người dùng không có cách nào biết họ đang phụ thuộc Radix.
    - Sửa: `--tnt-accordion-content-height: var(--radix-accordion-content-height)` đặt trên
-     `.tnt-filetree__accordion-content`; keyframes chỉ đọc biến của tinita.
+     `.tnt-tree-group` (panel của Base UI Collapsible); keyframes chỉ đọc biến của tinita.
    - Guard: ca "không dùng biến runtime của third-party trực tiếp" - đòi đúng **một** lần xuất hiện
      `var(--radix-*)`, ở chỗ bọc lại.
 
@@ -1086,8 +1090,8 @@ JSX** - có guard chặn (`tests/styles/variant-contract.test.ts`).
 ```
 
 ```css
-.tnt-carousel-ticker[data-orientation='vertical']
-  .tnt-carousel-ticker__content {
+.tnt-carousel-ticker-root[data-orientation='vertical']
+  .tnt-carousel-ticker-content {
   flex-direction: column;
 }
 ```

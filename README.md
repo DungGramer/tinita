@@ -504,6 +504,32 @@ standards, system architecture and design guidelines. Those documents are writte
 2. **The `tinita-react` barrel pulls in optional peers.** `src/index.ts` re-exports `./ui/file-tree`,
    so `import { Ping } from 'tinita-react'` requires `@base-ui/react` and `lucide-react`. Use specific
    subpaths.
+3. **Two versions of `tinita-react` in one dependency tree is not supported**, the same way two
+   copies of React are not. Component CSS uses stable class names (`tnt-ping-root`, not a hash), so
+   two versions declare the same selectors and the winner is decided by **bundle order, not by
+   version**.
+
+   Measured 2026-10-06 in a real vite app with `0.1.1` at the top level and `0.1.0` nested under a
+   wrapper library, the nested copy marked so it could be told apart:
+
+   ```
+   .tnt-ping-root defined x3, in bundle order:
+     offset  5717  {align-items:center;display:inline-flex}   0.1.1 top-level
+     offset 12316  {align-items:center;display:inline-flex}   0.1.0 nested
+     offset 13199  {display:block;outline:3px solid magenta}  0.1.0 nested, the marker
+   ```
+
+   Equal specificity, so the last one wins: the **older** copy styled the newer copy's component.
+   When the two copies' CSS is identical the bundler collapses it to one (no size penalty); when it
+   differs, both are kept and only the delta is added (77 bytes here, exactly the two marked lines).
+   Nothing is silently substituted - but the cascade is not yours to predict.
+
+   Detect it with `npm ls tinita-react`. Fix it with `overrides` (npm/pnpm) or `resolutions` (yarn)
+   pinning a single version. A single version using many components does **not** duplicate anything:
+   measured, shared CSS and tokens each land exactly once.
+
+   There is deliberately no runtime warning, version token or versioned class name for this. See
+   `docs/system-architecture.md` for why.
 
 ---
 

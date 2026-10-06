@@ -328,14 +328,14 @@ nên mọi thứ trông như chạy): `node_modules` chỉ có `react` + `tinita
 
 ## Naming Convention
 
-| Loại             | Quy tắc             | Ví dụ                                             |
-| ---------------- | ------------------- | ------------------------------------------------- |
-| Directory        | kebab-case          | `src/ui/file-tree/`, `src/file/`                  |
-| File (utility)   | camelCase.ts        | `fileSize.ts`, `generateUuid.ts`                  |
-| File (component) | PascalCase.tsx      | `FileTree.tsx`, `Ping.tsx`                        |
-| File (private)   | camelCase.ts        | `utils.ts`, `parser.ts`                           |
-| CSS Class        | BEM + `tnt-` prefix | `tnt-filetree__label--folder`, `tnt-ping__pulse`  |
-| CSS Variable     | `tnt-*`             | `tnt-primary`, `tnt-radius-md`, `tnt-ease-in-out` |
+| Loại             | Quy tắc                                                                                                                                                                           | Ví dụ                                                                               |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Directory        | kebab-case                                                                                                                                                                        | `src/ui/file-tree/`, `src/file/`                                                    |
+| File (utility)   | camelCase.ts                                                                                                                                                                      | `fileSize.ts`, `generateUuid.ts`                                                    |
+| File (component) | PascalCase.tsx                                                                                                                                                                    | `FileTree.tsx`, `Ping.tsx`                                                          |
+| File (private)   | camelCase.ts                                                                                                                                                                      | `utils.ts`, `parser.ts`                                                             |
+| CSS Class        | `tnt-<folder>-<local>`, kebab phẳng, do `generateScopedName` của vite sinh từ CSS Modules. KHÔNG phải BEM - không có `__` lẫn `--`. Biến thể đi qua `data-*`, không qua tên class | `tnt-file-tree-root`, `tnt-ping-pulse`, `tnt-tree-label` + `[data-selected='true']` |
+| CSS Variable     | `tnt-*`                                                                                                                                                                           | `tnt-primary`, `tnt-radius-md`, `tnt-ease-in-out`                                   |
 
 ---
 

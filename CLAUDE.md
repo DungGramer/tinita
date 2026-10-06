@@ -71,7 +71,11 @@ dừng ở `npm whoami` - đừng bypass.
 
 ## Build: bốn bất biến, mỗi cái từ một bug thật
 
-`tsup` cho cả 3 package. Đừng đổi những thứ sau mà không đọc lý do:
+`tsup` cho `tinita` và `tinita-dom`. Với **`tinita-react` thì tsup CHỈ sinh
+declaration**: `build:js` là `vite build` chạy hai lần (`TNT_FORMAT=es` rồi `cjs`),
+`build:types` mới là tsup. Sửa output JS của `tinita-react` trong `tsup.config.ts`
+là sửa file không ai dùng - đo 2026-10-06. Đừng đổi những thứ sau mà không đọc lý
+do:
 
 1. **`bundle: true`** - bắt buộc, KHÔNG phải `false`. Với `bundle: false` esbuild
    giữ nguyên specifier tương đối không đuôi trong `.mjs`, và Node ESM đòi đuôi:
@@ -79,7 +83,11 @@ dừng ở `npm whoami` - đừng bypass.
 2. **`outExtension: cjs -> .cjs, esm -> .mjs`** - `exports.require` trỏ `.cjs`;
    không có nó tsup emit `.js` và mọi `require()` gãy. Bug B1.
 3. **`types` tách theo condition** - `import` -> `.d.mts`, `require` -> `.d.ts`.
-   Không tách thì `attw` báo `FalseCJS` toàn bộ subpath.
+   Dạng phẳng (`{types, import, require}`) làm `import` nhận declaration kiểu CJS
+   cho một file ESM. **Đo 2026-10-06**: 10 subpath của `tinita-react` dùng dạng
+   phẳng, và `attw` báo đúng 10 dòng `Masquerading as CJS`, khớp 1-1. Nợ #18 từng
+   ghi "không tái lập được" - đúng, vì ca `02-attw` đang CRASH và báo xanh; xem
+   mục "Quy tắc làm việc" bên dưới.
 4. **`banner: { js: "'use client';" }` cho tinita-react** - esbuild XOÁ directive
    khỏi output, nên đặt `'use client'` trong source là không đủ. Đo được: dist bắt
    đầu bằng `import{...}`. Cả package là client nên áp toàn bộ là khai đúng.
@@ -233,12 +241,24 @@ stylesheet.** Chi tiết và số đo ở `docs/system-architecture.md` mục 6b
 biết ngay:
 
 ```
-ui/<name>/index.ts      import the bridge below, bare specifier   <- viết TAY
-ui/<name>/index.css     bridge: @import tokens chung + tokens riêng + styles
-ui/<name>/styles.css    CSS Modules đã compile (vite emit)
-ui/<name>/tokens.css    token của riêng component
-styles/tokens.css       37 token dùng chung
+ui/<name>/index.ts       import the bridge below, bare specifier  <- viết TAY
+ui/<name>/index.css      bridge: @import token chung + motion + riêng + styles
+ui/<name>/styles.css     CSS Modules đã compile (vite emit)
+ui/<name>/tokens.css     token của riêng component
+styles/tokens.css        36 token dùng chung: màu + radius + font
+styles/motion-tokens.css 5 token motion mà CSS component tham chiếu
 ```
+
+**Token motion ở file RIÊNG, không nằm trong `styles/tokens.css`.** Ba ràng buộc
+cùng lúc, chỉ file riêng thoả cả ba: bridge cần 5 token (import `animations.css`
+là trả 56 token + 18 keyframes); **16 rule của chính `animations.css`** cũng dùng
+5 token đó nên nó không nhường đi được; và `docs/design-guidelines.md` khai
+`tinita-react/styles/animations.css` là đường nhập công khai nên nó phải tự đủ.
+Gộp vào `tokens.css` rồi cho `animations.css` import lại thì postcss inline
+`tokens.css` **hai lần** - đo 2026-10-06: `dist/styles.css` nhảy 190 -> 230 khai
+báo. Bridge nào dùng token motion thì `@import
+'tinita-react/styles/motion-tokens.css'`; hiện là `tree`, `ping`,
+`floating-window`, `file-tree`.
 
 **Thêm component mới thì phải viết `index.css` và dòng `import` trong `index.ts`.** Không
 có bước build nào chèn nó - nếu thiếu, component ship ra không có style và chỉ ca
@@ -266,6 +286,55 @@ component) không load được bằng `node` trần. `contract.json` khai
 **Conditional `node` export đã thử và đã loại**, đừng mở lại: nó làm Next mất CSS khi
 page là Server Component (đo: 0 byte, đối chứng bỏ condition ra thì 2424 byte). Next
 server graph phải thấy cạnh CSS để client graph thừa hưởng.
+
+### Token mới đặt ở đâu - năm câu, hai câu đầu máy kiểm được
+
+```
+1. Có >= 2 component CSS tham chiếu nó?          -> styles/tokens.css
+2. Consumer cần đổi nó để retheme library?       -> styles/tokens.css
+3. Chỉ một component, và là quyết định design?   -> ui/<name>/tokens.css,
+                                                    khớp ^--tnt-<name>(-|$)
+4. Do JS set, hoặc bọc biến third-party?         -> khai LOCAL trong .module.css,
+                                                    BẮT BUỘC có fallback trong var()
+5. Hằng số layout dùng một lần?                  -> viết thẳng, không thành token
+```
+
+Nhánh `$` của câu 3 là bắt buộc: `ui/ping/tokens.css` khai `--tnt-ping` (khối light
+và khối dark), và luật thiếu nhánh đó bắt oan đúng hai khai báo ấy.
+
+Quy tắc này tồn tại vì không có nó thì `--tnt-spacing-tree-indent` - token của Tree,
+trùng giá trị với `--tnt-tree-indent` của chính Tree - nằm trong file chung và chỉ
+`globals.css` dùng. Đo 2026-10-06.
+
+**`pnpm check-css-tokens` canh bốn thứ trên `dist`, và nó nằm trong `pnpm gate`**
+(sau `build`, vì nó đọc `dist`):
+
+```
+I6  mọi var(--tnt-*) trong CSS graph của component phải được khai TRONG graph đó,
+    hoặc có fallback
+I4  token trong ui/<name>/tokens.css phải khớp ^--tnt-<name>(-|$)
+I8  bridge không được import styles.css / styles.layer.css / globals.css /
+    animations.css
+I2  graph phải kéo ui/<name>/styles.css của chính component, và mọi @import phải
+    giải được qua exports
+```
+
+I2 là phần chống xanh-oan: không có nó thì một bridge bị xoá hết `@import` cho graph
+rỗng -> 0 use -> guard XANH, trong khi component ship ra không có style nào. Đo
+2026-10-06 bằng cách xoá `@import` khỏi `dist/ui/ping/index.css`: I6 tụt 11 -> 10,
+tức con số TRÔNG NHƯ ĐỠ HƠN.
+
+Guard đọc `dist` chứ không `src`, vì specifier trong bridge là bare và giải qua
+`exports` - `dist` là graph consumer thật nhận.
+
+**Lớp lỗi nó canh đã xảy ra thật, và cả hai tầng browser của repo đều mù với nó.**
+8 declaration trong `Tree`, `Ping`, `FloatingWindow` tham chiếu 5 token motion chỉ
+khai trong `animations.css`. Đo trong Chromium: `animation` là shorthand nên `var()`
+không giải được làm invalid CẢ declaration, `animation-name` về `none`, pulse của
+Ping MẤT HẲN. Nó sống sót vì consumer browser của **cả** L2 (`vite:render`) **và**
+L4 (root layout của app Next) đều `import 'tinita-react/styles.css'` - và trong Next
+App Router root layout áp cho mọi route nên không route nào tránh được. Ca
+`motion-present` của L2 là ca đầu tiên dựng consumer KHÔNG nhập `styles.css`.
 
 ## CSS: không được chạm vào trang khách
 
@@ -524,12 +593,29 @@ tự viết. Những cái đó phải tự tắt ở JS qua `matchMedia` + liste
 ## Quy tắc làm việc trong repo này
 
 **Guard mới phải được chứng minh bằng cách phá đúng thứ nó canh**, không phải bằng
-việc nó xanh. Đã có **năm** lần một ca báo xanh mà không kiểm thứ nó nói đang kiểm:
+việc nó xanh. Đã có **sáu** lần một ca báo xanh mà không kiểm thứ nó nói đang kiểm:
 cell `bun` advisory PASS khi chưa chạy được; ca `08-typesversions-sync` bản đầu
 không thể fail; ca `reduced-motion-scope` dò một hằng số nên mù khi cơ chế đổi;
-cell `yarn-pnp` pass 19 ca mà chưa từng đi qua PnP; và `check-stories` PASS trên
+cell `yarn-pnp` pass 19 ca mà chưa từng đi qua PnP; `check-stories` PASS trên
 `feature/snap-corner` vì nó đọc `exports`, mà component mới chưa khai subpath - khai
-xong là nó đỏ ngay. Mẫu lặp lại, và đây là cách chặn duy nhất đã dùng được.
+xong là nó đỏ ngay; và ca `02-attw` PASS trên **cả ba** package trong khi
+`@arethetypeswrong/cli@0.18.2` CRASH (`exit=3`,
+`Cannot read properties of undefined (reading 'filename')`) - ca đọc CHỈ stdout và
+bỏ exit code, nên output của bản crash không khớp mẫu nào và `problems` ra rỗng.
+Nó che `FalseCJS` trên 10 subpath, và chính dòng detail "vấn đề: không (đều trong
+allowlist)" làm nó đọc như có kiểm soát trong khi `accepted` là mảng RỖNG. Đo
+2026-10-06.
+
+Mẫu lặp lại, và đây là cách chặn duy nhất đã dùng được. Hai bài học cụ thể từ lần
+thứ sáu:
+
+- **Một ca gọi tool ngoài phải phán quyết cả việc tool có CHẠY hay không**, không
+  chỉ grep output của nó. `exit != 0` một mình không đủ khi tool dùng exit code để
+  báo "có vấn đề" (attw: 1 = có problem, 0 = sạch) - phải dò cả dấu hiệu crash.
+- **Đừng dò mẫu trên cả output.** Phần chú giải của attw chứa câu "Import failed to
+  resolve to type declarations or JavaScript files", khớp mẫu `failed to resolve`,
+  nên dò trên cả output là tự sinh false positive. Ca giờ chỉ đọc dòng bảng có
+  entrypoint trong ngoặc kép.
 
 ### `expectedFailure` làm một ca đỏ thành XFAIL, và XFAIL KHÔNG làm suite đỏ
 

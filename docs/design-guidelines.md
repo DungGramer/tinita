@@ -133,19 +133,41 @@ overlay (`blur 4px`, không saturate). Biến: `--tnt-backdrop-{blur,saturate,li
 
 ## 2. Quy ước đặt tên class **[ĐANG CÓ]**
 
-Prefix `tnt-` cho mọi class, đặt tên theo BEM-like. Ví dụ thật từ
-`src/ui/file-tree/FileTree.css`:
+Prefix `tnt-` cho mọi class. Tên là **`tnt-<folder>-<local>`, kebab phẳng**, do
+`generateScopedName: 'tnt-[folder]-[local]'` của vite sinh từ CSS Modules - nên
+`.root` trong `src/ui/file-tree/FileTree.module.css` thành `.tnt-file-tree-root`.
+
+**KHÔNG phải BEM.** Không có `__` element lẫn `--` modifier. Mục này từng mô tả
+BEM và nhắc một file `FileTree.css` không tồn tại (thật là `FileTree.module.css`);
+sửa 2026-10-06 theo class đo được trong `dist`.
 
 ```
-.tnt-filetree                                        /* block    */
-.tnt-filetree__{list,item,label,label-text,icon,arrow}          /* element  */
-.tnt-filetree__accordion-{item,trigger,content}
-.tnt-filetree__label--{folder,file}                             /* modifier */
+file-tree        .tnt-file-tree-root  .tnt-file-tree-icon
+tree             .tnt-tree-root  .tnt-tree-list  .tnt-tree-item  .tnt-tree-row
+                 .tnt-tree-label  .tnt-tree-name  .tnt-tree-arrow  .tnt-tree-arrow-slot
+                 .tnt-tree-icon-slot  .tnt-tree-group  .tnt-tree-group-inner
+                 .tnt-tree-extension  .tnt-tree-description  .tnt-tree-description-mark
+ping             .tnt-ping-root  .tnt-ping-body  .tnt-ping-body-offset
+                 .tnt-ping-dot-wrap  .tnt-ping-dot  .tnt-ping-pulse  .tnt-ping-count
+carousel-ticker  .tnt-carousel-ticker-root  .tnt-carousel-ticker-content
+                 .tnt-carousel-ticker-item  .tnt-carousel-ticker-fade
+                 .tnt-carousel-ticker-pattern
+floating-window  .tnt-floating-window-root  .tnt-floating-window-header
+                 .tnt-floating-window-title  .tnt-floating-window-title-text
+                 .tnt-floating-window-actions  .tnt-floating-window-button
+                 .tnt-floating-window-icon  .tnt-floating-window-body
+                 .tnt-floating-window-bubble  .tnt-floating-window-resize
+                 .tnt-floating-window-shield
 ```
 
-Block gốc của các component còn lại: `.tnt-ping`, `.tnt-carousel-ticker` (và
-`.tnt-carousel-ticker__fade` dùng trong JSX nhưng chưa có rule trong
-`CarouselTicker.css`). `ping/` không có file CSS - xem mục 4.
+`FileTree` chỉ có hai class của riêng nó vì nó là **adapter**: phần cây do `Tree`
+render, nên class là `tnt-tree-*`. Nhắm vào một hàng trong FileTree thì nhắm
+`.tnt-tree-row`, không phải `.tnt-file-tree-row`.
+
+`data-*` thật đang dùng trong CSS: `data-active`, `data-animation`,
+`data-border-radius`, `data-dragging`, `data-icon`, `data-indicator`, `data-inert`,
+`data-mode`, `data-orientation`, `data-overflow`, `data-selected`, `data-size`,
+`data-theme`, cộng `data-starting-style` / `data-ending-style` của Base UI.
 
 **Variant không dùng class modifier mà dùng `data-*` attribute trên block gốc.** Đây là lựa
 chọn thật trong code, không phải BEM thuần:
@@ -190,7 +212,7 @@ Không chạm component, không chạm class. Ghi đè biến ở scope bạn mu
 }
 
 /* hoặc chỉ riêng một component */
-.tnt-filetree {
+.tnt-file-tree-root {
   --tnt-file-tree-bg: #fdf6e3;
   --tnt-file-tree-hover: rgba(0, 0, 0, 0.08);
   --tnt-file-tree-indent: 24px;
@@ -229,10 +251,10 @@ thành một preset.
 Qua `className` + attribute selector của block gốc:
 
 ```css
-.my-tree.tnt-filetree {
+.my-tree.tnt-file-tree-root {
   font-family: 'IBM Plex Mono', monospace;
 }
-.my-tree[data-size='lg'] .tnt-filetree__accordion-trigger {
+.my-tree[data-size='lg'] .tnt-tree-row {
   padding-block: 12px;
 }
 ```
@@ -414,12 +436,22 @@ Bắt buộc bọc sau **anti-corruption layer**: consumer viết
 `import { Dialog } from 'tinita-react'` và không được biết Base UI tồn tại. Đổi Base UI sang
 React Aria sau này không được đổi public API.
 
-**[KHOẢNG CÁCH]** `FileTree` hiện `import` thẳng `@base-ui/react`. CSS lộ rõ dấu
-vết: class `.tnt-filetree__accordion-trigger` / `__accordion-content`, selector
-`[data-state='open']` / `[data-state='closed']`, và keyframes dùng
-`var(--radix-accordion-content-height)`. Biến `--radix-*` là API nội bộ của Radix nằm lọt vào
-CSS của chúng ta - đổi vendor sẽ vỡ animation. Đây là món nợ kiến trúc cần trả trước khi thêm
-component thứ tư.
+**[KHOẢNG CÁCH]** `Tree` và `FileTree` hiện `import` thẳng `@base-ui/react`, và dấu
+vết của vendor nằm trong CSS. Mô tả cũ ở đây đã lỗi: nó nói
+`.tnt-filetree__accordion-trigger`, `[data-state='open']` và
+`var(--radix-accordion-content-height)` - cả ba đều không còn (hoặc chưa bao giờ)
+đúng. Đo 2026-10-06, dấu vết thật là:
+
+- `--collapsible-panel-height` của Base UI, đọc trong `.tnt-tree-group` và bọc lại
+  sau `--tnt-tree-content-height` ngay tại chỗ dùng, đúng một lần.
+- `[data-starting-style]` / `[data-ending-style]`, và transition trên `height`
+  (KHÔNG phải `@keyframes` - xem `CLAUDE.md` mục Base UI, đó là chi tiết quyết định
+  animation đóng có chạy hay không).
+
+Biến của Base UI không có namespace nhà cung cấp (`--collapsible-panel-height`, không
+phải `--base-ui-*`), nên nó có thể đụng biến cùng tên của host và một guard dò biến
+third-party không thể dựa vào tiền tố - phải liệt kê tên thật. Đổi vendor vẫn sẽ vỡ
+animation; đây là món nợ kiến trúc còn nguyên.
 
 Contract cho component mới nằm ở mục 7 (nhóm "A11y & interaction").
 

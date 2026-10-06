@@ -836,6 +836,60 @@ ui/ping + ui/file-tree             10 640 byte   shared tokens đúng 1 lần
 Byte chỉ là **diagnostic**. Khẳng định của ca lab nằm ở có/không và ở quan hệ phụ thuộc -
 Vite và Next minify khác nhau nên 2396 với 2424 là bình thường.
 
+### 6c. Hai version `tinita-react` cùng cây là UNSUPPORTED - chốt 2026-10-06
+
+Giống React: hai bản trong một dependency tree không được support. Lý do kỹ thuật là
+hệ quả trực tiếp của quyết định ở mục 7 (tên class ỔN ĐỊNH, không hash): hai version
+khai **cùng** selector, nên bên thắng do **thứ tự bundle**, không do version.
+
+#### Đo thật, không suy luận
+
+App vite thật, `tinita-react@0.1.1` ở top-level và `@0.1.0` lồng dưới một
+`wrapper-lib`, bản lồng được đánh dấu đè **cùng** property để thấy bên nào thắng:
+
+```
+.tnt-ping-root định nghĩa x3, theo thứ tự trong bundle:
+  offset  5717  {align-items:center;display:inline-flex}   0.1.1 top-level
+  offset 12316  {align-items:center;display:inline-flex}   0.1.0 lồng
+  offset 13199  {display:block;outline:3px solid magenta}  0.1.0 lồng, dòng đánh dấu
+```
+
+Specificity bằng nhau nên cái cuối thắng: **bản cũ thắng cho cả component của bản
+mới**. Và trong DevTools bạn thấy hai rule `.tnt-ping-root` y hệt nhau, cùng một
+file bundle, **không có gì chỉ ra bản nào**.
+
+Hai hành vi phụ, cũng đo được:
+
+- Hai bản có CSS **giống nhau** thì bundler gộp còn **x1** (2396 byte) - không phạt
+  kích thước.
+- Hai bản **khác nhau** thì giữ cả hai và chỉ cộng **phần delta**: 2473 byte, chênh
+  77 byte đúng bằng hai dòng đánh dấu. Nên không có chuyện CSS bản này bị thay bằng
+  bản khác; cả hai marker đều có mặt.
+
+Một version, nhiều component thì **không lặp**: `.tnt-tree-item{` đúng x1 khi import
+cả `ui/tree` và `ui/file-tree` (ca L2 `css-graph:tree-plus-file-tree`), và token
+chung x1.
+
+#### Vì sao KHÔNG thêm gì để canh
+
+Ba phương án đã cân và loại:
+
+| Phương án                                    | Lý do loại                                                                                                   |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Version token trong `:root` để F12 thấy ngay | Không sửa xung đột, chỉ làm nó đọc được, và thêm một declaration vào mọi trang để phục vụ một ca unsupported |
+| `console.warn` lúc dev kiểu React            | Thêm global side effect vào package phải sống qua SSR, và phải import được từ mọi component entry            |
+| Hash class name theo version                 | Owner đã loại hash ngày 2026-09-26 vì nó lấy mất khả năng override bằng CSS của người dùng - lý do mạnh hơn  |
+
+Ba lý do chung: đây là lớp "multiple instances" mà React, `styled-components` và mọi
+CSS library đều khai là unsupported, không phải đặc thù repo này; `npm ls tinita-react`
+trả lời câu hỏi đó trong một lệnh, rẻ hơn mọi guard; và không có số nào cho thấy guard
+này ngăn được một sự cố thật.
+
+**Cũng không thêm ca lab khẳng định "bản cũ thắng".** Nó sẽ khoá một hành vi không
+muốn hứa, và nó phụ thuộc thứ tự bundler chứ không phụ thuộc package.
+
+Cách phát hiện và cách sửa nằm ở `README.md` mục "Known issues".
+
 ### 7. CSS Modules với tên ỔN ĐỊNH, không hash - chốt 2026-09-26, sửa mô tả 2026-10-02
 
 Cái bị loại là **hash tên**, không phải CSS Modules. Code dùng CSS Modules: cả 5
@@ -853,7 +907,7 @@ component đều `import styles from './<Tên>.module.css'`, và
 |                              | Class global prefix `tnt-` viết tay        | CSS Modules hash tên                            | CSS Modules tên ổn định (ĐANG DÙNG) |
 | ---------------------------- | ------------------------------------------ | ----------------------------------------------- | ----------------------------------- |
 | Trùng tên với host           | gần 0, nhờ prefix + guard                  | bất khả về cơ chế                               | gần 0, như cột 1                    |
-| Người dùng override bằng CSS | **được** - nhắm `.tnt-filetree__label`     | **không** - chỉ còn CSS variable và `className` | được                                |
+| Người dùng override bằng CSS | **được** - nhắm `.tnt-tree-label`          | **không** - chỉ còn CSS variable và `className` | được                                |
 | Cài đặt cho người dùng       | một lần `import 'tinita-react/styles.css'` | như cột 1                                       | như cột 1                           |
 | Chi phí đổi                  | 0                                          | đổi pipeline CSS, 3 component, contract của lab | như cột giữa                        |
 
@@ -865,10 +919,10 @@ Ba lý do chốt cột 1:
    bằng 0.
 2. **Hash tên thu hẹp bề mặt tuỳ biến của người dùng.** Một design system npm tồn
    tại để nhiều project consume, và các project đó sẽ cần sửa thứ ta không lường
-   trước. `.tnt-filetree__label` là hợp đồng công khai; hash thì không có hợp đồng.
+   trước. `.tnt-tree-label` là hợp đồng công khai; hash thì không có hợp đồng.
 3. **Cột 3 cho cùng mức chống trùng như cột 1, nhưng không phải nhớ prefix bằng
    tay.** `generateScopedName` gắn `tnt-<folder>-` cho mọi class, nên không ai có
-   thể quên nó - khác hẳn việc tự viết `.tnt-filetree__label` trong file CSS. Tên
+   thể quên nó - khác hẳn việc tự viết `.tnt-tree-label` trong file CSS. Tên
    vẫn ổn định nên hợp đồng override của người dùng vẫn còn, và colocation có sẵn:
    `FileTree.tsx` nằm cạnh `FileTree.module.css`.
 
