@@ -70,6 +70,17 @@ function resolveSpecifier(spec) {
   return resolve(PKG_DIR, target);
 }
 
+/**
+ * Comment phải bị xoá TRƯỚC khi quét.
+ *
+ * Không xoá thì một comment nhắc tên token đọc ra thành use thật. Đo 2026-10-06:
+ * comment trong `ui/carousel-ticker/tokens.css` ghi lại tên CŨ
+ * (`var(--tnt-carousel-min-block-size)`) để giải thích lịch sử, và guard báo nó là
+ * use thiếu declaration - đúng một false positive, trên đúng file vừa sửa để làm
+ * guard xanh.
+ */
+const stripComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
+
 const IMPORT_RE = /@import\s+(?:url\(\s*)?["']([^"']+)["']/g;
 const DECL_RE = /(--tnt-[a-z0-9-]+)\s*:/g;
 /** Nhóm 2 bắt được dấu phẩy nghĩa là `var()` có fallback. */
@@ -84,7 +95,7 @@ function readGraph(entryFile) {
   const walk = (file) => {
     if (seen.has(file) || !existsSync(file)) return;
     seen.add(file);
-    const css = readFileSync(file, 'utf8');
+    const css = stripComments(readFileSync(file, 'utf8'));
     files.push({ file, css });
     for (const m of css.matchAll(IMPORT_RE)) {
       const spec = m[1];
@@ -147,7 +158,7 @@ for (const name of components) {
   if (existsSync(ownTokens)) {
     const ok = new RegExp(`^--tnt-${name}(-|$)`);
     const bad = new Set();
-    for (const m of readFileSync(ownTokens, 'utf8').matchAll(DECL_RE)) {
+    for (const m of stripComments(readFileSync(ownTokens, 'utf8')).matchAll(DECL_RE)) {
       if (!ok.test(m[1])) bad.add(m[1]);
     }
     if (bad.size > 0) badPrefix.push({ name, tokens: [...bad].sort() });
