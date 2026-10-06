@@ -160,28 +160,53 @@ với `--tnt-tree-indent` của chính Tree.
 **Invariant it protects** I4 (tiền tố token = tên folder), I5 (0 token chung
 không ai dùng).
 
-### D5. Năm token motion chuyển từ `animations.css` sang `styles/tokens.css`
+### D5. Năm token motion vào `styles/motion-tokens.css`, file riêng
 
-**Decision** `--tnt-duration-fast`, `--tnt-duration-slow`,
-`--tnt-ease-standard`, `--tnt-ease-in-out`, `--tnt-opacity-disabled` chuyển sang
-`styles/tokens.css`. 51 token còn lại ở `animations.css` vì chúng phục vụ 18
-`@keyframes` mà không component nào dùng.
+**ĐÃ SỬA 2026-10-06 sau khi implement.** Bản đầu là "chuyển sang
+`styles/tokens.css`", và nó loại "file thứ ba" vì đó là "abstraction thêm cho một
+vấn đề mà file sẵn có giải được". Số đo cho thấy file sẵn có **không** giải được.
 
-**Why** Đo được 3 component tham chiếu 5 token đó, tức theo D4 chúng là shared.
-Đây là cách sửa L1 mà không bắt một component trả 18 keyframes.
+**Decision** `--tnt-duration-fast`, `--tnt-duration-slow`, `--tnt-ease-standard`,
+`--tnt-ease-in-out`, `--tnt-opacity-disabled` vào `styles/motion-tokens.css`, một
+subpath công khai mới. `animations.css` `@import './motion-tokens.css'`, và 4
+bridge cần chúng (`tree`, `ping`, `floating-window`, `file-tree`) `@import
+'tinita-react/styles/motion-tokens.css'`. 51 token còn lại ở `animations.css` vì
+chúng chỉ phục vụ 18 `@keyframes` mà không component nào dùng.
 
-**Alternatives considered** (a) bridge `@import` cả `animations.css`; (b) thêm
-`styles/motion.css` làm file thứ ba; (c) thêm fallback vào từng `var()`; (d)
-chuyển cả 13 token duration+ease cho "đủ bộ".
+**Why** Ba ràng buộc cùng lúc, chỉ file riêng thoả cả ba:
 
-**Why rejected** (a) một component phải trả 56 token + 18 keyframes nó không
-dùng; (b) file mới là abstraction thêm cho một vấn đề mà file sẵn có giải được;
-(c) fallback nhân bản giá trị ra 8 chỗ, và lần sau sửa `200ms` thì sửa 9 chỗ;
-(d) 8 token thêm vào mọi component để phòng trường hợp chưa xảy ra - guard I6
-sẽ báo đỏ ngay lúc nó xảy ra, nên không cần trả trước.
+1. Bridge của component cần 5 token này. Import `animations.css` là trả 56 token
+   - 18 keyframes cho 5 cái thật cần.
+2. **16 rule của chính `animations.css` dùng 5 token này** - đo 2026-10-06. Nên
+   nó không thể chỉ nhường chúng đi.
+3. `docs/design-guidelines.md` ghi `tinita-react/styles/animations.css` là đường
+   nhập công khai ("chỉ motion"), nên nó phải **tự đủ**.
 
-**Invariant it protects** I6 (mọi `var(--tnt-*)` trong CSS graph của component
-phải được khai trong chính graph đó, hoặc có fallback).
+Đặt vào `styles/tokens.css` thì `animations.css` phải `@import` lại, mà
+`globals.css` cũng import `tokens.css` và `build-entry.css` nạp cả hai, nên
+postcss inline `tokens.css` **hai lần**: `dist/styles.css` nhảy từ 190 lên
+**230** khai báo, `--tnt-duration-fast` khai **x2**. Bỏ `@import` để tránh trùng
+thì ràng buộc 3 vỡ.
+
+Ranh giới mới khớp hợp đồng đã ghi tài liệu: `globals.css` là "token + theme"
+(màu, radius, font), `animations.css` là "chỉ motion". Token motion thuộc nhóm
+sau, nên tách ra là **làm rõ** ranh giới sẵn có chứ không thêm một tầng.
+
+**Alternatives considered** (a) bridge `@import` cả `animations.css`; (b) đặt vào
+`styles/tokens.css` và `animations.css` import lại; (c) đặt vào
+`styles/tokens.css` và `animations.css` KHÔNG import lại; (d) thêm fallback vào
+từng `var()`; (e) chuyển cả 13 token duration+ease.
+
+**Why rejected** (a) 56 token + 18 keyframes cho 5 cái cần; (b) double-inline, đo
+230 vs 190 khai báo; (c) phá `tinita-react/styles/animations.css` dùng độc lập,
+một đường nhập có tài liệu; (d) nhân bản giá trị ra 16 chỗ trong `animations.css`
+cộng 8 chỗ trong component - lần sau sửa `200ms` là sửa 25 chỗ; (e) 8 token thêm
+vào mọi component để phòng trường hợp chưa xảy ra, mà guard I6 báo đỏ đúng lúc
+nó xảy ra.
+
+**Invariant it protects** I6, và I5: `styles/tokens.css` giữ nguyên vai trò "màu
+
+- radius + font" chứ không thành sọt chứa mọi token shared.
 
 ### D6. Token component DẪN XUẤT từ token semantic bằng `var()`, trừ màu nhận dạng
 
@@ -393,8 +418,9 @@ Giữ đúng cấu trúc đang có, thêm `tokens.css` cho `carousel-ticker`:
 
 ```
 src/styles/
-  tokens.css        token shared, consumer-overridable  <- + 5 token motion
-  animations.css    18 @keyframes + 51 token của riêng chúng
+  tokens.css          token shared: màu + radius + font
+  motion-tokens.css   5 token motion mà CSS component tham chiếu
+  animations.css      @import motion-tokens + 51 token riêng + 18 @keyframes
   globals.css       @import tokens + khối @theme inline của Tailwind
   build-entry.css   nguồn cho styles.css / styles.layer.css
 
@@ -451,15 +477,22 @@ một specifier** (`tinita-react/styles/tokens.css`), nên bundler thấy một 
 
 **Tầng 1 - shared/global**, `styles/tokens.css`. Consumer override để retheme.
 
-| Nhóm                    | Token                                                                                                                                                                                                                                             | Số  |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
-| Màu semantic            | `--tnt-background`, `--tnt-foreground`, `--tnt-primary(+-foreground)`, `--tnt-secondary(+-foreground)`, `--tnt-muted(+-foreground)`, `--tnt-accent(+-foreground)`, `--tnt-destructive(+-foreground)`, `--tnt-border`, `--tnt-input`, `--tnt-ring` | 15  |
-| Radius                  | `--tnt-radius`, `--tnt-radius-sm/md/lg`                                                                                                                                                                                                           | 4   |
-| Typography              | `--tnt-font-sans`, `--tnt-font-mono`                                                                                                                                                                                                              | 2   |
-| Motion (D5, chuyển vào) | `--tnt-duration-fast/slow`, `--tnt-ease-standard`, `--tnt-ease-in-out`, `--tnt-opacity-disabled`                                                                                                                                                  | 5   |
-| **Chuyển RA**           | `--tnt-spacing-tree-indent` -> xoá, Tree đã có `--tnt-tree-indent` cùng giá trị                                                                                                                                                                   | -1  |
+| Nhóm                                                | Token                                                                                                                                                                                                                                             | Số  |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| Màu semantic                                        | `--tnt-background`, `--tnt-foreground`, `--tnt-primary(+-foreground)`, `--tnt-secondary(+-foreground)`, `--tnt-muted(+-foreground)`, `--tnt-accent(+-foreground)`, `--tnt-destructive(+-foreground)`, `--tnt-border`, `--tnt-input`, `--tnt-ring` | 15  |
+| Radius                                              | `--tnt-radius`, `--tnt-radius-sm/md/lg`                                                                                                                                                                                                           | 4   |
+| Typography                                          | `--tnt-font-sans`, `--tnt-font-mono`                                                                                                                                                                                                              | 2   |
+| Motion (D5) - file RIÊNG `styles/motion-tokens.css` | `--tnt-duration-fast/slow`, `--tnt-ease-standard`, `--tnt-ease-in-out`, `--tnt-opacity-disabled`                                                                                                                                                  | 5   |
+| **Chuyển RA**                                       | `--tnt-spacing-tree-indent` -> xoá, Tree đã có `--tnt-tree-indent` cùng giá trị                                                                                                                                                                   | -1  |
 
-Tổng sau khi sửa: 41.
+Tổng sau khi sửa: `styles/tokens.css` **36** (màu + radius + font), cộng
+`styles/motion-tokens.css` **5**. Đo 2026-10-06: `dist/styles.css` giữ đúng **140
+token riêng biệt / 190 khai báo**, bằng baseline trước P2 - `--tnt-spacing-tree-indent`
+mất đi và token của carousel thêm vào thì triệt tiêu nhau.
+
+`globals.css` phải `@import` tokens.css của **cả 5** component, không phải 4: đo
+2026-10-06, thiếu carousel làm `dist/styles.css` khai 139 token thay vì 140, tức
+đường `styles.css` cũng mất token đó.
 
 **Tầng 2 - component-specific**, `ui/<name>/tokens.css`, tiền tố
 `--tnt-<folder>-`.
@@ -470,7 +503,7 @@ Tổng sau khi sửa: 41.
 | `tree`            | 22  | màu row/hover/selected, font, kích thước, indent, offset guide line                            |
 | `floating-window` | 21  | header bg, border/shadow theo trạng thái, kích thước bubble/header/button, duration+ease riêng |
 | `ping`            | 8   | màu dot, kích thước dot/gap/count                                                              |
-| `carousel-ticker` | 1   | `--tnt-carousel-ticker-min-block-size: 100px` (D14)                                            |
+| `carousel-ticker` | 1   | `--tnt-carousel-ticker-min-block-size: 100px` (D14), phục hồi từ `min-h-[100px]` của `0037f8f` |
 
 **Tầng 3 - implementation-only**, viết thẳng trong `.module.css`, không khai ở
 `tokens.css`:
@@ -546,7 +579,7 @@ Không đổi public API, trừ 3 việc đóng lỗ.
 | `./ui/<name>`     | 5   | **KHÔNG** | CSS-aware                                                    |
 | `./hooks/<name>`  | 9   | CÓ        |                                                              |
 | `./utils/<name>`  | 2   | CÓ        | `autoInjectStyles` là nợ #16                                 |
-| CSS subpath       | 19  | n/a       | 2 bundle + 3 `styles/*` + 14 `ui/*/*`                        |
+| CSS subpath       | 21  | n/a       | 2 bundle + 4 `styles/*` + 15 `ui/*/*`                        |
 
 `contract.json` khai `cssAwareSpecifiers: ['.', './ui/ping', './ui/carousel-ticker',
 './ui/floating-window', './ui/file-tree', './ui/tree']` và ca lab **đọc trường
@@ -728,20 +761,20 @@ Chi tiết từng phase ở `phase-01` .. `phase-06`.
 
 ### 10.2 Đã loại, có số đo
 
-| Phương án                                                         | Lý do loại                                                                                 |
-| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Conditional `node` export bỏ CSS khỏi `ui/*`                      | Next App Router mất CSS trên Server Component: 0 byte, đối chứng bỏ condition ra 2424 byte |
-| `sideEffects: ["./dist/**/*.css"]`                                | Rollup xoá import CSS, chỉ hỏng ở production                                               |
-| Specifier tương đối trong bridge                                  | Rollup viết lại sai: `./index.css` -> `../../ping/index.css`                               |
-| Build script chèn import CSS vào output                           | Source graph khác published graph                                                          |
-| Bridge import `animations.css`                                    | 56 token + 18 keyframes cho 5 token thật cần                                               |
-| File `styles/motion.css` mới                                      | Abstraction thêm cho việc `styles/tokens.css` làm được                                     |
-| Hash tên CSS Modules                                              | Consumer mất khả năng override (owner chốt 2026-09-26)                                     |
-| Global selector viết tay thay CSS Modules                         | Mất guard chống trùng tên; `@keyframes accordion-down` từng trùng shadcn                   |
-| Runtime warning / version token / versioned class cho hai version | D10: không có số nào cho thấy nó ngăn sự cố thật; `npm ls` rẻ hơn                          |
-| Rename `--tnt-*` thành `--tnt-color-*`                            | Không sửa failure mode nào                                                                 |
-| Gộp `styles.css` và `styles.layer.css`                            | CSS không cho consumer bật/tắt `@layer` của file đã publish                                |
-| Ca lab khẳng định `ERR_UNKNOWN_FILE_EXTENSION`                    | Chi tiết loader của Node, không phải hợp đồng package                                      |
+| Phương án                                                         | Lý do loại                                                                                                                                                                                                                        |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Conditional `node` export bỏ CSS khỏi `ui/*`                      | Next App Router mất CSS trên Server Component: 0 byte, đối chứng bỏ condition ra 2424 byte                                                                                                                                        |
+| `sideEffects: ["./dist/**/*.css"]`                                | Rollup xoá import CSS, chỉ hỏng ở production                                                                                                                                                                                      |
+| Specifier tương đối trong bridge                                  | Rollup viết lại sai: `./index.css` -> `../../ping/index.css`                                                                                                                                                                      |
+| Build script chèn import CSS vào output                           | Source graph khác published graph                                                                                                                                                                                                 |
+| Bridge import `animations.css`                                    | 56 token + 18 keyframes cho 5 token thật cần                                                                                                                                                                                      |
+| ~~File motion token riêng~~                                       | **Loại rồi NHẬN LẠI 2026-10-06**: `styles/tokens.css` KHÔNG làm được - 16 rule của `animations.css` cũng dùng 5 token đó, nên gộp vào gây double-inline (230 vs 190 khai báo) hoặc phá đường nhập độc lập `styles/animations.css` |
+| Hash tên CSS Modules                                              | Consumer mất khả năng override (owner chốt 2026-09-26)                                                                                                                                                                            |
+| Global selector viết tay thay CSS Modules                         | Mất guard chống trùng tên; `@keyframes accordion-down` từng trùng shadcn                                                                                                                                                          |
+| Runtime warning / version token / versioned class cho hai version | D10: không có số nào cho thấy nó ngăn sự cố thật; `npm ls` rẻ hơn                                                                                                                                                                 |
+| Rename `--tnt-*` thành `--tnt-color-*`                            | Không sửa failure mode nào                                                                                                                                                                                                        |
+| Gộp `styles.css` và `styles.layer.css`                            | CSS không cho consumer bật/tắt `@layer` của file đã publish                                                                                                                                                                       |
+| Ca lab khẳng định `ERR_UNKNOWN_FILE_EXTENSION`                    | Chi tiết loader của Node, không phải hợp đồng package                                                                                                                                                                             |
 
 ---
 

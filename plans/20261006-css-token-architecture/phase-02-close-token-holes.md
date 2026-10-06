@@ -14,13 +14,23 @@
   `styles/tokens.css`; tạo `ui/carousel-ticker/tokens.css`; xoá
   `--tnt-spacing-tree-indent` khỏi file chung.
 - **Ưu tiên** Cao. Đây là phase sửa lỗi.
-- **Implementation status** Not started
-- **Review status** Chưa review
+- **Implementation status** **DONE** 2026-10-06
+- **Review status** `GATE_FULL_EXIT=0`, 11/11 PASS; chưa có người review
 
 ## Key Insights
 
 - 5 token, không phải 13. Guard I6 báo đỏ đúng lúc token thứ 6 được dùng, nên
   trả trước 8 token cho mọi component là trả cho trường hợp chưa xảy ra.
+- **Đích đến KHÁC plan: `styles/motion-tokens.css`, không phải `styles/tokens.css`.**
+  Hai dữ kiện đo được lúc implement đảo quyết định D5: (i) **16 rule của chính
+  `animations.css`** dùng 5 token đó, nên nó không thể nhường chúng đi; (ii)
+  `docs/design-guidelines.md` ghi `tinita-react/styles/animations.css` là đường
+  nhập công khai "chỉ motion", nên nó phải tự đủ. Gộp vào `tokens.css` rồi cho
+  `animations.css` import lại thì postcss inline `tokens.css` hai lần:
+  `dist/styles.css` 190 -> **230** khai báo, `--tnt-duration-fast` khai x2.
+- **`globals.css` thiếu tokens.css của carousel.** Đo: `dist/styles.css` khai 139
+  token thay vì 140, tức đường `styles.css` cũng mất token mới. Bốn component kia
+  đã có trong `globals.css` từ trước, carousel chưa vì nó chưa có `tokens.css`.
 - `--tnt-spacing-tree-indent` trùng giá trị với `--tnt-tree-indent` của chính
   Tree (`16px`) và chỉ `globals.css` dùng. Xoá, không chuyển.
 - `animations.css` giữ 51 token còn lại vì chúng phục vụ 18 `@keyframes` mà
@@ -36,10 +46,14 @@
 
 ## Requirements
 
-1. `styles/tokens.css` khai thêm `--tnt-duration-fast`, `--tnt-duration-slow`,
-   `--tnt-ease-standard`, `--tnt-ease-in-out`, `--tnt-opacity-disabled`, giá
-   trị **giữ nguyên** từ `animations.css`.
-2. `animations.css` không còn khai 5 token đó.
+1. `styles/motion-tokens.css` (MỚI) khai `--tnt-duration-fast`,
+   `--tnt-duration-slow`, `--tnt-ease-standard`, `--tnt-ease-in-out`,
+   `--tnt-opacity-disabled`, giá trị **giữ nguyên** từ `animations.css`.
+2. `animations.css` không còn khai 5 token đó, và `@import './motion-tokens.css'`
+   để đường nhập độc lập của nó vẫn tự đủ.
+   2b. 4 bridge (`tree`, `ping`, `floating-window`, `file-tree`) `@import`
+   `tinita-react/styles/motion-tokens.css`. `carousel-ticker` không cần.
+   2c. `globals.css` `@import '../ui/carousel-ticker/tokens.css'`.
 3. `ui/carousel-ticker/tokens.css` mới, khai
    `--tnt-carousel-ticker-min-block-size: 100px` trong
    `:where(:root, [data-theme='light'])`, kèm comment nêu nguồn giá trị
@@ -143,3 +157,76 @@ Không.
 
 `phase-05-export-contract.md` (đóng nốt `exports`) hoặc
 `phase-03-derive-component-tokens.md` (độc lập, nhưng cần baseline L4).
+
+---
+
+## Kết quả đo, 2026-10-06
+
+```
+$ node packages/tinita-react/scripts/check-css-tokens.mjs
+I6 - var() thiếu declaration và thiếu fallback: 0        (từ 11)
+I4 - token sai tiền tố: 2 component                      (P4 lo)
+I8 - bridge import file global: 0
+@import không giải được qua exports: 0
+I2 - graph KHÔNG kéo CSS của chính component: 0
+ĐỎ: 2 vấn đề
+
+$ dist/styles.css
+riêng biệt:    140   (baseline 140)
+tổng khai báo: 190   (baseline 190; 230 = tokens.css inline 2 lần)
+--tnt-duration-fast khai x1
+--tnt-carousel-ticker-min-block-size khai x1
+
+$ node compatibility/run.mjs l2 --tier=1 ; echo $?
+PASS  motion-present  position=absolute borderRadius=9999px opacity=0.502874
+                      animationName=tnt-ping-pulse animationDuration=0.4s
+                      | CSS tới=true, token giải được=true
+29 ca, 0 fail, 7 skip
+0
+
+$ pnpm gate:full ; echo $?
+11/11 PASS (l1 80.7s, l2 411.8s, l4 213.5s)
+0
+```
+
+## Hai lỗi trong test của tôi, không phải trong code
+
+**1. Guard đọc comment như code.** Sau khi sửa, I6 còn 1 dòng:
+`--tnt-carousel-min-block-size` trong `dist/ui/carousel-ticker/tokens.css` - tên
+CŨ, nằm trong comment tôi vừa viết để ghi lại lịch sử. Guard không strip comment
+CSS. Đã thêm `stripComments()`. Kiểm lại baseline: trước P2 có **0**
+`var(--tnt-` trong comment của mọi `tokens.css`, nên số 11 không bị ảnh hưởng.
+
+**2. Ca lab assert một property mà chính thứ nó test làm đổi.** Sau khi sửa,
+`motion-present` vẫn FAIL với `opacity=0.503264` trong khi tôi assert `'0.75'`.
+Lý do: keyframes `tnt-ping-pulse` animate chính `opacity`, nên khi fix THÀNH
+CÔNG và animation chạy thì giá trị đọc được là một điểm giữa hai keyframe. Đổi
+tín hiệu "CSS đã tới" sang `borderRadius: 9999px` - không qua token và không bị
+animate.
+
+Lần thứ hai cùng một lớp lỗi trong phase này (lần đầu: `animationName` +
+`animationDuration` do cùng một shorthand đặt nên hỏng cùng nhau). Bài học ghi
+trong comment của ca.
+
+File đã thêm hoặc sửa:
+
+```
+packages/tinita-react/src/styles/motion-tokens.css        MỚI, 5 token
+packages/tinita-react/src/styles/tokens.css               -1 token của Tree
+packages/tinita-react/src/styles/animations.css           -5 khai báo, +@import
+packages/tinita-react/src/styles/globals.css              +carousel tokens, mapping trỏ --tnt-tree-indent
+packages/tinita-react/src/ui/carousel-ticker/tokens.css   MỚI, 100px
+packages/tinita-react/src/ui/carousel-ticker/index.css    +@import tokens
+packages/tinita-react/src/ui/carousel-ticker/CarouselTicker.module.css  đổi tên token
+packages/tinita-react/src/ui/{tree,ping,floating-window,file-tree}/index.css  +@import motion-tokens
+packages/tinita-react/scripts/build-css.mjs               copy motion-tokens.css
+packages/tinita-react/scripts/check-css-tokens.mjs        stripComments()
+packages/tinita-react/package.json                        +2 CSS subpath (38)
+compatibility/contract.json                               cssSpecifiers 19 -> 21
+compatibility/cases/l2/index.mjs                          probe dùng borderRadius
+```
+
+## Việc còn lại của P2, chuyển sang P4
+
+`check-css-tokens` **chưa vào `pnpm gate`**: guard còn exit 1 vì I4 (2 component
+sai tiền tố), và đó là việc của P4. Đưa vào gate là bước cuối của P4.
