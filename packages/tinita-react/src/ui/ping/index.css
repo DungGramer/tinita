@@ -16,5 +16,7 @@
  */
 
 @import 'tinita-react/styles/tokens.css';
+/* Ping.module.css dùng duration-slow */
+@import 'tinita-react/styles/motion-tokens.css';
 @import 'tinita-react/ui/ping/tokens.css';
 @import 'tinita-react/ui/ping/styles.css';

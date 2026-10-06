@@ -1,0 +1,25 @@
+/**
+ * CarouselTicker's own design tokens.
+ *
+ * Imported by `ui/carousel-ticker/index.css` only, so a consumer who never imports
+ * CarouselTicker never receives these.
+ *
+ * Declared with `:where(...)` for specificity 0, same reason as the shared tokens: a
+ * bare `:root` is (0,1,0) and beats `:where(.dark)` at (0,0,0), which breaks dark mode
+ * completely when the host puts `.dark` on `<html>` itself.
+ */
+
+:where(:root, [data-theme='light']) {
+  /*
+   * 100px, và nó không phải một con số chọn ra: commit `0037f8f` chuyển Tailwind
+   * trong JSX thành CSS thật, tokenize đúng dòng `isVertical && 'h-full
+   * min-h-[100px]'` thành `min-block-size: var(--tnt-carousel-min-block-size)` rồi
+   * quên khai token. Giá trị gốc còn trong git.
+   *
+   * Vì sao rule cần tồn tại: ticker dọc đặt `block-size: 100%`, mà `100%` trong
+   * parent chiều cao `auto` giải về `auto`, nên cửa sổ cuộn co về đúng chiều cao nội
+   * dung và marquee hết thứ để cuộn. Đây là sàn cho ca đó, và nó thấp hơn mọi
+   * container trong story (150px, 200px, 300px) nên không đè lên lựa chọn có chủ ý.
+   */
+  --tnt-carousel-ticker-min-block-size: 100px;
+}

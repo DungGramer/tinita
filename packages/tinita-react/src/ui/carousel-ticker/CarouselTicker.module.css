@@ -38,7 +38,7 @@
 
 .root[data-orientation='vertical'] {
   block-size: 100%;
-  min-block-size: var(--tnt-carousel-min-block-size);
+  min-block-size: var(--tnt-carousel-ticker-min-block-size);
 }
 
 .content {

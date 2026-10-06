@@ -1,5 +1,5 @@
 {
-  "_why": "Ngu\u1ed3n s\u1ef1 th\u1eadt c\u1ee7a ca test. KHAI TAY, kh\u00f4ng sinh t\u1eeb package.json exports - n\u1ebfu sinh t\u1eeb exports th\u00ec xo\u00e1 m\u1ed9t export s\u1ebd l\u00e0m ca bi\u1ebfn m\u1ea5t theo v\u00e0 test v\u1eabn xanh. Ca 05 \u0111\u1ed1i chi\u1ebfu HAI CHI\u1ec0U.",
+  "_why": "Nguồn sự thật của ca test. KHAI TAY, không sinh từ package.json exports - nếu sinh từ exports thì xoá một export sẽ làm ca biến mất theo và test vẫn xanh. Ca 05 đối chiếu HAI CHIỀU.",
   "packages": {
     "tinita": {
       "specifiers": [
@@ -295,7 +295,9 @@
         "./styles/animations.css",
         "./styles/globals.css",
         "./styles/tokens.css",
+        "./styles/motion-tokens.css",
         "./ui/carousel-ticker/index.css",
+        "./ui/carousel-ticker/tokens.css",
         "./ui/carousel-ticker/styles.css",
         "./ui/file-tree/index.css",
         "./ui/file-tree/styles.css",
@@ -399,19 +401,19 @@
         {
           "specifier": "./hooks",
           "documentedIn": "CLAUDE.md",
-          "note": "CLAUDE.md n\u00f3i `import { useToggle } from 'tinita-react/hooks'` l\u00e0 \u0111\u01b0\u1eddng nh\u1eadp B\u1eaeT BU\u1ed8C, nh\u01b0ng specifier n\u00e0y kh\u00f4ng c\u00f3 trong exports l\u1eabn dist. T\u00e0i li\u1ec7u \u0111ang ch\u1ec9 ng\u01b0\u1eddi d\u00f9ng v\u00e0o \u0111\u01b0\u1eddng kh\u00f4ng t\u1ed3n t\u1ea1i."
+          "note": "CLAUDE.md nói `import { useToggle } from 'tinita-react/hooks'` là đường nhập BẮT BUỘC, nhưng specifier này không có trong exports lẫn dist. Tài liệu đang chỉ người dùng vào đường không tồn tại."
         },
         {
           "specifier": "./ui",
           "documentedIn": "CLAUDE.md",
-          "note": "CLAUDE.md n\u00f3i `import { FileTree } from 'tinita-react/ui'` l\u00e0 \u0111\u01b0\u1eddng nh\u1eadp B\u1eaeT BU\u1ed8C; c\u0169ng kh\u00f4ng t\u1ed3n t\u1ea1i."
+          "note": "CLAUDE.md nói `import { FileTree } from 'tinita-react/ui'` là đường nhập BẮT BUỘC; cũng không tồn tại."
         }
       ],
       "accepted": [],
-      "_barrelNote": "Barrel '.' \u0111\u00f2i C\u1ea2 HAI optional peer v\u00ec src/index.ts re-export ./ui/file-tree. Ngh\u0129a l\u00e0 `import { Ping } from 'tinita-react'` v\u1eabn k\u00e9o radix + lucide d\u00f9 Ping kh\u00f4ng c\u1ea7n. \u0110\u00e2y l\u00e0 b\u1eb1ng ch\u1ee9ng consumer cho vi\u1ec7c b\u1ecf barrel (n\u1ee3 #7, h\u01b0\u1edbng B c\u1ee7a M2)."
+      "_barrelNote": "Barrel '.' đòi CẢ HAI optional peer vì src/index.ts re-export ./ui/file-tree. Nghĩa là `import { Ping } from 'tinita-react'` vẫn kéo radix + lucide dù Ping không cần. Đây là bằng chứng consumer cho việc bỏ barrel (nợ #7, hướng B của M2)."
     },
     "tinita-dom": {
-      "_browserOnly": "Ch\u1ea1m document/window/requestAnimationFrame/getComputedStyle. KH\u00d4NG c\u00f3 SSR guard - quy\u1ebft \u0111\u1ecbnh c\u00f3 ch\u1ee7 \u00fd, xem packages/tinita-dom/README.md. Ca SSR c\u1ee7a L2 ph\u1ea3i B\u1ece QUA package n\u00e0y.",
+      "_browserOnly": "Chạm document/window/requestAnimationFrame/getComputedStyle. KHÔNG có SSR guard - quyết định có chủ ý, xem packages/tinita-dom/README.md. Ca SSR của L2 phải BỎ QUA package này.",
       "browserOnly": true,
       "specifiers": [
         ".",
@@ -532,7 +534,7 @@
     }
   },
   "_knownBrokenPublished": {
-    "_why": "Ca 07 so version LOCAL v\u1edbi registry. Sau khi bump l\u00ean 0.1.0, b\u1ea3n c\u0169 g\u00e3y kh\u00f4ng c\u00f2n \u0111\u01b0\u1ee3c ki\u1ec3m - m\u1ea5t m\u1ed9t l\u1edbp coverage. Li\u1ec7t k\u00ea t\u01b0\u1eddng minh \u1edf \u0111\u00e2y \u0111\u1ec3 ca 07 v\u1eabn ki\u1ec3m ch\u00fang cho t\u1edbi khi deprecate xong.",
+    "_why": "Ca 07 so version LOCAL với registry. Sau khi bump lên 0.1.0, bản cũ gãy không còn được kiểm - mất một lớp coverage. Liệt kê tường minh ở đây để ca 07 vẫn kiểm chúng cho tới khi deprecate xong.",
     "tinita": [
       "0.0.1"
     ],

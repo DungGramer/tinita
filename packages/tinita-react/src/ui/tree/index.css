@@ -16,5 +16,7 @@
  */
 
 @import 'tinita-react/styles/tokens.css';
+/* Tree.module.css dùng duration-fast, ease-standard, ease-in-out, opacity-disabled */
+@import 'tinita-react/styles/motion-tokens.css';
 @import 'tinita-react/ui/tree/tokens.css';
 @import 'tinita-react/ui/tree/styles.css';

@@ -16,5 +16,5 @@
  */
 
 @import 'tinita-react/styles/tokens.css';
-/* No tokens of its own: CarouselTicker declares none. */
+@import 'tinita-react/ui/carousel-ticker/tokens.css';
 @import 'tinita-react/ui/carousel-ticker/styles.css';

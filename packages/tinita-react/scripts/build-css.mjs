@@ -159,7 +159,10 @@ function copyGlobalsCSS() {
  * public contract people read. The bundled `styles.css` is the minified artifact.
  */
 function copyPublishedCSSSources() {
-  const copies = [['styles/tokens.css', 'styles/tokens.css']];
+  const copies = [
+    ['styles/tokens.css', 'styles/tokens.css'],
+    ['styles/motion-tokens.css', 'styles/motion-tokens.css'],
+  ];
   for (const dir of readdirSync(join(srcDir, 'ui'))) {
     if (!statSync(join(srcDir, 'ui', dir)).isDirectory()) continue;
     for (const file of ['index.css', 'tokens.css']) {

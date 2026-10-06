@@ -1,0 +1,43 @@
+/**
+ * 5 token motion mà CSS của component tham chiếu.
+ *
+ * Vì sao file RIÊNG thay vì gộp vào `styles/tokens.css` hay để nguyên trong
+ * `animations.css` - cả hai phương án kia đã thử và đo, 2026-10-06:
+ *
+ * - Để nguyên trong `animations.css`: bridge của component không import file đó
+ *   (56 token + 18 keyframes cho 5 token thật cần), nên `var()` không giải được.
+ *   Đo trong Chromium: `animation` là shorthand nên declaration invalid hoàn toàn,
+ *   `animation-name` về `none`, pulse của Ping MẤT HẲN.
+ *
+ * - Gộp vào `styles/tokens.css`: 16 rule của chính `animations.css` dùng 5 token
+ *   này, nên file đó phải `@import` lại. `globals.css` cũng import `tokens.css`,
+ *   và `build-entry.css` nạp cả hai -> postcss inline `tokens.css` HAI LẦN. Đo:
+ *   `dist/styles.css` nhảy từ 190 lên 230 khai báo, `--tnt-duration-fast` khai x2.
+ *   Bỏ `@import` ở `animations.css` để tránh trùng thì
+ *   `tinita-react/styles/animations.css` dùng ĐỘC LẬP sẽ vỡ - mà
+ *   `docs/design-guidelines.md` ghi rõ đó là một đường nhập công khai ("chỉ motion").
+ *
+ * File riêng giải cả ba: một chỗ khai duy nhất, `animations.css` tự đủ,
+ * `build-entry.css` inline mỗi file một lần, và component trả 5 token chứ không 56.
+ *
+ * Ranh giới với `styles/tokens.css` khớp đúng hợp đồng đã ghi tài liệu:
+ * `globals.css` là "token + theme" (màu, radius, font), `animations.css` là "chỉ
+ * motion". Token motion thuộc nhóm sau.
+ *
+ * Không phụ thuộc theme, nên không có khối dark - giống cách
+ * `ui/floating-window/tokens.css` để kích thước và easing ngoài khối dark.
+ *
+ * `:where(...)` cho specificity 0, cùng lý do như token chung: `:root` trần là
+ * (0,1,0) và thắng `:where(.dark)` ở (0,0,0), làm dark mode vỡ hẳn khi host đặt
+ * `.dark` lên chính `<html>`.
+ */
+
+:where(:root, [data-theme='light']) {
+  --tnt-duration-fast: 200ms; /* Quick UI updates, toggles */
+  --tnt-duration-slow: 400ms; /* Page transitions, first-time */
+  /* Material Design's default curve */
+  --tnt-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Apple's kCAMediaTimingFunctionEaseInEaseOut */
+  --tnt-ease-in-out: cubic-bezier(0.42, 0, 0.58, 1);
+  --tnt-opacity-disabled: 0.4; /* Disabled state */
+}

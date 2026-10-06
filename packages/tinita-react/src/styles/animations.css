@@ -2,15 +2,30 @@
    1. Core Animation Variables
    ============================================== */
 
+/*
+ * 5 token motion mà 16 rule dưới đây dùng (`--tnt-duration-fast/slow`,
+ * `--tnt-ease-standard/in-out`, `--tnt-opacity-disabled`) đã chuyển sang
+ * `styles/motion-tokens.css` ngày 2026-10-06, vì bridge của component cần chúng mà
+ * không bridge nào import file này - 56 token + 18 keyframes là giá quá đắt cho 5
+ * token.
+ *
+ * File này import lại, nên `tinita-react/styles/animations.css` vẫn TỰ ĐỦ:
+ * `docs/design-guidelines.md` ghi nó là đường nhập công khai "chỉ motion".
+ *
+ * Specifier TƯƠNG ĐỐI, không bare: ở đây postcss của chính repo resolve nó
+ * (`src/styles/`), còn bản copy ra `dist/styles/animations.css` thì
+ * `./motion-tokens.css` trỏ đúng `dist/styles/motion-tokens.css`. Specifier bare
+ * `tinita-react/...` là self-reference và build của repo không resolve được.
+ */
+@import './motion-tokens.css';
+
 :root {
   /* -------------------
      Duration
      ------------------- */
   --tnt-duration-instant: 100ms; /* Button press, touch feedback */
-  --tnt-duration-fast: 200ms; /* Quick UI updates, toggles */
   --tnt-duration-base: 300ms; /* Standard interactions */
   --tnt-duration-medium: 350ms; /* Sheet, navigation, modals */
-  --tnt-duration-slow: 400ms; /* Page transitions, first-time */
 
   /* -------------------
      Spring Physics Parameters
@@ -39,7 +54,6 @@
      Easing Curves (cubic-bezier approximations)
      ------------------- */
   /* The four curves below are MATERIAL DESIGN's */
-  --tnt-ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* Defaultcurve */
   --tnt-ease-decelerate: cubic-bezier(0, 0, 0.2, 1); /* Elements entering */
   --tnt-ease-accelerate: cubic-bezier(0.4, 0, 1, 1); /* Elements exiting */
   --tnt-ease-sharp: cubic-bezier(0.4, 0, 0.6, 1); /* Attention-grabbing */
@@ -47,7 +61,6 @@
   --tnt-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1); /* Bounce approximation */
 
   /* https://developer.apple.com/documentation/uikit/uicubictimingparameters */
-  --tnt-ease-in-out: cubic-bezier(0.42, 0, 0.58, 1); /* kCAMediaTimingFunctionEaseInEaseOut */
   --tnt-ease-out: cubic-bezier(0, 0, 0.58, 1); /* kCAMediaTimingFunctionEaseOut */
   --tnt-ease-in: cubic-bezier(0.42, 0, 1, 1); /* kCAMediaTimingFunctionEaseIn */
 
@@ -67,7 +80,6 @@
      ------------------- */
   --tnt-opacity-full: 1; /* Active elements */
   --tnt-opacity-press: 0.8; /* Button press feedback */
-  --tnt-opacity-disabled: 0.4; /* Disabled state */
   --tnt-opacity-placeholder: 0.5; /* Placeholder text */
   --tnt-opacity-hidden: 0; /* Hidden elements */
 

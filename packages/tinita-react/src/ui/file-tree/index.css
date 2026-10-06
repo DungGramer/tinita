@@ -16,6 +16,8 @@
  */
 
 @import 'tinita-react/styles/tokens.css';
+/* graph của nó chứa ui/tree/styles.css, nên thừa hưởng nhu cầu của Tree */
+@import 'tinita-react/styles/motion-tokens.css';
 @import 'tinita-react/ui/file-tree/tokens.css';
 
 /*

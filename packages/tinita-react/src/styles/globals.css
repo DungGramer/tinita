@@ -60,6 +60,7 @@
 @import '../ui/tree/tokens.css';
 @import '../ui/file-tree/tokens.css';
 @import '../ui/floating-window/tokens.css';
+@import '../ui/carousel-ticker/tokens.css';
 
 /* ============================================
    3. @theme inline - Map to Tailwind Utilities
@@ -89,7 +90,7 @@
   --radius-lg: var(--tnt-radius-lg);
 
   /* Spacing */
-  --spacing-tree-indent: var(--tnt-spacing-tree-indent);
+  --spacing-tree-indent: var(--tnt-tree-indent);
 
   /* Typography */
   --font-sans: var(--tnt-font-sans);

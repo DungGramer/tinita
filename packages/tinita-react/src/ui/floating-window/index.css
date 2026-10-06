@@ -16,5 +16,7 @@
  */
 
 @import 'tinita-react/styles/tokens.css';
+/* FloatingWindow.module.css dùng duration-fast */
+@import 'tinita-react/styles/motion-tokens.css';
 @import 'tinita-react/ui/floating-window/tokens.css';
 @import 'tinita-react/ui/floating-window/styles.css';
