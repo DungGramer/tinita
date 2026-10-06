@@ -3,7 +3,8 @@
  * Cổng trước commit/publish. Chạy LOCAL, không có CI - đó là quyết định của owner
  * (2026-09-26): repo một người, chạy máy mình là đủ, không dựng GitHub Actions.
  *
- *   pnpm gate        nhanh  - format, lint, types, build, test, stories, doc-links, assert-reuse, L1
+ *   pnpm gate        nhanh  - format, lint, types, build, test, stories, doc-links, assert-reuse,
+ *                              css-tokens, L1
  *   pnpm gate --full        + L2 và L4 (cần chromium, chậm hàng phút)
  *
  * DỪNG ở lỗi đầu tiên và nói rõ bước nào chưa chạy. Chạy hết rồi báo một đống lỗi
@@ -34,6 +35,11 @@ const STEPS = [
   // kiện có ở 14 file và được dùng ở 1; `assertDpi` viết hôm sau với signature lệch.
   // Quy ước không chặn được, nên phải là script.
   { id: 'assert-reuse', label: 'điều kiện inline không trùng primitive', cmd: 'node', args: ['scripts/check-assert-reuse.mjs'] },
+  // Đọc `dist` nên phải SAU `build`. Lớp lỗi nó canh đã xảy ra thật: khi CSS chuyển
+  // sang ship theo component, 3 component tham chiếu 5 token chỉ khai trong
+  // `animations.css` mà không bridge nào import - pulse của Ping mất hẳn, và cả L2
+  // lẫn L4 đều mù vì consumer browser của chúng đều nhập `styles.css`.
+  { id: 'css-tokens', label: 'token dùng trong CSS graph được khai trong graph đó', cmd: 'node', args: ['packages/tinita-react/scripts/check-css-tokens.mjs'] },
   { id: 'l1', label: 'lab L1 (artifact package)', cmd: 'node', args: ['compatibility/run.mjs', 'l1'] },
   ...(full
     ? [
