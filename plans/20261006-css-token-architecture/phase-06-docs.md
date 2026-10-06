@@ -13,8 +13,8 @@
 - **Mô tả** Ba việc: khai hai version cùng cây là unsupported; sửa câu "tsup cho
   cả 3 package"; ghi quy tắc đặt token mới vào `CLAUDE.md`.
 - **Ưu tiên** Thấp, nhưng rẻ và nó là chỗ duy nhất D10 tồn tại.
-- **Implementation status** Not started
-- **Review status** Chưa review
+- **Implementation status** **DONE** 2026-10-06
+- **Review status** `GATE_EXIT=0`, `check-doc-links` 105 đường nhập; chưa có người review
 
 ## Key Insights
 
@@ -103,3 +103,60 @@ vào tài liệu.
 
 Hết plan. Việc còn lại ngoài phạm vi: sinh baseline L4 (chặn P3), nợ #20 (L1/L2
 chỉ `react@19`), nợ #21 (`tinita-dom` import-cleanliness).
+
+---
+
+## Kết quả, 2026-10-06
+
+`GATE_EXIT=0` (10/10, l1 103.3s). `check-doc-links`: 105 đường nhập trong markdown
+đều có trong `exports`, 122 subpath hợp lệ.
+
+### Đã làm, bốn việc theo plan
+
+1. **`README.md` mục "Known issues" item 3**: hai version cùng cây là không support,
+   kèm số đo cascade, cách phát hiện (`npm ls tinita-react`) và cách sửa
+   (`overrides` / `resolutions`).
+2. **`docs/system-architecture.md` mục 6c MỚI**: số đo đầy đủ (3 định nghĩa
+   `.tnt-ping-root`, offset của bản thắng, 77 byte delta, hành vi gộp khi CSS giống
+   nhau) và bảng ba phương án bị loại kèm lý do.
+3. **`CLAUDE.md`** bốn chỗ: câu tsup (với `tinita-react` thì tsup CHỈ sinh
+   declaration, JS do vite chạy hai lần); bất biến 3 giờ có số đo thật thay cho câu
+   "không tái lập được"; khối file component thêm `styles/motion-tokens.css` và
+   `37 -> 36` token chung; **năm -> sáu lần** ca xanh-oan, kèm hai bài học từ lần thứ
+   sáu. Thêm mục "Token mới đặt ở đâu" (5 câu, 2 câu đầu máy kiểm được) và mục guard
+   `check-css-tokens` với cả bốn invariant.
+4. **`docs/project-roadmap.md`**: nợ #18 -> **ĐÃ VÁ**, và nó đáng ghi riêng vì nợ đó
+   đã hỏi đúng câu hỏi - "hoặc dạng phẳng thật sự ổn và bất biến 3 nói quá, hoặc
+   `attw` không soi tới đây. Phải đo trước khi backfill" - và câu trả lời là **nhánh
+   thứ hai**. Nợ #16 thêm ghi chú: bỏ export là breaking nên phải quyết trước lần
+   publish đầu.
+
+### Việc thứ năm, ngoài plan: drift class BEM
+
+P4 tìm ra 4 file docs mô tả class theo BEM (`.tnt-filetree__label--folder`,
+`.tnt-ping__pulse`), trong khi class thật là kebab phẳng `tnt-<folder>-<local>` do
+`generateScopedName` sinh. Đây **không** phải hệ quả của P4 - nó sai từ trước, và
+`check-doc-links` không bắt được vì nó chỉ kiểm đường nhập, không kiểm tên class.
+
+Sửa theo class đo được trong `dist`, không đổi mù: `.tnt-filetree__label` thành
+`.tnt-tree-label` chứ không thành `.tnt-file-tree__label`, vì **`FileTree` là
+adapter** - phần cây do `Tree` render nên class là `tnt-tree-*`. `FileTree` chỉ có
+hai class của riêng nó (`.tnt-file-tree-root`, `.tnt-file-tree-icon`).
+
+`docs/design-guidelines.md` còn stale sâu hơn, sửa luôn ba chỗ:
+
+- nhắc một file `FileTree.css` không tồn tại (thật là `FileTree.module.css`);
+- nói dấu vết vendor là `[data-state='open']` và
+  `var(--radix-accordion-content-height)` - cả hai **không** có trong `data-*` đo
+  được. Thật là `[data-starting-style]` / `[data-ending-style]` và
+  `--collapsible-panel-height` của Base UI;
+- `.tnt-ping` và `.tnt-carousel-ticker__content` -> `.tnt-ping-root` và
+  `.tnt-carousel-ticker-content`.
+
+Danh sách class đầy đủ của cả 5 component giờ nằm trong `design-guidelines.md`,
+lấy từ `dist` chứ không viết tay.
+
+### Chưa làm
+
+`utils/autoInjectStyles` (nợ #16) vẫn export. Bỏ nó là breaking nên nó cùng cửa sổ
+với P4 - **trước lần publish đầu**. Quyết định của owner.

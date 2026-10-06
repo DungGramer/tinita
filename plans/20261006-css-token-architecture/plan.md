@@ -46,7 +46,7 @@ consumer vite của L2 và root layout của app Next trong L4 đều
 | 03  | [Token component dẫn xuất](phase-03-derive-component-tokens.md) | 91 literal -> `var()` từ palette semantic, trừ 38 màu nhận dạng                                                | Not started         | 0%       |
 | 04  | [Đồng bộ tiền tố token](phase-04-token-prefix.md)               | 43 tên, 169 lần, 14 file. Guard vào `pnpm gate` ở bước cuối                                                    | **DONE** 2026-10-06 | 100%     |
 | 05  | [Đóng hợp đồng export](phase-05-export-contract.md)             | 10 subpath `types` phẳng gây FalseCJS; ca `02-attw` xanh-oan vì attw crash                                     | **DONE** 2026-10-06 | 100%     |
-| 06  | [Tài liệu](phase-06-docs.md)                                    | Hai version cùng cây là unsupported; sửa câu tsup/vite                                                         | Not started         | 0%       |
+| 06  | [Tài liệu](phase-06-docs.md)                                    | Hai version unsupported; câu tsup; quy tắc đặt token; nợ #18 vá; cộng drift class BEM trong 4 file docs        | **DONE** 2026-10-06 | 100%     |
 
 **Thứ tự bắt buộc**: P1 trước P2 (guard phải đỏ trước khi sửa). P5 sau P2
 (subpath mới ra đời ở P2). P4 trước lần publish đầu hoặc không bao giờ.
