@@ -177,18 +177,44 @@ export const DERIVED_TOKENS = [
   { token: '--tnt-tree-icon', from: '--tnt-muted', marker: 'rgb(7, 8, 9)' },
   { token: '--tnt-tree-selected-text', from: '--tnt-foreground', marker: 'rgb(4, 5, 6)' },
   { token: '--tnt-tree-hover', from: '--tnt-accent', marker: 'rgba(10, 11, 12, 0.5)' },
+  // Dẫn xuất qua `color-mix`, nên ALPHA của kết quả là tỉ lệ pha, không phải alpha
+  // của marker. `mix` nói tỉ lệ đó để phán quyết kiểm được cả hai.
+  { token: '--tnt-tree-selected-bg', from: '--tnt-ring', marker: 'rgb(13, 14, 15)', mix: 12 },
+  { token: '--tnt-floating-window-border-idle', from: '--tnt-border', marker: 'rgb(16, 17, 18)', mix: 60 },
 ];
 
 /**
+ * Chuẩn hoá một màu computed về `[r, g, b, a]` số.
+ *
+ * Bắt buộc, không phải tiện tay: `color-mix()` serialize ra
+ * `color(srgb 0.145098 0.388235 0.921569 / 0.12)` chứ không `rgba(37, 99, 235, 0.12)`.
+ * Cùng màu, khác chuỗi - nên so chuỗi là so sai thứ. Đo 2026-10-06.
+ *
+ * KHÔNG dùng canvas để đọc: nó lưu 8-bit và làm tròn màu alpha thấp - đo được
+ * `rgba(37, 99, 235, 0.12)` ra `[33, 99, 239, 31]`.
+ */
+export function normalizeColor(c) {
+  const t = String(c).trim();
+  let m = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)\s*(?:[,/]\s*([\d.]+)\s*)?\)$/.exec(t);
+  if (m) return [Number(m[1]), Number(m[2]), Number(m[3]), m[4] === undefined ? 1 : Number(m[4])];
+  m = /^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+))?\)$/.exec(t);
+  if (m) return [Number(m[1]) * 255, Number(m[2]) * 255, Number(m[3]) * 255, m[4] === undefined ? 1 : Number(m[4])];
+  return null;
+}
+
+/**
  * Đo HAI CHIỀU cho mỗi cặp: không ghi đè thì ra giá trị mặc định, ghi đè token
- * semantic thì ra đúng marker.
+ * semantic thì ra đúng màu của marker.
  *
  * Chỉ kiểm chiều "ghi đè thì đổi" là chưa đủ - một token hardcode thẳng marker cũng
  * cho xanh. Chiều "không ghi đè thì KHÁC marker" loại ca đó.
  *
+ * So kênh RGB với dung sai 0.01 vì `color-mix` trả về float: đo được `99.0` thành
+ * `98.9999`, tức 4e-7 của một kênh 8-bit, cùng màu render.
+ *
  * Đọc màu qua một div `color: var(--token)` chứ không đọc giá trị custom property:
  * giá trị computed của custom property là TEXT, nên `rgb(0 0 0 / 0.06)` và
- * `rgba(0, 0, 0, 0.06)` khác chuỗi mà cùng màu - đo 2026-10-06.
+ * `rgba(0, 0, 0, 0.06)` khác chuỗi mà cùng màu.
  */
 export async function probeDerivation({ cssPath }) {
   const css = readFileSync(cssPath, 'utf8');
@@ -199,11 +225,17 @@ export async function probeDerivation({ cssPath }) {
     for (const item of DERIVED_TOKENS) {
       await page.setContent(`<div id="probe" style="color: var(${item.token})"></div>`);
       await page.addStyleTag({ content: css });
-      const plain = await page.evaluate(() => getComputedStyle(document.getElementById('probe')).color);
+      const plainRaw = await page.evaluate(() => getComputedStyle(document.getElementById('probe')).color);
       await page.addStyleTag({ content: `:root { ${item.from}: ${item.marker} }` });
-      const overridden = await page.evaluate(() => getComputedStyle(document.getElementById('probe')).color);
-      const ok = overridden === item.marker && plain !== item.marker;
-      rows.push({ ...item, plain, overridden, ok });
+      const overRaw = await page.evaluate(() => getComputedStyle(document.getElementById('probe')).color);
+
+      const want = normalizeColor(item.marker);
+      const plain = normalizeColor(plainRaw);
+      const over = normalizeColor(overRaw);
+      const rgbNear = (a, b) => a !== null && b !== null && [0, 1, 2].every((i) => Math.abs(a[i] - b[i]) < 0.01);
+      const alphaOk = item.mix === undefined ? Math.abs(over[3] - want[3]) < 0.01 : Math.abs(over[3] - item.mix / 100) < 0.01;
+      const ok = rgbNear(over, want) && alphaOk && !rgbNear(plain, want);
+      rows.push({ ...item, plain: plainRaw, overridden: overRaw, ok });
     }
     return rows;
   } finally {
