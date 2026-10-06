@@ -18,8 +18,8 @@
   với tiền tố đúng ngay từ đầu.
 - **Ưu tiên** Thấp về chức năng, **cao về thời điểm**: rename token là breaking,
   và `0.1.0` chưa publish nên chi phí bằng 0 **lúc này**.
-- **Implementation status** Not started - đã được chốt làm
-- **Review status** Chưa review
+- **Implementation status** **DONE** 2026-10-06
+- **Review status** `GATE_EXIT=0` 41 PASS, bước gate mới đã chứng minh phá được; chưa có người review
 
 ## Key Insights
 
@@ -137,3 +137,72 @@ Không.
 ## Next steps
 
 `phase-05-export-contract.md`.
+
+---
+
+## Kết quả đo, 2026-10-06
+
+```
+$ node packages/tinita-react/scripts/check-css-tokens.mjs ; echo $?
+I6 - var() thiếu declaration và thiếu fallback: 0
+I4 - token sai tiền tố trong tokens.css của chính nó: 0 component    (từ 2)
+I8 - bridge import file global: 0
+@import không giải được qua exports: 0
+I2 - graph KHÔNG kéo CSS của chính component: 0
+OK
+0
+
+$ dist/ui/<c>/  tiền tố class và token giờ KHỚP
+  file-tree        class tnt-file-tree-*        token --tnt-file-tree-*
+  floating-window  class tnt-floating-window-*  token --tnt-floating-window-*
+
+$ dist/styles.css   140 riêng biệt / 190 khai báo   (không đổi - rename không đổi giá trị)
+```
+
+## Phạm vi thật: 169 lần trên 14 file, không phải 136 dòng trên 10 file
+
+Plan đếm 43 tên trên 10 file. Đúng về tên, **sai về file**. Kiểm kê lại bằng
+`git ls-files` tìm thêm 2 file mà plan không có:
+
+```
+packages/tinita-react/tests/ui/FloatingWindow.test.tsx   10 lần
+compatibility/cases/l2/lib/css-probe.mjs                  1 lần
+docs/design-guidelines.md                                  8 lần
+docs/code-standards.md                                     4 lần
+```
+
+`docs/*` thì phase-05... không, plan có nhắc docs nhưng không liệt kê hai file
+này. `tests/` thì plan **không nhắc tới chút nào** - và đó là chỗ phát hiện ra
+thiếu sót: 3 ca `FloatingWindow.test.tsx` đỏ vì chúng assert `--tnt-fw-x` trong
+khi code đã ghi `--tnt-floating-window-x`.
+
+Bài học, và nó khớp đúng rủi ro phase này tự nêu: kiểm kê bằng `grep -rn` trên
+`src` là chưa đủ. `git ls-files | xargs grep` là cách đúng - nó quét **mọi file
+được track** và bỏ qua `node_modules`, `dist`, `.work`, `.artifacts` mà một
+`grep -r .` sẽ treo trên đó (đo: hơn 120s, phải kill).
+
+## Bước gate mới đã chứng minh phá được
+
+Lần đầu tôi chèn `var(--tnt-gate-phai-do)` rồi tuyên bố gate đỏ - **vô giá trị**:
+gate đỏ vì `vitest` gặp 3 ca `FloatingWindow` chưa rename, chưa chạy tới
+`css-tokens`. Làm lại sau khi mọi thứ xanh:
+
+```
+PASS  test          11.5s  vitest                    <- KHÔNG guard nào khác bắt
+FAIL  css-tokens     0.1s  token dùng trong CSS graph được khai trong graph đó
+        ping    --tnt-gate-phai-do    dist/ui/ping/styles.css
+CHƯA CHẠY (dừng ở lỗi trên): l1
+```
+
+Gỡ ra: `GATE_EXIT=0`, 41 PASS.
+
+File đã sửa:
+
+```
+src/ui/file-tree/{tokens.css,FileTree.module.css,FileTree.tsx,types.ts,README.md,components/FileIcon.tsx}
+src/ui/floating-window/{tokens.css,FloatingWindow.module.css,FloatingWindow.tsx,geometry.ts}
+tests/ui/FloatingWindow.test.tsx
+compatibility/cases/l2/lib/css-probe.mjs
+docs/{design-guidelines.md,code-standards.md}
+scripts/gate.mjs                 <- bước css-tokens
+```
