@@ -144,7 +144,7 @@ if (!hasBrowser) {
 }
 
 if (hasBrowser) {
-  const { probeLeak, probeTheme } = await import('./lib/css-probe.mjs');
+  const { probeDerivation, probeLeak, probeTheme } = await import('./lib/css-probe.mjs');
   const work = createConsumer({ level: 'l2', name: 'css-host', deps: REACT, tarballs: TGZ });
   const cssPath = resolve(work, 'node_modules/tinita-react/dist/styles.css');
 
@@ -184,6 +184,36 @@ if (hasBrowser) {
   }
 
   add('css-probe-proof', proofRow?.after === '0.123', `thêm rule có chủ ý -> probe đo được opacity="${proofRow?.after}" (mong đợi 0.123)`);
+
+  /*
+   * Token component phải DẪN XUẤT từ token semantic, không hardcode.
+   *
+   * Trước 2026-10-06, 91/91 giá trị token component là literal, nên consumer đổi
+   * `--tnt-foreground` hay `--tnt-background` thì không component nào đổi - palette
+   * semantic là token công khai mà đổi nó không làm gì. Đó không phải design system.
+   *
+   * Sáu cặp được khoá ở đây là những cặp trùng giá trị TUYỆT ĐỐI ở cả hai theme, đo
+   * trước khi đổi, nên việc dẫn xuất KHÔNG đổi màu nào: 14/14 màu đã resolve giữ
+   * nguyên byte-for-byte.
+   *
+   * `--tnt-tree-selected-bg` cố ý KHÔNG trong danh sách: nó là `--tnt-ring` pha
+   * alpha, hai alpha khác nhau theo theme, nên dẫn xuất cần `color-mix()` hoặc
+   * relative color - một quyết định về sàn browser mà owner chưa chốt.
+   */
+  {
+    const rows = await probeDerivation({ cssPath });
+    const wrong = rows.filter((r) => !r.ok);
+    add(
+      'token-derivation',
+      wrong.length === 0,
+      wrong.length === 0
+        ? `${rows.length} cặp token: ghi đè token semantic thì token component đổi theo`
+        : wrong
+            .map((r) => `${r.token} <- ${r.from}: mặc định=${r.plain}, sau ghi đè=${r.overridden}, chờ=${r.marker}`)
+            .join(' | '),
+      { rows },
+    );
+  }
 }
 
 // ---------- host KHÔNG có Tailwind: utility thô trong JSX không được ship ----------

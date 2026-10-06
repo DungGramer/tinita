@@ -145,13 +145,65 @@ export async function probeTheme({ cssPath }) {
         const cs = getComputedStyle(document.getElementById('probe'));
         return {
           background: cs.getPropertyValue('--tnt-background').trim(),
-          filetree: cs.getPropertyValue('--tnt-file-tree-bg').trim(),
+          // `--tnt-tree-bg`, KHÔNG phải `--tnt-file-tree-bg`: tên đó khai ở 0 chỗ (20
+          // token của file-tree đều là `icon-*`), nên trường này luôn rỗng và không
+          // nói gì - đo 2026-10-06. Tree mới là nơi có token bề mặt, và từ 2026-10-06
+          // nó DẪN XUẤT từ `--tnt-background` nên phải đổi theo theme cùng lúc.
+          treeBg: cs.getPropertyValue('--tnt-tree-bg').trim(),
         };
       });
       // So bằng GIÁ TRỊ TOKEN, không bằng tên rule. Rule đổi tên thì ca vẫn đúng.
       const actual =
         measured.background === '#0a0a0a' ? 'dark' : measured.background === '#ffffff' ? 'light' : `?${measured.background}`;
       rows.push({ ...item, actual, ok: actual === item.expect, measured });
+    }
+    return rows;
+  } finally {
+    await browser.close();
+  }
+}
+
+/**
+ * Token component nào DẪN XUẤT từ token semantic nào.
+ *
+ * Invariant: consumer ghi đè token semantic thì token component phải đổi theo. Trước
+ * 2026-10-06 cả sáu cái dưới đây là literal, nên `--tnt-primary` và bạn bè là token
+ * công khai mà đổi chúng không đổi gì - palette chỉ là bảng màu để đọc.
+ */
+export const DERIVED_TOKENS = [
+  { token: '--tnt-tree-bg', from: '--tnt-background', marker: 'rgb(1, 2, 3)' },
+  { token: '--tnt-tree-text', from: '--tnt-foreground', marker: 'rgb(4, 5, 6)' },
+  { token: '--tnt-tree-text-dim', from: '--tnt-muted', marker: 'rgb(7, 8, 9)' },
+  { token: '--tnt-tree-icon', from: '--tnt-muted', marker: 'rgb(7, 8, 9)' },
+  { token: '--tnt-tree-selected-text', from: '--tnt-foreground', marker: 'rgb(4, 5, 6)' },
+  { token: '--tnt-tree-hover', from: '--tnt-accent', marker: 'rgba(10, 11, 12, 0.5)' },
+];
+
+/**
+ * Đo HAI CHIỀU cho mỗi cặp: không ghi đè thì ra giá trị mặc định, ghi đè token
+ * semantic thì ra đúng marker.
+ *
+ * Chỉ kiểm chiều "ghi đè thì đổi" là chưa đủ - một token hardcode thẳng marker cũng
+ * cho xanh. Chiều "không ghi đè thì KHÁC marker" loại ca đó.
+ *
+ * Đọc màu qua một div `color: var(--token)` chứ không đọc giá trị custom property:
+ * giá trị computed của custom property là TEXT, nên `rgb(0 0 0 / 0.06)` và
+ * `rgba(0, 0, 0, 0.06)` khác chuỗi mà cùng màu - đo 2026-10-06.
+ */
+export async function probeDerivation({ cssPath }) {
+  const css = readFileSync(cssPath, 'utf8');
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage();
+    const rows = [];
+    for (const item of DERIVED_TOKENS) {
+      await page.setContent(`<div id="probe" style="color: var(${item.token})"></div>`);
+      await page.addStyleTag({ content: css });
+      const plain = await page.evaluate(() => getComputedStyle(document.getElementById('probe')).color);
+      await page.addStyleTag({ content: `:root { ${item.from}: ${item.marker} }` });
+      const overridden = await page.evaluate(() => getComputedStyle(document.getElementById('probe')).color);
+      const ok = overridden === item.marker && plain !== item.marker;
+      rows.push({ ...item, plain, overridden, ok });
     }
     return rows;
   } finally {
