@@ -13,13 +13,33 @@
 :where(:root, [data-theme='light']) {
   /* Tree - the primitive. Shared by every tree, deliberately not named `filetree`:
      `FileTree` is one adapter built on top of it. */
-  --tnt-tree-bg: #ffffff;
-  --tnt-tree-text: #1a1a1a;
-  --tnt-tree-text-dim: #6b7280;
-  --tnt-tree-icon: #6b7280;
-  --tnt-tree-hover: rgb(0 0 0 / 0.06);
+  /*
+   * Sáu token dưới đây DẪN XUẤT từ palette semantic, không hardcode. Trước
+   * 2026-10-06 cả sáu là literal, nên consumer đổi `--tnt-background` hay
+   * `--tnt-foreground` thì Tree không đổi gì - palette chỉ là bảng màu để đọc.
+   *
+   * An toàn vì giá trị trùng TUYỆT ĐỐI ở CẢ HAI theme, đo trong Chromium trước khi
+   * đổi: tree-bg == background (#ffffff / #0a0a0a), tree-text == foreground
+   * (#1a1a1a / #e5e7eb), tree-text-dim == tree-icon == muted (#6b7280 / #9ca3af),
+   * tree-selected-text == foreground, tree-hover == accent (đen/trắng 6%).
+   *
+   * Hệ quả phụ: khối dark không còn phải khai lại sáu cái này - `--tnt-background`
+   * và bạn bè tự đổi theo theme. Sáu chỗ bớt phải sửa.
+   */
+  --tnt-tree-bg: var(--tnt-background);
+  --tnt-tree-text: var(--tnt-foreground);
+  --tnt-tree-text-dim: var(--tnt-muted);
+  --tnt-tree-icon: var(--tnt-muted);
+  --tnt-tree-selected-text: var(--tnt-foreground);
+  --tnt-tree-hover: var(--tnt-accent);
+  /*
+   * selected-bg thì KHÔNG dẫn xuất được mà giữ nguyên giá trị: nó là `--tnt-ring`
+   * pha alpha (12% light, 18% dark), và hai alpha khác nhau theo theme. Dẫn xuất
+   * cần `color-mix()` hoặc relative color `rgb(from ...)`, tức một quyết định về
+   * sàn browser mà owner chưa chốt. Giữ literal là trung thực hơn là đổi rendering
+   * để lấy một lớp chỉ hướng.
+   */
   --tnt-tree-selected-bg: rgb(37 99 235 / 0.12);
-  --tnt-tree-selected-text: #1a1a1a;
   --tnt-tree-font: Menlo, Monaco, 'Courier New', monospace;
   --tnt-tree-font-size: 14px;
   --tnt-tree-gap: 6px;
@@ -33,12 +53,11 @@
 }
 
 :where(.dark, [data-theme='dark']) {
-  /* Tree - dark */
-  --tnt-tree-bg: #0a0a0a;
-  --tnt-tree-text: #e5e7eb;
-  --tnt-tree-text-dim: #9ca3af;
-  --tnt-tree-icon: #9ca3af;
-  --tnt-tree-hover: rgb(255 255 255 / 0.06);
+  /*
+   * CHỈ còn selected-bg. Sáu token màu kia đã dẫn xuất từ palette semantic, mà
+   * palette tự có khối dark riêng - khai lại ở đây là hai chỗ phải sửa cho một giá
+   * trị. Chỉ alpha của selected-bg là khác giữa hai theme (12% vs 18%) nên nó phải
+   * ở lại.
+   */
   --tnt-tree-selected-bg: rgb(96 165 250 / 0.18);
-  --tnt-tree-selected-text: #e5e7eb;
 }
