@@ -5,7 +5,7 @@
 - Plan cha: [`plan.md`](plan.md)
 - Kiến trúc: [`architecture-plan.md`](architecture-plan.md) D6, mục 4.3, I7
 - Số đo: [`reports/00-measured-state.md`](reports/00-measured-state.md) mục 2, 6
-- Phụ thuộc: **baseline L4 phải tồn tại** (hiện 0 `.png`, 6 ca SKIP)
+- Phụ thuộc: ~~baseline L4~~ - **KHÔNG cần**, xem mục "Baseline ảnh không phải điều kiện chặn" ở cuối
 - Độc lập với P1/P2/P4/P5
 
 ## Overview
@@ -15,8 +15,8 @@
   `color-mix()` thay vì literal. 38/40 token icon của FileTree **giữ literal**.
 - **Ưu tiên** Trung bình. Đây là phase làm design system thành design system,
   không phải phase sửa lỗi.
-- **Implementation status** Not started
-- **Review status** Chưa review
+- **Implementation status** **DONE (hẹp hơn plan)** 2026-10-06
+- **Review status** gate 0, L2 0, L4 0; chưa có người review
 
 ## Key Insights
 
@@ -133,3 +133,110 @@ Không.
 
 `phase-04-token-prefix.md` nếu owner chọn làm, và nó phải xong **trước lần
 publish đầu**.
+
+---
+
+## Kết quả, 2026-10-06
+
+```
+pnpm gate                      GATE_EXIT=0  10/10 (l1 89.8s)
+node compatibility/run.mjs l2  L2_EXIT=0    31 ca, 0 fail, 1 skip
+node compatibility/run.mjs l4  L4_EXIT=0    30 ca, 0 fail, 6 skip
+
+PASS  token-derivation   6 cặp token: ghi đè token semantic thì token component đổi theo
+PASS  theme-matrix       7 vị trí dark/light đều đúng, kể cả .dark trên <html>
+```
+
+## Baseline ảnh KHÔNG phải điều kiện chặn - plan đóng khung sai
+
+Plan ghi phase này bị chặn bởi baseline L4 (0 `.png`, 6 ca SKIP). Sai: invariant
+I7 là **giá trị computed**, không phải pixel. So màu đã resolve trước/sau trong
+Chromium là dụng cụ **đúng hơn** PNG byte-compare - cái đó còn báo cả nhiễu
+antialiasing và đòi container để tái lập được.
+
+Docker có chạy trên máy này, nhưng **không có** Dockerfile hay script nào sinh
+baseline - chỉ có `IN_PLAYWRIGHT_CONTAINER` được đọc trong `l4/index.mjs`. Sinh
+baseline vẫn là nợ thật, nhưng nó **độc lập** với phase này.
+
+Cách đo đã dùng: mỗi token một div `color: var(--token)`, đọc computed color. Phải
+làm vậy vì giá trị computed của custom property là **TEXT**:
+`rgb(0 0 0 / 0.06)` và `rgba(0, 0, 0, 0.06)` khác chuỗi mà cùng màu, nên so chuỗi
+token sẽ báo khác oan.
+
+**14/14 màu đã resolve giữ nguyên byte-for-byte** sau khi dẫn xuất, ở cả hai theme.
+
+## Phạm vi THẬT: 6 token, không phải 91
+
+| Nhóm                                                                | Số         | Quyết định                                                                                                                   |
+| ------------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Tree, trùng tuyệt đối cả hai theme                                  | 6          | **DẪN XUẤT**                                                                                                                 |
+| Semantic pha alpha (`tree-selected-bg`, `fw-border-idle`, 2 shadow) | 4          | để lại - cần `color-mix()` hoặc `rgb(from ...)`, tức quyết định sàn browser                                                  |
+| Màu nhận dạng loại file của FileTree                                | 38         | để lại - `icon-html: #dc2626` tình cờ bằng `--tnt-destructive`, dẫn xuất là ghép màu lỗi của brand vào icon HTML             |
+| 4 icon trung tính của FileTree                                      | 8 khai báo | để lại - giá trị LỆCH giữa hai theme: `icon-file` dark là `#6b7280`, tức muted của **light**. Dẫn xuất sẽ ĐỔI rendering dark |
+| `fw-header-bg`                                                      | 2          | để lại - `#f9fafb`/`#141414` không có trong palette                                                                          |
+
+Sáu cặp đã dẫn xuất:
+
+```
+--tnt-tree-bg            <- --tnt-background   #ffffff / #0a0a0a
+--tnt-tree-text          <- --tnt-foreground   #1a1a1a / #e5e7eb
+--tnt-tree-selected-text <- --tnt-foreground   #1a1a1a / #e5e7eb
+--tnt-tree-text-dim      <- --tnt-muted        #6b7280 / #9ca3af
+--tnt-tree-icon          <- --tnt-muted        #6b7280 / #9ca3af
+--tnt-tree-hover         <- --tnt-accent       đen/trắng 6%
+```
+
+FileTree thừa hưởng cả sáu vì phần cây do Tree render.
+
+Hệ quả phụ đo được: khối dark của `ui/tree/tokens.css` co từ **7 khai báo còn 1**
+(chỉ `selected-bg`, vì alpha của nó khác theo theme). Sáu chỗ bớt phải sửa.
+
+## Matcher đầu của tôi sinh false positive
+
+Phiên bản đầu so **giá trị** chứ không so **nghĩa**, nên nó đề nghị:
+
+```
+--tnt-ping-dot-size: 0.5rem    == --tnt-radius       <- trùng ĐỘ DÀI, không trùng nghĩa
+--tnt-ping-gap: 0.25rem        == --tnt-radius-sm
+--tnt-floating-window-header-gap: 0.5rem == --tnt-radius
+--tnt-file-tree-icon-html: #dc2626 == --tnt-destructive  <- màu nhận dạng
+```
+
+Bản thứ hai chỉ xét token màu, nhưng vẫn không chọn được **token semantic nào**
+trong các token trùng giá trị: `#ffffff` là cả `--tnt-background`, `--tnt-input` và
+`--tnt-primary-foreground`, nên nó báo `--tnt-tree-bg == --tnt-input`. Số đo nói
+cái nào **an toàn**; nghĩa thì người phải chọn.
+
+## Ba khẳng định sai trong docs, tìm ra khi dựng ca
+
+1. **`--tnt-file-tree-{bg,text,text-dim,hover,active,spacing,indent}` không tồn
+   tại** - khai ở 0 chỗ, dùng ở 0 chỗ. Cả 20 token của file-tree đều là `icon-*`.
+   `docs/design-guidelines.md` và `docs/code-standards.md` dạy consumer override
+   chúng; tên đúng là `--tnt-tree-*`. Lượt rename ở pha 04 đã đổi tên chúng từ
+   `--tnt-filetree-*` sang `--tnt-file-tree-*` - hư cấu cả trước lẫn sau.
+2. **`css-probe.mjs` đọc `--tnt-file-tree-bg`** làm trường diagnostic, nên trường
+   đó luôn rỗng. Đổi sang `--tnt-tree-bg`, và giờ nó có nghĩa: token đó dẫn xuất từ
+   `--tnt-background` nên phải đổi theo theme cùng lúc.
+3. **"Mỗi biến icon dùng fallback"** - đo trên `dist`: **20 lần dùng
+   `var(--tnt-file-tree-icon-*)`, 0 lần có dấu phẩy**. Bỏ trống một biến icon thì
+   declaration thành invalid at computed-value time và `color` về giá trị kế thừa,
+   không phải "màu hợp lý".
+
+## Ca đã chứng minh phá được
+
+```
+PHÁ: trả 6 token về literal
+  FAIL  token-derivation
+    --tnt-tree-bg <- --tnt-background: mặc định=rgb(255, 255, 255),
+                     sau ghi đè=rgb(255, 255, 255), chờ=rgb(1, 2, 3)
+    ...
+GỠ: L2_TIER1_EXIT=0, 31 ca, 0 fail
+```
+
+Ca đo **hai chiều**: ghi đè thì phải ra marker, VÀ không ghi đè thì phải KHÁC
+marker. Chỉ kiểm chiều đầu thì một token hardcode thẳng marker cũng cho xanh.
+
+## Chưa làm
+
+Nhóm alpha (4 token) chờ owner chốt sàn browser cho `color-mix()` /
+`rgb(from ...)`. Sinh baseline ảnh L4 vẫn là nợ độc lập.

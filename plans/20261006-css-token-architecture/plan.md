@@ -39,20 +39,21 @@ consumer vite của L2 và root layout của app Next trong L4 đều
 
 ## Phase
 
-| #   | Phase                                                           | Mục tiêu                                                                                                       | Status              | Progress |
-| --- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------- | -------- |
-| 01  | [Guard token trong CSS graph](phase-01-css-token-guard.md)      | `check-css-tokens.mjs` + ca **L2** `motion-present`, đỏ đúng chủ đích                                          | **DONE** 2026-10-06 | 100%     |
-| 02  | [Đóng 11 lỗ token](phase-02-close-token-holes.md)               | 5 token motion sang `styles/motion-tokens.css` (file riêng, không phải `tokens.css`), carousel có `tokens.css` | **DONE** 2026-10-06 | 100%     |
-| 03  | [Token component dẫn xuất](phase-03-derive-component-tokens.md) | 91 literal -> `var()` từ palette semantic, trừ 38 màu nhận dạng                                                | Not started         | 0%       |
-| 04  | [Đồng bộ tiền tố token](phase-04-token-prefix.md)               | 43 tên, 169 lần, 14 file. Guard vào `pnpm gate` ở bước cuối                                                    | **DONE** 2026-10-06 | 100%     |
-| 05  | [Đóng hợp đồng export](phase-05-export-contract.md)             | 10 subpath `types` phẳng gây FalseCJS; ca `02-attw` xanh-oan vì attw crash                                     | **DONE** 2026-10-06 | 100%     |
-| 06  | [Tài liệu](phase-06-docs.md)                                    | Hai version unsupported; câu tsup; quy tắc đặt token; nợ #18 vá; cộng drift class BEM trong 4 file docs        | **DONE** 2026-10-06 | 100%     |
+| #   | Phase                                                           | Mục tiêu                                                                                                       | Status                    | Progress |
+| --- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------- | -------- |
+| 01  | [Guard token trong CSS graph](phase-01-css-token-guard.md)      | `check-css-tokens.mjs` + ca **L2** `motion-present`, đỏ đúng chủ đích                                          | **DONE** 2026-10-06       | 100%     |
+| 02  | [Đóng 11 lỗ token](phase-02-close-token-holes.md)               | 5 token motion sang `styles/motion-tokens.css` (file riêng, không phải `tokens.css`), carousel có `tokens.css` | **DONE** 2026-10-06       | 100%     |
+| 03  | [Token component dẫn xuất](phase-03-derive-component-tokens.md) | 6 token của Tree dẫn xuất từ palette semantic, 14/14 màu resolve không đổi. Nhóm alpha chờ sàn browser         | **DONE (hẹp)** 2026-10-06 | 100%     |
+| 04  | [Đồng bộ tiền tố token](phase-04-token-prefix.md)               | 43 tên, 169 lần, 14 file. Guard vào `pnpm gate` ở bước cuối                                                    | **DONE** 2026-10-06       | 100%     |
+| 05  | [Đóng hợp đồng export](phase-05-export-contract.md)             | 10 subpath `types` phẳng gây FalseCJS; ca `02-attw` xanh-oan vì attw crash                                     | **DONE** 2026-10-06       | 100%     |
+| 06  | [Tài liệu](phase-06-docs.md)                                    | Hai version unsupported; câu tsup; quy tắc đặt token; nợ #18 vá; cộng drift class BEM trong 4 file docs        | **DONE** 2026-10-06       | 100%     |
 
 **Thứ tự bắt buộc**: P1 trước P2 (guard phải đỏ trước khi sửa). P5 sau P2
 (subpath mới ra đời ở P2). P4 trước lần publish đầu hoặc không bao giờ.
 
-P3 cần baseline L4 tồn tại (hiện 0 `.png`, 6 ca SKIP) - dependency ngoài duy
-nhất của plan này.
+P3 KHÔNG cần baseline L4 - plan đóng khung sai: invariant của nó là giá trị
+computed, không phải pixel, và so màu resolve trước/sau trong Chromium là dụng cụ
+đúng hơn. Sinh baseline ảnh vẫn là nợ, nhưng độc lập.
 
 P3, P4 độc lập với P1/P2 và với nhau.
 
