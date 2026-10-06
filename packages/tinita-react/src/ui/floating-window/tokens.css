@@ -13,7 +13,12 @@
 :where(:root, [data-theme='light']) {
   /* FloatingWindow */
   --tnt-floating-window-header-bg: #f9fafb;
-  --tnt-floating-window-border-idle: rgb(229 231 235 / 0.6);
+  /*
+   * Dẫn xuất từ `--tnt-border` ở 60%. `in srgb` cho kênh trùng khít literal cũ - đo
+   * Chromium 2026-10-06. 60% giống nhau ở cả hai theme, nên khối dark KHÔNG còn phải
+   * khai lại cái này: `--tnt-border` tự đổi theo theme.
+   */
+  --tnt-floating-window-border-idle: color-mix(in srgb, var(--tnt-border) 60%, transparent);
   --tnt-floating-window-shadow-idle: 0 4px 12px rgb(0 0 0 / 0.08);
   --tnt-floating-window-shadow-active: 0 12px 32px rgb(0 0 0 / 0.16);
   --tnt-floating-window-duration: 220ms;
@@ -35,7 +40,6 @@
   /* FloatingWindow - dark. Only the colours change: sizes and easing are not
      theme-dependent, so redeclaring them here would be two places to edit. */
   --tnt-floating-window-header-bg: #141414;
-  --tnt-floating-window-border-idle: rgb(55 65 81 / 0.6);
   --tnt-floating-window-shadow-idle: 0 4px 12px rgb(0 0 0 / 0.5);
   --tnt-floating-window-shadow-active: 0 12px 32px rgb(0 0 0 / 0.7);
 }

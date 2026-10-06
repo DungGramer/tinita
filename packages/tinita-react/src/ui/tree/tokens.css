@@ -33,13 +33,19 @@
   --tnt-tree-selected-text: var(--tnt-foreground);
   --tnt-tree-hover: var(--tnt-accent);
   /*
-   * selected-bg thì KHÔNG dẫn xuất được mà giữ nguyên giá trị: nó là `--tnt-ring`
-   * pha alpha (12% light, 18% dark), và hai alpha khác nhau theo theme. Dẫn xuất
-   * cần `color-mix()` hoặc relative color `rgb(from ...)`, tức một quyết định về
-   * sàn browser mà owner chưa chốt. Giữ literal là trung thực hơn là đổi rendering
-   * để lấy một lớp chỉ hướng.
+   * `in srgb`, KHÔNG phải `in oklab`. Đo trong Chromium 2026-10-06: `in srgb` cho
+   * kênh trùng khít literal cũ (`0.145098 * 255 = 37.0`), còn `in oklab` đi qua một
+   * không gian khác và serialize ra `oklab(...)`.
+   *
+   * Alpha khác theo theme (12% light, 18% dark) nên khối dark vẫn phải khai lại cái
+   * này - khác với sáu token màu phía trên.
+   *
+   * Dẫn xuất kiểu này đổi SERIALIZATION của giá trị computed: `rgba(37, 99, 235,
+   * 0.12)` thành `color(srgb 0.145098 0.388235 0.921569 / 0.12)`. Cùng màu, khác
+   * chuỗi - nên bất kỳ phép so sánh nào trên `getComputedStyle` phải so SỐ, không
+   * so chuỗi.
    */
-  --tnt-tree-selected-bg: rgb(37 99 235 / 0.12);
+  --tnt-tree-selected-bg: color-mix(in srgb, var(--tnt-ring) 12%, transparent);
   --tnt-tree-font: Menlo, Monaco, 'Courier New', monospace;
   --tnt-tree-font-size: 14px;
   --tnt-tree-gap: 6px;
@@ -54,10 +60,9 @@
 
 :where(.dark, [data-theme='dark']) {
   /*
-   * CHỈ còn selected-bg. Sáu token màu kia đã dẫn xuất từ palette semantic, mà
-   * palette tự có khối dark riêng - khai lại ở đây là hai chỗ phải sửa cho một giá
-   * trị. Chỉ alpha của selected-bg là khác giữa hai theme (12% vs 18%) nên nó phải
-   * ở lại.
+   * CHỈ còn selected-bg, và chỉ vì ALPHA của nó khác theo theme (12% vs 18%). Màu
+   * nền thì đã dẫn xuất từ `--tnt-ring`, cái tự đổi theo theme. Sáu token màu kia
+   * không còn ở đây vì palette semantic tự có khối dark riêng.
    */
-  --tnt-tree-selected-bg: rgb(96 165 250 / 0.18);
+  --tnt-tree-selected-bg: color-mix(in srgb, var(--tnt-ring) 18%, transparent);
 }
