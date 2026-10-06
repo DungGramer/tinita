@@ -126,7 +126,7 @@ import { fileSize } from 'tinita/file/fileSize'; // Subpath import (optimal)
 **Plug-and-Play CSS Approach**:
 
 - **Manual Import** (production): `import 'tinita-react/styles.css'`
-- **Auto-Inject** (development): Component-level style injection via `autoInjectStyles`
+- **Auto-Inject** (escape hatch, not development-only): `autoInjectStyles(styleId, cssContent)` injects a CSS string at the START of `<head>` so the host can still override, and returns a remover. For consumers whose bundler cannot import CSS - the main path is `ui/*` entries pulling their own CSS through the import graph.
 - **SSR Compatible**: Safe checks for browser environment
 - **Customizable**: CSS variables for theming
 - **Prefixed Classes**: `tnt-{component}` naming convention
@@ -310,7 +310,7 @@ ComponentName/
 **4. CSS System** (tinita-react)
 
 - **Build Script**: `packages/tinita-react/scripts/build-css.mjs` copies and bundles CSS
-- **Auto-Inject Utility**: `utils/autoInjectStyles.ts` for development
+- **Auto-Inject Utility**: `utils/autoInjectStyles.ts` - escape hatch for CSS-unaware consumers
 - **Manual Imports**: Production-ready CSS files in `dist/`
 
 ### Technology Stack

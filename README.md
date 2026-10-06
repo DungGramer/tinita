@@ -83,7 +83,10 @@ import { FloatingWindow } from 'tinita-react/ui/floating-window';
 import { useDragSnap } from 'tinita-react/hooks/useDragSnap';
 import { useWindowDrag } from 'tinita-react/hooks/useWindowDrag';
 
-// Utility
+// Utility. `autoInjectStyles(styleId, cssContent)` is an escape hatch for consumers whose
+// bundler cannot import CSS: it injects a CSS string at the START of <head> so the host can
+// still override it, and returns a remover. The main path is the `ui/*` entries above, which
+// pull their own CSS through the import graph.
 import { autoInjectStyles } from 'tinita-react/utils/autoInjectStyles';
 
 // CSS

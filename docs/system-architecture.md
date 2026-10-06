@@ -645,7 +645,7 @@ CSS component (`FileTree.css`, `CarouselTicker.css`) thì **layerless**.
 
 `.dark` không prefix; `--radix-accordion-content-height` trong keyframes public
 (`FileTree.css:230,237`); `tailwind.config.cjs` thiếu `prefix`/`important`/`corePlugins.preflight`;
-`src/styles/index.css` mồ côi có `@import "tailwindcss"`; `autoInjectStyles` append cuối
+`src/styles/index.css` mồ côi có `@import "tailwindcss"`; ~~`autoInjectStyles` append cuối~~ (sửa 2026-10-06, chèn đầu head - đo Chromium: cuối head thì library ĐÈ host)
 `document.head` (không component nào gọi nó). Pha 05 của plan phủ nhóm này.
 
 **Điểm sáng vẫn đúng:** Preflight chính chủ KHÔNG được ship - `build-entry.css` chỉ import

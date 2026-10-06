@@ -324,7 +324,7 @@ nhận về `0s/none + 0s`. Ca L4 `reduced-motion-scope` đo liên tục, giao c
 
 `.dark` không prefix · `var(--radix-accordion-content-height)` trong keyframes public
 (`FileTree.css:230,237`) · `tailwind.config.cjs` thiếu `prefix`/`important`/`corePlugins.preflight`
-· `src/styles/index.css` mồ côi có `@import "tailwindcss"` · `autoInjectStyles` append cuối
+· `src/styles/index.css` mồ côi có `@import "tailwindcss"` · ~~`autoInjectStyles` append cuối~~ (sửa 2026-10-06, chèn đầu head)
 `document.head`. Pha 05 của plan phủ nhóm này.
 
 _Probe được chứng minh:_ ca `css-probe-proof` chèn rule có chủ ý và phải đo được thay đổi, nên bảng
@@ -345,15 +345,43 @@ Không phải tất cả đều là nợ. Bốn thứ sau đã đúng và phải
 - **`globals.css` dùng `@layer base`, `animations.css` dùng `@layer utilities`.** Chỉ CSS
   component là còn ngoài layer.
 
-### 4.3 `autoInjectStyles` là API chết, không phải cơ chế đang chạy
+### 4.3 `autoInjectStyles` là ĐƯỜNG THOÁT, không phải cơ chế nạp CSS chính - sửa 2026-10-06
 
-**Không component nào gọi nó.** grep chỉ ra đúng 2 hit: định nghĩa trong
-`src/utils/autoInjectStyles.ts` và re-export ở `src/index.ts:11`. Hàm có SSR guard (dòng 12) và
-chống trùng theo id (dòng 17), nhưng về runtime nó không tham gia vào bất kỳ component nào.
+**Không component nào gọi nó, và đó là đúng.** Đường nạp CSS chính là
+`import { Ping } from 'tinita-react/ui/ping'` - entry tự kéo CSS qua import graph, nên CSS đến
+lúc build, không FOUC và không có side effect runtime. Mục 6b của
+`system-architecture.md` là hợp đồng đó.
 
-Mọi mô tả coi `autoInjectStyles` là "cơ chế inject CSS đang hoạt động" đều **sai**. Cách nạp CSS
-thật hôm nay là consumer tự `import 'tinita-react/styles.css'`. Nếu sau này quyết định dùng nó
-thật thì phải xử hai khiếm khuyết ở bảng 4.1 trước (chèn cuối `<head>`, không gỡ khi unmount).
+Hàm này dành cho consumer mà bundler/runtime **không hiểu CSS**. Hợp đồng mới khai `ui/*` trong
+`cssAwareSpecifiers` chính là để nói họ không dùng được đường chính; họ tự lấy chuỗi CSS rồi
+gọi hàm này:
+
+```ts
+const css = await fetch('https://esm.sh/tinita-react/dist/styles.css').then(
+  (r) => r.text()
+);
+const remove = autoInjectStyles('tnt-design-system', css);
+```
+
+Ba khiếm khuyết đã sửa 2026-10-06:
+
+1. **Không validate gì.** `autoInjectStyles(42, 'x')` tạo thẳng `<style id="42">`, và
+   `autoInjectStyles('id', '')` tạo thẻ rỗng vô nghĩa. Giờ `assertNonEmptyString` cho cả hai
+   tham số, nêu tên chính nó.
+2. **Chèn cuối `<head>` là RÒ RỈ**, và mô tả cũ ("thua thứ tự nguồn") ngược hướng. Đo trong
+   Chromium, host khai `.probe{color:blue}` trong head và CSS chèn đặt `color:red`:
+   `appendChild` -> **đỏ**, tức library ĐÈ host; `insertBefore(style, head.firstChild)` ->
+   **xanh**, host đè lại được. Giờ chèn đầu head, đúng quy ước "host luôn đè được" mà token
+   dùng `:where()` để bảo đảm.
+3. **Không có tay cầm để gỡ.** Giờ trả về hàm gỡ, cùng mẫu `installSmoothScroll` của
+   `tinita-dom`. `removeInjectedStyles` giữ lại cho caller chỉ có `styleId`.
+
+Gọi lại cùng `styleId` vẫn **không làm gì**, kể cả khi nội dung khác - đó là ca HMR, và ghi đè
+sẽ làm trang đang chạy nhảy style. Muốn đổi nội dung thì gỡ rồi chèn lại.
+
+Guard: 7 ca trong `tests/utils/autoInjectStyles.test.ts`, và ca L2
+`auto-inject-styles-cascade` đo màu thật trong Chromium - jsdom không tính cascade nên unit
+test chỉ nói được thẻ nằm đâu trong DOM.
 
 ### 4.5 `className` escape hatch - **ĐẠT**
 

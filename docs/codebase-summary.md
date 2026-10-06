@@ -37,7 +37,7 @@ Thêm 2026-09-26. Port `installSmoothScroll` (422 dòng) và `wheel-source` (168
 được. Đánh đổi: đổi hằng số là breaking change.
 
 Browser-only không có guard vì `installSmoothScroll` cài listener trên `document`. Guard im lặng sẽ
-biến lỗi rõ ràng thành "sao smooth scroll không hoạt động" - đúng số phận `autoInjectStyles` của
+biến lỗi rõ ràng thành "sao smooth scroll không hoạt động" - đúng số phận `autoInjectStyles` TRƯỚC 2026-10-06 của
 `tinita-react`. `contract.json` mang cờ `browserOnly: true` nên ca SSR của L2 bỏ qua nó **và in lý do**.
 
 ---
@@ -397,7 +397,7 @@ nên mọi thứ trông như chạy): `node_modules` chỉ có `react` + `tinita
 
 9. ~~`src/styles/index.css` mồ côi~~ - **ĐÃ XOÁ 2026-09-26**, cùng `tailwind.config.cjs` và `postcss.config.mjs` (trùng `postcss.config.js`, một cái có cssnano một cái không - cosmiconfig chọn cái nào là ngầm).
 
-10. **`autoInjectStyles` không component nào gọi** - Util tồn tại (`src/utils/autoInjectStyles.ts`), có SSR guard + chống trùng, nhưng grep chỉ ra 2 hit: định nghĩa + `src/index.ts:11` re-export. Docs cũ mô tả nó như cơ chế đang hoạt động - SAI, nó chết về runtime.
+10. ~~**`autoInjectStyles` không component nào gọi**~~ - **SỬA 2026-10-06.** Việc không component nào gọi là ĐÚNG: đường nạp CSS chính là entry `ui/*` tự kéo CSS qua import graph. Hàm này là đường thoát cho consumer mà bundler không hiểu CSS (`cssAwareSpecifiers` của `contract.json` khai ai thuộc nhóm đó). Đã sửa ba khiếm khuyết: không validate (giờ `assertNonEmptyString` cả hai tham số), chèn cuối `<head>` nên library ĐÈ host (đo Chromium: `appendChild` -> đỏ, `insertBefore(firstChild)` -> xanh; giờ chèn đầu head), và không có hàm gỡ (giờ trả về closure gỡ, cùng mẫu `installSmoothScroll`). Guard: 7 unit test + ca L2 `auto-inject-styles-cascade` đo màu thật trong Chromium.
 
 11. **`dist/` chưa từng được build** - `packages/*/dist` không tồn tại. Config + script tồn tại nhưng build lần đầu cần chạy `pnpm build` hoặc `turbo build` từ root.
 
