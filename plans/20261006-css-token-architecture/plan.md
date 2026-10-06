@@ -45,7 +45,7 @@ consumer vite của L2 và root layout của app Next trong L4 đều
 | 02  | [Đóng 11 lỗ token](phase-02-close-token-holes.md)               | 5 token motion sang `styles/motion-tokens.css` (file riêng, không phải `tokens.css`), carousel có `tokens.css` | **DONE** 2026-10-06 | 100%     |
 | 03  | [Token component dẫn xuất](phase-03-derive-component-tokens.md) | 91 literal -> `var()` từ palette semantic, trừ 38 màu nhận dạng                                                | Not started         | 0%       |
 | 04  | [Đồng bộ tiền tố token](phase-04-token-prefix.md)               | 43 tên, 169 lần, 14 file. Guard vào `pnpm gate` ở bước cuối                                                    | **DONE** 2026-10-06 | 100%     |
-| 05  | [Đóng hợp đồng export](phase-05-export-contract.md)             | 7 subpath thiếu `types`, subpath token của carousel                                                            | Not started         | 0%       |
+| 05  | [Đóng hợp đồng export](phase-05-export-contract.md)             | 10 subpath `types` phẳng gây FalseCJS; ca `02-attw` xanh-oan vì attw crash                                     | **DONE** 2026-10-06 | 100%     |
 | 06  | [Tài liệu](phase-06-docs.md)                                    | Hai version cùng cây là unsupported; sửa câu tsup/vite                                                         | Not started         | 0%       |
 
 **Thứ tự bắt buộc**: P1 trước P2 (guard phải đỏ trước khi sửa). P5 sau P2

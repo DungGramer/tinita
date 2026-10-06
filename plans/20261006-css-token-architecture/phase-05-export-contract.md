@@ -10,11 +10,12 @@
 ## Overview
 
 - **Ngày** 2026-10-06
-- **Mô tả** 7 subpath thiếu condition `types` trong `exports`. Thêm vào cho khớp
-  hình dạng của các subpath khác.
+- **Mô tả** **NGƯỢC HẲN plan.** 7 subpath mà plan gọi là "thiếu `types`" lại
+  đúng hình dạng; **10** subpath mà plan gọi là đúng thì sai và gây `FalseCJS`.
+  Và ca `02-attw` canh chuyện này đã xanh-oan suốt vì `attw` CRASH.
 - **Ưu tiên** Trung bình. Lệch im lặng, `attw` đang xanh nhờ allowlist.
-- **Implementation status** Not started
-- **Review status** Chưa review
+- **Implementation status** **DONE** 2026-10-06
+- **Review status** gate 0, L1/L2/L4 đều 0; chưa có người review
 
 ## Key Insights
 
@@ -101,3 +102,117 @@ Không.
 ## Next steps
 
 `phase-06-docs.md`.
+
+---
+
+## Tiền đề của plan SAI, và ca canh nó đã xanh-oan
+
+Plan viết: "7 subpath thiếu condition `types`... Các subpath còn lại có." Đo
+2026-10-06 thì ngược: 7 cái đó có hình dạng **ĐÚNG**
+
+```json
+"./hooks/useDoubleTap": {
+  "import":  { "types": "./dist/hooks/useDoubleTap.d.mts", "default": "...mjs" },
+  "require": { "types": "./dist/hooks/useDoubleTap.d.ts",  "default": "...cjs" }
+}
+```
+
+đúng bất biến build #3 của `CLAUDE.md` (`types` tách theo condition). Còn 10 cái
+kia dùng `types` **phẳng** trỏ `.d.ts`, đúng hình dạng mà `CLAUDE.md` nói gây
+`FalseCJS`:
+
+```json
+"./hooks/useToggle": { "types": "./dist/hooks/useToggle.d.ts", "import": "...mjs", "require": "...cjs" }
+```
+
+Cách tôi dò ("có khoá `types` ở cấp 1 hay không") đo **sự có mặt của một khoá**,
+không đo **tính đúng của hình dạng** - cùng lớp lỗi mà repo đã gặp nhiều lần.
+
+`attw` chạy trực tiếp trên tarball báo đúng **10** dòng
+`🎭 Masquerading as CJS`, khớp **1-1** với 10 subpath đó.
+
+## Ca `02-attw` là instance thứ SÁU của mẫu "xanh mà không kiểm gì"
+
+`@arethetypeswrong/cli@0.18.2` CRASH trên **cả ba** package - kể cả `tinita` và
+`tinita-dom` không có CSS subpath nào, nên không phải do CSS:
+
+```
+exit=3
+error while checking file:
+Cannot read properties of undefined (reading 'filename')
+```
+
+Ca cũ đọc **chỉ** `out` và bỏ `code`:
+
+```js
+const { out } = npx(['attw', '--pack', dir, ...]);
+if (/Masquerading as CJS/.test(out)) problems.add('FalseCJS');
+const ok = unexpected.length === 0;   // -> true
+```
+
+stdout của bản crash không chứa chuỗi nào trong hai mẫu, nên `problems` rỗng và
+ca PASS với "vấn đề: không (đều trong allowlist)" - trong khi `accepted: []`
+RỖNG. Câu "đều trong allowlist" đó là thứ làm nó đọc như có kiểm soát.
+
+Hệ quả: ca này chưa bao giờ thực sự kiểm package nào, và nó che `FalseCJS` trên
+10 subpath.
+
+## Ba thứ đã sửa
+
+1. **`@arethetypeswrong/cli` 0.18.2 -> 0.18.5.** Đo: 0.18.2 crash bất kể gọi bằng
+   tarball hay `--pack dir`, nên là bug version. 0.18.5 chạy, exit=1, 10 FalseCJS.
+2. **10 subpath sang `types` tách theo condition.** FalseCJS về 0.
+3. **Ca phán quyết trên BA thứ**: attw chạy được (không crash), không `FalseCJS`,
+   không `NoResolution` - và chỉ tính trên **dòng bảng của entrypoint JS**.
+
+   Vì sao lọc trong ca chứ không `--exclude-entrypoints`: đo 2026-10-06, cờ đó
+   không loại được dòng nào ở cả ba dạng (`./x`, `x`, `tinita-react/x`). Và không
+   dùng allowlist `NoResolution` vì nó thô - sẽ che luôn một subpath JS thật sự
+   không resolve được. 21 dòng `Resolution failed` của `tinita-react` đều là CSS
+   subpath, và `.css` không có declaration là thiết kế.
+
+   Phần chú giải ở đầu output chứa câu "Import failed to resolve to type
+   declarations or JavaScript files", khớp mẫu `failed to resolve` - nên dò trên
+   cả output là tự sinh false positive. Ca chỉ đọc dòng có entrypoint trong ngoặc
+   kép.
+
+## Hai luật đã chứng minh phá được
+
+```
+PHÁ: trả ./hooks/useToggle về types phẳng
+  FAIL  02-attw:tinita-react   NGOÀI allowlist: FalseCJS
+
+PHÁ: types + default trỏ file không tồn tại
+  FAIL  02-attw:tinita-react   NGOÀI allowlist: NoResolution
+  │ "tinita-react/hooks/useToggle" │ 🟢 │ 💀 Resolution failed │ 💀 ... │ 💀 ... │
+
+GỠ: L1_EXIT=0
+```
+
+Lần phá đầu cho `NoResolution` **không** kích hoạt được nó: chỉ trỏ `types` vào
+file thiếu thì `publint` bắt còn attw vẫn PASS. Phải phá cả `default` mới ra.
+Nếu dừng ở lần đầu thì luật đó sẽ ở lại dưới dạng chưa chứng minh.
+
+`ATTW_CRASHED` thì bằng chứng là chính lần crash thật của 0.18.2.
+
+## Kết quả
+
+```
+PASS  02-attw:tinita         exit=0, 61/61 entrypoint JS, vấn đề: không
+PASS  02-attw:tinita-react   exit=1, 17/38 entrypoint JS, vấn đề: không
+PASS  02-attw:tinita-dom     exit=0, 23/23 entrypoint JS, vấn đề: không
+
+pnpm gate                      GATE_EXIT=0  10/10 (l1 91.6s)
+node compatibility/run.mjs l2  L2_EXIT=0    29 ca, 0 fail  (tsc:bundler/nodenext/node đều 96 specifier sạch)
+node compatibility/run.mjs l4  L4_EXIT=0    30 ca, 0 fail, 6 skip
+```
+
+`typesVersions` không cần đổi: nó phục vụ `moduleResolution: node` bằng cách map
+subpath -> `.d.ts`, không liên quan condition. L1 `08-typesversions-sync` vẫn
+PASS với 16 pattern.
+
+## Chưa làm: `utils/autoInjectStyles`
+
+Nợ #16 nói nó chết, và ca L2 `autoInjectStyles-unused-at-runtime` canh điều đó.
+Bỏ export là **breaking**, nên nó cùng cửa sổ với P4 - trước lần publish đầu.
+Đây là quyết định của owner, plan không tự chốt.
