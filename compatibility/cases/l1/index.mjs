@@ -46,15 +46,69 @@ for (const { name, dir } of TARGETS) {
 }
 
 // ---------- 02 attw ----------
+//
+// Ca này TỪNG xanh mà không kiểm gì - instance thứ sáu của mẫu đã ghi trong
+// CLAUDE.md. `@arethetypeswrong/cli@0.18.2` CRASH trên cả ba package:
+//
+//   exit=3
+//   error while checking file:
+//   Cannot read properties of undefined (reading 'filename')
+//
+// Bản cũ chỉ đọc `out` và bỏ `code`, nên stdout không chứa `Masquerading as CJS`
+// -> `problems` rỗng -> PASS với "vấn đề: không". Nó che FalseCJS thật trên 10
+// subpath của `tinita-react` suốt thời gian đó. Đo 2026-10-06: 0.18.5 chạy được
+// và báo đúng 10 dòng, khớp 1-1 với 10 subpath khai `types` phẳng.
+//
+// Nên ca phải phán quyết trên BA thứ, không chỉ một: attw chạy được, không crash,
+// và không có problem ngoài allowlist. `exit` của attw là 1 khi CÓ problem và 0
+// khi sạch, nên exit != 0 một mình không phải tín hiệu crash - phải dò chuỗi lỗi
+// VÀ dò việc output không có bảng nào.
 for (const { name, dir } of TARGETS) {
-  const { out } = npx(['attw', '--pack', dir, '--format', 'table-flipped']);
+  const { code, out } = npx(['attw', '--pack', dir, '--format', 'table-flipped']);
+  const plain = out.replace(/\u001b\[[0-9;]*m/g, '');
+  const crashed = /error while checking|Cannot read properties/.test(plain) || !/[│|]/.test(plain);
+
+  /*
+   * Chỉ tính problem trên DÒNG BẢNG, và bỏ dòng của CSS subpath.
+   *
+   * Hai lý do không dùng `out` nguyên khối. Thứ nhất, phần chú giải ở đầu output
+   * chứa câu "Import failed to resolve to type declarations or JavaScript files",
+   * khớp mẫu `failed to resolve` - dò trên cả output là tự sinh false positive.
+   * Thứ hai, `.css` subpath KHÔNG có declaration và không bao giờ có: 21 dòng
+   * `Resolution failed` của `tinita-react` đều là CSS, và đó là thiết kế.
+   *
+   * Lọc ở ĐÂY chứ không `--exclude-entrypoints`: đo 2026-10-06, cờ đó không loại
+   * được dòng nào ở cả ba dạng đã thử (`./x`, `x`, `tinita-react/x`). Và không
+   * dùng allowlist `NoResolution` vì nó thô - nó sẽ che luôn một subpath JS thật
+   * sự không resolve được.
+   */
+  const cssEntrypoints = new Set(
+    (contract[name].cssSpecifiers ?? []).map((spec) => (spec === '.' ? name : `${name}${spec.slice(1)}`)),
+  );
+  const tableRows = plain.split('\n').filter((l) => /^[│|]\s*"/.test(l.trim()));
+  const jsRows = tableRows.filter((l) => {
+    const entry = l.match(/"([^"]+)"/)?.[1];
+    return entry !== undefined && !cssEntrypoints.has(entry);
+  });
+
   const problems = new Set();
-  if (/Masquerading as CJS/.test(out)) problems.add('FalseCJS');
-  if (/Resolution failed|failed to resolve/.test(out)) problems.add('NoResolution');
-  const acceptedProblems = new Set(contract[name].accepted.filter((a) => a.tool === 'attw').map((a) => a.problem));
+  if (crashed) problems.add('ATTW_CRASHED');
+  if (jsRows.some((l) => /Masquerading as CJS/.test(l))) problems.add('FalseCJS');
+  if (jsRows.some((l) => /Resolution failed/.test(l))) problems.add('NoResolution');
+  const accepted = contract[name].accepted.filter((a) => a.tool === 'attw');
+  const acceptedProblems = new Set(accepted.map((a) => a.problem));
   const unexpected = [...problems].filter((p) => !acceptedProblems.has(p));
   const ok = unexpected.length === 0;
-  add(`02-attw:${name}`, ok, ok ? `vấn đề: ${[...problems].join(', ') || 'không'} (đều trong allowlist)` : `NGOÀI allowlist: ${unexpected.join(', ')}`, { raw: out.trim() });
+  add(
+    `02-attw:${name}`,
+    ok,
+    ok
+      ? `attw chạy được, exit=${code}, ${jsRows.length}/${tableRows.length} entrypoint JS, vấn đề: ${[...problems].join(', ') || 'không'}${accepted.length ? ' (trong allowlist)' : ''}`
+      : crashed
+        ? `attw KHÔNG CHẠY ĐƯỢC (exit=${code}): ${out.split('\n').find((l) => l.trim()) ?? '(không có output)'}`
+        : `NGOÀI allowlist: ${unexpected.join(', ')}`,
+    { raw: out.trim(), exit: code },
+  );
   for (const p of problems) {
     if (acceptedProblems.has(p)) findings.push({ id: `attw:${name}:${p}`, detail: contract[name].accepted.find((a) => a.problem === p).reason, assignedTo: 'pha 06' });
   }
