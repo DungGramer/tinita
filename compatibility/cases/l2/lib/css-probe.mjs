@@ -145,7 +145,7 @@ export async function probeTheme({ cssPath }) {
         const cs = getComputedStyle(document.getElementById('probe'));
         return {
           background: cs.getPropertyValue('--tnt-background').trim(),
-          filetree: cs.getPropertyValue('--tnt-filetree-bg').trim(),
+          filetree: cs.getPropertyValue('--tnt-file-tree-bg').trim(),
         };
       });
       // So bằng GIÁ TRỊ TOKEN, không bằng tên rule. Rule đổi tên thì ca vẫn đúng.

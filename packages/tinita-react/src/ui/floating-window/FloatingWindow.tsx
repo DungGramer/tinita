@@ -165,7 +165,7 @@ export interface FloatingWindowProps {
  *
  * ### Motion is CSS
  *
- * Position, size and collapse scale are handed to the stylesheet as `--tnt-fw-*`
+ * Position, size and collapse scale are handed to the stylesheet as `--tnt-floating-window-*`
  * custom properties and transitioned there, so `prefers-reduced-motion` switches
  * them off. A JavaScript spring, which is what this replaces, cannot be reached by a
  * media query.
@@ -370,12 +370,12 @@ export const FloatingWindow = ({
   const scaleY = minimized && box.height > 0 ? BUBBLE_SIZE / box.height : 1;
 
   const style = {
-    '--tnt-fw-x': `${minimized ? bubbleRest.x : box.x}px`,
-    '--tnt-fw-y': `${minimized ? bubbleRest.y : box.y}px`,
-    '--tnt-fw-width': `${box.width}px`,
-    '--tnt-fw-height': `${box.height}px`,
-    '--tnt-fw-scale-x': scaleX,
-    '--tnt-fw-scale-y': scaleY,
+    '--tnt-floating-window-x': `${minimized ? bubbleRest.x : box.x}px`,
+    '--tnt-floating-window-y': `${minimized ? bubbleRest.y : box.y}px`,
+    '--tnt-floating-window-width': `${box.width}px`,
+    '--tnt-floating-window-height': `${box.height}px`,
+    '--tnt-floating-window-scale-x': scaleX,
+    '--tnt-floating-window-scale-y': scaleY,
     zIndex: maximized ? Z_CEILING + 1 : Math.min(Z_BASE + stack, Z_CEILING),
   } as CSSProperties;
 
@@ -466,8 +466,8 @@ export const FloatingWindow = ({
           className={styles.bubble}
           style={
             {
-              '--tnt-fw-x': `${snap.rendered.x}px`,
-              '--tnt-fw-y': `${snap.rendered.y}px`,
+              '--tnt-floating-window-x': `${snap.rendered.x}px`,
+              '--tnt-floating-window-y': `${snap.rendered.y}px`,
               zIndex: Z_CEILING,
             } as CSSProperties
           }

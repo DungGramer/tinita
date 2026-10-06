@@ -15,7 +15,7 @@
  * selectors, so one of those would leak straight into the host page.
  *
  * MOTION LIVES HERE, not in JavaScript. Position, size and collapse scale arrive as
- * `--tnt-fw-*` custom properties on the element and CSS transitions them. The
+ * `--tnt-floating-window-*` custom properties on the element and CSS transitions them. The
  * version this replaces drove the same values with framer-motion springs, which
  * `prefers-reduced-motion` cannot reach - a media query can switch a transition off,
  * it cannot switch off a JS animation loop.
@@ -38,10 +38,10 @@
   /* The six values below are set inline, per instance, by the component - they are
      geometry, not theme, so they are deliberately absent from globals.css. The
      fallbacks keep the element sane if the inline style is ever missing. */
-  inline-size: var(--tnt-fw-width, 480px);
-  block-size: var(--tnt-fw-height, 320px);
-  transform: translate(var(--tnt-fw-x, 0px), var(--tnt-fw-y, 0px))
-    scale(var(--tnt-fw-scale-x, 1), var(--tnt-fw-scale-y, 1));
+  inline-size: var(--tnt-floating-window-width, 480px);
+  block-size: var(--tnt-floating-window-height, 320px);
+  transform: translate(var(--tnt-floating-window-x, 0px), var(--tnt-floating-window-y, 0px))
+    scale(var(--tnt-floating-window-scale-x, 1), var(--tnt-floating-window-scale-y, 1));
   border: 1px solid var(--tnt-border);
   border-radius: var(--tnt-radius-lg);
   background-color: var(--tnt-background);
@@ -51,12 +51,12 @@
      browser otherwise claims the gesture for scrolling. */
   touch-action: none;
   transition:
-    transform var(--tnt-fw-duration) var(--tnt-fw-ease),
-    inline-size var(--tnt-fw-duration) var(--tnt-fw-ease),
-    block-size var(--tnt-fw-duration) var(--tnt-fw-ease),
-    opacity var(--tnt-fw-duration) var(--tnt-fw-ease),
-    border-radius var(--tnt-fw-duration) var(--tnt-fw-ease),
-    box-shadow var(--tnt-duration-fast) var(--tnt-fw-ease);
+    transform var(--tnt-floating-window-duration) var(--tnt-floating-window-ease),
+    inline-size var(--tnt-floating-window-duration) var(--tnt-floating-window-ease),
+    block-size var(--tnt-floating-window-duration) var(--tnt-floating-window-ease),
+    opacity var(--tnt-floating-window-duration) var(--tnt-floating-window-ease),
+    border-radius var(--tnt-floating-window-duration) var(--tnt-floating-window-ease),
+    box-shadow var(--tnt-duration-fast) var(--tnt-floating-window-ease);
 }
 
 /* Live drag and resize must not be eased: the window would lag the pointer by the
@@ -66,12 +66,12 @@
 }
 
 .root[data-active='true'] {
-  box-shadow: var(--tnt-fw-shadow-active);
+  box-shadow: var(--tnt-floating-window-shadow-active);
 }
 
 .root[data-active='false'] {
-  box-shadow: var(--tnt-fw-shadow-idle);
-  border-color: var(--tnt-fw-border-idle);
+  box-shadow: var(--tnt-floating-window-shadow-idle);
+  border-color: var(--tnt-floating-window-border-idle);
 }
 
 .root[data-mode='maximized'] {
@@ -94,11 +94,11 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tnt-fw-header-gap);
-  block-size: var(--tnt-fw-header-height);
-  padding-inline: var(--tnt-fw-header-padding);
+  gap: var(--tnt-floating-window-header-gap);
+  block-size: var(--tnt-floating-window-header-height);
+  padding-inline: var(--tnt-floating-window-header-padding);
   border-block-end: 1px solid var(--tnt-border);
-  background-color: var(--tnt-fw-header-bg);
+  background-color: var(--tnt-floating-window-header-bg);
   user-select: none;
 }
 
@@ -114,8 +114,8 @@
   display: flex;
   min-inline-size: 0;
   align-items: center;
-  gap: var(--tnt-fw-header-gap);
-  font-size: var(--tnt-fw-title-font-size);
+  gap: var(--tnt-floating-window-header-gap);
+  font-size: var(--tnt-floating-window-title-font-size);
   font-weight: 500;
 }
 
@@ -128,30 +128,30 @@
 .icon {
   display: inline-flex;
   flex-shrink: 0;
-  inline-size: var(--tnt-fw-icon-size);
-  block-size: var(--tnt-fw-icon-size);
+  inline-size: var(--tnt-floating-window-icon-size);
+  block-size: var(--tnt-floating-window-icon-size);
 }
 
 .actions {
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: var(--tnt-fw-actions-gap);
+  gap: var(--tnt-floating-window-actions-gap);
 }
 
 .button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  inline-size: var(--tnt-fw-button-size);
-  block-size: var(--tnt-fw-button-size);
+  inline-size: var(--tnt-floating-window-button-size);
+  block-size: var(--tnt-floating-window-button-size);
   padding: 0;
   border: 0;
   border-radius: var(--tnt-radius-sm);
   background: none;
   color: inherit;
   cursor: pointer;
-  transition: background-color var(--tnt-duration-fast) var(--tnt-fw-ease);
+  transition: background-color var(--tnt-duration-fast) var(--tnt-floating-window-ease);
 }
 
 .button:hover {
@@ -164,8 +164,8 @@
 }
 
 .button > svg {
-  inline-size: var(--tnt-fw-button-icon-size);
-  block-size: var(--tnt-fw-button-icon-size);
+  inline-size: var(--tnt-floating-window-button-icon-size);
+  block-size: var(--tnt-floating-window-button-icon-size);
 }
 
 .body {
@@ -209,8 +209,8 @@
   inset-block-end: 0;
   inset-inline-end: 0;
   z-index: 1;
-  inline-size: var(--tnt-fw-resize-size);
-  block-size: var(--tnt-fw-resize-size);
+  inline-size: var(--tnt-floating-window-resize-size);
+  block-size: var(--tnt-floating-window-resize-size);
   cursor: nwse-resize;
 }
 
@@ -222,29 +222,29 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  inline-size: var(--tnt-fw-bubble-size);
-  block-size: var(--tnt-fw-bubble-size);
+  inline-size: var(--tnt-floating-window-bubble-size);
+  block-size: var(--tnt-floating-window-bubble-size);
   padding: 0;
-  transform: translate(var(--tnt-fw-x, 0px), var(--tnt-fw-y, 0px));
+  transform: translate(var(--tnt-floating-window-x, 0px), var(--tnt-floating-window-y, 0px));
   border: 1px solid var(--tnt-border);
   border-radius: 9999px;
   background-color: var(--tnt-background);
   color: var(--tnt-foreground);
-  box-shadow: var(--tnt-fw-shadow-idle);
+  box-shadow: var(--tnt-floating-window-shadow-idle);
   cursor: pointer;
   touch-action: none;
   transition:
-    transform var(--tnt-fw-duration) var(--tnt-fw-ease),
-    box-shadow var(--tnt-duration-fast) var(--tnt-fw-ease);
+    transform var(--tnt-floating-window-duration) var(--tnt-floating-window-ease),
+    box-shadow var(--tnt-duration-fast) var(--tnt-floating-window-ease);
 }
 
 .bubble[data-dragging='true'] {
-  transition: box-shadow var(--tnt-duration-fast) var(--tnt-fw-ease);
+  transition: box-shadow var(--tnt-duration-fast) var(--tnt-floating-window-ease);
   cursor: grabbing;
 }
 
 .bubble:hover {
-  box-shadow: var(--tnt-fw-shadow-active);
+  box-shadow: var(--tnt-floating-window-shadow-active);
 }
 
 .bubble:focus-visible {
@@ -253,8 +253,8 @@
 }
 
 .bubble > svg {
-  inline-size: var(--tnt-fw-bubble-icon-size);
-  block-size: var(--tnt-fw-bubble-icon-size);
+  inline-size: var(--tnt-floating-window-bubble-icon-size);
+  block-size: var(--tnt-floating-window-bubble-icon-size);
 }
 
 /*

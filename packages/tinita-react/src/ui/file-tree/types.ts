@@ -119,7 +119,7 @@ export interface FileTreeProps extends Omit<TreeProps, 'nodes'> {
    * <FileTree text={tree} iconColors={{ folder: '#eab308', javascript: '#f7df1e' }} />
    * ```
    *
-   * The values are assigned to the `--tnt-filetree-icon-*` variables on the root
+   * The values are assigned to the `--tnt-file-tree-icon-*` variables on the root
    * element, so they travel the same path the theme does - not a second mechanism.
    */
   iconColors?: Partial<Record<FileIconType, string>>;

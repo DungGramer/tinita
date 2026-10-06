@@ -478,7 +478,15 @@ createRoot(document.getElementById('root')).render(h(Ping, { count: 2 }));
   const MARKERS = {
     ping: 'tnt-ping-root',
     tree: 'tnt-tree-root',
-    filetree: 'tnt-filetree',
+    // `tnt-file-tree-root`, không phải `tnt-filetree`. Marker này từng viết KHÁC mọi
+    // marker cùng khối - không có `-root`, và nó khớp token `--tnt-filetree-*` thay vì
+    // class. Nên khi P4 đổi tiền tố token sang `--tnt-file-tree-`, lượt rename quét
+    // `--tnt-filetree-` không khớp nó và ba ca `css-graph:*` đỏ với `THIẾU: filetree`.
+    // Đo 2026-10-06.
+    //
+    // `tnt-tree-root` KHÔNG là substring của `tnt-file-tree-root` (sau `tnt-` là
+    // `file`), nên hai marker vẫn phân biệt được nhau.
+    filetree: 'tnt-file-tree-root',
     carousel: 'tnt-carousel',
     fw: 'tnt-floating-window-root',
     // Dấu HAI CHẤM quan trọng. `--tnt-radius` là TIỀN TỐ của bốn token khai báo

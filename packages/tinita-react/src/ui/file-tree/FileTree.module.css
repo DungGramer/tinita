@@ -5,7 +5,7 @@
  * RTL live in `Tree.module.css` - `FileTree` is an adapter, not a second tree.
  *
  * Colour keys off `data-icon` rather than a class per type: `iconColors` assigns
- * the `--tnt-filetree-icon-*` variables on the root element, so the prop and the
+ * the `--tnt-file-tree-icon-*` variables on the root element, so the prop and the
  * theme travel the SAME path. Two paths eventually disagree.
  */
 
@@ -16,81 +16,81 @@
 }
 
 .icon[data-icon='folder'] {
-  color: var(--tnt-filetree-icon-folder);
+  color: var(--tnt-file-tree-icon-folder);
 }
 
 .icon[data-icon='file'] {
-  color: var(--tnt-filetree-icon-file);
+  color: var(--tnt-file-tree-icon-file);
 }
 
 .icon[data-icon='readme'] {
-  color: var(--tnt-filetree-icon-readme);
+  color: var(--tnt-file-tree-icon-readme);
 }
 
 .icon[data-icon='markdown'] {
-  color: var(--tnt-filetree-icon-markdown);
+  color: var(--tnt-file-tree-icon-markdown);
 }
 
 .icon[data-icon='javascript'] {
-  color: var(--tnt-filetree-icon-javascript);
+  color: var(--tnt-file-tree-icon-javascript);
 }
 
 .icon[data-icon='css'] {
-  color: var(--tnt-filetree-icon-css);
+  color: var(--tnt-file-tree-icon-css);
 }
 
 .icon[data-icon='html'] {
-  color: var(--tnt-filetree-icon-html);
+  color: var(--tnt-file-tree-icon-html);
 }
 
 .icon[data-icon='json'] {
-  color: var(--tnt-filetree-icon-json);
+  color: var(--tnt-file-tree-icon-json);
 }
 
 .icon[data-icon='database'] {
-  color: var(--tnt-filetree-icon-database);
+  color: var(--tnt-file-tree-icon-database);
 }
 
 .icon[data-icon='php'] {
-  color: var(--tnt-filetree-icon-php);
+  color: var(--tnt-file-tree-icon-php);
 }
 
 .icon[data-icon='vue'] {
-  color: var(--tnt-filetree-icon-vue);
+  color: var(--tnt-file-tree-icon-vue);
 }
 
 .icon[data-icon='git'] {
-  color: var(--tnt-filetree-icon-git);
+  color: var(--tnt-file-tree-icon-git);
 }
 
 .icon[data-icon='text'] {
-  color: var(--tnt-filetree-icon-text);
+  color: var(--tnt-file-tree-icon-text);
 }
 
 .icon[data-icon='code'] {
-  color: var(--tnt-filetree-icon-code);
+  color: var(--tnt-file-tree-icon-code);
 }
 
 .icon[data-icon='font'] {
-  color: var(--tnt-filetree-icon-font);
+  color: var(--tnt-file-tree-icon-font);
 }
 
 .icon[data-icon='image'] {
-  color: var(--tnt-filetree-icon-image);
+  color: var(--tnt-file-tree-icon-image);
 }
 
 .icon[data-icon='video'] {
-  color: var(--tnt-filetree-icon-video);
+  color: var(--tnt-file-tree-icon-video);
 }
 
 .icon[data-icon='audio'] {
-  color: var(--tnt-filetree-icon-audio);
+  color: var(--tnt-file-tree-icon-audio);
 }
 
 .icon[data-icon='spreadsheet'] {
-  color: var(--tnt-filetree-icon-spreadsheet);
+  color: var(--tnt-file-tree-icon-spreadsheet);
 }
 
 .icon[data-icon='archive'] {
-  color: var(--tnt-filetree-icon-archive);
+  color: var(--tnt-file-tree-icon-archive);
 }

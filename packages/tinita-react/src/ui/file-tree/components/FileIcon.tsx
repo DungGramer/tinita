@@ -36,7 +36,7 @@ export interface FileIconProps {
 
 export const FileIcon: React.FC<FileIconProps> = ({ iconType, open = false }) => {
   // `data-icon` is what the CSS colours by type, and what `iconColors` targets
-  // through the `--tnt-filetree-icon-*` variables.
+  // through the `--tnt-file-tree-icon-*` variables.
   const props = { className: styles.icon, size: 16, ...variantAttributes({ icon: iconType }) };
 
   if (iconType === 'folder') {

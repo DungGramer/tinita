@@ -59,7 +59,7 @@ export const FileTree = React.forwardRef<HTMLDivElement, FileTreeProps>(function
     if (!iconColors) return style;
     const vars: Record<string, string> = {};
     for (const [type, color] of Object.entries(iconColors)) {
-      if (color) vars[`--tnt-filetree-icon-${type}`] = color;
+      if (color) vars[`--tnt-file-tree-icon-${type}`] = color;
     }
     return { ...vars, ...style } as React.CSSProperties;
   }, [iconColors, style]);

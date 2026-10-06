@@ -211,7 +211,7 @@ trailing `?` marker.
 <FileTree text={tree} iconColors={{ folder: '#eab308', javascript: '#f7df1e' }} />
 ```
 
-The values are assigned to the `--tnt-filetree-icon-*` variables on the root element, so they travel
+The values are assigned to the `--tnt-file-tree-icon-*` variables on the root element, so they travel
 the same path the theme does - not a second mechanism.
 
 ## Keyboard
@@ -254,7 +254,7 @@ Adjust structure and colour through variables, without overriding selectors:
 }
 ```
 
-Icon colours: `--tnt-filetree-icon-<type>`, where `<type>` is any `FileIconType` value (`folder`,
+Icon colours: `--tnt-file-tree-icon-<type>`, where `<type>` is any `FileIconType` value (`folder`,
 `javascript`, `markdown`, `image`, ...).
 
 ### Theme

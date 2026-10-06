@@ -32,7 +32,7 @@ export interface Viewport {
   height: number;
 }
 
-/** Diameter of the minimized bubble, in px. Mirrored by `--tnt-fw-bubble-size`. */
+/** Diameter of the minimized bubble, in px. Mirrored by `--tnt-floating-window-bubble-size`. */
 export const BUBBLE_SIZE = 48;
 
 /** Gap kept between the bubble and the viewport edge it docks to. */

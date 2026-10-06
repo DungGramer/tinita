@@ -188,7 +188,7 @@ describe('FloatingWindow', () => {
     expect(rootOf(baseElement)?.getAttribute('data-mode')).toBe('minimized');
   });
 
-  it('writes geometry into --tnt-fw-* custom properties, not a JS animation', () => {
+  it('writes geometry into --tnt-floating-window-* custom properties, not a JS animation', () => {
     // Motion lives in the stylesheet precisely so `prefers-reduced-motion` can
     // switch it off, which no media query can do to a JavaScript spring.
     const { baseElement } = render(
@@ -196,10 +196,10 @@ describe('FloatingWindow', () => {
     );
 
     const root = rootOf(baseElement);
-    expect(root?.style.getPropertyValue('--tnt-fw-x')).toBe('120px');
-    expect(root?.style.getPropertyValue('--tnt-fw-y')).toBe('80px');
-    expect(root?.style.getPropertyValue('--tnt-fw-width')).toBe('640px');
-    expect(root?.style.getPropertyValue('--tnt-fw-height')).toBe('480px');
+    expect(root?.style.getPropertyValue('--tnt-floating-window-x')).toBe('120px');
+    expect(root?.style.getPropertyValue('--tnt-floating-window-y')).toBe('80px');
+    expect(root?.style.getPropertyValue('--tnt-floating-window-width')).toBe('640px');
+    expect(root?.style.getPropertyValue('--tnt-floating-window-height')).toBe('480px');
   });
 
   it('collapses by scale, leaving width and height at the visible size', () => {
@@ -210,9 +210,9 @@ describe('FloatingWindow', () => {
     const root = rootOf(baseElement);
     // 48 / 480 and 48 / 240: the box keeps its layout size and only the transform
     // shrinks, which is what stops an iframe child from reflowing to 48px.
-    expect(root?.style.getPropertyValue('--tnt-fw-width')).toBe('480px');
-    expect(root?.style.getPropertyValue('--tnt-fw-scale-x')).toBe('0.1');
-    expect(root?.style.getPropertyValue('--tnt-fw-scale-y')).toBe('0.2');
+    expect(root?.style.getPropertyValue('--tnt-floating-window-width')).toBe('480px');
+    expect(root?.style.getPropertyValue('--tnt-floating-window-scale-x')).toBe('0.1');
+    expect(root?.style.getPropertyValue('--tnt-floating-window-scale-y')).toBe('0.2');
   });
 
   it('renders the focus shield only while inactive', () => {
@@ -232,7 +232,7 @@ describe('FloatingWindow', () => {
     const { baseElement } = render(<Harness initialMode="minimized" />);
 
     const bubble = screen.getByRole('button', { name: 'Dashboard' });
-    const before = bubble.style.getPropertyValue('--tnt-fw-x');
+    const before = bubble.style.getPropertyValue('--tnt-floating-window-x');
 
     // Press, travel past the tap slop, release - a drag toward the left edge.
     act(() => {
@@ -247,7 +247,7 @@ describe('FloatingWindow', () => {
 
     const after = baseElement
       .querySelector<HTMLElement>('[class*="bubble"]')
-      ?.style.getPropertyValue('--tnt-fw-x');
+      ?.style.getPropertyValue('--tnt-floating-window-x');
 
     // Snapped to the left edge, and it STAYED there.
     expect(after).not.toBe(before);

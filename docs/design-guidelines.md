@@ -191,16 +191,16 @@ Không chạm component, không chạm class. Ghi đè biến ở scope bạn mu
 
 /* hoặc chỉ riêng một component */
 .tnt-filetree {
-  --tnt-filetree-bg: #fdf6e3;
-  --tnt-filetree-hover: rgba(0, 0, 0, 0.08);
-  --tnt-filetree-indent: 24px;
-  --tnt-filetree-icon-markdown: #b58900;
+  --tnt-file-tree-bg: #fdf6e3;
+  --tnt-file-tree-hover: rgba(0, 0, 0, 0.08);
+  --tnt-file-tree-indent: 24px;
+  --tnt-file-tree-icon-markdown: #b58900;
 }
 ```
 
-`FileTree` phơi ra bộ biến riêng ngoài token toàn cục: `--tnt-filetree-{bg,text,text-dim,hover,active,spacing,indent}`,
-cộng 20 biến màu icon `--tnt-filetree-icon-{folder,file,readme,markdown,javascript,css,html,json,database,php,vue,git,text,code,font,image,video,audio,spreadsheet,archive}`.
-Mỗi biến icon dùng fallback `var(--tnt-filetree-icon-x, var(--tnt-filetree-text-dim))`,
+`FileTree` phơi ra bộ biến riêng ngoài token toàn cục: `--tnt-file-tree-{bg,text,text-dim,hover,active,spacing,indent}`,
+cộng 20 biến màu icon `--tnt-file-tree-icon-{folder,file,readme,markdown,javascript,css,html,json,database,php,vue,git,text,code,font,image,video,audio,spreadsheet,archive}`.
+Mỗi biến icon dùng fallback `var(--tnt-file-tree-icon-x, var(--tnt-file-tree-text-dim))`,
 nên bỏ trống vẫn ra màu hợp lý.
 
 ### Level 2 - variant prop + `className` **[ĐANG CÓ]**

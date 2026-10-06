@@ -291,8 +291,8 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 ```css
 /* src/ui/FileTree/FileTree.module.css */
 .tnt-filetree {
-  background-color: var(--tnt-filetree-bg);
-  color: var(--tnt-filetree-text);
+  background-color: var(--tnt-file-tree-bg);
+  color: var(--tnt-file-tree-text);
 }
 
 .tnt-filetree__label {
@@ -310,8 +310,8 @@ Watch mode (`--watch`) là chế độ riêng, không phải một step: debounc
 
 ```css
 :root {
-  --tnt-filetree-bg: #ffffff;
-  --tnt-filetree-text: #000000;
+  --tnt-file-tree-bg: #ffffff;
+  --tnt-file-tree-text: #000000;
   --tnt-primary: #007bff;
 }
 ```
