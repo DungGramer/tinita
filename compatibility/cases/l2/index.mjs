@@ -78,12 +78,6 @@ for (const [name, def] of Object.entries(contract)) {
   add(`ssr:skip-browser-only:${name}`, true, `bỏ qua ${name} trong ca SSR: browserOnly=true, không có SSR guard theo thiết kế (xem packages/${name}/README.md)`, { skipped: true, reason: 'browserOnly' });
 }
 
-findings.push({
-  id: 'autoInjectStyles-unused-at-runtime',
-  detail: 'autoInjectStyles có SSR guard và chịu được môi trường không có document, nhưng KHÔNG component nào gọi nó - nó là export chết về runtime. Ca này kiểm một API mà library không tự dùng.',
-  assignedTo: 'pha 06',
-});
-
 // ---------- tsc matrix: 3 moduleResolution ----------
 {
   const specs = [];
@@ -404,6 +398,97 @@ createRoot(document.getElementById('root')).render(h(Ping, { count: 2 }));
               ` | CSS tới=${cssArrived}, token giải được=${tokenResolved}` +
               (cssArrived && !tokenResolved ? ' <- token nằm NGOÀI CSS graph của component' : '')
           : 'không tìm thấy .tnt-ping-pulse',
+        { measured: m },
+      );
+    }
+  }
+}
+
+/**
+ * ---------- autoInjectStyles: đường thoát cho consumer KHÔNG hiểu CSS ----------
+ *
+ * Thay cho một `findings.push` chỉ GHI CHÚ rằng API này không component nào gọi -
+ * ghi chú không phán quyết gì, nên nó không canh được việc API đó đúng hay sai.
+ *
+ * Phán quyết thật là CASCADE, và nó chỉ đo được trong browser: jsdom không tính
+ * cascade, nó chỉ nói được thẻ nằm đâu trong DOM.
+ *
+ * Host khai `.tnt-probe{color:rgb(0,0,255)}` trong `<head>`; CSS chèn vào đặt
+ * `rgb(255,0,0)`. Specificity bằng nhau nên thứ tự nguồn quyết định, và hợp đồng là
+ * **host thắng**: `CLAUDE.md` mục "CSS: không được chạm vào trang khách" đòi host
+ * luôn đè lại được, và đó là lý do token dùng `:where()` cho specificity 0.
+ *
+ * Đo 2026-10-06 trong Chromium: `head.appendChild` -> đỏ (lib ĐÈ host),
+ * `head.insertBefore(style, head.firstChild)` -> xanh (host đè lib). Nợ #16 của
+ * roadmap từng ghi cơ chế này "thua thứ tự nguồn" - ngược hướng.
+ */
+if (hasBrowser) {
+  const work = createConsumer({
+    level: 'l2',
+    name: 'vite-auto-inject',
+    deps: [...REACT, 'vite@7', '@vitejs/plugin-react@5'],
+    tarballs: TGZ,
+    pkgJson: { type: 'module' },
+    files: {
+      // Host stylesheet nằm TRONG `<head>`, trước script - đúng hình dạng mà
+      // consumer thật có.
+      'index.html':
+        '<!doctype html><head><style id="host-sheet">.tnt-probe{color:rgb(0,0,255)}</style></head>' +
+        '<div id="root"></div><script type="module" src="/main.jsx"></script>',
+      'vite.config.js': "import react from '@vitejs/plugin-react';\nexport default { plugins: [react()] };\n",
+      'main.jsx': `
+import { createRoot } from 'react-dom/client';
+import { createElement as h } from 'react';
+import { autoInjectStyles } from 'tinita-react/utils/autoInjectStyles';
+const remove = autoInjectStyles('tnt-probe-sheet', '.tnt-probe{color:rgb(255,0,0)}');
+window.__tntRemove = remove;
+createRoot(document.getElementById('root')).render(h('p', { className: 'tnt-probe' }, 'probe'));
+`,
+    },
+  });
+
+  const built = run('npx', ['vite', 'build'], work, 300_000);
+  if (!built.ok) {
+    add('auto-inject-styles-cascade:build', false, `vite build exit=${built.code}`);
+  } else {
+    const probed = await withPreview({
+      work,
+      port: 4321,
+      probe: (page) =>
+        page.evaluate(() => {
+          const el = document.querySelector('.tnt-probe');
+          // Đọc HẾT giá trị "trước" rồi mới gỡ. Bản đầu tính `firstInHead` trong
+          // object literal, tức SAU khi `__tntRemove()` đã chạy, nên nó đọc ra
+          // `host-sheet` và ca đỏ oan trong khi code đúng - đo 2026-10-06.
+          const before = {
+            injected: document.getElementById('tnt-probe-sheet') !== null,
+            firstInHead: document.head.firstElementChild?.id ?? null,
+            color: el ? getComputedStyle(el).color : null,
+          };
+          // Gỡ bằng closure trả về, rồi đọc lại: màu phải về của host.
+          window.__tntRemove?.();
+          return {
+            ...before,
+            afterRemove: el ? getComputedStyle(el).color : null,
+            stillThere: document.getElementById('tnt-probe-sheet') !== null,
+          };
+        }),
+    });
+    if (!probed.ok) {
+      add('auto-inject-styles-cascade', false, `không dựng được trang preview: ${probed.error.message}`);
+    } else {
+      const m = probed.value;
+      const ok =
+        m.injected &&
+        m.firstInHead === 'tnt-probe-sheet' &&
+        m.color === 'rgb(0, 0, 255)' &&
+        m.afterRemove === 'rgb(0, 0, 255)' &&
+        m.stillThere === false;
+      add(
+        'auto-inject-styles-cascade',
+        ok,
+        `chèn=${m.injected} đầu-head=${m.firstInHead} màu=${m.color} (chờ host rgb(0, 0, 255))` +
+          ` | sau khi gỡ: màu=${m.afterRemove} thẻ-còn=${m.stillThere}`,
         { measured: m },
       );
     }
