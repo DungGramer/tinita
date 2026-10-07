@@ -1,0 +1,136 @@
+/*
+ * CSS CỦA RIÊNG trang này, prefix `pg-`. Không dùng class `tnt-*` nào, để mọi thứ
+ * nhìn thấy trên component là của library chứ không phải của trang.
+ */
+:root {
+  color-scheme: light;
+  --pg-bg: #fbfbfd;
+  --pg-fg: #1d1d1f;
+  --pg-line: #d2d2d7;
+  --pg-dim: #6e6e73;
+  --pg-card: #ffffff;
+}
+html.dark {
+  color-scheme: dark;
+  --pg-bg: #0b0b0d;
+  --pg-fg: #f5f5f7;
+  --pg-line: #2c2c2e;
+  --pg-dim: #98989d;
+  --pg-card: #141416;
+}
+body {
+  margin: 0;
+  background: var(--pg-bg);
+  color: var(--pg-fg);
+  font:
+    14px/1.5 ui-sans-serif,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+.pg-wrap {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 24px 20px 120px;
+}
+.pg-h1 {
+  font-size: 22px;
+  font-weight: 650;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+.pg-sub {
+  color: var(--pg-dim);
+  margin: 0 0 24px;
+}
+.pg-card {
+  background: var(--pg-card);
+  border: 1px solid var(--pg-line);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.pg-card > h2 {
+  font-size: 13px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pg-dim);
+  margin: 0 0 12px;
+}
+.pg-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.pg-btn {
+  font: inherit;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--pg-line);
+  background: var(--pg-card);
+  color: inherit;
+  cursor: pointer;
+}
+.pg-btn[data-on='true'] {
+  background: var(--pg-fg);
+  color: var(--pg-bg);
+  border-color: var(--pg-fg);
+}
+.pg-note {
+  color: var(--pg-dim);
+  font-size: 13px;
+  margin: 10px 0 0;
+}
+.pg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+}
+.pg-swatch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pg-swatch input[type='color'] {
+  inline-size: 34px;
+  block-size: 26px;
+  padding: 0;
+  border: 1px solid var(--pg-line);
+  border-radius: 6px;
+  background: none;
+}
+.pg-swatch code {
+  font-size: 12px;
+}
+.pg-table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: ui-monospace, Menlo, monospace;
+}
+.pg-table th,
+.pg-table td {
+  text-align: left;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--pg-line);
+}
+.pg-table th {
+  color: var(--pg-dim);
+  font-weight: 500;
+}
+.pg-chip {
+  inline-size: 14px;
+  block-size: 14px;
+  border-radius: 4px;
+  border: 1px solid var(--pg-line);
+  display: inline-block;
+  vertical-align: -2px;
+}
+.pg-box {
+  border: 1px dashed var(--pg-line);
+  border-radius: 10px;
+  padding: 12px;
+}
