@@ -121,9 +121,20 @@ mọi module phải **import** sạch khi không có DOM. Thư mục: `converter
 chúng là bắt buộc và chỉ người dùng vào đường chết. Đó là lý do
 `scripts/check-doc-links.mjs` tồn tại.
 
-Barrel `tinita-react` tồn tại nhưng nó re-export `./ui/file-tree`, nên
-`import { Ping } from 'tinita-react'` đòi `@base-ui/react` và `lucide-react` dù
-Ping không cần. Đây là lý do KỸ THUẬT để tránh barrel.
+Barrel `tinita-react` = **đúng tập Node-safe**: 9 `hooks/*` + 2 `utils/*`, **0
+component**. Đổi 2026-10-07 (nợ #7).
+
+Trước đó nó re-export 3 trong 5 component - thiếu `tree` và `floating-window` - và
+thiếu luôn 2 hook thêm ngày 2026-10-05. Không nhất quán ở cả hai phía, tức trôi dạt
+chứ không phải thiết kế, và nó mâu thuẫn thẳng với quy tắc "dùng subpath cụ thể"
+ngay trên.
+
+Bỏ component ra đổi ba thứ, cả ba đo được: root hết đòi `@base-ui/react` +
+`lucide-react`; root hết là CSS-aware nên `cssAwareSpecifiers` giờ đúng bằng `ui/*`
+và L1 `03-smoke` kiểm root như entry Node-safe thật (172 -> **192 lần thực thi**);
+và quy tắc thôi nói ngược code.
+
+Component **chỉ** đến từ subpath: `import { Ping } from 'tinita-react/ui/ping'`.
 
 `installSmoothScroll()` gọi một lần ngoài React và trả về hàm gỡ.
 
@@ -561,12 +572,28 @@ tự giữa chúng, nên thứ tự này cố định để giá trị attribute
 nhận glyph** - nó cần TÊN phím, nên `aria-keyshortcuts` của `Cmd+Escape` là
 `Meta+Escape`.
 
-`isApplePlatform()` **cố ý không dùng** `isMacOS()` của `tinita-dom/validation/platform`
-dù đó mới là bản canonical. Lý do: `tinita-react` bắt buộc sống qua SSR, còn `tinita-dom`
-bị đánh `browserOnly: true` và ca SSR của L2 **bỏ qua hẳn** nó - tức câu "mọi module
-`tinita-dom` phải import sạch khi không có DOM" trong file này **không có guard**, đo
-2026-10-05. Một regex trùng lặp rẻ hơn một cạnh package dựa trên bất biến không ai canh.
-Ghi ở nợ #21.
+`isApplePlatform()` **cố ý không dùng** `isMacOS()` của `tinita-dom/validation/platform`,
+và lý do đã ĐỔI 2026-10-07.
+
+Lý do cũ: bất biến "mọi module `tinita-dom` phải import sạch khi không có DOM" không có
+guard, nên một cạnh package dựa vào nó là dựa vào lời hứa suông. **Lý do đó không còn** -
+ca L2 `import-clean:tinita-dom:{esm,cjs}` giờ import cả 23 specifier trong node trần và
+đã chứng minh phá được.
+
+Lý do thật, đo 2026-10-07: **hai hàm KHÔNG cùng predicate.**
+
+```
+isMacOS()           /Mac/i
+isApplePlatform()   /Mac|iPhone|iPod|iPad/i
+```
+
+Trên iPhone chúng trả ngược nhau. Thay cái này bằng cái kia là **đổi hành vi**, không
+phải dọn trùng lặp - `⌘` sẽ biến mất khỏi nhãn phím tắt trên iOS. Ghép
+`isMacOS() || isIOS()` thì gần đúng, nhưng `isIOS()` có thêm nhánh iPad-báo-là-Mac đọc
+`'ontouchend' in document`, tức lại một hành vi khác nữa.
+
+Nên nó không phải "regex trùng lặp" như nợ #21 từng ghi. Một dòng regex cho đúng
+predicate mình cần rẻ hơn một cạnh package cộng ba nhánh hành vi phải đối chiếu.
 
 ### React 18 là sàn CỨNG, và chỉ L4 đo nó
 

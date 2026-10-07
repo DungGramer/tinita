@@ -547,7 +547,8 @@ export * from './ui/carousel-ticker';
 export { autoInjectStyles } from './utils/autoInjectStyles';
 
 // Usage
-import { useToggle } from 'tinita-react'; // Barrel (không nên)
+import { useToggle } from 'tinita-react'; // Barrel - được, nhưng subpath rõ ràng hơn
+import { Ping } from 'tinita-react'; // KHÔNG CÒN CHẠY từ 2026-10-07: barrel không re-export component
 import { useToggle } from 'tinita-react/hooks/useToggle'; // Subpath (đúng)
 ```
 
@@ -1161,7 +1162,7 @@ Mọi subpath trong `exports` của `tinita-react` và `tinita-dom` phải có s
 thiếu; nó nằm trong `pnpm gate`.
 
 Story phải import bằng **subpath cụ thể**, không qua barrel. Guard bắt được đúng lỗi này lần chạy
-đầu: `Ping.stories.tsx` import `from 'tinita-react'`, và barrel re-export `./ui/file-tree` nên nó
+đầu: `Ping.stories.tsx` từng import `from 'tinita-react'`, và barrel khi đó re-export `./ui/file-tree` nên nó
 kéo theo `@base-ui/react` và `lucide-react` dù Ping không cần.
 
 Miễn trừ phải khai tường minh trong `EXEMPT` của `scripts/check-stories.mjs` kèm lý do. Hiện miễn

@@ -393,7 +393,7 @@ nên mọi thứ trông như chạy): `node_modules` chỉ có `react` + `tinita
 
 7. **`cn.ts` không có subpath export** - Build ra `dist/utils/cn.*` nhưng KHÔNG có `exports` trong `package.json` -> file tồn tại trên đĩa nhưng không import được chính thức. Hoặc thêm export, hoặc loại khỏi tsup entry.
 
-8. **Ping Storybook dùng barrel** - `apps/storybook/stories/Ping/Ping.stories.tsx:3` dùng `import { Ping } from 'tinita-react'` (barrel), nhưng 7 story khác dùng subpath. Vi phạm quy ước NO barrel.
+8. ~~**Ping Storybook dùng barrel**~~ - **hết 2026-10-07**: barrel không còn re-export component nào (9 hook + 2 util), nên không story nào lấy component qua nó được nữa. `pnpm check-stories` đọc `exports` và vẫn xanh.
 
 9. ~~`src/styles/index.css` mồ côi~~ - **ĐÃ XOÁ 2026-09-26**, cùng `tailwind.config.cjs` và `postcss.config.mjs` (trùng `postcss.config.js`, một cái có cssnano một cái không - cosmiconfig chọn cái nào là ngầm).
 

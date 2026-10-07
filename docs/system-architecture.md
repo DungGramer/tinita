@@ -384,7 +384,7 @@ export * from './ui/carousel-ticker';
 export { autoInjectStyles } from './utils/autoInjectStyles';
 
 // Usage
-import { useToggle } from 'tinita-react'; // Barrel (không nên per quy tắc)
+import { useToggle } from 'tinita-react'; // Barrel = 9 hook + 2 util, KHÔNG component
 import { useToggle } from 'tinita-react/hooks/useToggle'; // Subpath (đúng)
 ```
 
@@ -553,13 +553,10 @@ Cả 2 lib optional cũng nằm trong `devDependencies` để workspace build/ty
 
 **B. Subpath + bỏ barrel `src/index.ts`**
 
-- `src/index.ts` hiện re-export **mọi** component. `import { Ping } from 'tinita-react'` kéo theo
-  đồ thị module của cả `file-tree` (radix + lucide) lẫn `carousel-ticker`.
-- Đây là lý do **kỹ thuật** để bỏ barrel, mạnh hơn lý do "quy ước" mà docs vẫn nêu.
-- Lưu ý: `apps/storybook/stories/Ping/Ping.stories.tsx:3` đang dùng barrel, 7 story còn lại dùng
-  subpath - chính storybook đang vi phạm quy ước.
-- B giảm được code, nhưng không thay thế A. **Chưa làm** - barrel vẫn còn (nợ #7); A đã làm nên
-  việc _cài_ đã hết vấn đề, B còn lại chỉ ảnh hưởng bytes gửi tới browser.
+- `src/index.ts` re-export **đúng tập Node-safe**: 9 `hooks/*` + 2 `utils/*`, 0 component.
+  Đổi 2026-10-07 (nợ #7) - trước đó nó re-export 3/5 component và thiếu 2 hook, tức trôi
+  dạt chứ không phải thiết kế. Root giờ load được bằng `node` trần và không đòi optional
+  peer nào; `cssAwareSpecifiers` của `contract.json` đúng bằng `ui/*`.
 
 **C. Tách nhiều package theo cụm dependency - CHƯA LÀM, và A có thể đã làm C thành không cần thiết**
 

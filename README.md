@@ -178,9 +178,9 @@ npm install tinita-react @base-ui/react lucide-react    # adds FileTree
 A missing optional peer surfaces at **runtime** (`Cannot find module 'lucide-react'`), not at install
 time - npm does not warn about optional peers. The table above is where you look it up.
 
-The barrel (`from 'tinita-react'`) re-exports `./ui/file-tree`, so importing `Ping` through it pulls
-in `@base-ui/react` and `lucide-react` even though `Ping` needs neither. That is the technical reason
-to prefer specific subpaths.
+The barrel (`from 'tinita-react'`) is **exactly the Node-safe set**: 9 hooks + 2 utils, **no
+components**. Changed 2026-10-07. Components come from their own subpath only -
+`import { Ping } from 'tinita-react/ui/ping'` - which is also how they bring their own CSS.
 
 #### The library's CSS does not touch yours
 
@@ -534,9 +534,9 @@ standards, system architecture and design guidelines. Those documents are writte
    files that are not in the tarball, and `tinita-react@0.0.2-alpha.1` has 7 of 25. Both predate the
    build fixes in v0.1.0. They have not been deprecated yet. Install from source until v0.1.0 is
    published.
-2. **The `tinita-react` barrel pulls in optional peers.** `src/index.ts` re-exports `./ui/file-tree`,
-   so `import { Ping } from 'tinita-react'` requires `@base-ui/react` and `lucide-react`. Use specific
-   subpaths.
+2. ~~**The `tinita-react` barrel pulls in optional peers.**~~ Fixed 2026-10-07: the barrel no longer
+   re-exports components, so the root entry needs neither `@base-ui/react` nor `lucide-react`, and
+   it loads under plain `node` again. Components are subpath-only.
 3. **Two versions of `tinita-react` in one dependency tree is not supported**, the same way two
    copies of React are not. Component CSS uses stable class names (`tnt-ping-root`, not a hash), so
    two versions declare the same selectors and the winner is decided by **bundle order, not by
