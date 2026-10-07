@@ -153,19 +153,26 @@ async function publishPackage(packageInfo, dryRun = false) {
     return true;
   }
 
-  // CỬA CHẶN: L1 phải xanh trên tarball trước khi được hỏi xác nhận.
+  // CỬA CHẶN: `pnpm gate:full` phải xanh trước khi được hỏi xác nhận.
+  //
   // Hai bug đã publish (exports trỏ .cjs không tồn tại; import ESM thiếu đuôi) lọt qua vì KHÔNG có
   // gì kiểm tarball trước publish. Publish không thu hồi được nên cửa này đứng trước câu hỏi, không
   // phải sau.
-  log('\n🔒 Cửa chặn: chạy compatibility lab L1 trên tarball...', Colors.cyan);
+  //
+  // 2026-10-07 nâng từ "chỉ L1" lên `gate:full`. Repo CỐ Ý không có CI - owner chốt "repo một
+  // người, `pnpm gate` trên máy là đủ" - nhưng câu đó giả định gate THẬT SỰ được chạy, mà trước
+  // thay đổi này không gì ép điều đó ở đúng bước không thể hoàn tác: publish chỉ chạy build +
+  // pack + L1, bỏ qua format, lint, types, test, css-tokens, L2 và L4.
+  //
+  // `gate:full` tự pack bên trong, nên không gọi `pack.mjs` riêng nữa.
+  log('\n🔒 Cửa chặn: pnpm gate:full (format, lint, types, build, test, L1, L2, L4)...', Colors.cyan);
   const labRoot = join(process.cwd(), '..', '..');
   try {
-    execSync('node compatibility/scripts/pack.mjs', { cwd: labRoot, stdio: 'inherit' });
-    execSync('node compatibility/run.mjs l1 --no-pack', { cwd: labRoot, stdio: 'inherit' });
-    log('✅ L1 xanh', Colors.green);
+    execSync('pnpm gate:full', { cwd: labRoot, stdio: 'inherit' });
+    log('✅ gate:full xanh', Colors.green);
   } catch {
-    log('\n❌ L1 FAIL - KHÔNG publish. Sửa package trước.', Colors.red);
-    log('   Chạy lại: node compatibility/run.mjs l1', Colors.yellow);
+    log('\n❌ gate:full FAIL - KHÔNG publish. Sửa trước.', Colors.red);
+    log('   Chạy lại: pnpm gate:full', Colors.yellow);
     process.exit(1);
   }
 
