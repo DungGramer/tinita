@@ -4,9 +4,13 @@ Vite + React 19 app để **kiểm `tinita-react` bằng mắt trong browser**.
 
 ```bash
 cd playground
-npm install      # lần đầu
+node sync.mjs    # LẦN ĐẦU: build library + pack + cài. Không phải `npm install`.
 npm run dev      # mở http://localhost:5180
 ```
+
+`npm install` trần **gãy trên clone mới**: `package.json` trỏ
+`file:./tinita-react-0.1.0.tgz`, mà `.tgz` nằm trong `.gitignore` nên clone mới
+không có nó. `sync.mjs` pack trước rồi mới cài, nên nó là lệnh đúng cho lần đầu.
 
 ## Vì sao cài từ tarball, không symlink
 
@@ -20,7 +24,7 @@ Kiểm nhanh rằng nó thật:
 ls node_modules/tinita-react     # chỉ: dist  package.json  README.md
 ```
 
-Sau mỗi lần sửa library:
+Sau mỗi lần sửa library, cũng lệnh đó:
 
 ```bash
 npm run sync     # build lại + pack lại + cài đè
