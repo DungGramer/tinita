@@ -75,7 +75,7 @@ chủ ý.
 | ------------------------------------------------------ | ------- | --------------------------------------------------------------------------- |
 | `run.mjs`, `scripts/`, `cases/`, `docker/`             | có      | code lab                                                                    |
 | `contract.json`                                        | có      | đường nhập được CAM KẾT (nguồn sự thật của ca, **không** sinh từ `exports`) |
-| `cases/l4/__screenshots__/`                            | **có**  | baseline ảnh - chỉ sinh trong container                                     |
+| `cases/l4/__screenshots__/`                            | **có**  | baseline ảnh - sinh VÀ so đều chỉ trong container, xem mục dưới             |
 | `.artifacts/`, `.npm-cache/`, `.reports/`, `**/.work/` | không   | sản phẩm phụ                                                                |
 
 ## Tầng test
@@ -113,6 +113,33 @@ thêm package thứ ba. Không cái nào chặn publish `0.1.0`. Ghi rõ ở đ�
 | L2 | consumer thật: Vite, Next, Node, `tsc` | không |
 | L3 | ecosystem: Node 18-24 × npm/pnpm/yarn/bun | có |
 | L4 | production: CSS leak, hydration, reduced-motion, visual regression | có |
+
+### Ca ảnh của L4 chỉ CHẠY qua cell `playwright` của L3
+
+Baseline render trong Linux. Chạy L4 trên host macOS rồi so với chúng thì cả 6 ca
+đỏ vì font rendering và antialiasing khác - **không có lỗi nào trong library**. Nên
+L4 chỉ so ảnh khi `IN_PLAYWRIGHT_CONTAINER=1`; trên host nó skip và nói rõ lý do.
+
+```bash
+# SINH baseline (mount __screenshots__ read-write vào container)
+node compatibility/run.mjs l3 --case=playwright --update-snapshots
+
+# SO với baseline
+node compatibility/run.mjs l3 --case=playwright
+```
+
+Đo 2026-10-07, cùng một bản code:
+
+```
+host       node compatibility/run.mjs l4   30 ca, 0 fail, 6 skip
+container  node ... l3 --case=playwright   30 ca, 0 fail, 0 SKIP   (167.1s)
+```
+
+Cùng 30 ca, 0 skip thay vì 6 - đó là sáu ca ảnh thật sự chạy và khớp byte-for-byte.
+
+`pnpm gate:full` **không** chạy L3, nên ca ảnh không nằm trong cổng mặc định: nó sẽ
+biến Docker thành phụ thuộc cứng của mọi lần chạy cổng. Chạy tay trước khi publish,
+hoặc khi đổi CSS của component có `data-shot`.
 
 L1 có **3 chân bổ sung nhau**, đã thực nghiệm để chốt:
 
