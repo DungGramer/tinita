@@ -313,7 +313,6 @@
         "./ui/tree/tokens.css"
       ],
       "cssAwareSpecifiers": [
-        ".",
         "./ui/ping",
         "./ui/carousel-ticker",
         "./ui/floating-window",
@@ -362,10 +361,7 @@
         "react"
       ],
       "optionalPeers": {
-        ".": [
-          "@base-ui/react",
-          "lucide-react"
-        ],
+        ".": [],
         "./ui/file-tree": [
           "@base-ui/react",
           "lucide-react"
