@@ -52,6 +52,12 @@ pnpm storybook
 
 **Không có CI.** Owner chốt: repo một người, `pnpm gate` trên máy là đủ.
 
+Câu đó giả định gate **thật sự được chạy**, nên từ 2026-10-07 `scripts/publish.mjs`
+chạy `pnpm gate:full` làm cửa chặn - trước đó nó chỉ chạy build + pack + **L1**, bỏ
+qua format, lint, types, test, css-tokens, L2 và L4. Publish là bước duy nhất không
+hoàn tác được nên nó là chỗ duy nhất đáng ép. Commit thường vẫn không bị ép gì, và đó
+là đánh đổi đã chấp nhận của repo một người.
+
 `npm publish` và `npm deprecate` là **hành động của owner**. `scripts/publish.mjs`
 dừng ở `npm whoami` - đừng bypass.
 
@@ -601,12 +607,25 @@ predicate mình cần rẻ hơn một cạnh package cộng ba nhánh hành vi p
 React 18. `FloatingWindow` dùng `useWindowSize` nên thừa hưởng sàn đó. Hạ xuống React
 17 không phải nới một con số, mà là viết lại hai chỗ kia.
 
-Nhưng `peerDependencies` khai `>=18` trong khi **L1 và L2 chỉ cài `react@19`**; chỉ L4
-chạy cả `['18', '19']`. Đo 2026-10-02. Từ 2026-10-02 L4 mount `FloatingWindow` trong
-Chromium thật ở cả hai phiên bản (`react18:floating-window-mounts`,
-`react19:...`), nên component này có coverage 18 thật; phần L1/L2 còn thiếu nằm ở nợ
-kỹ thuật #20. **Đừng khai một sàn peer rộng hơn thứ lab đo được** mà không ghi lại
-khoảng trống.
+`peerDependencies` khai `>=18`, và từ 2026-10-07 ma trận `tsc` của L2 chạy **cả hai**
+trục types: 3 `moduleResolution` x `@types/react@{18,19}` = 6 ca. L4 mount
+`FloatingWindow` trong Chromium thật ở cả hai phiên bản từ 2026-10-02.
+
+Chọn đúng trục TYPES, không nhân đôi cả L1 lẫn L2, vì đó là chỗ L4 không với tới: L4
+phủ 18 ở runtime, còn kiểu thì không tầng nào kiểm trên 18 - và 18 vs 19 khác nhau
+đúng ở kiểu (`JSX` toàn cục, `ref` thành prop thường, `useRef` đòi tham số). L1 không
+thêm: `03-smoke` chỉ import module trong Node và không render component nào, nên
+phiên bản React gần như không đổi câu trả lời, trong khi L1 nằm trong `pnpm gate`
+NHANH.
+
+**`skipLibCheck: false` trong probe là bắt buộc.** Với `true` - giá trị cũ - cả 6 ca
+vẫn XANH khi chèn một kiểu chỉ-React-19 (`ActionDispatch`) vào `useToggle.ts`: tsc bỏ
+qua luôn declaration của library, nên ma trận chỉ kiểm specifier resolve được. Với
+`false`, đúng 3 ca `tsc:react18:*` đỏ kèm
+`TS2305: Module '"react"' has no exported member 'ActionDispatch'`, nêu đúng file
+`.d.mts`/`.d.ts`.
+
+**Đừng khai một sàn peer rộng hơn thứ lab đo được** mà không ghi lại khoảng trống.
 
 ## Reduced motion: tắt hẳn
 
