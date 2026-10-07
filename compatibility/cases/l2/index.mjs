@@ -120,7 +120,23 @@ for (const [pkg, def] of Object.entries(contract)) {
   }
 }
 
-// ---------- tsc matrix: 3 moduleResolution ----------
+/*
+ * ---------- tsc matrix: 3 moduleResolution x 2 phiên bản @types/react ----------
+ *
+ * Trục React 18 thêm 2026-10-07 (nợ #20). `peerDependencies` khai `react >=18` nhưng
+ * L1 và L2 chỉ cài 19; chỉ L4 chạy cả hai.
+ *
+ * Chọn ĐÚNG trục types, không nhân đôi cả L1 lẫn L2, vì đó là chỗ L4 KHÔNG với tới:
+ * L4 đã phủ 18 ở runtime (next build, hydration, FloatingWindow mount/close,
+ * reduced-motion), còn KIỂU thì không tầng nào kiểm trên 18. Và 18 vs 19 khác nhau
+ * đúng ở kiểu - namespace `JSX` toàn cục, `ref` thành prop thường, `useRef` đòi tham
+ * số. Một `.d.ts` compile sạch dưới `@types/react@19` vẫn có thể gãy cho consumer 18.
+ *
+ * KHÔNG thêm react@18 vào L1: `03-smoke` chỉ import module trong Node và không render
+ * component nào (`ui/*` bị bỏ qua vì CSS-aware), nên phiên bản React gần như không đổi
+ * câu trả lời - trong khi L1 nằm trong `pnpm gate` NHANH và giá ~100s mỗi lần chạy là
+ * có thật.
+ */
 {
   const specs = [];
   for (const [pkg, def] of Object.entries(contract)) {
@@ -130,19 +146,32 @@ for (const [pkg, def] of Object.entries(contract)) {
       specs.push([spec === '.' ? pkg : `${pkg}${spec.slice(1)}`, named]);
     }
   }
-  const work = createConsumer({
-    level: 'l2',
-    name: 'tsc-matrix',
-    deps: [...REACT, '@types/react@19', 'typescript@5.9.2', ...OPTIONAL_PEERS],
-    tarballs: TGZ,
-    files: { 'probe.ts': tsProbe(specs) },
-  });
+  for (const reactMajor of ['19', '18']) {
+    const work = createConsumer({
+      level: 'l2',
+      name: `tsc-matrix-react${reactMajor}`,
+      deps: [
+        `react@${reactMajor}`,
+        `react-dom@${reactMajor}`,
+        `@types/react@${reactMajor}`,
+        `@types/react-dom@${reactMajor}`,
+        'typescript@5.9.2',
+        ...OPTIONAL_PEERS,
+      ],
+      tarballs: TGZ,
+      files: { 'probe.ts': tsProbe(specs) },
+    });
 
-  for (const moduleResolution of ['bundler', 'nodenext', 'node']) {
+    for (const moduleResolution of ['bundler', 'nodenext', 'node']) {
     const module = moduleResolution === 'nodenext' ? 'nodenext' : moduleResolution === 'node' ? 'commonjs' : 'esnext';
     writeFileSync(
       resolve(work, 'tsconfig.json'),
-      `${JSON.stringify({ compilerOptions: { module, moduleResolution, target: 'es2022', strict: true, noEmit: true, jsx: 'react-jsx', skipLibCheck: true, esModuleInterop: true }, files: ['probe.ts'] }, null, 2)}\n`,
+      `${JSON.stringify({ compilerOptions: { module, moduleResolution, target: 'es2022', strict: true, noEmit: true, jsx: 'react-jsx', // `skipLibCheck: false`: BẬT kiểm `.d.ts`, nếu không ca này gần như vô dụng.
+          // Đo 2026-10-07: với `true`, chèn một kiểu CHỈ có trong @types/react@19
+          // (`ActionDispatch`) vào `useToggle.ts` thì cả 6 ca vẫn XANH - tsc bỏ qua
+          // luôn declaration của library, nên ca chỉ kiểm specifier resolve được.
+          // Với `false`, library hiện tại vẫn sạch, tức không có nhiễu third-party.
+          skipLibCheck: false, esModuleInterop: true }, files: ['probe.ts'] }, null, 2)}\n`,
     );
     const r = run('npx', ['tsc', '--noEmit'], work, 180_000);
     const errs = r.out.split('\n').filter((l) => /error TS/.test(l));
@@ -151,17 +180,18 @@ for (const [pkg, def] of Object.entries(contract)) {
     // fail ở đây từ nay là hồi quy thật.
     const expectedFailure = false;
     add(
-      `tsc:${moduleResolution}`,
+      `tsc:react${reactMajor}:${moduleResolution}`,
       r.ok || expectedFailure,
-      r.ok ? `${specs.length} specifier compile sạch` : `${errs.length} lỗi TS, đầu tiên: ${errs[0]?.trim().slice(0, 120)}`,
+      r.ok ? `${specs.length} specifier compile sạch với @types/react@${reactMajor}` : `${errs.length} lỗi TS, đầu tiên: ${errs[0]?.trim().slice(0, 120)}`,
       { expectedFailure: !r.ok && expectedFailure, errorCount: errs.length },
     );
     if (!r.ok && moduleResolution === 'node') {
       findings.push({
-        id: 'ts-legacy-regression',
-        detail: `moduleResolution:node fail ${errs.length} import. QĐ-2 đã chốt support TS cũ và typesVersions đã làm nó sạch - đây là HỒI QUY, không phải hiện trạng đã biết. Kiểm typesVersions của 3 package có còn đồng bộ exports.`,
+        id: `ts-legacy-regression:react${reactMajor}`,
+        detail: `moduleResolution:node fail ${errs.length} import với @types/react@${reactMajor}. QĐ-2 đã chốt support TS cũ và typesVersions đã làm nó sạch - đây là HỒI QUY, không phải hiện trạng đã biết. Kiểm typesVersions của 3 package có còn đồng bộ exports.`,
         assignedTo: 'sửa ngay',
       });
+      }
     }
   }
 }
