@@ -95,3 +95,57 @@ export function tsProbe(specifiers) {
   lines.push('export default used;');
   return lines.join('\n');
 }
+
+/**
+ * Import TỪNG specifier của một package browser-only trong Node, không gọi hàm nào.
+ *
+ * `browserOnly: true` trong `contract.json` nói về lúc GỌI: `installSmoothScroll()`
+ * cần `window`. Nó KHÔNG nói gì về lúc IMPORT, và `CLAUDE.md` khai một bất biến
+ * riêng cho lúc import: "mọi module `tinita-dom` phải import sạch khi không có DOM".
+ *
+ * Bất biến đó chưa từng có guard - ca SSR của L2 `add(..., { skipped: true })` cho
+ * mọi package browserOnly, tức bỏ qua hẳn. Hệ quả đo được 2026-10-05:
+ * `tinita-react` không dám import `tinita-dom/validation/platform` để dùng lại
+ * `isMacOS()` mà phải trùng lặp một regex trong `formatKeyCombination.ts` - một
+ * cạnh package bị từ chối vì không ai canh bất biến nó cần.
+ *
+ * Chỉ đòi: import không throw, VÀ named export không `undefined`. Không gọi hàm -
+ * gọi sẽ throw và đó là hành vi đúng của package browser-only.
+ */
+export function importOnlyEsm(specs) {
+  return `
+${specs.map(([spec, named], i) => `import { ${named} as e${i} } from '${spec}';`).join('\n')}
+
+const rows = [
+${specs.map(([spec, named], i) => `  ['${spec}', '${named}', typeof e${i}],`).join('\n')}
+];
+const bad = rows.filter(([, , t]) => t === 'undefined');
+if (typeof globalThis.document !== 'undefined') {
+  console.error('MÔI TRƯỜNG SAI: có document, ca này phải chạy trong node trần');
+  process.exit(3);
+}
+if (bad.length > 0) {
+  console.error('binding undefined: ' + bad.map(([s, n]) => s + '#' + n).join(', '));
+  process.exit(1);
+}
+process.stdout.write('import-clean ' + rows.length);
+`;
+}
+
+/** Bản CJS của `importOnlyEsm`. `require` chạy thân module ngay, cùng câu hỏi. */
+export function importOnlyCjs(specs) {
+  return `
+const rows = [];
+${specs.map(([spec, named]) => `rows.push(['${spec}', '${named}', typeof require('${spec}').${named}]);`).join('\n')}
+const bad = rows.filter(([, , t]) => t === 'undefined');
+if (typeof globalThis.document !== 'undefined') {
+  console.error('MÔI TRƯỜNG SAI: có document, ca này phải chạy trong node trần');
+  process.exit(3);
+}
+if (bad.length > 0) {
+  console.error('binding undefined: ' + bad.map(([s, n]) => s + '#' + n).join(', '));
+  process.exit(1);
+}
+process.stdout.write('import-clean ' + rows.length);
+`;
+}

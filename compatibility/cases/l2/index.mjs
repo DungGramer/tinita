@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { EXIT, LAB } from '../../scripts/paths.mjs';
 import { createConsumer, readManifest, tarballFor } from '../../scripts/consumer.mjs';
 import { printSummary, writeReport } from '../../scripts/report.mjs';
-import { ssrCjs, ssrEsm, tsProbe } from './lib/fixtures.mjs';
+import { importOnlyCjs, importOnlyEsm, ssrCjs, ssrEsm, tsProbe } from './lib/fixtures.mjs';
 import { withPreview } from './lib/preview.mjs';
 
 const contract = JSON.parse(readFileSync(resolve(LAB, 'contract.json'), 'utf8')).packages;
@@ -75,7 +75,49 @@ for (const [name, source, file, pkgJson] of [
 
 for (const [name, def] of Object.entries(contract)) {
   if (!def.browserOnly) continue;
-  add(`ssr:skip-browser-only:${name}`, true, `bỏ qua ${name} trong ca SSR: browserOnly=true, không có SSR guard theo thiết kế (xem packages/${name}/README.md)`, { skipped: true, reason: 'browserOnly' });
+  add(`ssr:skip-browser-only:${name}`, true, `bỏ qua ${name} khi GỌI trong ca SSR: browserOnly=true, không có SSR guard theo thiết kế (xem packages/${name}/README.md). Lúc IMPORT thì có canh - xem ca import-clean:${name} bên dưới`, { skipped: true, reason: 'browserOnly' });
+}
+
+/*
+ * ---------- Package browser-only phải IMPORT sạch trong node trần ----------
+ *
+ * `browserOnly` nói về lúc GỌI. `CLAUDE.md` khai một bất biến riêng cho lúc IMPORT:
+ * "mọi module `tinita-dom` phải import sạch khi không có DOM" - và nó chưa từng có
+ * guard, vì ca SSR ngay trên bỏ qua hẳn mọi package browserOnly.
+ *
+ * Hệ quả đo được 2026-10-05: `tinita-react` không dám import
+ * `tinita-dom/validation/platform` để dùng lại `isMacOS()`, phải trùng lặp một regex
+ * trong `formatKeyCombination.ts`. Một cạnh package bị từ chối vì không ai canh bất
+ * biến nó cần.
+ *
+ * Ca chỉ đòi import không throw và binding không `undefined`. KHÔNG gọi hàm nào:
+ * gọi sẽ throw, và đó là hành vi ĐÚNG của package browser-only.
+ */
+for (const [pkg, def] of Object.entries(contract)) {
+  if (!def.browserOnly) continue;
+  const specs = def.specifiers
+    .map((spec) => [spec === '.' ? pkg : `${pkg}${spec.slice(1)}`, def.namedExports?.[spec]?.[0]])
+    .filter(([, named]) => named);
+
+  for (const [kind, source, file, pkgJson] of [
+    ['esm', importOnlyEsm(specs), 'probe.mjs', { type: 'module' }],
+    ['cjs', importOnlyCjs(specs), 'probe.cjs', {}],
+  ]) {
+    const work = createConsumer({ level: 'l2', name: `import-clean-${pkg}-${kind}`, deps: [], tarballs: TGZ, files: { [file]: source }, pkgJson });
+    const r = run('node', [file], work, 60_000);
+    const ok = r.ok && r.out.includes(`import-clean ${specs.length}`);
+    add(
+      `import-clean:${pkg}:${kind}`,
+      ok,
+      ok
+        ? `${specs.length} specifier import sạch trong node trần, 0 binding undefined`
+        : // Lấy DÒNG LỖI, không lấy đuôi stack. Bản đầu in
+          // `at async asyncRunEntryPointWithESMLoader` - đúng là output cuối cùng,
+          // và không nói gì về nguyên nhân.
+          `exit=${r.code} ${r.out.split('\n').find((l) => /Error|is not defined|undefined/.test(l))?.trim().slice(0, 220) ?? r.out.trim().slice(0, 220)}`,
+      { raw: r.out.slice(0, 400), specifiers: specs.length },
+    );
+  }
 }
 
 // ---------- tsc matrix: 3 moduleResolution ----------
